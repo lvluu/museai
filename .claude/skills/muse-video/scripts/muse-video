@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Usage: muse-video "prompt" [out_dir]
 #        muse-video -f prompt.txt [out_dir]
-# Optional env: SIZE=9:16  DURATION=30  IMAGE=first_frame.png  OUT_NAME=clip1.mp4
+# Optional env: SIZE=9:16  DURATION=  (unset: length follows the prompt)  IMAGE=first_frame.png  OUT_NAME=clip1.mp4
 #               CONTINUE_FROM=prev_clip.mp4  (its last frame becomes this clip's first frame)
 #               QUALITY=0  (skip appending ../prompt/quality.txt)
 #               MUSEAI_HOME=~/Work/museai  MUSEAI_BASE=http://127.0.0.1:18610
@@ -33,10 +33,9 @@ fi
 PROMPT="$PROMPT" python3 - "$body_file" <<'PY'
 import base64, json, mimetypes, os, sys
 body = {"model": "muse-video", "prompt": os.environ["PROMPT"]}
-# muse picks the clip length and resolution from the prompt text, so state both explicitly.
+# muse picks the resolution from the prompt text, so ask for full HD explicitly. The length is left to the prompt.
 res = {"9:16": "1080x1920", "16:9": "1920x1080", "1:1": "1080x1080"}.get(os.environ.get("SIZE", ""), "1080p")
-length = f"exactly {os.environ['DURATION']} seconds long, not a 10-second clip, " if os.environ.get("DURATION") else ""
-body["prompt"] += f"\n\nOUTPUT: one finished video, {length}full HD {res} (1080p), never 720p."
+body["prompt"] += f"\n\nOUTPUT: one finished video in full HD {res} (1080p), never 720p."
 if os.environ.get("SIZE"):
     body["size"] = os.environ["SIZE"]
 if os.environ.get("DURATION"):
