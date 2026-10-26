@@ -5,9 +5,14 @@ import asyncio
 import pytest
 
 from museai.accounts import Account, AccountPool, AccountStatus, JsonAccountStore
-from museai.drivers.base import ChatRequest
+from museai.drivers.base import ChatRequest, VideoRequest
 from museai.drivers.mock import MockDriver
-from museai.errors import NoAccountAvailable, UpstreamAuthError, UpstreamError
+from museai.errors import (
+    GenerationTimeout,
+    NoAccountAvailable,
+    UpstreamAuthError,
+    UpstreamError,
+)
 from museai.services.gateway import Gateway
 
 
@@ -81,3 +86,26 @@ async def test_gateway_fails_over(tmp_path):
     assert "hi" in text
     assert pool.get("a0").status == AccountStatus.COOLING
     assert pool.get("a1").success_count == 1
+
+
+class _SlowVideoDriver(MockDriver):
+    requires_account = True
+
+    def __init__(self):
+        super().__init__(delay=0)
+        self.calls = 0
+
+    async def generate_video(self, account, req):
+        self.calls += 1
+        raise GenerationTimeout("video generation timed out")
+
+
+async def test_generation_timeout_keeps_account_and_does_not_fail_over(tmp_path):
+    pool = await _pool(tmp_path, n=1)
+    driver = _SlowVideoDriver()
+    gw = Gateway(pool, driver, max_failover=2)
+    with pytest.raises(GenerationTimeout):
+        await gw.generate_video(VideoRequest(prompt="p", model="m"))
+    assert driver.calls == 1
+    assert pool.get("a0").status == AccountStatus.ACTIVE
+    assert (await pool.acquire()).id == "a0"

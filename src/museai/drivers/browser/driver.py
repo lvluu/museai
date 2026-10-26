@@ -27,6 +27,7 @@ from ...accounts.model import Account
 from ...config import Settings
 from ...core.prompt import followup_text
 from ...errors import (
+    GenerationTimeout,
     UpstreamAuthError,
     UpstreamError,
     UpstreamQuotaError,
@@ -517,7 +518,9 @@ class BrowserDriver(MuseDriver):
                 last_text = text
                 if text_stable >= 8:
                     raise UpstreamRefused(f"upstream replied with text only: {text[:200]}")
-        raise UpstreamTimeout(f"{kind} generation timed out")
+        raise GenerationTimeout(
+            f"{kind} generation timed out after {timeout:.0f}s; raise MUSE2API_{kind.upper()}_TIMEOUT"
+        )
 
     async def _download(self, tab: _Tab, att: dict, kind: str) -> MediaResult:
         res = await tab.session.evaluate(dom.fetch_as_base64(att["src"]), await_promise=True,

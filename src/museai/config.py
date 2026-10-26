@@ -59,7 +59,7 @@ class Settings(BaseSettings):
     chat_timeout: float = 300.0
     first_token_timeout: float = 45.0
     image_timeout: float = 240.0
-    video_timeout: float = 600.0
+    video_timeout: float = 1500.0  # 30-40 s videos often take 10+ min
 
     # --- account pool ---
     pool_strategy: PoolStrategyName = "affinity"
