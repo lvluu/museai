@@ -5,7 +5,7 @@ or syllable makes Whisper hear a different word (EP10 small model: 横 héng -> 
 while a homophone with the same tones counts as correct. Per-line audio avoids the
 whole-file transcript dropping words at chunk edges (EP10: 不 of 不好意思 lost).
 Fails when a script syllable is missing or heard with another sound or tone.
-Run: WMODEL=medium uv run --no-project --python 3.12 --with faster-whisper --with pypinyin
+Run: uv run --no-project --python 3.12 --with faster-whisper --with pypinyin
      --with opencc-python-reimplemented python pron.py video.mp4 cues.json
 """
 import difflib
@@ -24,7 +24,8 @@ video, cues = sys.argv[1], json.load(open(sys.argv[2]))
 pcm = subprocess.run(["ffmpeg", "-v", "error", "-i", video, "-vn", "-ac", "1", "-ar", "16000",
                       "-f", "s16le", "-"], capture_output=True, check=True).stdout
 audio = np.frombuffer(pcm, np.int16).astype(np.float32) / 32768.0
-model = WhisperModel(os.environ.get("WMODEL", "medium"), device="cpu", compute_type="int8")
+# large-v3: medium heard correct syllables as wrong ones (EP10: 当然 -> 倒然, 横 -> 行)
+model = WhisperModel(os.environ.get("WMODEL", "large-v3"), device="cpu", compute_type="int8")
 t2s = opencc.OpenCC("t2s").convert
 
 
