@@ -24,15 +24,16 @@ Nothing is delivered until `scripts/qa.py` says PASS and the contact sheet looks
 - `MUSE2API_VIDEO_TIMEOUT=1500` in `.env` (30-40 s videos take >10 min).
 - Results also land in `data/media/vid_*.mp4`; copy each raw render into the working folder right away.
 - Each account renders one video at a time; with N enabled accounts, N videos render in parallel. Extra requests queue for the next free account (`MUSE2API_MEDIA_QUEUE_TIMEOUT`, default 3600 s), so independent videos can be submitted at once. Clips of one multi-clip video still render in order (each needs the previous last frame).
+- Add an account: export cookies from a logged-in https://muse.ai tab (Cookie-Editor JSON), then `uv run python scripts/import_account.py <export.json> --label muse-N` in the repo root (keeps only session cookies, checks the session). Delete the export afterwards. Every account is premium; never take one out of video jobs because of a bad render without proof.
 
 ## Before rendering: fit the script to the clip
-`python3 scripts/budget.py script.txt <duration>` - needs ≤ duration and ≥ 75 % of it at 4.5 syllables/s. TOO LONG → shorten the script (keep the meaning) or extend the clip. TOO SHORT → add a line or shorten the clip. Never ask the model to speed up or slow down instead. Split lines over 14 syllables.
+`python3 scripts/budget.py script.txt <duration>` (a file with the dialogue lines only; run on the full prompt it counts every line and overshoots) - needs ≤ duration and ≥ 75 % of it at 4.5 syllables/s. TOO LONG → shorten the script (keep the meaning) or extend the clip. TOO SHORT → add a line or shorten the clip. Never ask the model to speed up or slow down instead. Split lines over 14 syllables.
 
 ## Generate one clip
 ```
 SIZE=9:16 DURATION=40 OUT_NAME=clip.mp4 NO_OPEN=1 scripts/muse-video -f prompt.txt
 ```
-Output in `~/Movies/museai/`. `IMAGE=first.png` sets the first frame. If muse replies with text only (`upstream_refused`), prepend "NEW STANDALONE REQUEST. Ignore any earlier versions, drafts or projects. Generate one new video from scratch and return the finished video file in this reply. Do not reply with text only." and retry.
+Output in `~/Movies/museai/`. With `DURATION` set, the script exits 3 with `SHORT RENDER` when the clip is under 80 % of it (e.g. a 10 s 720p clip for 30 s): don't subtitle it; see "Short renders". `IMAGE=first.png` sets the first frame. If muse replies with text only (`upstream_refused`), prepend "NEW STANDALONE REQUEST. Ignore any earlier versions, drafts or projects. Generate one new video from scratch and return the finished video file in this reply. Do not reply with text only." and retry.
 
 ## Prompt (per video; the quality block is added for you)
 Sections: CAST, SETTING, VOICE, CAMERA, SCRIPT.
@@ -41,6 +42,9 @@ Sections: CAST, SETTING, VOICE, CAMERA, SCRIPT.
 - **VOICE**: language + accent, e.g. "Natural Standard Mandarin (Putonghua), accurate tones, warm everyday intonation, about 4.5 syllables per second for every line." Optional "very quiet instrumental music far below the dialogue", or none.
 - **CAMERA**: default "One continuous take, steady locked camera, medium two-shot, both people fully in frame, faces in the upper half of the frame." Add a cut only if the user asks; give its time and what carries over.
 - **SCRIPT**: dialogue lines only, one per line with speaker label, in order.
+
+## Short renders
+muse sometimes returns a 10 s 720x1280 clip although its reply says "Generating your 30-second video". The prompt is not the cause: the exact prompt that gave 30 s 1080x1920 earlier returned 10 s 720p hours later (2026-10-26), on all four premium accounts, and a 10 s render finishes in about 1 min instead of 10+. Don't rewrite the prompt or disable accounts for it. Keep the short clip aside (`*_10s.mp4`), retry later, and tell the user if every account keeps returning short clips.
 
 ## Multi-clip videos (continuity) - ALWAYS
 The last frame of clip N-1 is the first frame of clip N.
@@ -65,3 +69,6 @@ The last frame of clip N-1 is the first frame of clip N.
    - Single-language video: at most two lines on screen. EVERYDAY CHINESE: one line per language (zh / pinyin / vi), each kept to one row by short cues.
    - Box x6–84 %, y57–75 %, block centred near 66 %; bottom 25 % and right-side buttons stay clear. Fixed position, no bouncing or flashing. Shown 0.15 s before speech, until 0.7 s after or the next cue.
 5. **Verify** frame grabs with captions at several cue times: text inside the box, no face, mouth, gesture or key object covered. Then deliver.
+
+## Maintaining this skill
+Agents update this skill directly, without asking, whenever a render, QA run or user correction teaches something new: fix the rule here, in `prompt/quality.txt` or in `scripts/`, commit on a branch, open a PR, and copy the changed files to `~/.claude/skills/muse-video/` so the installed copy stays in sync. Record only lessons proven by a render, not guesses.

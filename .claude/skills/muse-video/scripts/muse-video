@@ -58,6 +58,12 @@ while true; do
       file="$OUT_DIR/${OUT_NAME:-$(basename "$url")}"
       curl -sf "$url" -H "Authorization: Bearer $KEY" -o "$file"
       echo "SAVED $file"
+      if [ -n "${DURATION:-}" ]; then
+        read -r got height < <(ffprobe -v error -show_entries format=duration:stream=height -select_streams v:0 -of default=nw=1:nk=1 "$file" | tr '\n' ' ' | awk '{print $2, $1}')
+        if python3 -c "import sys; sys.exit(0 if float('$got') < 0.8 * $DURATION else 1)"; then
+          echo "SHORT RENDER: ${got}s ${height}p for DURATION=$DURATION; muse downgraded this render, see SKILL.md Short renders"; exit 3
+        fi
+      fi
       [ -n "${NO_OPEN:-}" ] || open "$file"
       exit 0 ;;
     failed|cancelled)
