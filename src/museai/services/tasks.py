@@ -43,6 +43,8 @@ class Task(BaseModel):
     account_id: str | None = None
     account_label: str | None = None
     attempts: list[str] = Field(default_factory=list)
+    # Identical in-flight submissions share one task instead of rendering again.
+    dedupe_key: str | None = None
 
     def assign(self, account_id: str, label: str) -> None:
         self.account_id, self.account_label = account_id, label
@@ -93,8 +95,16 @@ class TaskManager:
     def list(self, limit: int = 100) -> list[Task]:
         return sorted(self._tasks.values(), key=lambda t: t.created_at, reverse=True)[:limit]
 
-    def submit(self, kind: str, request: dict[str, Any], runner: Runner) -> Task:
-        task = Task(kind=kind, request=request)
+    def submit(
+        self, kind: str, request: dict[str, Any], runner: Runner, *, dedupe_key: str | None = None
+    ) -> Task:
+        if dedupe_key:
+            for task_id in self._running:
+                same = self._tasks.get(task_id)
+                if same and same.dedupe_key == dedupe_key and not same.finished:
+                    log.info("duplicate %s request joined in-flight %s", kind, same.id)
+                    return same
+        task = Task(kind=kind, request=request, dedupe_key=dedupe_key)
         self._tasks[task.id] = task
         self._persist()
         self._running[task.id] = asyncio.create_task(self._run(task, runner))

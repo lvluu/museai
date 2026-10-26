@@ -222,3 +222,28 @@ def test_usage_estimate_learns_cap_from_quota_hits():
     ]
     assert usage_estimate(acc, videos) == {"cap": 3, "used": 1, "left": 2, "windows": 2}
     assert usage_estimate(Account(id="a0"), videos)["left"] is None
+
+
+async def test_identical_in_flight_submission_joins_existing_task(tmp_path):
+    from museai.services.tasks import TaskManager
+
+    tasks = TaskManager(tmp_path / "tasks.json")
+    release = asyncio.Event()
+    renders = 0
+
+    async def runner(task, progress):
+        nonlocal renders
+        renders += 1
+        await release.wait()
+        return {"url": "x"}
+
+    first = tasks.submit("video", {"prompt": "p"}, runner, dedupe_key="k")
+    again = tasks.submit("video", {"prompt": "p"}, runner, dedupe_key="k")
+    other = tasks.submit("video", {"prompt": "q"}, runner, dedupe_key="k2")
+    assert again.id == first.id and other.id != first.id
+    release.set()
+    await asyncio.sleep(0.05)
+    assert renders == 2 and first.status == TaskStatus.SUCCEEDED
+    # Finished tasks no longer absorb new submissions: a retake renders again.
+    retake = tasks.submit("video", {"prompt": "p"}, runner, dedupe_key="k")
+    assert retake.id != first.id
