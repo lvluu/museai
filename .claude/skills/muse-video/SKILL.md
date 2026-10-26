@@ -1,6 +1,6 @@
 ---
 name: muse-video
-description: Generate videos with muse.ai through this repo's museai server that pass a quality gate - real-looking, fluid continuous motion (no jitter, frozen frames, stitched-clip jumps), natural everyday conversation (precise lip sync, only the speaker's mouth moves, one steady pace), clean sound, and big synced captions placed clear of faces and platform UI. Use for every video request through museai - "make a video with muse", "create video", "EVERYDAY CHINESE #NN", multi-scene or long videos, or adding subtitles to a muse video.
+description: Generate videos with muse.ai through this repo's museai server that pass a quality gate - real-looking, fluid continuous motion (no jitter, frozen frames, stitched-clip jumps), natural everyday conversation (precise lip sync, only the speaker's mouth moves, one steady pace), clean sound, and big synced captions placed clear of faces and platform UI; plus a travel-documentary mode (real places, natural light, slow camera, instrumental music, no narration or text). Use for every video request through museai - "make a video with muse", "create video", "EVERYDAY CHINESE #NN", people talking, travel / destination / landscape videos, multi-scene or long videos, or adding subtitles to a muse video.
 ---
 
 # muse-video
@@ -15,8 +15,10 @@ Nothing is delivered until `scripts/qa.py` says PASS and the contact sheet looks
 5. **One steady pace** - normal everyday speed for the whole video; never rushed, stretched or slowed to fit the clip.
 6. **Readable captions** - large, bold, high contrast, outlined, synced, short phrases, never covering faces, mouths, gestures or key objects.
 
-## Quality block (automatic)
-`prompt/quality.txt` holds the motion / continuity / performance / lip-sync / speech / acting / composition / final-check requirements. `scripts/muse-video` appends it to every prompt (set `QUALITY=0` only to debug). Edit that file to change the rules for all future videos; don't paste the rules into each prompt.
+## Style block (automatic)
+`scripts/muse-video` appends one style block to every prompt (set `QUALITY=0` only to debug). Edit these files to change the rules for all future videos; don't paste the rules into each prompt.
+- `prompt/quality.txt` (default) - people talking: motion / continuity / conversation / lip-sync / speech pace / acting / caption-safe composition / final check. The model renders no text; captions are burned in afterwards.
+- `prompt/travel.txt` (`STYLE=travel`) - travel documentary: real geography and landmarks, natural grade and light, slow plausible camera, instrumental music + ambience, no narration, no text on screen.
 
 ## Server
 - museai FastAPI on 127.0.0.1:18610 (`uv run python -m museai` in the repo root, in a visible terminal tab). Check: `lsof -nP -iTCP:18610 -sTCP:LISTEN`; not listening → start it, wait for "Application startup complete".
@@ -70,5 +72,16 @@ The last frame of clip N-1 is the first frame of clip N.
    - Box x6–84 %, y57–75 %, block centred near 66 %; bottom 25 % and right-side buttons stay clear. Fixed position, no bouncing or flashing. Shown 0.15 s before speech, until 0.7 s after or the next cue.
 5. **Verify** frame grabs with captions at several cue times: text inside the box, no face, mouth, gesture or key object covered. Then deliver.
 
+## Travel videos (`STYLE=travel`)
+Real destination, no dialogue, no captions. Rules 3-6 above don't apply; rules 1-2 do.
+1. **Prompt** sections: PLACE, TIME + WEATHER, SHOTS, MUSIC.
+   - **PLACE**: real named location + the concrete landmarks/terrain actually there (e.g. "Ha Long Bay, Vietnam: limestone karsts rising from emerald water, wooden junk boats"). Never ask for things that are not there.
+   - **TIME + WEATHER**: one time of day and weather for the whole clip (e.g. "early morning, light mist, soft low sun from the left").
+   - **SHOTS**: default one continuous shot with one slow move (drone push-in, slow pan, gentle dolly). Multiple shots only if asked; list them in order with the move per shot.
+   - **MUSIC**: instrument + mood matching the place (e.g. "soft đàn bầu and strings, calm"), plus the ambience (waves, birds, wind).
+2. **Render**: `STYLE=travel SIZE=16:9 DURATION=10 OUT_NAME=place.mp4 NO_OPEN=1 scripts/muse-video -f prompt.txt` (`SIZE=9:16` for shorts). Longer → multi-clip with `CONTINUE_FROM`, same as above.
+3. **QA**: `python3 scripts/qa.py video.mp4 --travel [planned_cuts=0] sheet.jpg` - format 1920x1080 or 1080x1920, 8-40 s, 24-30 fps; no clipping, mean > -35 dB; smooth as above. Contact sheet (12 even frames): real place, no invented landmarks, warped buildings, repeated mountains, HDR halos, text or watermarks; same light and weather throughout. FAIL → re-render with the failing rule quoted more strongly.
+4. No captions, no burn step. Deliver after PASS + sheet check.
+
 ## Maintaining this skill
-Agents update this skill directly, without asking, whenever a render, QA run or user correction teaches something new: fix the rule here, in `prompt/quality.txt` or in `scripts/`, commit on a branch, open a PR, and copy the changed files to `~/.claude/skills/muse-video/` so the installed copy stays in sync. Record only lessons proven by a render, not guesses.
+Agents update this skill directly, without asking, whenever a render, QA run or user correction teaches something new: fix the rule here, in `prompt/*.txt` or in `scripts/`, commit on a branch, open a PR, and copy the changed files to `~/.claude/skills/muse-video/` so the installed copy stays in sync. Record only lessons proven by a render, not guesses.

@@ -3,7 +3,8 @@
 #        muse-video -f prompt.txt [out_dir]
 # Optional env: SIZE=9:16  DURATION=10  IMAGE=first_frame.png  OUT_NAME=clip1.mp4
 #               CONTINUE_FROM=prev_clip.mp4  (its last frame becomes this clip's first frame)
-#               QUALITY=0  (skip appending ../prompt/quality.txt)
+#               STYLE=travel  (append ../prompt/travel.txt instead of ../prompt/quality.txt)
+#               QUALITY=0  (skip appending the style block)
 #               MUSEAI_HOME=~/Work/museai  MUSEAI_BASE=http://127.0.0.1:18610
 set -euo pipefail
 SKILL_DIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
@@ -25,10 +26,12 @@ if [ -n "${CONTINUE_FROM:-}" ]; then
 
 $PROMPT"
 fi
-if [ "${QUALITY:-1}" != 0 ] && [ -f "$SKILL_DIR/prompt/quality.txt" ]; then
+STYLE_FILE="$SKILL_DIR/prompt/${STYLE:-quality}.txt"
+[ -f "$STYLE_FILE" ] || { echo "no style block $STYLE_FILE" >&2; exit 1; }
+if [ "${QUALITY:-1}" != 0 ]; then
   PROMPT="$PROMPT
 
-$(cat "$SKILL_DIR/prompt/quality.txt")"
+$(cat "$STYLE_FILE")"
 fi
 PROMPT="$PROMPT" python3 - "$body_file" <<'PY'
 import base64, json, mimetypes, os, sys
