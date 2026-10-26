@@ -10,10 +10,13 @@ different timbre and accent each time). Dubbing every line with the same voice f
           standard Putonghua. SPEAKERS has one letter per cue (W / M).
   timing  each cue's speech span comes from the original audio (loud frames inside the cue).
           A line whose commas match the original's pauses (> 0.15 s) is synthesised per
-          comma part and each part is stretched onto its own span; otherwise the whole line
-          is stretched onto the whole span. The voice first speaks faster / slower itself
-          (edge-tts rate, -20 % .. +40 %); librosa time_stretch only fixes the rest.
-          A remaining ratio outside 0.75-1.33 is printed as STRETCH, since such a line sounds rushed or slow."""
+          comma part and each part is placed on its own span; otherwise the whole line
+          is placed on the whole span. Each part starts on the lips and plays at the voice's
+          own speed; it may run on into the silence after, up to the next part or speaker.
+          Only when it would not fit there does the voice speak faster itself (edge-tts rate,
+          up to MAX_PCT, default +20 %). Never time-stretched or slowed: EP08 v4/v5 used
+          +40 % and a phase-vocoder stretch, and the user heard a pitched, unnatural voice.
+          OVERRUN marks a part that still runs into the next one."""
 import asyncio
 import json
 import os
@@ -33,6 +36,7 @@ if len(who) != len(cues):
     sys.exit(f"SPEAKERS has {len(who)} letters for {len(cues)} cues")
 voices = {"W": os.environ.get("VOICE_W", "zh-CN-XiaoxiaoNeural"), "M": os.environ.get("VOICE_M", "zh-CN-YunjianNeural")}
 SR, HOP = 24000, 120  # 5 ms frames
+MAX_PCT = int(os.environ.get("MAX_PCT", 20))  # faster than this sounds hurried
 tmp = tempfile.mkdtemp()
 
 subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", video, "-ac", "1", "-ar", str(SR), f"{tmp}/orig.wav"], check=True)
@@ -86,17 +90,15 @@ for i, (c, s) in enumerate(zip(cues, who, strict=True)):
     else:
         parts, spans = [text], [(runs[0][0], runs[-1][1])]
     for k, (p, (a, b)) in enumerate(zip(parts, spans, strict=True)):
-        if k == len(parts) - 1 and (len(tts(p, voices[s], "probe")) / SR) / (b - a) > 1.6:
-            b = min(b + 0.12, nxt - 0.08)  # too fast to say on the lips' span: run into the pause after
+        # room: up to the next part, or the next speaker; never slowed, never time-stretched
+        room = (spans[k + 1][0] - 0.05 if k + 1 < len(spans) else nxt - 0.12) - a
         y = tts(p, voices[s], f"{i}_{k}")
-        rate = (len(y) / SR) / (b - a)
-        pct = int(np.clip(round((rate - 1) * 100), -20, 40))  # the voice itself speeds up / slows down
-        if abs(pct) >= 5:
+        pct = int(np.clip(np.ceil((len(y) / SR / room - 1) * 100), 0, MAX_PCT))
+        if pct >= 3:
             y = tts(p, voices[s], f"{i}_{k}", pct)
-            rate = (len(y) / SR) / (b - a)
-        flag = "" if 0.75 <= rate <= 1.33 else "  STRETCH"
-        print(f"{i + 1:2d}.{k} {s} {a:6.2f}-{b:6.2f} tts {pct:+3d}% x{rate:4.2f}  {p}{flag}")
-        y = librosa.effects.time_stretch(y, rate=rate)
+        dur = len(y) / SR
+        flag = "  OVERRUN" if dur > room else ""
+        print(f"{i + 1:2d}.{k} {s} lips {a:6.2f}-{b:6.2f} voice {dur:4.2f}s ({dur / (b - a):4.2f}x) tts {pct:+3d}%  {p}{flag}")
         y = y / (np.sqrt(np.mean(y**2)) + 1e-9) * 0.08  # same loudness for every line
         fade = np.minimum(1, np.minimum(np.arange(len(y)), np.arange(len(y))[::-1]) / (0.01 * SR))
         o = int(a * SR)
