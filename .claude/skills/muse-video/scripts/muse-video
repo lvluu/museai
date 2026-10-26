@@ -5,6 +5,7 @@
 #               CONTINUE_FROM=prev_clip.mp4  (its last frame becomes this clip's first frame)
 #               STYLE=travel  (append ../prompt/travel.txt instead of ../prompt/quality.txt)
 #               QUALITY=0  (skip appending the style block)
+#               RETRIES=15 RETRY_WAIT=120  (resubmit on busy account / server restart / server down)
 #               MUSEAI_HOME=~/Work/museai  MUSEAI_BASE=http://127.0.0.1:18610
 set -euo pipefail
 SKILL_DIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
@@ -51,24 +52,36 @@ if os.environ.get("IMAGE"):
 json.dump(body, open(sys.argv[1], "w"))
 PY
 
-task=$(curl -sf -X POST "$BASE/v1/videos" -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" --data-binary "@$body_file")
-id=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' <<<"$task")
-echo "task $id submitted"
-
-while true; do
-  sleep 5
-  st=$(curl -sf "$BASE/v1/videos/$id" -H "Authorization: Bearer $KEY" || echo '{"status":"poll_error"}')
-  read -r status progress url err < <(python3 -c 'import json,sys; d=json.load(sys.stdin); r=d.get("result") or {}; print(d["status"], d.get("progress"), r.get("url","-"), json.dumps(d.get("error")).replace(" ","_"))' <<<"$st")
-  echo "$(date +%T) $status progress=$progress"
-  case "$status" in
-    succeeded)
-      file="$OUT_DIR/${OUT_NAME:-$(basename "$url")}"
-      curl -sf "$url" -H "Authorization: Bearer $KEY" -o "$file"
-      read -r width height got < <(ffprobe -v error -select_streams v:0 -show_entries stream=width,height:format=duration -of default=nw=1:nk=1 "$file" | tr '\n' ' ')
-      echo "SAVED $file (${got}s ${width}x${height})"
-      [ -n "${NO_OPEN:-}" ] || open "$file"
-      exit 0 ;;
-    failed|cancelled)
-      echo "FAILED $err"; exit 1 ;;
-  esac
+# Busy account, server restart or server down are not the prompt's fault: wait and resubmit the same request
+# (RETRIES times, RETRY_WAIT s apart), so one call ends in exactly one finished video or a real failure.
+retryable='no_account_available|interrupted|submit_failed'
+for attempt in $(seq 1 "${RETRIES:-15}"); do
+  if task=$(curl -sf -X POST "$BASE/v1/videos" -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" --data-binary "@$body_file"); then
+    id=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' <<<"$task")
+    echo "task $id submitted (attempt $attempt)"
+    while true; do
+      sleep 5
+      st=$(curl -sf "$BASE/v1/videos/$id" -H "Authorization: Bearer $KEY" || echo '{"status":"poll_error"}')
+      read -r status progress url err < <(python3 -c 'import json,sys; d=json.load(sys.stdin); r=d.get("result") or {}; print(d["status"], d.get("progress"), r.get("url","-"), json.dumps(d.get("error")).replace(" ","_"))' <<<"$st")
+      echo "$(date +%T) $status progress=$progress"
+      case "$status" in
+        succeeded)
+          file="$OUT_DIR/${OUT_NAME:-$(basename "$url")}"
+          curl -sf "$url" -H "Authorization: Bearer $KEY" -o "$file"
+          read -r width height got < <(ffprobe -v error -select_streams v:0 -show_entries stream=width,height:format=duration -of default=nw=1:nk=1 "$file" | tr '\n' ' ') || true
+          echo "SAVED $file (${got}s ${width}x${height})"
+          [ -n "${NO_OPEN:-}" ] || open "$file"
+          exit 0 ;;
+        failed|cancelled)
+          echo "FAILED $err"; break ;;
+      esac
+    done
+  else
+    err=submit_failed
+    echo "$(date +%T) submit failed (server down?)"
+  fi
+  grep -qE "$retryable" <<<"$err" || exit 1
+  echo "retryable, waiting ${RETRY_WAIT:-120}s before resubmitting"
+  sleep "${RETRY_WAIT:-120}"
 done
+echo "GAVE UP after ${RETRIES:-15} attempts"; exit 1
