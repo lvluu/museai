@@ -6,6 +6,7 @@ Quality gate for a muse video. Exit 1 when any check fails.
   format  1080x1920, 24-30 fps (length is not checked: it follows the dialogue)
   voice   Whisper transcript matches the script (>= 90% of characters, lists missing/extra words)
   sound   no clipping, dialogue loud enough
+  noise   no hiss/static floor (quietest 50 ms windows above 7 kHz < -70 dB)
   pace    one steady daily-conversation speed, no long pauses (pace.py)
   smooth  no frozen stretches or duplicated frames, number of hard cuts == expected (default 0)
   mouth   writes a contact sheet (one frame mid-line per cue) to check realism + lip sync by eye
@@ -75,6 +76,18 @@ floor = -35 if travel else -30
 ok = peak < -0.5 and mean > floor
 print(f"sound   {'ok  ' if ok else 'FAIL'} peak {peak} dB, mean {mean} dB (peak < -0.5, mean > {floor})")
 ok or fails.append("sound")
+
+# noise: hiss/static shows as a steady floor above 7 kHz in the quietest 50 ms windows
+# (muse returned EP10 clips with white hiss at -51 dB there; clean clips sit near -90 dB)
+rms = subprocess.run(["ffmpeg", "-v", "error", "-i", video, "-vn", "-af",
+                      "aresample=48000,highpass=f=7000,highpass=f=7000,asetnsamples=2400,"
+                      "astats=metadata=1:reset=1,ametadata=print:key=lavfi.astats.Overall.RMS_level:file=-",
+                      "-f", "null", "-"], capture_output=True, text=True).stdout
+levels = sorted(float(v) for v in re.findall(r"RMS_level=(-?[\d.]+)", rms))
+floor = levels[len(levels) // 10] if levels else -200
+ok = floor < -70
+print(f"noise   {'ok  ' if ok else 'FAIL'} hiss floor {floor:.0f} dB above 7 kHz (< -70; stitch.sh denoises)")
+ok or fails.append("noise")
 
 # pace
 if not travel:
