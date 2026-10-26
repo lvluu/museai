@@ -5,6 +5,8 @@
 #               CONTINUE_FROM=prev_clip.mp4  (its last frame becomes this clip's first frame)
 #               STYLE=travel  (append ../prompt/travel.txt instead of ../prompt/quality.txt)
 #               QUALITY=0  (skip appending the style block)
+#               TAKE=2  (parallel takes of one clip: the server merges identical in-flight
+#                        requests into one render, so each take needs its own TAKE number)
 #               RETRIES=15 RETRY_WAIT=120  (resubmit on busy account / server restart / server down)
 #               MUSEAI_HOME=~/Work/museai  MUSEAI_BASE=http://127.0.0.1:18610
 set -euo pipefail
@@ -41,6 +43,8 @@ body = {"model": "muse-video", "prompt": os.environ["PROMPT"]}
 res = {"9:16": "1080x1920", "16:9": "1920x1080", "1:1": "1080x1080"}.get(os.environ.get("SIZE", ""), "1080p")
 length = f"exactly {os.environ['DURATION']} seconds long, not a 10-second clip, " if os.environ.get("DURATION") else ""
 body["prompt"] += f"\n\nOUTPUT: one finished video, {length}full HD {res} (1080p), never 720p."
+if os.environ.get("TAKE"):
+    body["prompt"] += f" Independent take {os.environ['TAKE']}."
 if os.environ.get("SIZE"):
     body["size"] = os.environ["SIZE"]
 if os.environ.get("DURATION"):
