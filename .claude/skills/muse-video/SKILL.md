@@ -29,13 +29,13 @@ Nothing is delivered until `scripts/qa.py` says PASS and the contact sheet looks
 - Add an account: export cookies from a logged-in https://muse.ai tab (Cookie-Editor JSON), then `uv run python scripts/import_account.py <export.json> --label muse-N` in the repo root (keeps only session cookies, checks the session). Delete the export afterwards. Every account is premium; never take one out of video jobs because of a bad render without proof.
 
 ## Before rendering: fit the script to the clip
-`python3 scripts/budget.py script.txt <duration>` (a file with the dialogue lines only; run on the full prompt it counts every line and overshoots) - needs ≤ duration and ≥ 75 % of it at 4.5 syllables/s. TOO LONG → shorten the script (keep the meaning) or extend the clip. TOO SHORT → add a line or shorten the clip. Never ask the model to speed up or slow down instead. Split lines over 14 syllables.
+`python3 scripts/budget.py script.txt <duration>` (a file with the dialogue lines only; run on the full prompt it counts every line and overshoots) - needs ≤ duration and ≥ 75 % of it at 4.5 syllables/s. TOO LONG → shorten the script (keep the meaning) or extend the clip. TOO SHORT or BELOW 30s MINIMUM → add a natural line (e.g. a closing reply); muse renders about as long as the speech, so asking for 30 s with 26 s of dialogue gives a 28 s video that fails QA. Never ask the model to speed up or slow down instead. Split lines over 14 syllables.
 
 ## Generate one clip
 ```
 SIZE=9:16 DURATION=40 OUT_NAME=clip.mp4 NO_OPEN=1 scripts/muse-video -f prompt.txt
 ```
-Output in `~/Movies/museai/`. The video length comes from the prompt: always set `DURATION`, and the script adds an OUTPUT line asking for exactly that many seconds in full HD 1080p (1080x1920 for 9:16). It prints the delivered length and size and never rejects or blocks a render. `IMAGE=first.png` sets the first frame. If muse replies with text only (`upstream_refused`), prepend "NEW STANDALONE REQUEST. Ignore any earlier versions, drafts or projects. Generate one new video from scratch and return the finished video file in this reply. Do not reply with text only." and retry.
+Output in `~/Movies/museai/`. The video length comes from the prompt: always set `DURATION`, and the script adds an OUTPUT line asking for exactly that many seconds in full HD 1080p (1080x1920 for 9:16). It prints the delivered length and size and never rejects or blocks a render. `IMAGE=first.png` sets the first frame. A busy account (`no_account_available`), a server restart (`interrupted`) or a down server are retried automatically (`RETRIES=15`, `RETRY_WAIT=120` s), so one call yields one finished video; run it in the background and don't resubmit by hand. If muse replies with text only (`upstream_refused`), prepend "NEW STANDALONE REQUEST. Ignore any earlier versions, drafts or projects. Generate one new video from scratch and return the finished video file in this reply. Do not reply with text only." and retry.
 
 ## Prompt (per video; the quality block is added for you)
 Sections: CAST, SETTING, VOICE, CAMERA, SCRIPT.
@@ -43,6 +43,8 @@ Sections: CAST, SETTING, VOICE, CAMERA, SCRIPT.
 - **SETTING**: one real, specific place with a few concrete objects that stay where they are.
 - **VOICE**: language + accent, e.g. "Natural Standard Mandarin (Putonghua), accurate tones, warm everyday intonation, about 4.5 syllables per second for every line." Optional "very quiet instrumental music far below the dialogue", or none.
 - **CAMERA**: default "One continuous take, steady locked camera, medium two-shot, both people fully in frame, faces in the upper half of the frame." Add a cut only if the user asks; give its time and what carries over.
+- **Intro shot + cut** (e.g. a to-camera intro, then the two-shot): muse redraws the person after the cut and has aged or swapped faces (EP07: 40-year-old in the intro, 25-year-old at the desk). Pass `IMAGE=` a 9:16 still of that person (crop a frame of an earlier episode or render) and write "The woman in the attached image is the same woman in every shot: identical face, age, hairstyle and outfit."
+- **Turn to camera at the end**: write "she turns her head and starts speaking within 0.3 s"; otherwise the turn adds a >1 s silent gap that fails the pace check.
 - **SCRIPT**: dialogue lines only, one per line with speaker label, in order.
 
 ## Short renders
