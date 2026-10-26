@@ -29,8 +29,19 @@ sheet = rest[1] if len(rest) > 1 else Path(video).stem + "_qa.jpg"
 fails = []
 
 
+def zh_number(m):
+    """Whisper writes amounts as digits ("200块"); spell them like the script (二百)."""
+    n, out = int(m.group()), ""
+    for value, unit in ((1000, "千"), (100, "百"), (10, "十"), (1, "")):
+        if n >= value:
+            out += "零一二三四五六七八九"[n // value] + unit
+            n %= value
+    return out or "零"
+
+
 def norm(text):
-    return re.sub(r"[^一-鿿A-Za-z]", "", text.replace("Wi-Fi", "W")).replace("WiFi", "W")
+    text = re.sub(r"\d+", zh_number, text.replace("Wi-Fi", "W")).replace("两", "二")
+    return re.sub(r"[^一-鿿A-Za-z]", "", text).replace("WiFi", "W")
 
 
 def ffmpeg_log(*vf):

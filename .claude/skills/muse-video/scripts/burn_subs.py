@@ -1,6 +1,8 @@
-"""Usage: burn_subs.py video.mp4 cues.json out.mp4
+"""Usage: [BOX=x0,y0,x1,y1] burn_subs.py video.mp4 cues.json out.mp4
+BOX: caption area in % of the frame when the brief sets one (e.g. BOX=10,62,82,76).
 cues.json: [[speech_start, speech_end, zh, pinyin, vi], ...] -> 3-line subtitles burned in."""
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -10,6 +12,9 @@ from PIL import Image, ImageDraw, ImageFont
 
 W, H = 1080, 1920
 BOX = (65, 1094, 907, 1440)  # x6-84%, y57-75%: block centred ~66%, bottom 25% + right edge clear
+if os.environ.get("BOX"):
+    x0, y0, x1, y1 = (float(v) / 100 for v in os.environ["BOX"].split(","))
+    BOX = (round(x0 * W), round(y0 * H), round(x1 * W), round(y1 * H))
 ZH_FONT = ("/System/Library/AssetsV2/com_apple_MobileAsset_Font8/86ba2c91f017a3749571a82f2c6d890ac7ffb2fb"
            ".asset/AssetData/PingFang.ttc")
 LATIN_FONT = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"

@@ -45,6 +45,7 @@ Sections: CAST, SETTING, VOICE, CAMERA, SCRIPT.
 - **CAMERA**: default "One continuous take, steady locked camera, medium two-shot, both people fully in frame, faces in the upper half of the frame." Add a cut only if the user asks; give its time and what carries over.
 - **Intro shot + cut** (e.g. a to-camera intro, then the two-shot): muse redraws the person after the cut and has aged or swapped faces (EP07: 40-year-old in the intro, 25-year-old at the desk). Pass `IMAGE=` a 9:16 still of that person (crop a frame of an earlier episode or render) and write "The woman in the attached image is the same woman in every shot: identical face, age, hairstyle and outfit."
 - **Turn to camera at the end**: write "she turns her head and starts speaking within 0.3 s"; otherwise the turn adds a >1 s silent gap that fails the pace check.
+- **Listener turns to camera with her** (EP06: 5 of 6 renders of the last clip): "still listener", "strict side profile" and "she is the only one who looks at the lens" did not stop it. What worked: "the woman turns only her head partway toward the camera (three-quarter view)"; the assistant then stayed in profile until 8.7 s of 10. Listeners drift toward the lens near the clip end, so cut the last clip 0.5 s after the final word.
 - **SCRIPT**: dialogue lines only, one per line with speaker label, in order.
 
 ## Short renders
@@ -61,7 +62,7 @@ The last frame of clip N-1 is the first frame of clip N.
 6. Join with `scripts/stitch.sh out.mp4 part1.mp4 part2.mp4 ...`: drops the duplicate first frame, scales every clip to the first one's size (muse returned clip 2 of a 1080p chain at 720x1280), and evens out loudness between clips (EP06 clips came back 8 dB apart). Subtitle and QA the stitched file.
 
 ## Timing, QA, captions
-1. **Word timings**: `WMODEL=medium uv run --no-project --python 3.12 --with faster-whisper python scripts/transcribe.py video.mp4 words.json` (no hint first: the script hint can make Whisper skip or invent lines; add it only if words are misheard). Word starts absorb leading silence, so tighten cue bounds with `silencedetect` before judging pace. Missed lines → cut that span to wav and rerun with `VAD=0`.
+1. **Word timings**: `WMODEL=medium uv run --no-project --python 3.12 --with faster-whisper python scripts/transcribe.py video.mp4 words.json` (no hint first: the script hint can make Whisper skip or invent lines; add it only if words are misheard). It transcribes ~10 s chunks cut at quiet points with VAD off: one pass over a stitched 32 s file returned only the first and last line (EP06), and VAD dropped the intro line and three more. Output is simplified Chinese; `qa.py` reads digits as Chinese numerals ("200块" = 两百块). Word starts absorb leading silence and music hides the gaps from `silencedetect`, so set cue bounds from a speech-band energy envelope (250-3500 Hz) before judging pace.
 2. **cues.json**: `[[speech_start, speech_end, line1, line2, ...], ...]` from the word timings (EVERYDAY CHINESE: zh, pinyin, vi). One short, meaningful phrase per cue.
 3. **QA gate**: `python3 scripts/qa.py video.mp4 cues.json words.json [planned_cuts=0] sheet.jpg`
    - format 1080x1920, 30–40 s, constant 24–30 fps
@@ -71,10 +72,10 @@ The last frame of clip N-1 is the first frame of clip N.
    - smooth: no freeze ≥ 0.5 s, ≤ 5 % repeated frames, hard cuts == planned
    - contact sheet: every tile real, same faces/outfits/background, normal hands, only the speaker's mouth open
    - FAIL → re-render with the failing rule quoted more strongly in the prompt. Never retime audio in post (breaks lip sync). After 2 failed re-renders, deliver the best one and name the failed checks.
-4. **Burn captions**: `uv run --no-project --python 3.12 --with pillow python scripts/burn_subs.py video.mp4 cues.json out.mp4`
+4. **Burn captions**: `[BOX=x0,y0,x1,y1] uv run --no-project --python 3.12 --with pillow python scripts/burn_subs.py video.mp4 cues.json out.mp4`
    - Large bold white text, thick dark outline. Chinese 112 px, Latin 66 px.
    - Single-language video: at most two lines on screen. EVERYDAY CHINESE: one line per language (zh / pinyin / vi), each kept to one row by short cues.
-   - Box x6–84 %, y57–75 %, block centred near 66 %; bottom 25 % and right-side buttons stay clear. Fixed position, no bouncing or flashing. Shown 0.15 s before speech, until 0.7 s after or the next cue.
+   - Box x6–84 %, y57–75 % by default, or the brief's own box in % via `BOX=` (EP06: `BOX=10,62,82,76`); block centred in it; bottom 25 % and right-side buttons stay clear. Fixed position, no bouncing or flashing. Shown 0.15 s before speech, until 0.7 s after or the next cue.
 5. **Verify** frame grabs with captions at several cue times: text inside the box, no face, mouth, gesture or key object covered. Then deliver.
 
 ## Travel videos (`STYLE=travel`)
