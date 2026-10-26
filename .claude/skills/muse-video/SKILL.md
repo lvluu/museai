@@ -25,7 +25,7 @@ Nothing is delivered until `scripts/qa.py` says PASS and the contact sheet looks
 - Never print `data/api_key` or `data/accounts.json` (live muse.ai session cookies).
 - `MUSE2API_VIDEO_TIMEOUT=1500` in `.env` (30-40 s videos take >10 min).
 - Results also land in `data/media/vid_*.mp4`; copy each raw render into the working folder right away.
-- Each account renders one video at a time; with N enabled accounts, N videos render in parallel. Extra requests queue for the next free account (`MUSE2API_MEDIA_QUEUE_TIMEOUT`, default 3600 s), so independent videos can be submitted at once. Clips of one multi-clip video still render in order (each needs the previous last frame).
+- Each account renders one video at a time; with N enabled accounts, N videos render in parallel. Extra requests queue for the next free account (`MUSE2API_MEDIA_QUEUE_TIMEOUT`, default 0 = no limit), so independent videos can be submitted at once. Sending the same prompt (and first frame) again while it is still queued or running returns the same task, not a second render: submit each clip once and wait for it. Clips of one multi-clip video still render in order (each needs the previous last frame).
 - Add an account: export cookies from a logged-in https://muse.ai tab (Cookie-Editor JSON), then `uv run python scripts/import_account.py <export.json> --label muse-N` in the repo root (keeps only session cookies, checks the session). Delete the export afterwards. Every account is premium; never take one out of video jobs because of a bad render without proof.
 
 ## Before rendering: fit the script to the clip

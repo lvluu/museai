@@ -37,6 +37,9 @@ class Account(BaseModel):
     last_error: str | None = None
     success_count: int = 0
     fail_count: int = 0
+    quota_hits: list[float] = Field(
+        default_factory=list, description="When muse.ai last said 'Out of usage' (newest last)"
+    )
 
     meta: dict[str, Any] = Field(
         default_factory=dict, description="Driver-specific data such as quota snapshots or vm ids"

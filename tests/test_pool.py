@@ -7,6 +7,7 @@ import time
 import pytest
 
 from museai.accounts import Account, AccountPool, AccountStatus, JsonAccountStore
+from museai.api.routes.dashboard import usage_estimate
 from museai.drivers.base import ChatRequest, VideoRequest
 from museai.drivers.mock import MockDriver
 from museai.errors import (
@@ -14,8 +15,10 @@ from museai.errors import (
     NoAccountAvailable,
     UpstreamAuthError,
     UpstreamError,
+    UpstreamQuotaError,
 )
 from museai.services.gateway import Gateway
+from museai.services.tasks import Task, TaskStatus
 
 
 async def _pool(tmp_path, n=2, **kw) -> AccountPool:
@@ -189,3 +192,58 @@ async def test_videos_run_in_parallel_one_per_account_and_queue_for_the_next_fre
     for name in ("v1", "v3", "v5", "v6"):
         driver.release[name].set()
     await asyncio.gather(*jobs.values())
+
+
+async def test_quota_error_records_hit(tmp_path):
+    pool = await _pool(tmp_path, n=1)
+    with pytest.raises(UpstreamQuotaError):
+        async with pool.lease():
+            raise UpstreamQuotaError("Out of usage")
+    assert len(pool.get("a0").quota_hits) == 1
+
+
+def test_usage_estimate_learns_cap_from_quota_hits():
+    acc = Account(id="a0", quota_hits=[100.0, 200.0])
+
+    def video(created, done, status=TaskStatus.SUCCEEDED, account="a0"):
+        t = Task(kind="video", request={}, status=status, account_id=account, created_at=created)
+        t.updated_at = done
+        return t
+
+    videos = [
+        video(10, 20),
+        video(20, 50),
+        video(50, 90),  # window 1: 3 before first hit
+        video(110, 150),
+        video(150, 190),  # window 2: 2
+        video(210, 250),
+        video(250, 260, status=TaskStatus.FAILED),  # since last hit: 1 used
+        video(210, 250, account="other"),
+    ]
+    assert usage_estimate(acc, videos) == {"cap": 3, "used": 1, "left": 2, "windows": 2}
+    assert usage_estimate(Account(id="a0"), videos)["left"] is None
+
+
+async def test_identical_in_flight_submission_joins_existing_task(tmp_path):
+    from museai.services.tasks import TaskManager
+
+    tasks = TaskManager(tmp_path / "tasks.json")
+    release = asyncio.Event()
+    renders = 0
+
+    async def runner(task, progress):
+        nonlocal renders
+        renders += 1
+        await release.wait()
+        return {"url": "x"}
+
+    first = tasks.submit("video", {"prompt": "p"}, runner, dedupe_key="k")
+    again = tasks.submit("video", {"prompt": "p"}, runner, dedupe_key="k")
+    other = tasks.submit("video", {"prompt": "q"}, runner, dedupe_key="k2")
+    assert again.id == first.id and other.id != first.id
+    release.set()
+    await asyncio.sleep(0.05)
+    assert renders == 2 and first.status == TaskStatus.SUCCEEDED
+    # Finished tasks no longer absorb new submissions: a retake renders again.
+    retake = tasks.submit("video", {"prompt": "p"}, runner, dedupe_key="k")
+    assert retake.id != first.id

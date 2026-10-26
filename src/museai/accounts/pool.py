@@ -23,6 +23,8 @@ from ..errors import NoAccountAvailable, UpstreamAuthError, UpstreamQuotaError
 from .model import Account, AccountStatus
 from .store import AccountStore
 
+QUOTA_HISTORY = 20
+
 log = logging.getLogger(__name__)
 
 
@@ -222,6 +224,7 @@ class AccountPool:
         elif isinstance(error, UpstreamQuotaError):
             acc.status = AccountStatus.COOLING
             acc.cooldown_until = time.time() + max(self.cooldown, 3600)
+            acc.quota_hits = [*acc.quota_hits, time.time()][-QUOTA_HISTORY:]
             log.warning("account %s out of quota, cooling down", acc.id)
         elif getattr(error, "retryable", False):
             acc.status = AccountStatus.COOLING

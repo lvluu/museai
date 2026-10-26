@@ -33,6 +33,7 @@
   .card .id { font: 12px ui-monospace, monospace; color: var(--muted); }
   .card .big { font-size: 24px; font-weight: 600; margin-top: 6px; font-variant-numeric: tabular-nums; }
   .counts { display: flex; gap: 10px; font-size: 12px; font-variant-numeric: tabular-nums; }
+  .est { font-size: 12px; margin-top: 4px; }
   .usage { display: flex; justify-content: space-between; gap: 6px; flex-wrap: wrap; font-size: 12px;
            margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
   .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
@@ -89,7 +90,7 @@
 const UNKNOWN = "__unknown__";
 // Remote viewers pass the admin key in the fragment (never sent to the server in the URL).
 const key = new URLSearchParams(location.hash.slice(1)).get("key") || "";
-let accounts = [], tasks = [], selected = "", timer = null;
+let accounts = [], usage = {}, tasks = [], selected = "", timer = null;
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
@@ -120,6 +121,7 @@ function acctName(id, fallback) {
 
 // muse.ai shows no remaining-usage number; the best signal is whether the account
 // hit "Out of usage" (pool cools it down) and how much it rendered recently.
+// The videos-left figure is an estimate learned from past "Out of usage" hits.
 function usageLine(acc, list) {
   if (!acc) return "";
   const day = list.filter((t) => t.created_at > Date.now() / 1000 - 86400).length;
@@ -132,7 +134,11 @@ function usageLine(acc, list) {
     state = /quota/i.test(acc.last_error || "")
       ? `<span class="s-failed">out of usage · retry ${at}</span>`
       : `<span class="s-running">cooling · retry ${at}</span>`;
-  return `<div class="usage">${state}<span class="muted">${day} video${day === 1 ? "" : "s"} last 24h</span></div>`;
+  const u = usage[acc.id];
+  const est = !u ? "" : u.cap == null
+    ? `<div class="est muted" title="Learned the first time muse.ai says Out of usage">videos left: unknown yet · ${u.used} used</div>`
+    : `<div class="est" title="Estimate: best of ${u.windows} past usage window${u.windows === 1 ? "" : "s"}">~${u.left} videos left <span class="muted">(est. ${u.used}/${u.cap} used)</span></div>`;
+  return `<div class="usage">${state}<span class="muted">${day} video${day === 1 ? "" : "s"} last 24h</span></div>${est}`;
 }
 
 function renderCards() {
@@ -195,6 +201,7 @@ async function load() {
   try {
     const d = await api("/dashboard/data");
     accounts = d.accounts;
+    usage = d.usage || {};
     tasks = d.videos;
     $("updated").textContent = "updated " + new Date().toLocaleTimeString();
     renderCards(); renderRows();

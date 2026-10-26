@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import hashlib
+import json
+
 from fastapi import APIRouter, Depends, Request
 
 from ...core.media import load_image_ref
@@ -48,7 +51,10 @@ async def create_video(body: VideoCreateRequest, request: Request,
 
     request_meta = {"model": spec.id, "prompt": body.prompt, "size": body.size,
                     "duration": body.duration or body.seconds, "has_first_frame": bool(first_frame)}
-    task = svc.tasks.submit("video", request_meta, runner)
+    key = hashlib.sha256(json.dumps(request_meta, sort_keys=True).encode())
+    if first_frame:
+        key.update(first_frame.data)
+    task = svc.tasks.submit("video", request_meta, runner, dedupe_key=key.hexdigest())
     return _task_view(task)
 
 
