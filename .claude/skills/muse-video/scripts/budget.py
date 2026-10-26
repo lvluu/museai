@@ -4,20 +4,19 @@ script.txt: one line per turn, "A: 你好..." (speaker label optional). Han char
 Need = syllables / 4.5 + 0.3 s per turn change + 1.5 s (start + resting end). Exit 1 when need > duration,
 or when need < 75 % of it or < MIN_LEN (default 30 s, the QA minimum; MIN_LEN=0 disables): muse renders to the
 speech length, so a short script yields a short video whatever duration is requested."""
+import os
 import re
 import sys
 
-import os
-
 RATE, TURN_GAP, PAD, MAX_LINE = 4.5, 0.3, 1.5, 14
 MIN_LEN = float(os.environ.get("MIN_LEN", 30))
-lines = [l.split(":", 1)[-1].split("：", 1)[-1].strip() for l in open(sys.argv[1], encoding="utf-8") if l.strip()]
+lines = [t.split(":", 1)[-1].split("：", 1)[-1].strip() for t in open(sys.argv[1], encoding="utf-8") if t.strip()]
 duration = float(sys.argv[2])
-syl = [len(re.findall(r"[一-鿿]", l)) + 2 * l.count("Wi-Fi") for l in lines]
+syl = [len(re.findall(r"[一-鿿]", t)) + 2 * t.count("Wi-Fi") for t in lines]
 need = sum(syl) / RATE + TURN_GAP * (len(lines) - 1) + PAD
-for n, l in zip(syl, lines):
+for n, line in zip(syl, lines, strict=True):
     if n > MAX_LINE:
-        print(f"LONG LINE {n} syl (max {MAX_LINE}, split it): {l}")
+        print(f"LONG LINE {n} syl (max {MAX_LINE}, split it): {line}")
 print(f"{len(lines)} lines, {sum(syl)} syllables -> needs {need:.1f}s of {duration:.0f}s")
 if need > duration:
     print(f"TOO LONG: shorten the script by ~{(need - duration) * RATE:.0f} syllables or extend the clip")

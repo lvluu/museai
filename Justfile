@@ -15,6 +15,14 @@ format:
 test:
     uv run pytest -q
 
+# Enable the git hooks that block credentials from commits and pushes
+hooks:
+    git config core.hooksPath .githooks
+
+# Scan every tracked file for credentials and private files
+secrets:
+    python3 scripts/check_secrets.py --all
+
 # --- gateway service (systemd user unit) ---
 up:
     systemctl --user start museai.service

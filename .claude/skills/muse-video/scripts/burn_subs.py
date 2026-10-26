@@ -50,7 +50,7 @@ def row_h(font, stroke):
 
 def layout(texts, scale):
     rows = []
-    for (path, size, stroke), text in zip(LINES, texts):
+    for (path, size, stroke), text in zip(LINES, texts, strict=False):
         rows += [(font, line, stroke) for font, line in fit(path, int(size * scale), text)]
     height = sum(row_h(f, st) for f, _, st in rows) + GAP * (len(rows) - 1)
     return rows, height

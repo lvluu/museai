@@ -21,7 +21,7 @@ Available tasks are listed in [TODO.md](TODO.md). Before starting, open an issue
 - When adding a driver capability, update `DriverCapabilities` and add a fake implementation to `MockDriver` so that tests never need network access.
 - Upstream errors must be mapped to the types in `errors.py`; never swallow exceptions inside a driver.
 - CI must never contact the real muse.ai; tests that need upstream data should use recorded fixtures.
-- Never commit cookies, the `data/` directory or `.env`.
+- Never commit cookies, the `data/` directory or `.env`. Run `just hooks` once after cloning: the pre-commit and pre-push hooks in `.githooks/` run `scripts/check_secrets.py`, which blocks token patterns, home-directory paths, private files and the exact values of your local keys and cookies. CI runs the same scan.
 
 ## Adding a driver
 
