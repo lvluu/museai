@@ -2,7 +2,6 @@
 # Usage: muse-video "prompt" [out_dir]
 #        muse-video -f prompt.txt [out_dir]
 # Optional env: SIZE=9:16  DURATION=30  IMAGE=first_frame.png  OUT_NAME=clip1.mp4
-#               TRIES=4  (resubmit renders shorter than 10.5 s / 80 % of DURATION or under 1080p)
 #               CONTINUE_FROM=prev_clip.mp4  (its last frame becomes this clip's first frame)
 #               QUALITY=0  (skip appending ../prompt/quality.txt)
 #               MUSEAI_HOME=~/Work/museai  MUSEAI_BASE=http://127.0.0.1:18610
@@ -34,6 +33,10 @@ fi
 PROMPT="$PROMPT" python3 - "$body_file" <<'PY'
 import base64, json, mimetypes, os, sys
 body = {"model": "muse-video", "prompt": os.environ["PROMPT"]}
+# muse picks the clip length and resolution from the prompt text, so state both explicitly.
+res = {"9:16": "1080x1920", "16:9": "1920x1080", "1:1": "1080x1080"}.get(os.environ.get("SIZE", ""), "1080p")
+length = f"exactly {os.environ['DURATION']} seconds long, not a 10-second clip, " if os.environ.get("DURATION") else ""
+body["prompt"] += f"\n\nOUTPUT: one finished video, {length}full HD {res} (1080p), never 720p."
 if os.environ.get("SIZE"):
     body["size"] = os.environ["SIZE"]
 if os.environ.get("DURATION"):
@@ -45,37 +48,24 @@ if os.environ.get("IMAGE"):
 json.dump(body, open(sys.argv[1], "w"))
 PY
 
-# muse sometimes returns a 10 s 720p clip for a longer request. Reject it and resubmit: the pool hands the
-# retry to the least recently used of the premium accounts, so each attempt can land on another account.
-TRIES=${TRIES:-4}
-MIN_SECONDS=$(python3 -c "print(max(10.5, 0.8 * ${DURATION:-0}))")
-for attempt in $(seq 1 "$TRIES"); do
-  task=$(curl -sf -X POST "$BASE/v1/videos" -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" --data-binary "@$body_file")
-  id=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' <<<"$task")
-  echo "task $id submitted (attempt $attempt/$TRIES)"
+task=$(curl -sf -X POST "$BASE/v1/videos" -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" --data-binary "@$body_file")
+id=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' <<<"$task")
+echo "task $id submitted"
 
-  while true; do
-    sleep 5
-    st=$(curl -sf "$BASE/v1/videos/$id" -H "Authorization: Bearer $KEY" || echo '{"status":"poll_error"}')
-    read -r status progress url err < <(python3 -c 'import json,sys; d=json.load(sys.stdin); r=d.get("result") or {}; print(d["status"], d.get("progress"), r.get("url","-"), json.dumps(d.get("error")).replace(" ","_"))' <<<"$st")
-    echo "$(date +%T) $status progress=$progress"
-    case "$status" in
-      succeeded) break ;;
-      failed|cancelled) echo "FAILED $err"; exit 1 ;;
-    esac
-  done
-
-  file="$OUT_DIR/${OUT_NAME:-$(basename "$url")}"
-  curl -sf "$url" -H "Authorization: Bearer $KEY" -o "$file"
-  read -r width height got < <(ffprobe -v error -select_streams v:0 -show_entries stream=width,height:format=duration -of default=nw=1:nk=1 "$file" | tr '\n' ' ')
-  if python3 -c "import sys; sys.exit(0 if float('$got') >= $MIN_SECONDS and min($width, $height) >= 1080 else 1)"; then
-    echo "SAVED $file (${got}s ${width}x${height})"
-    [ -n "${NO_OPEN:-}" ] || open "$file"
-    exit 0
-  fi
-  rejected="${file%.*}_rejected$attempt.${file##*.}"
-  mv "$file" "$rejected"
-  echo "SHORT RENDER: ${got}s ${width}x${height}, need >= ${MIN_SECONDS}s and 1080p; kept as $rejected, retrying"
+while true; do
+  sleep 5
+  st=$(curl -sf "$BASE/v1/videos/$id" -H "Authorization: Bearer $KEY" || echo '{"status":"poll_error"}')
+  read -r status progress url err < <(python3 -c 'import json,sys; d=json.load(sys.stdin); r=d.get("result") or {}; print(d["status"], d.get("progress"), r.get("url","-"), json.dumps(d.get("error")).replace(" ","_"))' <<<"$st")
+  echo "$(date +%T) $status progress=$progress"
+  case "$status" in
+    succeeded)
+      file="$OUT_DIR/${OUT_NAME:-$(basename "$url")}"
+      curl -sf "$url" -H "Authorization: Bearer $KEY" -o "$file"
+      read -r width height got < <(ffprobe -v error -select_streams v:0 -show_entries stream=width,height:format=duration -of default=nw=1:nk=1 "$file" | tr '\n' ' ')
+      echo "SAVED $file (${got}s ${width}x${height})"
+      [ -n "${NO_OPEN:-}" ] || open "$file"
+      exit 0 ;;
+    failed|cancelled)
+      echo "FAILED $err"; exit 1 ;;
+  esac
 done
-echo "SHORT RENDER on all $TRIES attempts; see SKILL.md Short renders"
-exit 3
