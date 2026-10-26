@@ -6,6 +6,32 @@
 data/
 *.sqlite
 *.db
+*.pem
+*.p12
+*.har
+*cookie*.txt
+*cookies*.json
+accounts.json
+api_key
+.claude/settings.local.json
+
+# Personal video work (renders, prompts, transcripts, QA frames)
+*.mp4
+*.mov
+*.webm
+*.mp3
+*.wav
+*.m4a
+*.log
+/ep*/
+/ep*_*
+/frames*/
+/seceda/
+/*.jpg
+/*.png
+/burn_subs.py
+/transcribe.py
+/muse_video.sh
 
 # Python
 __pycache__/

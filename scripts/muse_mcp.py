@@ -12,7 +12,7 @@ Register once:
 
     claude mcp add --scope user museai \
       --env MUSE2API_API_KEY=sk-museai-local-key \
-      -- uv run /home/aloidaika/museai/scripts/muse_mcp.py
+      -- uv run /path/to/museai/scripts/muse_mcp.py
 """
 
 from __future__ import annotations
