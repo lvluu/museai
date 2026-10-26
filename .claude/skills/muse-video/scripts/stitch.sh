@@ -4,7 +4,9 @@
 # clip's last frame, so its first frame is dropped to avoid a frozen duplicate.
 # muse can return one clip of a chain at 720p, so every clip is scaled to the
 # first clip's size, and each clip's audio is normalised to the same loudness
-# (clips of one chain have come back up to 8 dB apart).
+# (clips of one chain have come back up to 8 dB apart). Each clip is denoised first:
+# muse returned EP10 clips with a white hiss floor that loudnorm lifted into earshot;
+# afftdn removes it without touching speech or music, and never retimes, so lip sync holds.
 set -euo pipefail
 out=$1; shift
 read -r W H < <(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 "$1" | tr , ' ')
@@ -18,7 +20,7 @@ for clip in "$@"; do
   read -r a0 a1 < <(python3 -c "from fractions import Fraction as F; f=F('$fps'); print(float($skip/f), float($nb/f))")
   trim=""; [ $skip -eq 0 ] || trim="trim=start_frame=1,"
   chain+="[$n:v]${trim}setpts=PTS-STARTPTS,scale=$W:$H:flags=lanczos,setsar=1[v$n];"
-  chain+="[$n:a]loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000,atrim=start=$a0:end=$a1,asetpts=PTS-STARTPTS,apad=whole_dur=$(python3 -c "print($a1-$a0)")[a$n];"
+  chain+="[$n:a]afftdn=nr=40:nf=-40:tn=0,loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000,atrim=start=$a0:end=$a1,asetpts=PTS-STARTPTS,apad=whole_dur=$(python3 -c "print($a1-$a0)")[a$n];"
   n=$((n + 1))
 done
 for ((i = 0; i < n; i++)); do chain+="[v$i][a$i]"; done
