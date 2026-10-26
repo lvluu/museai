@@ -48,14 +48,16 @@ Sections: CAST, SETTING, VOICE, CAMERA, SCRIPT.
 - **SCRIPT**: dialogue lines only, one per line with speaker label, in order.
 
 ## Short renders
-muse has returned 10 s 720x1280 clips for 30 s requests (2026-10-26), on muse pro accounts, while replying "Generating your 30-second video". The OUTPUT line states the length and 1080p explicitly to steer it. If a clip still comes back short, tell the user the length and size the script printed; don't disable accounts for it.
+muse has returned 10 s 720x1280 clips for 30 s requests (2026-10-26), on muse pro accounts, while replying "Generating your 30-second video". The OUTPUT line states the length and 1080p explicitly to steer it. If a clip still comes back short, tell the user the length and size the script printed; don't disable accounts for it. A first render that comes back 10 s with the whole script squeezed into it is unusable (rushed speech): switch to a multi-clip plan right away instead of retrying the single render (EP06: 30 s request -> 10 s clip with 8 of 12 lines).
 
 ## Multi-clip videos (continuity) - ALWAYS
 The last frame of clip N-1 is the first frame of clip N.
-1. Render clip 1 normally; render every next clip with `CONTINUE_FROM=<previous clip>` (grabs its last frame as the first frame and prepends a CONTINUITY instruction).
-2. Same cast, outfits, setting, lighting, camera position, action and gaze as the previous clip's ending. End each clip on a calm resting pose.
-3. Render sequentially; check each seam (`ffmpeg ... hstack` of last/first frame); visible jump → re-render clip N.
-4. Join with `scripts/stitch.sh out.mp4 part1.mp4 part2.mp4 ...` (drops the duplicate first frame). Subtitle and QA the stitched file.
+1. **Plan in 10 s clips.** Split the script so each clip holds at most ~8 s of speech (about 4 short lines, `budget.py part.txt 8`), and each clip's prompt says `PART n of N`, 10 seconds, its own lines only. Put an intro cut in clip 1 and a turn to camera in the last clip. Render with `DURATION=10`.
+2. Render clip 1 normally; render every next clip with `CONTINUE_FROM=<previous clip>` (grabs its last frame as the first frame and prepends a CONTINUITY instruction).
+3. Same cast, outfits, setting, lighting, camera position, action and gaze as the previous clip's ending. End each clip on a calm resting pose.
+4. **Check every clip before chaining**: `scripts/check_clip.sh clip.mp4 [previous.mp4]` (cuts, transcript, sheet with the seam). Re-render the clip, before rendering the next one, if it has a cut you did not ask for, a person outside the cast (EP06: a shopper walked in behind them in the last 0.8 s, together with a second cut), words not in the script (EP06: the assistant answered the ending question with 合身的), or the listener turning to the camera with the speaker. Everything after a bad clip has to be re-rendered, so catch it here.
+5. **Trim silence at the seams** (cutting the ends of a clip does not retime anything, so lip sync is kept): cut each clip about 0.4 s after its last syllable *before* using it as `CONTINUE_FROM` (EP06 clip 1 had 2 s of music-only tail), and cut a continued clip's silent lead-in (EP06 clip 3 started speaking at 2.5 s). The lead-in often drifts or zooms slightly, so cut as little as needed and check the seam again. `ffmpeg -t <end> -c:v libx264 -crf 16 ...` / `ffmpeg -ss <start> ...`.
+6. Join with `scripts/stitch.sh out.mp4 part1.mp4 part2.mp4 ...`: drops the duplicate first frame, scales every clip to the first one's size (muse returned clip 2 of a 1080p chain at 720x1280), and evens out loudness between clips (EP06 clips came back 8 dB apart). Subtitle and QA the stitched file.
 
 ## Timing, QA, captions
 1. **Word timings**: `WMODEL=medium uv run --no-project --python 3.12 --with faster-whisper python scripts/transcribe.py video.mp4 words.json` (no hint first: the script hint can make Whisper skip or invent lines; add it only if words are misheard). Word starts absorb leading silence, so tighten cue bounds with `silencedetect` before judging pace. Missed lines → cut that span to wav and rerun with `VAD=0`.
