@@ -141,7 +141,7 @@ Or import the export into a running server in one step. The script keeps only th
 python scripts/import_account.py muse.ai_cookies.json --label second-account
 ```
 
-Each account renders one video at a time, so add accounts to render several videos in parallel. Free muse.ai accounts may return shorter, lower-resolution videos; disable such an account with `PATCH /admin/accounts/{id}` and `{"enabled": false}`.
+Each account renders one video at a time, so add accounts to render several videos in parallel.
 
 ---
 
