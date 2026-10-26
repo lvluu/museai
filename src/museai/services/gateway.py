@@ -19,17 +19,29 @@ _ANONYMOUS = Account(id="anonymous", label="driver without accounts")
 
 
 class Gateway:
-    def __init__(self, pool: AccountPool, driver: MuseDriver, *, max_failover: int = 2) -> None:
+    def __init__(
+        self,
+        pool: AccountPool,
+        driver: MuseDriver,
+        *,
+        max_failover: int = 2,
+        media_queue_timeout: float | None = None,
+    ) -> None:
         self.pool = pool
         self.driver = driver
         self.max_failover = max_failover
+        # Image/video jobs run in the background, so they wait for the next free account
+        # (one job per account) instead of failing after the chat acquire timeout.
+        self.media_queue_timeout = media_queue_timeout
 
     @asynccontextmanager
-    async def _lease(self, exclude: list[str], hint: str | None) -> AsyncIterator[Lease]:
+    async def _lease(
+        self, exclude: list[str], hint: str | None, timeout: float | None = None
+    ) -> AsyncIterator[Lease]:
         if not self.driver.requires_account and not self.pool.all():
             yield Lease(_ANONYMOUS)
             return
-        async with self.pool.lease(exclude=exclude, hint=hint) as lease:
+        async with self.pool.lease(exclude=exclude, hint=hint, timeout=timeout) as lease:
             yield lease
 
     def _should_retry(self, exc: UpstreamError, attempt: int) -> bool:
@@ -58,10 +70,15 @@ class Gateway:
             lambda acc: self.driver.chat_complete(acc, req), req.conversation_hint
         )
 
-    async def _run(self, fn: Callable[[Account], Awaitable[T]], hint: str | None = None) -> T:
+    async def _run(
+        self,
+        fn: Callable[[Account], Awaitable[T]],
+        hint: str | None = None,
+        queue_timeout: float | None = None,
+    ) -> T:
         tried: list[str] = []
         for attempt in range(self.max_failover + 1):
-            async with self._lease(tried, hint) as lease:
+            async with self._lease(tried, hint, queue_timeout) as lease:
                 try:
                     return await fn(lease.account)
                 except UpstreamError as exc:
@@ -73,7 +90,11 @@ class Gateway:
         raise AssertionError("unreachable")
 
     async def generate_image(self, req: ImageRequest) -> list[MediaResult]:
-        return await self._run(lambda acc: self.driver.generate_image(acc, req))
+        return await self._run(
+            lambda acc: self.driver.generate_image(acc, req), queue_timeout=self.media_queue_timeout
+        )
 
     async def generate_video(self, req: VideoRequest) -> MediaResult:
-        return await self._run(lambda acc: self.driver.generate_video(acc, req))
+        return await self._run(
+            lambda acc: self.driver.generate_video(acc, req), queue_timeout=self.media_queue_timeout
+        )

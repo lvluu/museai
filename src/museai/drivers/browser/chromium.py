@@ -76,6 +76,10 @@ class ChromiumProcess:
             "--no-default-browser-check",
             "--disable-dev-shm-usage",
             "--disable-background-networking",
+            # Each account renders in its own tab at the same time; never throttle background tabs.
+            "--disable-background-timer-throttling",
+            "--disable-backgrounding-occluded-windows",
+            "--disable-renderer-backgrounding",
             "--autoplay-policy=no-user-gesture-required",
             "--window-size=1440,2200",
             "about:blank",
