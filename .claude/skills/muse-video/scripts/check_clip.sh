@@ -7,6 +7,9 @@
 # the cast (they tend to walk in during the last second), spoken words not in the
 # script (e.g. someone answering the ending question), the listener turning to the
 # camera, or a seam jump between the first two tiles.
+# SCRIPT=script.txt ("W: line" / "M: line" per spoken line) also runs speakers.py:
+# voice pitch per line must fit the labelled speaker (automatic, exit 1), and it writes
+# mouths_<clip>.jpg, one column per line: LOOK at it, only the labelled speaker's lips move.
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 f=$1; b=$(basename "$f" .mp4); tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
@@ -20,3 +23,7 @@ ffmpeg -v error -y -i "$tmp/prev.png" -i "$f" -filter_complex \
   "[0]scale=216:384,setsar=1[p];[1]fps=2,scale=216:384,setsar=1[c];[p][c]concat=n=2:v=1:a=0,tile=11x2" \
   -frames:v 1 "sheet_$b.jpg"
 echo "sheet: sheet_$b.jpg"
+if [ -n "${SCRIPT:-}" ]; then
+  uv run -q --no-project --python 3.12 --with mediapipe==0.10.14 --with opencv-python-headless --with librosa \
+    python "$here/speakers.py" "$f" "$SCRIPT" "words_$b.json" "mouths_$b.jpg" 2>&1 | grep -vE 'WARNING|INFO|^W0000|^I0000' || true
+fi
