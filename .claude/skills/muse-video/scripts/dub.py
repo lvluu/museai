@@ -16,7 +16,13 @@ different timbre and accent each time). Dubbing every line with the same voice f
           Only when it would not fit there does the voice speak faster itself (edge-tts rate,
           up to MAX_PCT, default +20 %). Never time-stretched or slowed: EP08 v4/v5 used
           +40 % and a phase-vocoder stretch, and the user heard a pitched, unnatural voice.
-          OVERRUN marks a part that still runs into the next one."""
+          OVERRUN marks a part that still runs into the next one. MAX_PCT can be lowered, never
+          raised above 20. The voice is never pitch-shifted, slowed or time-stretched (no
+          librosa time_stretch / pitch_shift here): EP08 v4-v5 used them and sounded pitched.
+  out     dubbed.mp4 and dubbed.cues.json: the cues retimed to the new voice. Burn captions
+          and run qa.py / speakers.py with them; the old cues end with the lips, so captions
+          vanish early and qa reads the voice as too fast (EP08: 5.6-5.7 syl/s on the lips'
+          spans for lines the voice says at a normal pace)."""
 import asyncio
 import json
 import os
@@ -36,7 +42,7 @@ if len(who) != len(cues):
     sys.exit(f"SPEAKERS has {len(who)} letters for {len(cues)} cues")
 voices = {"W": os.environ.get("VOICE_W", "zh-CN-XiaoxiaoNeural"), "M": os.environ.get("VOICE_M", "zh-CN-YunjianNeural")}
 SR, HOP = 24000, 120  # 5 ms frames
-MAX_PCT = int(os.environ.get("MAX_PCT", 20))  # faster than this sounds hurried
+MAX_PCT = min(20, int(os.environ.get("MAX_PCT", 20)))  # faster sounds hurried and pitched; hard cap
 tmp = tempfile.mkdtemp()
 
 subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", video, "-ac", "1", "-ar", str(SR), f"{tmp}/orig.wav"], check=True)
@@ -76,6 +82,7 @@ def tts(text, voice, n, pct=0):
 
 
 track = np.zeros(len(orig) + SR)
+voice_cues = []  # the same cues, timed to the new voice: captions and the pace check use these
 for i, (c, s) in enumerate(zip(cues, who, strict=True)):
     text = c[2]
     lo = max(c[0] - 0.05, cues[i - 1][1] if i else 0)
@@ -103,6 +110,8 @@ for i, (c, s) in enumerate(zip(cues, who, strict=True)):
         fade = np.minimum(1, np.minimum(np.arange(len(y)), np.arange(len(y))[::-1]) / (0.01 * SR))
         o = int(a * SR)
         track[o : o + len(y)] += y * fade
+        end = a + len(y) / SR
+    voice_cues.append([round(spans[0][0], 2), round(end, 2), *c[2:]])
 track = track[: len(orig)] / max(1.0, np.abs(track).max() / 0.85)
 sf.write(f"{tmp}/dub.wav", track, SR)
 subprocess.run(
@@ -110,4 +119,5 @@ subprocess.run(
      "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", out],
     check=True,
 )
-print(f"dubbed: {out}")
+json.dump(voice_cues, open(out.rsplit(".", 1)[0] + ".cues.json", "w"), ensure_ascii=False, indent=1)
+print(f"dubbed: {out}  cues timed to the voice: {out.rsplit('.', 1)[0]}.cues.json (caption and QA with these)")

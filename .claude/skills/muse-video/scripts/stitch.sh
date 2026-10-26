@@ -5,10 +5,14 @@
 # muse can return one clip of a chain at 720p, so every clip is scaled to the
 # first clip's size, and each clip's audio is normalised to the same loudness
 # (clips of one chain have come back up to 8 dB apart).
+# XFADE=0.25 joins with a dissolve of that length instead of a hard join: continued clips
+# start slightly reframed, which jumps at the seam (EP08: YDIF 6.6 and 18.9 vs ~1). Only
+# when both sides of every seam are silent for XFADE s (trim to ~0.4 s after the last
+# syllable first), so no two mouths blend.
 set -euo pipefail
 out=$1; shift
 read -r W H < <(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 "$1" | tr , ' ')
-args=() chain="" n=0
+args=() chain="" n=0 lens=()
 for clip in "$@"; do
   args+=(-i "$clip")
   # cut each clip's audio to exactly its kept video frames: the dropped first frame's audio,
@@ -19,10 +23,23 @@ for clip in "$@"; do
   trim=""; [ $skip -eq 0 ] || trim="trim=start_frame=1,"
   chain+="[$n:v]${trim}setpts=PTS-STARTPTS,scale=$W:$H:flags=lanczos,setsar=1[v$n];"
   chain+="[$n:a]loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000,atrim=start=$a0:end=$a1,asetpts=PTS-STARTPTS,apad=whole_dur=$(python3 -c "print($a1-$a0)")[a$n];"
+  lens+=("$(python3 -c "print($a1-$a0)")")
   n=$((n + 1))
 done
-for ((i = 0; i < n; i++)); do chain+="[v$i][a$i]"; done
-chain+="concat=n=$n:v=1:a=1[v][a]"
+if [ -n "${XFADE:-}" ]; then
+  v="[v0]" a="[a0]" t=${lens[0]}
+  for ((i = 1; i < n; i++)); do
+    t=$(python3 -c "print($t-$XFADE)")
+    chain=${chain//"[v$i];"/",fps=$fps,settb=1/24[v$i];"}
+    chain+="${v}[v$i]xfade=transition=fade:duration=$XFADE:offset=$t[xv$i];${a}[a$i]acrossfade=d=$XFADE[xa$i];"
+    v="[xv$i]" a="[xa$i]" t=$(python3 -c "print($t+${lens[$i]})")
+  done
+  chain=${chain//"[v0];"/",fps=$fps,settb=1/24[v0];"}
+  chain+="${v}null[v];${a}anull[a]"
+else
+  for ((i = 0; i < n; i++)); do chain+="[v$i][a$i]"; done
+  chain+="concat=n=$n:v=1:a=1[v][a]"
+fi
 ffmpeg -v error -y "${args[@]}" -filter_complex "$chain" -map "[v]" -map "[a]" \
   -c:v libx264 -crf 18 -pix_fmt yuv420p -c:a aac -b:a 192k -movflags +faststart "$out"
 echo "WROTE $out"
