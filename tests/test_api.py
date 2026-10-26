@@ -102,7 +102,11 @@ def test_dashboard_page(client, admin):
     assert "Videos by account" in r.text
     # TestClient's peer is "testclient", not loopback, so the admin key is required.
     assert client.get("/dashboard/data").status_code == 401
-    assert client.get("/dashboard/data", headers=admin).json() == {"accounts": [], "videos": []}
+    assert client.get("/dashboard/data", headers=admin).json() == {
+        "accounts": [],
+        "usage": {},
+        "videos": [],
+    }
 
 
 def test_dashboard_data_open_to_loopback(settings):
