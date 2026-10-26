@@ -57,7 +57,7 @@ The last frame of clip N-1 is the first frame of clip N.
 1. **Word timings**: `WMODEL=medium uv run --no-project --python 3.12 --with faster-whisper python scripts/transcribe.py video.mp4 words.json` (no hint first: the script hint can make Whisper skip or invent lines; add it only if words are misheard). Word starts absorb leading silence, so tighten cue bounds with `silencedetect` before judging pace. Missed lines → cut that span to wav and rerun with `VAD=0`.
 2. **cues.json**: `[[speech_start, speech_end, line1, line2, ...], ...]` from the word timings (EVERYDAY CHINESE: zh, pinyin, vi). One short, meaningful phrase per cue.
 3. **QA gate**: `python3 scripts/qa.py video.mp4 cues.json words.json [planned_cuts=0] sheet.jpg`
-   - format 1080x1920, 30–40 s, constant 24–30 fps
+   - format 1080x1920, constant 24–30 fps (any length; it follows the dialogue)
    - voice: transcript vs script ≥ 90 %
    - sound: peak < -0.5 dB, mean > -30 dB
    - pace: every line 3.8–5.5 syllables/s, fastest ÷ slowest ≤ 1.35, no pause > 1.0 s

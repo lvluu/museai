@@ -38,7 +38,7 @@ w, h = probe["streams"][0]["width"], probe["streams"][0]["height"]
 dur = float(probe["format"]["duration"])
 num, den = probe["streams"][0]["avg_frame_rate"].split("/")
 fps = float(num) / float(den or 1)
-ok = (w, h) == (1080, 1920) and 30 <= dur <= 40.5 and 23.5 <= fps <= 30.5
+ok = (w, h) == (1080, 1920) and 23.5 <= fps <= 30.5  # length follows the dialogue, no limit
 print(f"format  {'ok  ' if ok else 'FAIL'} {w}x{h} {dur:.1f}s {fps:.1f}fps")
 ok or fails.append("format")
 
