@@ -28,13 +28,16 @@ def fit(path, size, text):
     for s in range(size, int(size * MIN_RATIO) - 1, -2):
         if font_at(path, s).getlength(text) <= width:
             return [(font_at(path, s), text)]
-    words = text.split(" ")
-    if len(words) < 2:
-        return [(font_at(path, int(size * MIN_RATIO)), text)]
     half = font_at(path, size).getlength(text) / 2
-    cut = min(range(1, len(words)),
-              key=lambda i: abs(font_at(path, size).getlength(" ".join(words[:i])) - half))
-    parts = [" ".join(words[:cut]), " ".join(words[cut:])]
+    words = text.split(" ")
+    if len(words) >= 2:
+        cut = min(range(1, len(words)),
+                  key=lambda i: abs(font_at(path, size).getlength(" ".join(words[:i])) - half))
+        parts = [" ".join(words[:cut]), " ".join(words[cut:])]
+    else:  # Chinese has no spaces: break after the punctuation nearest the middle, else mid-text
+        marks = [i + 1 for i, ch in enumerate(text[:-1]) if ch in "，。？！、；：,?!"]
+        cut = min(marks or range(1, len(text)), key=lambda i: abs(font_at(path, size).getlength(text[:i]) - half))
+        parts = [text[:cut], text[cut:]]
     s = size
     while s > 20 and max(font_at(path, s).getlength(p) for p in parts) > width:
         s -= 2
