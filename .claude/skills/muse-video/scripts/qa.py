@@ -80,7 +80,7 @@ ok or fails.append("sound")
 if not travel:
     pace = subprocess.run([sys.executable, str(Path(__file__).with_name("pace.py")), cues_path],
                           capture_output=True, text=True)
-    bad = [l for l in pace.stdout.splitlines() if "TOO" in l or "LONG" in l or "UNEVEN" in l]
+    bad = [ln for ln in pace.stdout.splitlines() if "TOO" in ln or "LONG" in ln or "UNEVEN" in ln]
     print(f"pace    {'ok  ' if pace.returncode == 0 else 'FAIL'} {pace.stdout.splitlines()[-1]}")
     for line in bad:
         print("       ", line.strip())
@@ -94,7 +94,7 @@ kept = len(re.findall(r"pts_time:", ffmpeg_log("-vf", "mpdecimate=hi=64*4:lo=64:
 total = round(dur * fps)
 dup = 1 - kept / total if total else 0
 ok = not freezes and len(cuts) == expected_cuts and dup <= 0.05
-print(f"smooth  {'ok  ' if ok else 'FAIL'} freezes={['%.1fs' % float(f) for f in freezes]} "
+print(f"smooth  {'ok  ' if ok else 'FAIL'} freezes={[f'{float(f):.1f}s' for f in freezes]} "
       f"repeated frames {dup:.0%} (max 5%) cuts at {[round(float(c), 2) for c in cuts]} (expected {expected_cuts})")
 ok or fails.append("smooth")
 
