@@ -24,6 +24,7 @@ def _task_view(task: Task) -> dict:
         "model": task.request.get("model"),
         "result": task.result,
         "error": task.error,
+        "account_id": task.account_id,
     }
 
 
@@ -35,11 +36,12 @@ async def create_video(body: VideoCreateRequest, request: Request,
     first_frame = InputImage(*(await load_image_ref(frame_ref))) if frame_ref else None
     base = public_base(request)
 
-    async def runner(progress) -> dict:
+    async def runner(task: Task, progress) -> dict:
         req = VideoRequest(prompt=body.prompt, model=spec.id, size=body.size,
                            duration=body.duration or body.seconds, first_frame=first_frame,
                            timeout=svc.settings.video_timeout, on_progress=progress)
-        result = await svc.gateway.generate_video(req)
+        result = await svc.gateway.generate_video(
+            req, on_account=lambda acc: task.assign(acc.id, acc.label))
         name = svc.media.save(result.data, result.mime, prefix="vid")
         return {"url": f"{base}/v1/media/{name}", "mime": result.mime,
                 "width": result.width, "height": result.height}

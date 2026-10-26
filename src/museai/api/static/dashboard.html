@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>museai videos</title>
+<style>
+  :root {
+    --bg: #f7f7f5; --panel: #fff; --text: #1d1d1b; --muted: #6b6b66; --line: #e4e4df;
+    --accent: #3b5bdb; --ok: #2b8a3e; --bad: #c92a2a; --run: #e67700; --idle: #868e96;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #151514; --panel: #1f1f1d; --text: #ececea; --muted: #9a9a94; --line: #2f2f2c;
+            --accent: #7c95ff; --ok: #51cf66; --bad: #ff6b6b; --run: #ffa94d; --idle: #adb5bd; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 48px; }
+  header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  h1 { font-size: 20px; margin: 0; }
+  .muted { color: var(--muted); }
+  .spacer { flex: 1; }
+  button, select, input { font: inherit; color: var(--text); background: var(--panel);
+         border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; }
+  button { cursor: pointer; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px;
+           margin-bottom: 18px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px;
+          cursor: pointer; text-align: left; }
+  .card.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .card .name { font-weight: 600; display: flex; justify-content: space-between; gap: 6px; }
+  .card .id { font: 12px ui-monospace, monospace; color: var(--muted); }
+  .card .big { font-size: 24px; font-weight: 600; margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .counts { display: flex; gap: 10px; font-size: 12px; font-variant-numeric: tabular-nums; }
+  .usage { display: flex; justify-content: space-between; gap: 6px; flex-wrap: wrap; font-size: 12px;
+           margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+  .s-succeeded { color: var(--ok); } .s-failed { color: var(--bad); }
+  .s-running, .s-queued { color: var(--run); } .s-cancelled { color: var(--idle); }
+  .bg-succeeded { background: var(--ok); } .bg-failed { background: var(--bad); }
+  .bg-running, .bg-queued { background: var(--run); } .bg-cancelled { background: var(--idle); }
+  .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+  th { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .title { font-weight: 500; }
+  .err { color: var(--bad); font-size: 12px; }
+  .tid { font: 12px ui-monospace, monospace; color: var(--muted); }
+  video { width: 90px; border-radius: 4px; background: #000; display: block; }
+  .tag { font-size: 11px; padding: 1px 6px; border-radius: 10px; border: 1px solid var(--line); color: var(--muted); }
+  .empty { padding: 24px; text-align: center; color: var(--muted); }
+  @media (max-width: 640px) { .hide-sm { display: none; } }
+</style>
+</head>
+<body>
+<main id="app">
+  <header>
+    <h1>Videos by account</h1>
+    <span class="muted" id="updated"></span>
+    <span class="spacer"></span>
+    <label class="muted"><input type="checkbox" id="auto" checked> auto-refresh</label>
+    <button id="refresh">Refresh</button>
+  </header>
+  <div class="cards" id="cards"></div>
+  <div class="filters">
+    <select id="fStatus">
+      <option value="">All statuses</option>
+      <option>succeeded</option><option>failed</option><option>running</option>
+      <option>queued</option><option>cancelled</option>
+    </select>
+    <input id="fText" type="search" placeholder="Search prompt / task id">
+    <span class="muted" id="count"></span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Created</th><th>Account</th><th>Status</th><th>Video</th>
+        <th class="hide-sm">Prompt</th><th class="hide-sm">Took</th>
+      </tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+  </div>
+</main>
+<script>
+const UNKNOWN = "__unknown__";
+// Remote viewers pass the admin key in the fragment (never sent to the server in the URL).
+const key = new URLSearchParams(location.hash.slice(1)).get("key") || "";
+let accounts = [], tasks = [], selected = "", timer = null;
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+async function api(path) {
+  const r = await fetch(path, { headers: key ? { Authorization: "Bearer " + key } : {} });
+  if (r.status === 401) throw new Error("not local: open /dashboard#key=<admin key>");
+  if (!r.ok) throw new Error(r.status + " " + r.statusText);
+  return r.json();
+}
+
+function titleOf(prompt) {
+  const lines = String(prompt || "").split("\n").map((l) => l.trim()).filter(Boolean);
+  const line = lines.find((l) => !/^CONTINUITY:/i.test(l)) || lines[0] || "";
+  return line.length > 90 ? line.slice(0, 87) + "…" : line;
+}
+const fmtTime = (t) => new Date(t * 1000).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+function fmtDur(s) {
+  if (!(s > 0)) return "";
+  const m = Math.floor(s / 60), r = Math.round(s % 60);
+  return m ? `${m}m ${r}s` : `${r}s`;
+}
+const acctKey = (t) => t.account_id || UNKNOWN;
+function acctName(id, fallback) {
+  if (id === UNKNOWN) return "unknown";
+  const a = accounts.find((x) => x.id === id);
+  return (a && a.label) || fallback || id;
+}
+
+// muse.ai shows no remaining-usage number; the best signal is whether the account
+// hit "Out of usage" (pool cools it down) and how much it rendered recently.
+function usageLine(acc, list) {
+  if (!acc) return "";
+  const day = list.filter((t) => t.created_at > Date.now() / 1000 - 86400).length;
+  const until = acc.cooldown_until * 1000;
+  const at = new Date(until).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  let state = '<span class="s-succeeded">usage available</span>';
+  if (!acc.enabled) state = '<span class="muted">disabled</span>';
+  else if (acc.status === "invalid") state = '<span class="s-failed">cookies expired</span>';
+  else if (acc.status === "cooling" && until > Date.now())
+    state = /quota/i.test(acc.last_error || "")
+      ? `<span class="s-failed">out of usage · retry ${at}</span>`
+      : `<span class="s-running">cooling · retry ${at}</span>`;
+  return `<div class="usage">${state}<span class="muted">${day} video${day === 1 ? "" : "s"} last 24h</span></div>`;
+}
+
+function renderCards() {
+  const groups = new Map(accounts.map((a) => [a.id, []]));
+  for (const t of tasks) {
+    const k = acctKey(t);
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(t);
+  }
+  const all = [["", tasks]].concat([...groups.entries()].filter(([k, v]) => k !== UNKNOWN || v.length));
+  $("cards").innerHTML = all.map(([id, list]) => {
+    const c = (s) => list.filter((t) => t.status === s).length;
+    const acc = accounts.find((a) => a.id === id);
+    const name = id ? acctName(id, list[0]?.account_label) : "All accounts";
+    const sub = id === UNKNOWN ? "recorded before tracking" : id || "every video task";
+    const stat = acc ? `<span class="tag">${esc(acc.enabled ? acc.status : "disabled")}</span>` : "";
+    return `<button class="card ${id === selected ? "sel" : ""}" data-id="${esc(id)}">
+      <div class="name"><span>${esc(name)}</span>${stat}</div>
+      <div class="id">${esc(sub)}</div>
+      <div class="big">${list.length}</div>
+      <div class="counts">
+        <span class="s-succeeded">${c("succeeded")} ok</span>
+        <span class="s-failed">${c("failed")} failed</span>
+        <span class="s-running">${c("running") + c("queued")} active</span>
+      </div>${usageLine(acc, list)}</button>`;
+  }).join("");
+}
+
+function renderRows() {
+  const st = $("fStatus").value, q = $("fText").value.trim().toLowerCase();
+  const list = tasks.filter((t) =>
+    (!selected || acctKey(t) === selected) &&
+    (!st || t.status === st) &&
+    (!q || t.id.toLowerCase().includes(q) || String(t.request?.prompt || "").toLowerCase().includes(q)));
+  $("count").textContent = `${list.length} video${list.length === 1 ? "" : "s"}`;
+  if (!list.length) { $("rows").innerHTML = `<tr><td colspan="6" class="empty">No videos match.</td></tr>`; return; }
+  $("rows").innerHTML = list.map((t) => {
+    const k = acctKey(t);
+    const failover = (t.attempts || []).length > 1
+      ? `<div class="tid">tried ${t.attempts.slice(0, -1).map((a) => esc(acctName(a))).join(", ")}</div>` : "";
+    const progress = ["running", "queued"].includes(t.status) ? ` ${t.progress}%` : "";
+    const url = t.result?.url;
+    const media = url
+      ? `<a href="${esc(url)}" target="_blank" rel="noopener"><video src="${esc(url)}#t=0.5" preload="metadata" muted></video></a>`
+      : "";
+    const err = t.error ? `<div class="err">${esc(t.error.message)}</div>` : "";
+    const took = t.status === "running" || t.status === "queued" ? "" : fmtDur(t.updated_at - t.created_at);
+    return `<tr>
+      <td class="num">${fmtTime(t.created_at)}<div class="tid">${esc(t.id)}</div></td>
+      <td>${k === UNKNOWN ? '<span class="muted">unknown</span>' : esc(acctName(k, t.account_label))}${failover}</td>
+      <td class="num s-${esc(t.status)}"><span class="dot bg-${esc(t.status)}"></span>${esc(t.status)}${progress}</td>
+      <td>${media}</td>
+      <td class="hide-sm"><div class="title" title="${esc(t.request?.prompt)}">${esc(titleOf(t.request?.prompt))}</div>
+        <span class="muted">${esc([t.request?.size, t.request?.duration && t.request.duration + "s", t.request?.has_first_frame && "first frame"].filter(Boolean).join(" · "))}</span>${err}</td>
+      <td class="num hide-sm">${took}</td></tr>`;
+  }).join("");
+}
+
+async function load() {
+  try {
+    const d = await api("/dashboard/data");
+    accounts = d.accounts;
+    tasks = d.videos;
+    $("updated").textContent = "updated " + new Date().toLocaleTimeString();
+    renderCards(); renderRows();
+  } catch (e) {
+    $("updated").textContent = "error: " + e.message;
+  }
+}
+
+function schedule() {
+  clearInterval(timer);
+  if ($("auto").checked) timer = setInterval(load, 10000);
+}
+
+$("cards").addEventListener("click", (e) => {
+  const c = e.target.closest(".card"); if (!c) return;
+  selected = c.dataset.id; renderCards(); renderRows();
+});
+$("fStatus").addEventListener("change", renderRows);
+$("fText").addEventListener("input", renderRows);
+$("refresh").addEventListener("click", load);
+$("auto").addEventListener("change", schedule);
+load(); schedule();
+</script>
+</body>
+</html>

@@ -75,10 +75,13 @@ class Gateway:
         fn: Callable[[Account], Awaitable[T]],
         hint: str | None = None,
         queue_timeout: float | None = None,
+        on_account: Callable[[Account], None] | None = None,
     ) -> T:
         tried: list[str] = []
         for attempt in range(self.max_failover + 1):
             async with self._lease(tried, hint, queue_timeout) as lease:
+                if on_account:
+                    on_account(lease.account)
                 try:
                     return await fn(lease.account)
                 except UpstreamError as exc:
@@ -94,7 +97,11 @@ class Gateway:
             lambda acc: self.driver.generate_image(acc, req), queue_timeout=self.media_queue_timeout
         )
 
-    async def generate_video(self, req: VideoRequest) -> MediaResult:
+    async def generate_video(
+        self, req: VideoRequest, on_account: Callable[[Account], None] | None = None
+    ) -> MediaResult:
         return await self._run(
-            lambda acc: self.driver.generate_video(acc, req), queue_timeout=self.media_queue_timeout
+            lambda acc: self.driver.generate_video(acc, req),
+            queue_timeout=self.media_queue_timeout,
+            on_account=on_account,
         )

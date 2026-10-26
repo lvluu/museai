@@ -18,7 +18,7 @@ from ..errors import Muse2APIError
 
 log = logging.getLogger(__name__)
 
-Runner = Callable[[Callable[[int], None]], Awaitable[dict[str, Any]]]
+Runner = Callable[["Task", Callable[[int], None]], Awaitable[dict[str, Any]]]
 
 
 class TaskStatus(str, Enum):
@@ -39,6 +39,15 @@ class Task(BaseModel):
     request: dict[str, Any] = Field(default_factory=dict)
     result: dict[str, Any] | None = None
     error: dict[str, Any] | None = None
+    # Account the job runs on; earlier ones in ``attempts`` failed over.
+    account_id: str | None = None
+    account_label: str | None = None
+    attempts: list[str] = Field(default_factory=list)
+
+    def assign(self, account_id: str, label: str) -> None:
+        self.account_id, self.account_label = account_id, label
+        self.attempts.append(account_id)
+        self.updated_at = time.time()
 
     @property
     def finished(self) -> bool:
@@ -98,7 +107,7 @@ class TaskManager:
 
         task.status = TaskStatus.RUNNING
         try:
-            task.result = await runner(progress)
+            task.result = await runner(task, progress)
             task.status = TaskStatus.SUCCEEDED
             task.progress = 100
         except asyncio.CancelledError:
