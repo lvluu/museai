@@ -60,7 +60,7 @@ class VideoRequest:
     size: str | None = None
     duration: int | None = None
     first_frame: InputImage | None = None
-    timeout: float = 600.0
+    timeout: float = 1500.0
     on_progress: ProgressCallback | None = None
     cancel: asyncio.Event | None = None
 

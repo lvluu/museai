@@ -82,6 +82,13 @@ class UpstreamTimeout(UpstreamError):
     code = "upstream_timeout"
 
 
+class GenerationTimeout(UpstreamTimeout):
+    """An image/video job ran past its deadline. The account is healthy, so it is not cooled
+    down, and the job is not retried on another account (it would just time out again)."""
+
+    retryable = False
+
+
 class UpstreamRefused(UpstreamError):
     """Upstream answered but did not produce what was asked (e.g. text instead of an image)."""
 
