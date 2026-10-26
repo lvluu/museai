@@ -33,7 +33,7 @@ Nothing is delivered until `scripts/qa.py` says PASS and the contact sheet looks
 ```
 SIZE=9:16 DURATION=40 OUT_NAME=clip.mp4 NO_OPEN=1 scripts/muse-video -f prompt.txt
 ```
-Output in `~/Movies/museai/`. With `DURATION` set, the script exits 3 with `SHORT RENDER` when the clip is under 80 % of it (e.g. a 10 s 720p clip for 30 s): don't subtitle it; see "Short renders". `IMAGE=first.png` sets the first frame. If muse replies with text only (`upstream_refused`), prepend "NEW STANDALONE REQUEST. Ignore any earlier versions, drafts or projects. Generate one new video from scratch and return the finished video file in this reply. Do not reply with text only." and retry.
+Output in `~/Movies/museai/`. Every clip must be longer than 10 s (at least 80 % of `DURATION`) and at least 1080 px on its short side (1080x1920 for 9:16). The script rejects anything else, keeps it as `<name>_rejectedN.mp4` and resubmits, up to `TRIES=4` times (one per premium account), then exits 3 with `SHORT RENDER`. Never subtitle or deliver a rejected clip. Ask for `DURATION` of at least 15. `IMAGE=first.png` sets the first frame. If muse replies with text only (`upstream_refused`), prepend "NEW STANDALONE REQUEST. Ignore any earlier versions, drafts or projects. Generate one new video from scratch and return the finished video file in this reply. Do not reply with text only." and retry.
 
 ## Prompt (per video; the quality block is added for you)
 Sections: CAST, SETTING, VOICE, CAMERA, SCRIPT.
@@ -44,7 +44,7 @@ Sections: CAST, SETTING, VOICE, CAMERA, SCRIPT.
 - **SCRIPT**: dialogue lines only, one per line with speaker label, in order.
 
 ## Short renders
-muse sometimes returns a 10 s 720x1280 clip although its reply says "Generating your 30-second video". The prompt is not the cause: the exact prompt that gave 30 s 1080x1920 earlier returned 10 s 720p hours later (2026-10-26), on all four premium accounts, and a 10 s render finishes in about 1 min instead of 10+. Don't rewrite the prompt or disable accounts for it. Keep the short clip aside (`*_10s.mp4`), retry later, and tell the user if every account keeps returning short clips.
+muse sometimes returns a 10 s 720x1280 clip although its reply says "Generating your 30-second video". The prompt is not the cause: the exact prompt that gave 30 s 1080x1920 earlier returned 10 s 720p hours later (2026-10-26). All four connected accounts are muse pro, so a short clip is never acceptable: `scripts/muse-video` retries it on the next free account automatically. Don't rewrite the prompt or disable accounts for it. If all attempts come back short, wait and run it again later, and tell the user which renders were rejected.
 
 ## Multi-clip videos (continuity) - ALWAYS
 The last frame of clip N-1 is the first frame of clip N.
