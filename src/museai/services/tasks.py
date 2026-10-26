@@ -66,6 +66,7 @@ class TaskManager:
         self._tasks: dict[str, Task] = {}
         self._running: dict[str, asyncio.Task] = {}
         self._sessions: dict[str, asyncio.Lock] = {}
+        self._stopping = False
 
     async def load(self) -> None:
         if not self.path.is_file():
@@ -137,7 +138,12 @@ class TaskManager:
             task.status = TaskStatus.SUCCEEDED
             task.progress = 100
         except asyncio.CancelledError:
-            task.status = TaskStatus.CANCELLED
+            if self._stopping:
+                # Same code load() gives jobs a crash left behind: clients resubmit on it.
+                task.status = TaskStatus.FAILED
+                task.error = {"message": "interrupted by server restart", "code": "interrupted"}
+            else:
+                task.status = TaskStatus.CANCELLED
         except Muse2APIError as exc:
             task.status = TaskStatus.FAILED
             task.error = {"message": exc.message, "code": exc.code}
@@ -158,6 +164,7 @@ class TaskManager:
         return True
 
     async def shutdown(self) -> None:
+        self._stopping = True
         for t in list(self._running.values()):
             t.cancel()
         if self._running:
