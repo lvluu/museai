@@ -135,6 +135,14 @@ curl -X POST http://127.0.0.1:18610/admin/accounts \
   -d @account.json
 ```
 
+Or import the export into a running server in one step. The script keeps only the session cookies, never prints their values, and checks the new account's session:
+
+```bash
+python scripts/import_account.py muse.ai_cookies.json --label second-account
+```
+
+Each account renders one video at a time, so add accounts to render several videos in parallel. Free muse.ai accounts may return shorter, lower-resolution videos; disable such an account with `PATCH /admin/accounts/{id}` and `{"enabled": false}`.
+
 ---
 
 ## 9Router Multi-Model Gateway Hook
