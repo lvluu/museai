@@ -24,6 +24,6 @@ ffmpeg -v error -y -i "$tmp/prev.png" -i "$f" -filter_complex \
   -frames:v 1 "sheet_$b.jpg"
 echo "sheet: sheet_$b.jpg"
 if [ -n "${SCRIPT:-}" ]; then
-  uv run -q --no-project --python 3.12 --with mediapipe==0.10.14 --with opencv-python-headless --with librosa \
+  uv run -q --no-project --python 3.12 --with mediapipe==0.10.14 --with opencv-python-headless==4.10.0.84 --with librosa \
     python "$here/speakers.py" "$f" "$SCRIPT" "words_$b.json" "mouths_$b.jpg" 2>&1 | grep -vE 'WARNING|INFO|^W0000|^I0000' || true
 fi
