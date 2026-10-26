@@ -121,3 +121,7 @@ When modifying the codebase, preserve these verified fixes:
 2. **Dual-Domain Cookie Scope**: Always register cookies for both `domain: ".muse.ai"` and `domain: "muse.ai"`.
 3. **Multi-Language DOM Readiness**: Upstream renders in user locales (English, Indonesian, Chinese, etc.). Readiness selectors in `dom.py` rely on input presence and hydration state, avoiding locale-specific string matching.
 4. **Clean Concurrency Model**: Headless Chromium runs 1 persistent process with isolated `BrowserContext` per account to prevent session bleeding.
+
+## 6. VIDEO GENERATION SKILL
+
+Every video made through museai follows `.claude/skills/muse-video/SKILL.md`. `scripts/muse-video` there appends `prompt/quality.txt` (motion, continuity, lip sync, steady pace, composition rules) to every prompt, and `scripts/qa.py` is the quality gate before delivery. Change the rules in those files, not in individual prompts.
