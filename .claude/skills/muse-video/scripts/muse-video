@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Usage: muse-video "prompt" [out_dir]
 #        muse-video -f prompt.txt [out_dir]
-# Optional env: SIZE=9:16  DURATION=10  IMAGE=first_frame.png  OUT_NAME=clip1.mp4
+# Optional env: SIZE=9:16  DURATION=30  IMAGE=first_frame.png  OUT_NAME=clip1.mp4
 #               CONTINUE_FROM=prev_clip.mp4  (its last frame becomes this clip's first frame)
 #               STYLE=travel  (append ../prompt/travel.txt instead of ../prompt/quality.txt)
 #               QUALITY=0  (skip appending the style block)
@@ -36,6 +36,10 @@ fi
 PROMPT="$PROMPT" python3 - "$body_file" <<'PY'
 import base64, json, mimetypes, os, sys
 body = {"model": "muse-video", "prompt": os.environ["PROMPT"]}
+# muse picks the clip length and resolution from the prompt text, so state both explicitly.
+res = {"9:16": "1080x1920", "16:9": "1920x1080", "1:1": "1080x1080"}.get(os.environ.get("SIZE", ""), "1080p")
+length = f"exactly {os.environ['DURATION']} seconds long, not a 10-second clip, " if os.environ.get("DURATION") else ""
+body["prompt"] += f"\n\nOUTPUT: one finished video, {length}full HD {res} (1080p), never 720p."
 if os.environ.get("SIZE"):
     body["size"] = os.environ["SIZE"]
 if os.environ.get("DURATION"):
@@ -60,13 +64,8 @@ while true; do
     succeeded)
       file="$OUT_DIR/${OUT_NAME:-$(basename "$url")}"
       curl -sf "$url" -H "Authorization: Bearer $KEY" -o "$file"
-      echo "SAVED $file"
-      if [ -n "${DURATION:-}" ]; then
-        read -r got height < <(ffprobe -v error -show_entries format=duration:stream=height -select_streams v:0 -of default=nw=1:nk=1 "$file" | tr '\n' ' ' | awk '{print $2, $1}')
-        if python3 -c "import sys; sys.exit(0 if float('$got') < 0.8 * $DURATION else 1)"; then
-          echo "SHORT RENDER: ${got}s ${height}p for DURATION=$DURATION; muse downgraded this render, see SKILL.md Short renders"; exit 3
-        fi
-      fi
+      read -r width height got < <(ffprobe -v error -select_streams v:0 -show_entries stream=width,height:format=duration -of default=nw=1:nk=1 "$file" | tr '\n' ' ')
+      echo "SAVED $file (${got}s ${width}x${height})"
       [ -n "${NO_OPEN:-}" ] || open "$file"
       exit 0 ;;
     failed|cancelled)

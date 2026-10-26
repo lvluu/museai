@@ -35,7 +35,7 @@ Nothing is delivered until `scripts/qa.py` says PASS and the contact sheet looks
 ```
 SIZE=9:16 DURATION=40 OUT_NAME=clip.mp4 NO_OPEN=1 scripts/muse-video -f prompt.txt
 ```
-Output in `~/Movies/museai/`. With `DURATION` set, the script exits 3 with `SHORT RENDER` when the clip is under 80 % of it (e.g. a 10 s 720p clip for 30 s): don't subtitle it; see "Short renders". `IMAGE=first.png` sets the first frame. If muse replies with text only (`upstream_refused`), prepend "NEW STANDALONE REQUEST. Ignore any earlier versions, drafts or projects. Generate one new video from scratch and return the finished video file in this reply. Do not reply with text only." and retry.
+Output in `~/Movies/museai/`. The video length comes from the prompt: always set `DURATION`, and the script adds an OUTPUT line asking for exactly that many seconds in full HD 1080p (1080x1920 for 9:16). It prints the delivered length and size and never rejects or blocks a render. `IMAGE=first.png` sets the first frame. If muse replies with text only (`upstream_refused`), prepend "NEW STANDALONE REQUEST. Ignore any earlier versions, drafts or projects. Generate one new video from scratch and return the finished video file in this reply. Do not reply with text only." and retry.
 
 ## Prompt (per video; the quality block is added for you)
 Sections: CAST, SETTING, VOICE, CAMERA, SCRIPT.
@@ -46,7 +46,7 @@ Sections: CAST, SETTING, VOICE, CAMERA, SCRIPT.
 - **SCRIPT**: dialogue lines only, one per line with speaker label, in order.
 
 ## Short renders
-muse sometimes returns a 10 s 720x1280 clip although its reply says "Generating your 30-second video". The prompt is not the cause: the exact prompt that gave 30 s 1080x1920 earlier returned 10 s 720p hours later (2026-10-26), on all four premium accounts, and a 10 s render finishes in about 1 min instead of 10+. Don't rewrite the prompt or disable accounts for it. Keep the short clip aside (`*_10s.mp4`), retry later, and tell the user if every account keeps returning short clips.
+muse has returned 10 s 720x1280 clips for 30 s requests (2026-10-26), on muse pro accounts, while replying "Generating your 30-second video". The OUTPUT line states the length and 1080p explicitly to steer it. If a clip still comes back short, tell the user the length and size the script printed; don't disable accounts for it.
 
 ## Multi-clip videos (continuity) - ALWAYS
 The last frame of clip N-1 is the first frame of clip N.
