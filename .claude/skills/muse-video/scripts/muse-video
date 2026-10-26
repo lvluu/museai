@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# Usage: muse-video "prompt" [out_dir]
+#        muse-video -f prompt.txt [out_dir]
+# Optional env: SIZE=9:16  DURATION=10  IMAGE=first_frame.png  OUT_NAME=clip1.mp4
+#               CONTINUE_FROM=prev_clip.mp4  (its last frame becomes this clip's first frame)
+#               QUALITY=0  (skip appending ../prompt/quality.txt)
+#               MUSEAI_HOME=~/Work/museai  MUSEAI_BASE=http://127.0.0.1:18610
+set -euo pipefail
+SKILL_DIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+if [ "$1" = "-f" ]; then PROMPT=$(cat "$2"); shift 2; else PROMPT="$1"; shift; fi
+OUT_DIR="${1:-$HOME/Movies/museai}"
+BASE=${MUSEAI_BASE:-http://127.0.0.1:18610}
+MUSEAI_HOME=${MUSEAI_HOME:-$(cd "$SKILL_DIR/../../.." && pwd)}
+[ -f "$MUSEAI_HOME/data/api_key" ] || MUSEAI_HOME=$HOME/Work/museai
+KEY=$(cat "$MUSEAI_HOME/data/api_key")
+mkdir -p "$OUT_DIR"
+
+body_file=$(mktemp)
+last_frame=$(mktemp).png
+trap 'rm -f "$body_file" "$last_frame"' EXIT
+if [ -n "${CONTINUE_FROM:-}" ]; then
+  ffmpeg -v error -y -sseof -0.1 -i "$CONTINUE_FROM" -frames:v 1 -update 1 "$last_frame"
+  export IMAGE="$last_frame"
+  PROMPT="CONTINUITY: The attached image is the exact last frame of the previous clip. Start this clip on that exact frame (same framing, camera position, people, poses, outfits, lighting, background) and continue the motion smoothly from it. No cut or jump at the start.
+
+$PROMPT"
+fi
+if [ "${QUALITY:-1}" != 0 ] && [ -f "$SKILL_DIR/prompt/quality.txt" ]; then
+  PROMPT="$PROMPT
+
+$(cat "$SKILL_DIR/prompt/quality.txt")"
+fi
+PROMPT="$PROMPT" python3 - "$body_file" <<'PY'
+import base64, json, mimetypes, os, sys
+body = {"model": "muse-video", "prompt": os.environ["PROMPT"]}
+if os.environ.get("SIZE"):
+    body["size"] = os.environ["SIZE"]
+if os.environ.get("DURATION"):
+    body["duration"] = int(os.environ["DURATION"])
+if os.environ.get("IMAGE"):
+    path = os.environ["IMAGE"]
+    mime = mimetypes.guess_type(path)[0] or "image/png"
+    body["image"] = f"data:{mime};base64," + base64.b64encode(open(path, "rb").read()).decode()
+json.dump(body, open(sys.argv[1], "w"))
+PY
+
+task=$(curl -sf -X POST "$BASE/v1/videos" -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" --data-binary "@$body_file")
+id=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' <<<"$task")
+echo "task $id submitted"
+
+while true; do
+  sleep 5
+  st=$(curl -sf "$BASE/v1/videos/$id" -H "Authorization: Bearer $KEY" || echo '{"status":"poll_error"}')
+  read -r status progress url err < <(python3 -c 'import json,sys; d=json.load(sys.stdin); r=d.get("result") or {}; print(d["status"], d.get("progress"), r.get("url","-"), json.dumps(d.get("error")).replace(" ","_"))' <<<"$st")
+  echo "$(date +%T) $status progress=$progress"
+  case "$status" in
+    succeeded)
+      file="$OUT_DIR/${OUT_NAME:-$(basename "$url")}"
+      curl -sf "$url" -H "Authorization: Bearer $KEY" -o "$file"
+      echo "SAVED $file"
+      [ -n "${NO_OPEN:-}" ] || open "$file"
+      exit 0 ;;
+    failed|cancelled)
+      echo "FAILED $err"; exit 1 ;;
+  esac
+done
