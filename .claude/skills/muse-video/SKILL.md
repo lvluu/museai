@@ -65,10 +65,10 @@ The last frame of clip N-1 is the first frame of clip N.
    - Pauses inside one continuous take cannot be cut without a jump: re-render that clip or name the failure.
    - Find cut points with `python3 scripts/gaps.py video.mp4` (energy-based speech spans and gaps).
    - Trimmed pauses shorten the video: if it falls under 30 s, add a natural line (needs the user's OK when the brief fixes the script) rather than leaving pauses in.
-7. Join with `scripts/stitch.sh out.mp4 part1.mp4 part2.mp4 ...`: drops the duplicate first frame, scales every clip to the first one's size (muse returned clip 2 of a 1080p chain at 720x1280), and evens out loudness between clips (EP06 clips came back 8 dB apart). Subtitle and QA the stitched file.
+7. Join with `scripts/stitch.sh out.mp4 part1.mp4 part2.mp4 ...`: drops the duplicate first frame and cuts each clip's audio to its kept frames (EP10: trimmed clips carry up to 25 ms more audio than video, and the dropped frame's audio stayed in; both pushed later clips' voices off their lips and left the join at 23.8 fps), scales every clip to the first one's size (muse returned clip 2 of a 1080p chain at 720x1280), and evens out loudness between clips (EP06 clips came back 8 dB apart). Subtitle and QA the stitched file.
 
 ## Timing, QA, captions
-1. **Word timings**: `WMODEL=medium uv run --no-project --python 3.12 --with faster-whisper python scripts/transcribe.py video.mp4 words.json` (no hint first: the script hint can make Whisper skip or invent lines; add it only if words are misheard). Word starts absorb leading silence, so tighten cue bounds with `scripts/gaps.py` (energy-based) before judging pace. Missed lines → cut that span to wav and rerun with `VAD=0`.
+1. **Word timings**: `WMODEL=medium uv run --no-project --python 3.12 --with faster-whisper --with opencc-python-reimplemented python scripts/transcribe.py video.mp4 words.json` (no hint first: the script hint can make Whisper skip or invent lines; add it only if words are misheard). Word starts absorb leading silence, so tighten cue bounds with `scripts/gaps.py` (energy-based) before judging pace. Missed lines → cut that span to wav and rerun with `VAD=0`.
 2. **cues.json**: `[[speech_start, speech_end, line1, line2, ...], ...]` from the word timings (EVERYDAY CHINESE: zh, pinyin, vi). One short, meaningful phrase per cue.
 3. **QA gate**: `python3 scripts/qa.py video.mp4 cues.json words.json [planned_cuts=0] sheet.jpg`
    - format 1080x1920, 30–40 s, constant 24–30 fps

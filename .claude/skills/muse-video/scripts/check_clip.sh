@@ -13,7 +13,7 @@ f=$1; b=$(basename "$f" .mp4); tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 ffprobe -v error -select_streams v:0 -show_entries stream=width,height:format=duration -of csv=p=0 "$f" | tr '\n' ' '; echo
 echo "cuts: $(ffmpeg -hide_banner -i "$f" -vf "select='gt(scene,0.25)',showinfo" -f null - 2>&1 | grep -oE 'pts_time:[0-9.]+' | cut -d: -f2 | tr '\n' ' ')"
 # VAD=0: with VAD on, Whisper drops the first line of a clip
-VAD=0 WMODEL=${WMODEL:-medium} uv run --no-project --python 3.12 --with faster-whisper python "$here/transcribe.py" "$f" "words_$b.json" 2>&1 | grep -E '^ +[0-9]' || true
+VAD=0 WMODEL=${WMODEL:-medium} uv run --no-project --python 3.12 --with faster-whisper --with opencc-python-reimplemented python "$here/transcribe.py" "$f" "words_$b.json" 2>&1 | grep -E '^ +[0-9]' || true
 if [ -n "${2:-}" ]; then ffmpeg -v error -y -sseof -0.05 -i "$2" -frames:v 1 -update 1 "$tmp/prev.png"
 else ffmpeg -v error -y -i "$f" -frames:v 1 "$tmp/prev.png"; fi
 ffmpeg -v error -y -i "$tmp/prev.png" -i "$f" -filter_complex \

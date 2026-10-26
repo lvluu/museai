@@ -11,9 +11,14 @@ read -r W H < <(ffprobe -v error -select_streams v:0 -show_entries stream=width,
 args=() chain="" n=0
 for clip in "$@"; do
   args+=(-i "$clip")
-  trim=""; [ $n -eq 0 ] || trim="trim=start_frame=1,"
+  # cut each clip's audio to exactly its kept video frames: the dropped first frame's audio,
+  # and any audio running past the last frame, would push later clips' voices off their lips
+  read -r fps nb < <(ffprobe -v error -select_streams v:0 -count_packets -show_entries stream=r_frame_rate,nb_read_packets -of csv=p=0 "$clip" | tr , ' ')
+  skip=0; [ $n -eq 0 ] || skip=1
+  read -r a0 a1 < <(python3 -c "from fractions import Fraction as F; f=F('$fps'); print(float($skip/f), float($nb/f))")
+  trim=""; [ $skip -eq 0 ] || trim="trim=start_frame=1,"
   chain+="[$n:v]${trim}setpts=PTS-STARTPTS,scale=$W:$H:flags=lanczos,setsar=1[v$n];"
-  chain+="[$n:a]asetpts=PTS-STARTPTS,loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000[a$n];"
+  chain+="[$n:a]loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000,atrim=start=$a0:end=$a1,asetpts=PTS-STARTPTS,apad=whole_dur=$(python3 -c "print($a1-$a0)")[a$n];"
   n=$((n + 1))
 done
 for ((i = 0; i < n; i++)); do chain+="[v$i][a$i]"; done
