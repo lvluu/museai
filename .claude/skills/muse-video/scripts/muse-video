@@ -9,6 +9,8 @@
 #                        requests into one render, so each take needs its own TAKE number)
 #               RETRIES=15 RETRY_WAIT=120  (resubmit on busy account / server restart / server down)
 #               MUSEAI_HOME=~/Work/museai  MUSEAI_BASE=http://127.0.0.1:18610
+#               MUSE_SESSION=id  (one render at a time per id, so each agent session holds one account;
+#                                 defaults to $CLAUDE_CODE_SESSION_ID)
 set -euo pipefail
 SKILL_DIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
 if [ "$1" = "-f" ]; then PROMPT=$(cat "$2"); shift 2; else PROMPT="$1"; shift; fi
@@ -60,7 +62,7 @@ PY
 # (RETRIES times, RETRY_WAIT s apart), so one call ends in exactly one finished video or a real failure.
 retryable='no_account_available|interrupted|submit_failed'
 for attempt in $(seq 1 "${RETRIES:-15}"); do
-  if task=$(curl -sf -X POST "$BASE/v1/videos" -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" --data-binary "@$body_file"); then
+  if task=$(curl -sf -X POST "$BASE/v1/videos" -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -H "X-Muse-Session: ${MUSE_SESSION:-${CLAUDE_CODE_SESSION_ID:-}}" --data-binary "@$body_file"); then
     id=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' <<<"$task")
     echo "task $id submitted (attempt $attempt)"
     while true; do

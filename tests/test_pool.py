@@ -247,3 +247,27 @@ async def test_identical_in_flight_submission_joins_existing_task(tmp_path):
     # Finished tasks no longer absorb new submissions: a retake renders again.
     retake = tasks.submit("video", {"prompt": "p"}, runner, dedupe_key="k")
     assert retake.id != first.id
+
+
+async def test_one_session_renders_one_job_at_a_time(tmp_path):
+    from museai.services.tasks import TaskManager
+
+    tasks = TaskManager(tmp_path / "tasks.json")
+    release = asyncio.Event()
+    started: list[str] = []
+
+    async def runner(task, progress):
+        started.append(task.request["prompt"])
+        await release.wait()
+        return {"url": "x"}
+
+    a1 = tasks.submit("video", {"prompt": "a1"}, runner, session="A")
+    a2 = tasks.submit("video", {"prompt": "a2"}, runner, session="A")
+    b1 = tasks.submit("video", {"prompt": "b1"}, runner, session="B")
+    await asyncio.sleep(0.05)
+    # Session A's second take waits; session B still gets its own render.
+    assert sorted(started) == ["a1", "b1"]
+    assert a2.status == TaskStatus.QUEUED and a1.status == b1.status == TaskStatus.RUNNING
+    release.set()
+    await asyncio.sleep(0.05)
+    assert started[-1] == "a2" and a2.status == TaskStatus.SUCCEEDED
