@@ -14,6 +14,8 @@ Use clear, natural speech at a normal everyday conversational pace for the spoke
 
 Keep acting subtle and purposeful. Use occasional natural blinks, small expressions and restrained gestures only when appropriate. No repetitive nodding, excessive blinking, head bobbing, exaggerated smiles, random hand movements or unnecessary idle actions. Eye contact, pointing and body orientation must match the person or object being addressed. Maintain physical realism within the chosen visual style.
 
+Only the listed cast is ever in frame: no extra people anywhere, not in the background, not passing behind, not entering at the end. When one person turns to address the camera, everyone else keeps looking at that person and does not turn toward the camera. A question asked to the camera (the viewer) is never answered by anyone on screen.
+
 CAPTIONS AND SCREEN COMPOSITION
 
 Do not render any captions, subtitles, logos or other text on screen; accurate synchronized captions are added afterwards. Compose each shot with clear space for them: never place the speaker's face, mouth, important gestures or relevant objects in the caption area. For vertical video, keep faces, mouths and key gestures above about 57% of the frame height (measured from the top) and the region between 57% and 75% free of anything important (captions sit around 60-72%; the bottom 25% and the right edge stay clear for platform buttons). Keep the framing stable so the caption area does not need to move between shots.
