@@ -8,8 +8,8 @@
 # script (e.g. someone answering the ending question), the listener turning to the
 # camera, or a seam jump between the first two tiles.
 # SCRIPT=script.txt ("W: line" / "M: line" per spoken line) also runs speakers.py:
-# voice pitch per line must fit the labelled speaker (automatic, exit 1), and it writes
-# mouths_<clip>.jpg, one column per line: LOOK at it, only the labelled speaker's lips move.
+# voice pitch per line must fit the labelled speaker and the listener's lips must stay
+# still (both automatic, RESULT FAIL = re-render); it also writes mouths_<clip>.jpg.
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 f=$1; b=$(basename "$f" .mp4); tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT

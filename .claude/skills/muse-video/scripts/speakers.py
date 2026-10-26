@@ -3,17 +3,21 @@
   uv run --no-project --python 3.12 --with mediapipe==0.10.14 --with opencv-python-headless --with librosa \\
       python scripts/speakers.py video.mp4 cues.json WWMWMWMWMWMW mouths.jpg
 
-Checks that the right person says each line. SPEAKERS has one letter per cue: W = woman, M = man.
-FEMALE=W (env) names who has the higher voice. script.txt has "W: line" / "M: line" per line; the
-line times come from aligning it to words.json (transcribe.py / check_clip.sh output).
-  voice   median pitch per cue (pyin): female > 165 Hz, male < 165 Hz; must fit the speaker.
-          Automatic: exit 1 on a mismatch.
-  mouths  writes mouths.jpg: one column per cue (labelled "n W" / "n M"), 6 frames down, each a
-          full-width band around the mouths, so every visible mouth is in the strip. LOOK AT IT:
-          only the labelled speaker's lips may move; the listener's stay closed and still.
-          A listener whose lips open and change shape with the other voice is a lip-sync failure
-          (EP09: the man mimed 3 of the woman's lines). Lip landmarks (face mesh) could not tell
-          a miming listener from a silent one at this size, so this check stays visual."""
+Checks that the right person says each line and that the listener does not mime it.
+SPEAKERS has one letter per cue: W = woman, M = man. script.txt has "W: line" / "M: line" per
+line; the line times come from aligning it to words.json (transcribe.py / check_clip.sh output).
+Env: FEMALE=W (who has the higher voice), LEFT=W (who stands on screen left).
+  voice   median pitch per line (pyin): female > 165 Hz, male < 165 Hz; must fit the speaker.
+  mouth   every frame, each face is cropped, upscaled and run through face mesh; the lip gap
+          (inner lips / face height) is tracked per face. On each line the listener's lip gap
+          must stay still: it fails when std > 0.010 and mean frame-to-frame change > 0.004.
+          EP09: a closed listener measured std <= 0.004 / change <= 0.001, the man miming the
+          woman's lines std 0.016-0.022 / change 0.009 (as much as when he spoke). Punch-in lines
+          (one face wider than 35 % of the frame) have no listener to check.
+          Face mesh is noisy on strict profiles, so keep both faces three-quarter to the camera.
+  sheet   writes mouths.jpg (one column per line, 6 frames of the mouth band) to look at the
+          flagged lines.
+Exit 1 when any line fails voice or mouth."""
 import difflib
 import json
 import os
@@ -48,8 +52,11 @@ else:  # script.txt words.json: line times from aligning the script to the trans
 if len(who) != len(cues):
     sys.exit(f"SPEAKERS has {len(who)} letters for {len(cues)} cues")
 female = os.environ.get("FEMALE", "W")
+left = os.environ.get("LEFT", "W")
+right = next((x for x in sorted(set(who)) if x != left), "?")
 SPLIT_HZ = 165
-ROWS, BAND = 6, 0.14  # frames per cue, band height as a fraction of the frame height
+STILL_STD, STILL_MOVE = 0.010, 0.004  # listener lip gap limits
+ROWS, BAND = 6, 0.14  # sheet: frames per cue, band height as a fraction of the frame height
 
 # voice
 with tempfile.NamedTemporaryFile(suffix=".wav") as wav:
@@ -58,24 +65,51 @@ with tempfile.NamedTemporaryFile(suffix=".wav") as wav:
 f0, voiced, _ = librosa.pyin(y, fmin=70, fmax=400, sr=sr, frame_length=1024)
 f0_t = librosa.times_like(f0, sr=sr, hop_length=256)
 
-# mouths
-cap = cv2.VideoCapture(video)
+# lip gap per face, every frame
 det = mp.solutions.face_detection.FaceDetection(model_selection=1, min_detection_confidence=0.3)
-mouth_y = None  # the camera is locked, so the last mouth height stays valid when detection misses
+mesh = mp.solutions.face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1, refine_landmarks=True,
+                                 min_detection_confidence=0.2)  # refined lips: unrefined ones missed the miming
+cap = cv2.VideoCapture(video)
+fps = cap.get(cv2.CAP_PROP_FPS)
+gaps = {}  # (frame time, side) -> lip gap; side is the person letter, or "solo" with one face
+mouth_ys, n = [], 0
+while True:
+    ok, img = cap.read()
+    if not ok:
+        break
+    t, n = n / fps, n + 1
+    H, W = img.shape[:2]
+    found = [d.location_data.relative_bounding_box for d in det.process(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)).detections or []]
+    mouth_ys.append((t, [(b.ymin + 0.78 * b.height) * H for b in found]))
+    for b in found:
+        x0, y0 = int(max(0, (b.xmin - 0.25 * b.width) * W)), int(max(0, (b.ymin - 0.3 * b.height) * H))
+        x1, y1 = int(min(W, (b.xmin + 1.25 * b.width) * W)), int(min(H, (b.ymin + 1.2 * b.height) * H))
+        if x1 - x0 < 20 or y1 - y0 < 20:
+            continue
+        crop = cv2.resize(img[y0:y1, x0:x1], (384, int(384 * (y1 - y0) / (x1 - x0))))
+        r = mesh.process(cv2.cvtColor(crop, cv2.COLOR_BGR2RGB))
+        if not r.multi_face_landmarks:
+            continue
+        lm = r.multi_face_landmarks[0].landmark
+        side = "solo" if b.width > 0.35 else (left if b.xmin + b.width / 2 < 0.5 else right)  # wide face = punch-in
+        gaps[(t, side)] = abs(lm[13].y - lm[14].y) / max(1e-6, abs(lm[10].y - lm[152].y))
+
+
+def stillness(person, a, b):
+    g = np.array([v for (t, s), v in sorted(gaps.items()) if s == person and a <= t <= b])
+    if len(g) < 8:
+        return None
+    return float(g.std()), float(np.abs(np.diff(g)).mean())
 
 
 def strip(t):
-    global mouth_y
     cap.set(cv2.CAP_PROP_POS_MSEC, t * 1000)
     ok, img = cap.read()
     if not ok:
         return None
     H, W = img.shape[:2]
-    found = det.process(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)).detections or []
-    if found:
-        r = [d.location_data.relative_bounding_box for d in found]
-        mouth_y = float(np.mean([(b.ymin + 0.78 * b.height) for b in r])) * H
-    cy = mouth_y if mouth_y is not None else 0.4 * H
+    ys = min(mouth_ys, key=lambda x: abs(x[0] - t) if x[1] else 1e9)[1]
+    cy = float(np.mean(ys)) if ys else 0.4 * H
     h = int(BAND * H)
     y0 = int(min(max(cy - h / 2, 0), H - h))
     return cv2.resize(img[y0:y0 + h], (360, int(360 * h / W)))
@@ -86,17 +120,22 @@ for i, (c, s) in enumerate(zip(cues, who, strict=True)):
     a, b = c[0], c[1]
     sel = (f0_t >= a) & (f0_t <= b) & voiced
     hz = float(np.nanmedian(f0[sel])) if sel.any() else float("nan")
-    ok = np.isnan(hz) or ((hz > SPLIT_HZ) == (s == female))
-    print(f"{i + 1:2d} {a:6.2f}-{b:6.2f} {s} {hz:5.0f}Hz  {c[2]}" + ("" if ok else "  <-- WRONG VOICE"))
-    if not ok:
+    flags = [] if np.isnan(hz) or ((hz > SPLIT_HZ) == (s == female)) else ["WRONG VOICE"]
+    listener = left if s != left else right
+    st = stillness(listener, a, b)
+    if st and st[0] > STILL_STD and st[1] > STILL_MOVE:
+        flags.append(f"LISTENER MOUTH MOVES (std {st[0]:.3f}, move {st[1]:.4f})")
+    lst = "no listener face" if st is None else f"listener std {st[0]:.3f} move {st[1]:.4f}"
+    print(f"{i + 1:2d} {a:6.2f}-{b:6.2f} {s} {hz:5.0f}Hz  {lst:32s} {c[2]}" + "".join(f"  <-- {f}" for f in flags))
+    if flags:
         bad.append(i + 1)
     tiles = [x for t in np.linspace(a + 0.1, max(a + 0.1, b - 0.1), ROWS) if (x := strip(t)) is not None]
     head = np.full((40, 360, 3), 255, np.uint8)
-    cv2.putText(head, f"{i + 1} {s}", (8, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
+    cv2.putText(head, f"{i + 1} {s}" + (" X" if flags else ""), (8, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
     cols.append(np.vstack([head, *tiles]))
 h = max(x.shape[0] for x in cols)
 cols = [np.vstack([x, np.full((h - x.shape[0], 360, 3), 255, np.uint8)]) for x in cols]
 cv2.imwrite(sheet, np.hstack([np.hstack([x, np.full((h, 6, 3), 255, np.uint8)]) for x in cols]))
-print(f"mouths: {sheet}  (look: only the labelled speaker's lips move in each column)")
-print(f"RESULT voice {'FAIL lines ' + ','.join(map(str, bad)) if bad else 'ok'}")
+print(f"mouths: {sheet}")
+print(f"RESULT {'FAIL lines ' + ','.join(map(str, bad)) if bad else 'ok'}")
 sys.exit(1 if bad else 0)
