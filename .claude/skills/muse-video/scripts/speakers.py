@@ -13,10 +13,12 @@ Env: FEMALE=W (who has the higher voice), LEFT=W (who stands on screen left).
           must stay still: it fails when std > 0.010 and mean frame-to-frame change > 0.004.
           EP09: a closed listener measured std <= 0.004 / change <= 0.001, the man miming the
           woman's lines std 0.016-0.022 / change 0.009 (as much as when he spoke). Punch-in lines
-          (one face wider than 35 % of the frame) have no listener to check.
+          (one face wider than 55 % of the frame) have no listener to check.
           Face mesh is noisy on strict profiles, so keep both faces three-quarter to the camera.
   sheet   writes mouths.jpg (one column per line, 6 frames of the mouth band) to look at the
           flagged lines.
+  report  REPORT=report.json writes per line: times, speaker, verdicts, median speaker face box
+          [cx, cy, w, h] (fractions of the frame); reframe.py turns it into punch-ins.
 Exit 1 when any line fails voice or mouth."""
 import difflib
 import json
@@ -72,6 +74,7 @@ mesh = mp.solutions.face_mesh.FaceMesh(static_image_mode=True, max_num_faces=1, 
 cap = cv2.VideoCapture(video)
 fps = cap.get(cv2.CAP_PROP_FPS)
 gaps = {}  # (frame time, side) -> lip gap; side is the person letter, or "solo" with one face
+boxes = {}  # (frame time, side) -> face box [cx, cy, w, h]
 mouth_ys, n = [], 0
 while True:
     ok, img = cap.read()
@@ -91,8 +94,10 @@ while True:
         if not r.multi_face_landmarks:
             continue
         lm = r.multi_face_landmarks[0].landmark
-        side = "solo" if b.width > 0.35 else (left if b.xmin + b.width / 2 < 0.5 else right)  # wide face = punch-in
+        solo = len(found) == 1 and b.width > 0.55  # punch-in; two-shot faces measure up to ~0.46 wide
+        side = "solo" if solo else (left if b.xmin + b.width / 2 < 0.5 else right)
         gaps[(t, side)] = abs(lm[13].y - lm[14].y) / max(1e-6, abs(lm[10].y - lm[152].y))
+        boxes[(t, side)] = [b.xmin + b.width / 2, b.ymin + b.height / 2, b.width, b.height]
 
 
 def stillness(person, a, b):
@@ -115,20 +120,25 @@ def strip(t):
     return cv2.resize(img[y0:y0 + h], (360, int(360 * h / W)))
 
 
-bad, cols = [], []
+bad, cols, report = [], [], []
 for i, (c, s) in enumerate(zip(cues, who, strict=True)):
     a, b = c[0], c[1]
     sel = (f0_t >= a) & (f0_t <= b) & voiced
     hz = float(np.nanmedian(f0[sel])) if sel.any() else float("nan")
     flags = [] if np.isnan(hz) or ((hz > SPLIT_HZ) == (s == female)) else ["WRONG VOICE"]
     listener = left if s != left else right
-    st = stillness(listener, a, b)
+    # skip the listener's own mouth closing after their previous line, and the next line's onset
+    nxt = cues[i + 1][0] if i + 1 < len(cues) else b
+    st = stillness(listener, a + 0.25, min(b, nxt) - 0.1)
     if st and st[0] > STILL_STD and st[1] > STILL_MOVE:
         flags.append(f"LISTENER MOUTH MOVES (std {st[0]:.3f}, move {st[1]:.4f})")
     lst = "no listener face" if st is None else f"listener std {st[0]:.3f} move {st[1]:.4f}"
     print(f"{i + 1:2d} {a:6.2f}-{b:6.2f} {s} {hz:5.0f}Hz  {lst:32s} {c[2]}" + "".join(f"  <-- {f}" for f in flags))
     if flags:
         bad.append(i + 1)
+    bx = [v for (t, p), v in boxes.items() if p in (s, "solo") and a <= t <= b]
+    report.append({"line": i + 1, "start": a, "end": b, "speaker": s, "flags": flags,
+                   "box": np.median(bx, axis=0).round(3).tolist() if bx else None})
     tiles = [x for t in np.linspace(a + 0.1, max(a + 0.1, b - 0.1), ROWS) if (x := strip(t)) is not None]
     head = np.full((40, 360, 3), 255, np.uint8)
     cv2.putText(head, f"{i + 1} {s}" + (" X" if flags else ""), (8, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 2)
@@ -137,5 +147,7 @@ h = max(x.shape[0] for x in cols)
 cols = [np.vstack([x, np.full((h - x.shape[0], 360, 3), 255, np.uint8)]) for x in cols]
 cv2.imwrite(sheet, np.hstack([np.hstack([x, np.full((h, 6, 3), 255, np.uint8)]) for x in cols]))
 print(f"mouths: {sheet}")
+if os.environ.get("REPORT"):
+    json.dump(report, open(os.environ["REPORT"], "w"), ensure_ascii=False, indent=1)
 print(f"RESULT {'FAIL lines ' + ','.join(map(str, bad)) if bad else 'ok'}")
 sys.exit(1 if bad else 0)
