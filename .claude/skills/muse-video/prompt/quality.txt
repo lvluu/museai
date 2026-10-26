@@ -2,7 +2,7 @@ MOTION, CONTINUITY AND NATURAL PERFORMANCE REQUIREMENTS
 
 Photorealistic live-action footage, as if filmed on a real cinema camera. Real people with natural skin texture; no plastic, waxy, cartoon or CGI look. No AI artifacts: no morphing faces, melting hands, extra or missing fingers, warped objects or garbled background text.
 
-Create fluid, believable motion throughout the entire video. Maintain consistent timing, anatomy, facial features, clothing, lighting and object positions. No jitter, stuttering, frozen frames, flickering, sudden pose changes, unnatural acceleration or sliding movements.
+Create fluid, believable motion throughout the entire video. Maintain consistent timing, anatomy, facial features (each person keeps the exact same face, age and hairstyle in every shot, before and after any cut), clothing, lighting and object positions. No jitter, stuttering, frozen frames, flickering, sudden pose changes, unnatural acceleration or sliding movements.
 
 Prefer a continuous take when possible. When a scene change is necessary, preserve the exact action, body position, gaze direction, movement speed and object placement across the transition. Each new shot must naturally continue the previous shot, without resetting or repeating movements. No abrupt stitched-clip effect, duplicated frames, missing actions or distracting transitions.
 
@@ -10,9 +10,11 @@ Make the interaction feel like a real everyday conversation. Characters listen a
 
 Synchronize every spoken syllable precisely with the speaker's lips and jaw. Mouth movements must begin and end with the corresponding audio, with no visible delay or drift. Match facial expressions and gestures to the meaning of the dialogue.
 
-Use clear, natural speech at a normal everyday conversational pace for the spoken language. Maintain a consistent, comfortable pace throughout, allowing natural rhythm, emphasis and brief breathing pauses. Never rush, stretch, time-compress or slow down speech to fit the clip. If the dialogue exceeds the available duration, extend the scene or shorten the script while preserving its meaning. Speak only the dialogue lines given, exactly as written. Clean, close-mic dialogue, clearly louder than any background sound or music; no echo or distortion.
+Use clear, natural speech at a normal everyday conversational pace for the spoken language. Every line, short or long, at the same speed: short replies no slower, long questions no faster. Each turn starts within 0.3 s of the previous line ending, including a turn toward the camera (turn the head while starting to speak). Maintain a consistent, comfortable pace throughout, allowing natural rhythm, emphasis and brief breathing pauses. Never rush, stretch, time-compress or slow down speech to fit the clip. If the dialogue exceeds the available duration, extend the scene or shorten the script while preserving its meaning. Speak only the dialogue lines given, exactly as written. Clean, close-mic dialogue, clearly louder than any background sound or music; no echo or distortion.
 
 Keep acting subtle and purposeful. Use occasional natural blinks, small expressions and restrained gestures only when appropriate. No repetitive nodding, excessive blinking, head bobbing, exaggerated smiles, random hand movements or unnecessary idle actions. Eye contact, pointing and body orientation must match the person or object being addressed. Maintain physical realism within the chosen visual style.
+
+Only the listed cast is ever in frame: no extra people anywhere, not in the background, not passing behind, not entering at the end. When one person turns to address the camera, everyone else keeps looking at that person and does not turn toward the camera. A question asked to the camera (the viewer) is never answered by anyone on screen.
 
 CAPTIONS AND SCREEN COMPOSITION
 
