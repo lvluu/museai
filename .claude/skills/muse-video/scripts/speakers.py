@@ -19,11 +19,17 @@ Env: FEMALE=W (who has the higher voice), LEFT=W (who stands on screen left).
           woman's lines std 0.016-0.022 / change 0.009 (as much as when he spoke). Punch-in lines
           (one face wider than 55 % of the frame) have no listener to check.
           Face mesh is noisy on strict profiles, so keep both faces three-quarter to the camera.
+  sync    voice without lips: from the line's start until just before the next line, every frame
+          with voice (> -32 dB) needs the speaker's lips moving (lip gap range over 7 frames
+          >= 0.012). A run of >= 0.45 s of voice over still lips fails SOUND WITHOUT LIPS.
+          EP09 v5: muse put the woman's 一起去吃饭吧 on the man's lips (her gap frozen 1 s), and the
+          dubbed voice ran 0.4-0.7 s past the closed lips on 3 lines; both were heard, not seen
+          on the contact sheet. Talking lips measured ranges 0.03-0.09.
   sheet   writes mouths.jpg (one column per line, 6 frames of the mouth band) to look at the
           flagged lines.
   report  REPORT=report.json writes per line: times, speaker, verdicts, median speaker face box
           [cx, cy, w, h] (fractions of the frame); reframe.py turns it into punch-ins.
-Exit 1 when any line fails voice or mouth."""
+Exit 1 when any line fails voice, face, mouth or sync."""
 import difflib
 import json
 import os
@@ -62,6 +68,7 @@ left = os.environ.get("LEFT", "W")
 right = next((x for x in sorted(set(who)) if x != left), "?")
 SPLIT_HZ = 165
 STILL_STD, STILL_MOVE = 0.010, 0.004  # listener lip gap limits
+LOUD_DB, LIPS_RANGE, MUTE_RUN = -32, 0.012, 0.45  # sync: voice level, moving-lips range, max voice over still lips
 ROWS, BAND = 6, 0.14  # sheet: frames per cue, band height as a fraction of the frame height
 
 # voice
@@ -112,6 +119,22 @@ def stillness(person, a, b):
     return float(g.std()), float(np.abs(np.diff(g)).mean())
 
 
+def voice_without_lips(person, a, b):
+    """Longest run (s) of voiced frames in [a, b] where the person's lips are still; None without a face."""
+    g = {round(t * fps): v for (t, p), v in gaps.items() if p in (person, "solo") and a - 0.2 <= t <= b + 0.2}
+    if len(g) < 8:
+        return None
+    run = best = 0
+    for f in range(round(a * fps), round(b * fps)):
+        near = [g[k] for k in range(f - 3, f + 4) if k in g]
+        if f >= len(frame_db) or frame_db[f] < LOUD_DB:
+            run = 0
+        elif f in g and len(near) >= 4 and max(near) - min(near) < LIPS_RANGE:
+            run += 1
+            best = max(best, run)
+    return best / fps
+
+
 def face_seen(a, b, s):
     """Share of 8 frames in [a, b] with the speaker's face: on their half, alone and wide, or in profile."""
     hits = 0
@@ -145,6 +168,8 @@ def strip(t):
     return cv2.resize(img[y0:y0 + h], (360, int(360 * h / W)))
 
 
+hop = sr / fps
+frame_db = 20 * np.log10(librosa.feature.rms(y=y, frame_length=int(2 * hop), hop_length=int(hop), center=True)[0] + 1e-9)
 bad, cols, report = [], [], []
 for i, (c, s) in enumerate(zip(cues, who, strict=True)):
     a, b = c[0], c[1]
@@ -169,6 +194,9 @@ for i, (c, s) in enumerate(zip(cues, who, strict=True)):
     st = stillness(listener, a + 0.25, min(b, nxt) - 0.1)
     if st and st[0] > STILL_STD and st[1] > STILL_MOVE:
         flags.append(f"LISTENER MOUTH MOVES (std {st[0]:.3f}, move {st[1]:.4f})")
+    mute = voice_without_lips(s, a, nxt - 0.05 if i + 1 < len(cues) else b + 0.8)
+    if mute is not None and mute >= MUTE_RUN:
+        flags.append(f"SOUND WITHOUT LIPS ({mute:.2f} s)")
     lst = "no listener face" if st is None else f"listener std {st[0]:.3f} move {st[1]:.4f}"
     print(f"{i + 1:2d} {a:6.2f}-{b:6.2f} {s} {hz:5.0f}Hz  {lst:32s} {c[2]}" + "".join(f"  <-- {f}" for f in flags))
     if flags:
