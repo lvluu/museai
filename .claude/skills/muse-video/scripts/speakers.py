@@ -17,7 +17,8 @@ Env: FEMALE=W (who has the higher voice), LEFT=W (who stands on screen left).
           must stay still: it fails when std > 0.010 and mean frame-to-frame change > 0.004.
           EP09: a closed listener measured std <= 0.004 / change <= 0.001, the man miming the
           woman's lines std 0.016-0.022 / change 0.009 (as much as when he spoke). Punch-in lines
-          (one face wider than 55 % of the frame) have no listener to check.
+          (one face wider than 55 % of the frame) and solo to-camera shots (one face centred within
+          12 % of the middle) have no listener to check.
           Face mesh is noisy on strict profiles, so keep both faces three-quarter to the camera.
   sync    voice without lips: from the line's start until just before the next line, every frame
           with voice (> -32 dB) needs the speaker's lips moving (lip gap range over 7 frames
@@ -106,7 +107,9 @@ while True:
         if not r.multi_face_landmarks:
             continue
         lm = r.multi_face_landmarks[0].landmark
-        solo = len(found) == 1 and b.width > 0.55  # punch-in; two-shot faces measure up to ~0.46 wide
+        # punch-in (two-shot faces measure up to ~0.46 wide), or a lone face centred in the frame:
+        # a to-camera intro (EP10: cx 0.50, it flipped sides and her own lips counted as the listener's)
+        solo = len(found) == 1 and (b.width > 0.55 or abs(b.xmin + b.width / 2 - 0.5) < 0.12)
         side = "solo" if solo else (left if b.xmin + b.width / 2 < 0.5 else right)
         gaps[(t, side)] = abs(lm[13].y - lm[14].y) / max(1e-6, abs(lm[10].y - lm[152].y))
         boxes[(t, side)] = [b.xmin + b.width / 2, b.ymin + b.height / 2, b.width, b.height]
@@ -146,7 +149,7 @@ def face_seen(a, b, s):
         W = img.shape[1]
         on_left = s == left
         r = [d.location_data.relative_bounding_box for d in det.process(cv2.cvtColor(img, cv2.COLOR_BGR2RGB)).detections or []]
-        if (len(r) == 1 and r[0].width > 0.55) or any((x.xmin + x.width / 2 < 0.5) == on_left for x in r):
+        if (len(r) == 1 and (r[0].width > 0.55 or abs(r[0].xmin + r[0].width / 2 - 0.5) < 0.12)) or any((x.xmin + x.width / 2 < 0.5) == on_left for x in r):
             hits += 1
             continue
         part = cv2.equalizeHist(cv2.cvtColor(img[:, : W // 2] if on_left else img[:, W // 2:], cv2.COLOR_BGR2GRAY))
