@@ -6,7 +6,7 @@ Replaces the dialogue with one fixed neural voice per person, timed to the origi
 Every muse render picks its own voices, so a multi-clip video changes voice at each seam
 (EP08: the woman went 258 -> 183 -> 229 Hz across 4 clips, the clerk 101-142 Hz, with a
 different timbre and accent each time). Dubbing every line with the same voice fixes that.
-  voices  VOICE_W (default zh-CN-XiaoxiaoNeural), VOICE_M (default zh-CN-YunyangNeural):
+  voices  VOICE_W (default zh-CN-XiaoxiaoNeural), VOICE_M (default zh-CN-YunjianNeural):
           standard Putonghua. SPEAKERS has one letter per cue (W / M).
   timing  each cue's speech span comes from the original audio (loud frames inside the cue).
           A line whose commas match the original's pauses (> 0.15 s) is synthesised per
@@ -31,7 +31,7 @@ video, cues_path, who, out = sys.argv[1], sys.argv[2], sys.argv[3].upper(), sys.
 cues = json.load(open(cues_path))
 if len(who) != len(cues):
     sys.exit(f"SPEAKERS has {len(who)} letters for {len(cues)} cues")
-voices = {"W": os.environ.get("VOICE_W", "zh-CN-XiaoxiaoNeural"), "M": os.environ.get("VOICE_M", "zh-CN-YunyangNeural")}
+voices = {"W": os.environ.get("VOICE_W", "zh-CN-XiaoxiaoNeural"), "M": os.environ.get("VOICE_M", "zh-CN-YunjianNeural")}
 SR, HOP = 24000, 120  # 5 ms frames
 tmp = tempfile.mkdtemp()
 
