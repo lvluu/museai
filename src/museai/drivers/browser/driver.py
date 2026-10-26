@@ -161,13 +161,23 @@ class BrowserDriver(MuseDriver):
             if not value:
                 continue
             val = urllib.parse.unquote(value)
+            # Chrome rejects values with these characters ("Sanitizing cookie failed");
+            # keep the encoded form the site set, e.g. the JSON `theme` cookie.
+            if any(c in val for c in ';,"\\ ') or not val.isprintable():
+                val = value
             exp = account.cookie_expires.get(name) or 0
             expires_val = exp if exp > floor else time.time() + 7 * 86400
-            for cookie_domain in (".muse.ai", "muse.ai"):
+            # __Host- cookies must be host-only: no Domain attribute allowed.
+            scopes = (
+                [{"url": "https://muse.ai/"}]
+                if name.startswith("__Host-")
+                else [{"domain": d} for d in (".muse.ai", "muse.ai")]
+            )
+            for scope in scopes:
                 params = {
                     "name": name,
                     "value": val,
-                    "domain": cookie_domain,
+                    **scope,
                     "path": "/",
                     "secure": True,
                     "expires": expires_val,
