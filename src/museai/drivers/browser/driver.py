@@ -18,6 +18,7 @@ import base64
 import contextlib
 import logging
 import time
+from collections import defaultdict
 from collections.abc import AsyncIterator
 from dataclasses import dataclass, field
 from typing import Any
@@ -87,7 +88,8 @@ class BrowserDriver(MuseDriver):
         self._chromium: ChromiumProcess | None = None
         self._browser: CDPSession | None = None
         self._tabs: dict[str, _Tab] = {}
-        self._tab_lock = asyncio.Lock()
+        # Per account, so opening one account's tab never blocks another account's job.
+        self._tab_locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
 
     # ------------------------------------------------------------ lifecycle
     async def startup(self) -> None:
@@ -114,7 +116,7 @@ class BrowserDriver(MuseDriver):
 
     # ------------------------------------------------------------ tabs
     async def _tab(self, account: Account) -> _Tab:
-        async with self._tab_lock:
+        async with self._tab_locks[account.id]:
             tab = self._tabs.get(account.id)
             if tab and not tab.session.closed:
                 return tab

@@ -38,7 +38,12 @@ class Services:
             settings=settings,
             driver=driver,
             pool=pool,
-            gateway=Gateway(pool, driver, max_failover=settings.max_failover),
+            gateway=Gateway(
+                pool,
+                driver,
+                max_failover=settings.max_failover,
+                media_queue_timeout=settings.media_queue_timeout,
+            ),
             tasks=TaskManager(settings.tasks_file),
             media=MediaStore(settings.media_dir),
         )

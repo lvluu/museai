@@ -155,9 +155,15 @@ class AccountPool:
             free.append(acc)
         return free, busy
 
-    async def acquire(self, *, exclude: Iterable[str] = (), hint: str | None = None) -> Account:
+    async def acquire(
+        self,
+        *,
+        exclude: Iterable[str] = (),
+        hint: str | None = None,
+        timeout: float | None = None,
+    ) -> Account:
         exclude = tuple(exclude)
-        deadline = time.monotonic() + self.acquire_timeout
+        deadline = time.monotonic() + (self.acquire_timeout if timeout is None else timeout)
         async with self._cond:
             while True:
                 free, busy = self._candidates(exclude)
@@ -205,9 +211,13 @@ class AccountPool:
 
     @asynccontextmanager
     async def lease(
-        self, *, exclude: Iterable[str] = (), hint: str | None = None
+        self,
+        *,
+        exclude: Iterable[str] = (),
+        hint: str | None = None,
+        timeout: float | None = None,
     ) -> AsyncIterator[Lease]:
-        acc = await self.acquire(exclude=exclude, hint=hint)
+        acc = await self.acquire(exclude=exclude, hint=hint, timeout=timeout)
         lease = Lease(acc)
         try:
             yield lease

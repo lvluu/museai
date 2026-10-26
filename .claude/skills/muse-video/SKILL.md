@@ -23,7 +23,7 @@ Nothing is delivered until `scripts/qa.py` says PASS and the contact sheet looks
 - Never print `data/api_key` or `data/accounts.json` (live muse.ai session cookies).
 - `MUSE2API_VIDEO_TIMEOUT=1500` in `.env` (30-40 s videos take >10 min).
 - Results also land in `data/media/vid_*.mp4`; copy each raw render into the working folder right away.
-- One account → one render at a time.
+- Each account renders one video at a time; with N enabled accounts, N videos render in parallel. Extra requests queue for the next free account (`MUSE2API_MEDIA_QUEUE_TIMEOUT`, default 3600 s), so independent videos can be submitted at once. Clips of one multi-clip video still render in order (each needs the previous last frame).
 
 ## Before rendering: fit the script to the clip
 `python3 scripts/budget.py script.txt <duration>` - needs ≤ duration and ≥ 75 % of it at 4.5 syllables/s. TOO LONG → shorten the script (keep the meaning) or extend the clip. TOO SHORT → add a line or shorten the clip. Never ask the model to speed up or slow down instead. Split lines over 14 syllables.

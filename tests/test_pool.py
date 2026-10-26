@@ -109,3 +109,55 @@ async def test_generation_timeout_keeps_account_and_does_not_fail_over(tmp_path)
     assert driver.calls == 1
     assert pool.get("a0").status == AccountStatus.ACTIVE
     assert (await pool.acquire()).id == "a0"
+
+
+class _HeldVideoDriver(MockDriver):
+    """Each video runs until its test releases it; records the account it ran on."""
+
+    def __init__(self) -> None:
+        super().__init__(delay=0)
+        self.running: dict[str, str] = {}  # prompt -> account id
+        self.release: dict[str, asyncio.Event] = {}
+
+    async def generate_video(self, account, req):
+        self.running[req.prompt] = account.id
+        self.release[req.prompt] = done = asyncio.Event()
+        await done.wait()
+        return await super().generate_video(account, req)
+
+
+async def test_videos_run_in_parallel_one_per_account_and_queue_for_the_next_free(tmp_path):
+    pool = await _pool(tmp_path, n=4)
+    driver = _HeldVideoDriver()
+    # Waits far longer than the pool's own 0.2 s acquire timeout.
+    gw = Gateway(pool, driver, media_queue_timeout=5)
+
+    def submit(name):
+        return asyncio.create_task(gw.generate_video(VideoRequest(prompt=name, model="muse-video")))
+
+    async def settle():
+        for _ in range(20):
+            await asyncio.sleep(0.01)
+
+    jobs = {f"v{i}": submit(f"v{i}") for i in range(1, 5)}
+    await settle()
+    assert sorted(driver.running.values()) == ["a0", "a1", "a2", "a3"]
+
+    jobs["v5"] = submit("v5")
+    await asyncio.sleep(0.4)
+    assert "v5" not in driver.running
+
+    driver.release["v4"].set()
+    await jobs["v4"]
+    await settle()
+    assert driver.running["v5"] == driver.running["v4"]
+
+    jobs["v6"] = submit("v6")
+    driver.release["v2"].set()
+    await jobs["v2"]
+    await settle()
+    assert driver.running["v6"] == driver.running["v2"]
+
+    for name in ("v1", "v3", "v5", "v6"):
+        driver.release[name].set()
+    await asyncio.gather(*jobs.values())
