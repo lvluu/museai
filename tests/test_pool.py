@@ -271,3 +271,18 @@ async def test_one_session_renders_one_job_at_a_time(tmp_path):
     release.set()
     await asyncio.sleep(0.05)
     assert started[-1] == "a2" and a2.status == TaskStatus.SUCCEEDED
+
+
+async def test_shutdown_marks_running_jobs_interrupted(tmp_path):
+    from museai.services.tasks import TaskManager
+
+    tasks = TaskManager(tmp_path / "tasks.json")
+
+    async def runner(task, progress):
+        await asyncio.Event().wait()
+
+    running = tasks.submit("video", {"prompt": "p"}, runner)
+    await asyncio.sleep(0.01)
+    await tasks.shutdown()
+    # Clients retry "interrupted"; a "cancelled" job would be dropped on a restart.
+    assert running.status == TaskStatus.FAILED and running.error["code"] == "interrupted"
