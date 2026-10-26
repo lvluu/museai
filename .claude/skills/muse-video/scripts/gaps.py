@@ -11,7 +11,7 @@ video = sys.argv[1]
 thr = float(sys.argv[2]) if len(sys.argv) > 2 else -28
 pcm = subprocess.run(["ffmpeg", "-v", "error", "-i", video, "-ac", "1", "-ar", "16000", "-f", "s16le", "-"],
                      capture_output=True, check=True).stdout
-s = struct.unpack("<%dh" % (len(pcm) // 2), pcm)
+s = struct.unpack(f"<{len(pcm) // 2}h", pcm)
 W = 800  # 50 ms at 16 kHz
 loud = []
 for i in range(0, len(s) - W, W):
