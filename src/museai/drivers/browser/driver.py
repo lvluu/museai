@@ -57,6 +57,11 @@ STABLE_POLLS_DONE = 4
 STABLE_POLLS_FORCE = 12
 # Past this many assistant bubbles the page gets slow and a new thread is cheaper.
 HOT_BUBBLE_LIMIT = 16
+# muse's agent often posts its "here is your video" text before the upload of the
+# file finishes, or stops to show a script and wait. Give a text-only reply this long
+# to grow an attachment, then ask in the same thread for the file, up to MEDIA_NUDGES times.
+TEXT_ONLY_GRACE = 90.0
+MEDIA_NUDGES = 2
 
 
 def is_thread_url(url: str) -> bool:
@@ -95,7 +100,10 @@ class BrowserDriver(MuseDriver):
     async def startup(self) -> None:
         exe = find_chromium(self.settings.chromium_path)
         self._chromium = ChromiumProcess(
-            exe, self.settings.cdp_port, self.settings.profile_dir, self.settings.headless,
+            exe,
+            self.settings.cdp_port,
+            self.settings.profile_dir,
+            self.settings.headless,
             proxy=self.settings.browser_proxy,
         )
         ws_url = await self._chromium.start()
@@ -158,6 +166,7 @@ class BrowserDriver(MuseDriver):
     @staticmethod
     async def _set_cookies(session: CDPSession, account: Account) -> None:
         import urllib.parse
+
         floor = time.time() + 3600
         for name, value in account.cookies.items():
             if not value:
@@ -236,7 +245,9 @@ class BrowserDriver(MuseDriver):
         href = await self._href(tab)
         if not is_thread_url(href):
             return False
-        if tab.thread_url and urlsplit(href).path.rstrip("/") != urlsplit(tab.thread_url).path.rstrip("/"):
+        if tab.thread_url and urlsplit(href).path.rstrip("/") != urlsplit(
+            tab.thread_url
+        ).path.rstrip("/"):
             return False
         try:
             page = await tab.session.evaluate(dom.PAGE_STATE) or {}
@@ -269,7 +280,9 @@ class BrowserDriver(MuseDriver):
         log.warning("PAGE_STATE final before error: %s", state)
         if any(h in head for h in dom.LOGIN_HINTS):
             raise UpstreamAuthError("muse.ai redirected to login; cookies are no longer valid")
-        raise UpstreamTimeout(f"muse.ai page did not become ready (path={state.get('path')}, hasInput={state.get('hasInput')})")
+        raise UpstreamTimeout(
+            f"muse.ai page did not become ready (path={state.get('path')}, hasInput={state.get('hasInput')})"
+        )
 
     # ------------------------------------------------------------ input
     async def _attach(self, tab: _Tab, images: list[InputImage]) -> None:
@@ -295,8 +308,13 @@ class BrowserDriver(MuseDriver):
         for kind in ("keyDown", "keyUp"):
             await tab.session.send(
                 "Input.dispatchKeyEvent",
-                {"type": kind, "key": "Enter", "code": "Enter", "windowsVirtualKeyCode": 13,
-                 **({"text": "\r"} if kind == "keyDown" else {})},
+                {
+                    "type": kind,
+                    "key": "Enter",
+                    "code": "Enter",
+                    "windowsVirtualKeyCode": 13,
+                    **({"text": "\r"} if kind == "keyDown" else {}),
+                },
             )
         await asyncio.sleep(0.5)
         if not await tab.session.evaluate(dom.INPUT_EMPTY):
@@ -362,8 +380,10 @@ class BrowserDriver(MuseDriver):
             self._load_hot(tab, account)
             same_owner = (tab.hint or "") == (req.conversation_hint or "")
             follow = followup_text(tab.turns, req.turns) if tab.turns and same_owner else None
-            if follow and len(req.images) >= tab.image_count and (
-                tab.thread_url or await self._live_continuation(tab)
+            if (
+                follow
+                and len(req.images) >= tab.image_count
+                and (tab.thread_url or await self._live_continuation(tab))
             ):
                 if await self._on_thread(tab) or await self._live_continuation(tab):
                     log.info("reusing hot page %s", tab.thread_url or "open page")
@@ -371,7 +391,7 @@ class BrowserDriver(MuseDriver):
                     log.info("reopening %s", tab.thread_url)
                     await self._open_saved(tab)
                 prompt = follow
-                images = req.images[tab.image_count:]
+                images = req.images[tab.image_count :]
             else:
                 log.info("opening a new thread")
                 account.meta.pop("hot_page", None)
@@ -413,7 +433,7 @@ class BrowserDriver(MuseDriver):
                 got_first = True
                 if text != last:
                     if text.startswith(emitted):
-                        delta = text[len(emitted):]
+                        delta = text[len(emitted) :]
                     elif emitted.startswith(text):
                         delta = ""  # a transient re-render briefly shortened the bubble
                     else:
@@ -424,7 +444,9 @@ class BrowserDriver(MuseDriver):
                     last, stable = text, 0
                 else:
                     stable += 1
-                    if (not st.get("generating") and stable >= STABLE_POLLS_DONE) or stable >= STABLE_POLLS_FORCE:
+                    if (
+                        not st.get("generating") and stable >= STABLE_POLLS_DONE
+                    ) or stable >= STABLE_POLLS_FORCE:
                         finished = True
                         return
         except CDPError as exc:
@@ -467,7 +489,9 @@ class BrowserDriver(MuseDriver):
                     last, stable = text, 0
                 else:
                     stable += 1
-                    if (not st.get("generating") and stable >= STABLE_POLLS_DONE) or stable >= STABLE_POLLS_FORCE:
+                    if (
+                        not st.get("generating") and stable >= STABLE_POLLS_DONE
+                    ) or stable >= STABLE_POLLS_FORCE:
                         finished = True
                         return last
         except CDPError as exc:
@@ -476,8 +500,9 @@ class BrowserDriver(MuseDriver):
         finally:
             await self._finish_chat(tab, account, req, finished)
 
-    async def _finish_chat(self, tab: _Tab, account: Account, req: ChatRequest,
-                           finished: bool) -> None:
+    async def _finish_chat(
+        self, tab: _Tab, account: Account, req: ChatRequest, finished: bool
+    ) -> None:
         if finished:
             url = ""
             for _ in range(10):
@@ -505,12 +530,27 @@ class BrowserDriver(MuseDriver):
         suffix = f" ({', '.join(hints)})" if hints else ""
         return f"{verb}{suffix}: {prompt}"
 
-    async def _wait_media(self, tab: _Tab, base: dict, kind: str, timeout: float,
-                          on_progress, cancel: asyncio.Event | None) -> dict:
+    @staticmethod
+    def _nudge_prompt(kind: str) -> str:
+        return (
+            f"Please make the {kind} now and attach the finished {kind} file to this chat "
+            f"as a {kind} attachment. Do not ask me anything and do not only describe it."
+        )
+
+    async def _wait_media(
+        self,
+        tab: _Tab,
+        base: dict,
+        kind: str,
+        timeout: float,
+        on_progress,
+        cancel: asyncio.Event | None,
+    ) -> dict:
         base_atts = len(base.get("attachments", []))
         base_count = base.get("agentCount", 0)
         started = time.monotonic()
-        text_stable, last_text = 0, ""
+        text_only_since: float | None = None
+        last_text, nudges = "", 0
         while time.monotonic() - started < timeout:
             if cancel and cancel.is_set():
                 raise asyncio.CancelledError
@@ -523,28 +563,58 @@ class BrowserDriver(MuseDriver):
             elapsed = time.monotonic() - started
             if on_progress:
                 on_progress(min(95, int(elapsed / timeout * 100)))
-            # Assistant finished with text only -> it refused or misunderstood.
             text = st.get("lastText", "")
-            if st.get("agentCount", 0) > base_count and text and not st.get("generating"):
-                text_stable = text_stable + 1 if text == last_text else 0
-                last_text = text
-                if text_stable >= 8:
-                    raise UpstreamRefused(f"upstream replied with text only: {text[:200]}")
+            if not (st.get("agentCount", 0) > base_count and text and not st.get("generating")):
+                text_only_since = None
+                continue
+            if text != last_text or text_only_since is None:
+                last_text, text_only_since = text, time.monotonic()
+                continue
+            if time.monotonic() - text_only_since < TEXT_ONLY_GRACE:
+                continue
+            if nudges >= MEDIA_NUDGES:
+                raise UpstreamRefused(f"upstream replied with text only: {text[:200]}")
+            nudges += 1
+            log.info(
+                "%s reply has no %s after %.0fs, asking for the file (%d/%d)",
+                tab.account_id,
+                kind,
+                TEXT_ONLY_GRACE,
+                nudges,
+                MEDIA_NUDGES,
+            )
+            base_count = st.get("agentCount", 0)
+            text_only_since, last_text = None, ""
+            await self._send(tab, self._nudge_prompt(kind))
         raise GenerationTimeout(
             f"{kind} generation timed out after {timeout:.0f}s; raise MUSE2API_{kind.upper()}_TIMEOUT"
         )
 
     async def _download(self, tab: _Tab, att: dict, kind: str) -> MediaResult:
-        res = await tab.session.evaluate(dom.fetch_as_base64(att["src"]), await_promise=True,
-                                         timeout=300)
+        res = await tab.session.evaluate(
+            dom.fetch_as_base64(att["src"]), await_promise=True, timeout=300
+        )
         if not (res or {}).get("ok"):
             raise UpstreamError(f"failed to download generated {kind}: {(res or {}).get('err')}")
         mime = res.get("mime") or ("video/mp4" if kind == "video" else "image/png")
-        return MediaResult(data=base64.b64decode(res["b64"]), mime=mime, kind=kind,
-                           width=att.get("w") or None, height=att.get("h") or None)
+        return MediaResult(
+            data=base64.b64decode(res["b64"]),
+            mime=mime,
+            kind=kind,
+            width=att.get("w") or None,
+            height=att.get("h") or None,
+        )
 
-    async def _generate(self, account: Account, prompt: str, images: list[InputImage],
-                        kind: str, timeout: float, on_progress, cancel) -> MediaResult:
+    async def _generate(
+        self,
+        account: Account,
+        prompt: str,
+        images: list[InputImage],
+        kind: str,
+        timeout: float,
+        on_progress,
+        cancel,
+    ) -> MediaResult:
         tab, base = await self._prepare(account, prompt, images)
         try:
             att = await self._wait_media(tab, base, kind, timeout, on_progress, cancel)
@@ -557,8 +627,15 @@ class BrowserDriver(MuseDriver):
         prompt = self._media_prompt(req.prompt, "image", req.size)
         results = []
         for _ in range(max(1, req.n)):
-            r = await self._generate(account, prompt, req.reference_images, "image",
-                                     req.timeout, req.on_progress, req.cancel)
+            r = await self._generate(
+                account,
+                prompt,
+                req.reference_images,
+                "image",
+                req.timeout,
+                req.on_progress,
+                req.cancel,
+            )
             r.revised_prompt = req.prompt
             results.append(r)
         return results
@@ -566,8 +643,9 @@ class BrowserDriver(MuseDriver):
     async def generate_video(self, account: Account, req: VideoRequest) -> MediaResult:
         prompt = self._media_prompt(req.prompt, "video", req.size, req.duration)
         images = [req.first_frame] if req.first_frame else []
-        return await self._generate(account, prompt, images, "video", req.timeout,
-                                    req.on_progress, req.cancel)
+        return await self._generate(
+            account, prompt, images, "video", req.timeout, req.on_progress, req.cancel
+        )
 
     # ------------------------------------------------------------ session
     async def renew_session(self, account: Account) -> SessionInfo:

@@ -34,7 +34,9 @@ class Settings(BaseSettings):
 
     # --- auth ---
     api_key: str = Field(default="", description="Bearer key for /v1/*. Auto-generated if empty.")
-    admin_key: str = Field(default="", description="Bearer key for /admin/*. Falls back to api_key.")
+    admin_key: str = Field(
+        default="", description="Bearer key for /admin/*. Falls back to api_key."
+    )
 
     # --- storage ---
     data_dir: Path = Path("data")
@@ -65,7 +67,8 @@ class Settings(BaseSettings):
     pool_strategy: PoolStrategyName = "affinity"
     pool_acquire_timeout: float = 60.0
     # How long an image/video job waits for a free account (one job per account at a time).
-    media_queue_timeout: float = 3600.0
+    # 0 = queue until one is free.
+    media_queue_timeout: float = 0.0
     account_max_concurrency: int = 1
     account_cooldown: float = 120.0
     max_failover: int = 2

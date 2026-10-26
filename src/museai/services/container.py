@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 from ..accounts.pool import AccountPool
@@ -42,7 +43,7 @@ class Services:
                 pool,
                 driver,
                 max_failover=settings.max_failover,
-                media_queue_timeout=settings.media_queue_timeout,
+                media_queue_timeout=settings.media_queue_timeout or math.inf,
             ),
             tasks=TaskManager(settings.tasks_file),
             media=MediaStore(settings.media_dir),

@@ -80,6 +80,42 @@ def test_video_task(client, auth):
     assert task["result"]["url"].endswith(".mp4")
 
 
+def test_video_task_records_account(client, auth, admin):
+    acc = client.post("/admin/accounts", headers=admin, json={
+        "label": "a1", "cookies": {"hatch_sess": "s", "hatch_native_auth_device": "d"}},
+    ).json()["account"]
+    task_id = client.post("/v1/videos", headers=auth, json={"prompt": "waves"}).json()["id"]
+    for _ in range(50):
+        task = client.get(f"/v1/videos/{task_id}", headers=auth).json()
+        if task["status"] in ("succeeded", "failed"):
+            break
+        time.sleep(0.02)
+    assert task["account_id"] == acc["id"]
+    listed = next(t for t in client.get("/admin/tasks", headers=admin).json()["data"]
+                  if t["id"] == task_id)
+    assert (listed["account_label"], listed["attempts"]) == ("a1", [acc["id"]])
+
+
+def test_dashboard_page(client, admin):
+    r = client.get("/dashboard")
+    assert r.status_code == 200
+    assert "Videos by account" in r.text
+    # TestClient's peer is "testclient", not loopback, so the admin key is required.
+    assert client.get("/dashboard/data").status_code == 401
+    assert client.get("/dashboard/data", headers=admin).json() == {"accounts": [], "videos": []}
+
+
+def test_dashboard_data_open_to_loopback(settings):
+    from fastapi.testclient import TestClient
+
+    from museai.app import create_app
+    from museai.drivers.mock import MockDriver
+
+    app = create_app(settings, MockDriver(delay=0))
+    with TestClient(app, client=("127.0.0.1", 50000)) as c:
+        assert c.get("/dashboard/data").status_code == 200
+
+
 def test_reserved_endpoints(client, auth):
     assert client.post("/v1/responses", headers=auth, json={}).status_code == 501
     assert client.post("/v1/images/edits", headers=auth).status_code == 501

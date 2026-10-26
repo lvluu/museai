@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import asyncio
+import math
+import time
 
 import pytest
 
@@ -56,6 +58,32 @@ async def test_auth_error_invalidates(tmp_path):
     assert pool.get("a0").status == AccountStatus.INVALID
     with pytest.raises(NoAccountAvailable):
         await pool.acquire()
+
+
+async def test_all_cooling_waits_for_cooldown_instead_of_failing(tmp_path):
+    pool = await _pool(tmp_path, n=1)
+    acc = pool.get("a0")
+    acc.status, acc.cooldown_until = AccountStatus.COOLING, time.time() + 0.15
+    got = await pool.acquire(timeout=2)
+    assert got.id == "a0"
+
+
+async def test_cooling_past_the_deadline_still_times_out(tmp_path):
+    pool = await _pool(tmp_path, n=1)
+    acc = pool.get("a0")
+    acc.status, acc.cooldown_until = AccountStatus.COOLING, time.time() + 60
+    with pytest.raises(NoAccountAvailable, match="cooling"):
+        await pool.acquire()
+
+
+async def test_unlimited_queue_waits_for_busy_account(tmp_path):
+    pool = await _pool(tmp_path, n=1)
+    held = await pool.acquire()
+    waiter = asyncio.create_task(pool.acquire(timeout=math.inf))
+    await asyncio.sleep(0.4)  # longer than acquire_timeout: must still be queued
+    assert not waiter.done()
+    await pool.release(held)
+    assert (await asyncio.wait_for(waiter, 1)).id == "a0"
 
 
 async def test_persistence_roundtrip(tmp_path):

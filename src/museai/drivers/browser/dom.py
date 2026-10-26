@@ -50,10 +50,14 @@ CHAT_STATE = f"""(() => {{
   const atts = [...document.querySelectorAll({q(ATTACHMENT)})].map(a => {{
     const v = a.querySelector('video'), i = a.querySelector('img');
     const m = v || i;
+    const tid = a.getAttribute('data-testid') || '';
+    // A video attachment shows a poster <img> until its <video> mounts; the testid says
+    // what it is, and the empty src keeps it from being downloaded too early.
+    const isVideo = !!v || tid.endsWith('-video');
     return {{
-      tid: a.getAttribute('data-testid') || '',
-      kind: v ? 'video' : (i ? 'image' : 'unknown'),
-      src: m ? (m.currentSrc || m.src || '') : '',
+      tid,
+      kind: isVideo ? 'video' : (i ? 'image' : 'unknown'),
+      src: isVideo ? (v ? (v.currentSrc || v.src || '') : '') : (i ? (i.currentSrc || i.src || '') : ''),
       w: m ? (m.videoWidth || m.naturalWidth || 0) : 0,
       h: m ? (m.videoHeight || m.naturalHeight || 0) : 0,
     }};
