@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import itertools
 import logging
+import math
 import time
 from collections import defaultdict
 from collections.abc import AsyncIterator, Iterable
@@ -141,19 +142,24 @@ class AccountPool:
         }
 
     # ---- scheduling ----
-    def _candidates(self, exclude: Iterable[str]) -> tuple[list[Account], bool]:
-        """Returns (free candidates, whether any usable account is merely busy)."""
+    def _candidates(self, exclude: Iterable[str]) -> tuple[list[Account], bool, float | None]:
+        """Returns (free candidates, whether any usable account is merely busy, and the
+        earliest time a cooling account comes back, if any)."""
         now = time.time()
         excluded = set(exclude)
-        free, busy = [], False
+        free, busy, next_ready = [], False, None
         for acc in self._accounts.values():
-            if acc.id in excluded or not acc.is_available(now):
+            if acc.id in excluded:
+                continue
+            if not acc.is_available(now):
+                if acc.enabled and acc.status == AccountStatus.COOLING:
+                    next_ready = min(next_ready or acc.cooldown_until, acc.cooldown_until)
                 continue
             if self._inflight[acc.id] >= self.max_concurrency:
                 busy = True
                 continue
             free.append(acc)
-        return free, busy
+        return free, busy, next_ready
 
     async def acquire(
         self,
@@ -162,23 +168,35 @@ class AccountPool:
         hint: str | None = None,
         timeout: float | None = None,
     ) -> Account:
+        """Wait for a free account. ``timeout`` defaults to ``acquire_timeout``; ``math.inf``
+        waits as long as it takes. Busy and cooling accounts are waited for; only a pool
+        with nothing that can ever become free fails at once."""
         exclude = tuple(exclude)
         deadline = time.monotonic() + (self.acquire_timeout if timeout is None else timeout)
         async with self._cond:
             while True:
-                free, busy = self._candidates(exclude)
+                free, busy, next_ready = self._candidates(exclude)
                 if free:
                     acc = self.strategy.choose(free, hint)
                     self._inflight[acc.id] += 1
                     acc.last_used_at = time.time()
                     return acc
-                if not busy:
+                if not busy and next_ready is None:
                     raise NoAccountAvailable("no usable account in pool")
                 remaining = deadline - time.monotonic()
                 if remaining <= 0:
-                    raise NoAccountAvailable("all accounts are busy, try again later")
+                    raise NoAccountAvailable(
+                        "all accounts are busy, try again later"
+                        if busy
+                        else "all accounts are cooling down, try again later"
+                    )
+                wait = remaining
+                if next_ready is not None:
+                    wait = min(wait, max(0.05, next_ready - time.time()))
                 try:
-                    await asyncio.wait_for(self._cond.wait(), timeout=remaining)
+                    await asyncio.wait_for(
+                        self._cond.wait(), timeout=None if math.isinf(wait) else wait
+                    )
                 except asyncio.TimeoutError:
                     continue
 
