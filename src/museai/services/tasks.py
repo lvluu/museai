@@ -45,6 +45,9 @@ class Task(BaseModel):
     attempts: list[str] = Field(default_factory=list)
     # Identical in-flight submissions share one task instead of rendering again.
     dedupe_key: str | None = None
+    # Client session (X-Muse-Session); one session renders one job at a time, so one
+    # caller holds at most one account and the others stay free for other sessions.
+    session: str | None = None
 
     def assign(self, account_id: str, label: str) -> None:
         self.account_id, self.account_label = account_id, label
@@ -62,6 +65,7 @@ class TaskManager:
         self.max_kept = max_kept
         self._tasks: dict[str, Task] = {}
         self._running: dict[str, asyncio.Task] = {}
+        self._sessions: dict[str, asyncio.Lock] = {}
 
     async def load(self) -> None:
         if not self.path.is_file():
@@ -96,7 +100,13 @@ class TaskManager:
         return sorted(self._tasks.values(), key=lambda t: t.created_at, reverse=True)[:limit]
 
     def submit(
-        self, kind: str, request: dict[str, Any], runner: Runner, *, dedupe_key: str | None = None
+        self,
+        kind: str,
+        request: dict[str, Any],
+        runner: Runner,
+        *,
+        dedupe_key: str | None = None,
+        session: str | None = None,
     ) -> Task:
         if dedupe_key:
             for task_id in self._running:
@@ -104,7 +114,7 @@ class TaskManager:
                 if same and same.dedupe_key == dedupe_key and not same.finished:
                     log.info("duplicate %s request joined in-flight %s", kind, same.id)
                     return same
-        task = Task(kind=kind, request=request, dedupe_key=dedupe_key)
+        task = Task(kind=kind, request=request, dedupe_key=dedupe_key, session=session)
         self._tasks[task.id] = task
         self._persist()
         self._running[task.id] = asyncio.create_task(self._run(task, runner))
@@ -115,9 +125,15 @@ class TaskManager:
             task.progress = max(task.progress, min(99, int(p)))
             task.updated_at = time.time()
 
-        task.status = TaskStatus.RUNNING
         try:
-            task.result = await runner(task, progress)
+            if task.session:
+                # Stays queued behind the session's earlier job.
+                async with self._sessions.setdefault(task.session, asyncio.Lock()):
+                    task.status = TaskStatus.RUNNING
+                    task.result = await runner(task, progress)
+            else:
+                task.status = TaskStatus.RUNNING
+                task.result = await runner(task, progress)
             task.status = TaskStatus.SUCCEEDED
             task.progress = 100
         except asyncio.CancelledError:

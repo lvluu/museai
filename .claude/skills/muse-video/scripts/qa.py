@@ -1,9 +1,9 @@
 """Usage: qa.py video.mp4 cues.json words.json [expected_cuts=0] [sheet.jpg]
        qa.py video.mp4 --travel [expected_cuts=0] [sheet.jpg]
 Quality gate for a muse video. Exit 1 when any check fails.
---travel: no dialogue, so voice/pace are skipped, 16:9 or 9:16 and 8-40 s are allowed,
+--travel: no dialogue, so voice/pace are skipped, 16:9 or 9:16 are allowed,
           sound only needs no clipping + audible music, and the sheet samples 12 even frames.
-  format  1080x1920, 30-40 s, ~30 fps
+  format  1080x1920, 24-30 fps (length is not checked: it follows the dialogue)
   voice   Whisper transcript matches the script (>= 90% of characters, lists missing/extra words)
   sound   no clipping, dialogue loud enough
   noise   no hiss/static floor (quietest 50 ms windows above 7 kHz < -70 dB)
@@ -48,9 +48,9 @@ dur = float(probe["format"]["duration"])
 num, den = probe["streams"][0]["avg_frame_rate"].split("/")
 fps = float(num) / float(den or 1)
 if travel:
-    ok = (w, h) in ((1080, 1920), (1920, 1080)) and 8 <= dur <= 40.5 and 23.5 <= fps <= 30.5
+    ok = (w, h) in ((1080, 1920), (1920, 1080)) and 23.5 <= fps <= 30.5
 else:
-    ok = (w, h) == (1080, 1920) and 30 <= dur <= 40.5 and 23.5 <= fps <= 30.5
+    ok = (w, h) == (1080, 1920) and 23.5 <= fps <= 30.5
 print(f"format  {'ok  ' if ok else 'FAIL'} {w}x{h} {dur:.1f}s {fps:.1f}fps")
 ok or fails.append("format")
 

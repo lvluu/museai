@@ -54,7 +54,8 @@ async def create_video(body: VideoCreateRequest, request: Request,
     key = hashlib.sha256(json.dumps(request_meta, sort_keys=True).encode())
     if first_frame:
         key.update(first_frame.data)
-    task = svc.tasks.submit("video", request_meta, runner, dedupe_key=key.hexdigest())
+    task = svc.tasks.submit("video", request_meta, runner, dedupe_key=key.hexdigest(),
+                            session=request.headers.get("x-muse-session") or None)
     return _task_view(task)
 
 

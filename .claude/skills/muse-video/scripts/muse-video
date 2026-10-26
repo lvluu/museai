@@ -7,6 +7,8 @@
 #               QUALITY=0  (skip appending the style block)
 #               RETRIES=15 RETRY_WAIT=120  (resubmit on busy account / server restart / server down)
 #               MUSEAI_HOME=~/Work/museai  MUSEAI_BASE=http://127.0.0.1:18610
+#               MUSE_SESSION=id  (one render at a time per id, so each agent session holds one account;
+#                                 defaults to $CLAUDE_CODE_SESSION_ID)
 set -euo pipefail
 SKILL_DIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
 if [ "$1" = "-f" ]; then PROMPT=$(cat "$2"); shift 2; else PROMPT="$1"; shift; fi
