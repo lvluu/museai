@@ -42,12 +42,13 @@ PROMPT="$PROMPT" python3 - "$body_file" <<'PY'
 import base64, json, mimetypes, os, sys
 body = {"model": "muse-video", "prompt": os.environ["PROMPT"]}
 # muse picks the clip length and resolution from the prompt text, so state both explicitly.
-# 4K is asked first; muse has only returned 1080p so far, and deliver.sh upscales whatever comes back to 4K.
+# Travel asks for 4K first (deliver.sh upscales whatever comes back to 4K); every other video is full HD 1080p.
 uhd, hd = {"9:16": ("2160x3840", "1080x1920"), "16:9": ("3840x2160", "1920x1080"),
            "1:1": ("2160x2160", "1080x1080")}.get(os.environ.get("SIZE", ""), ("2160p", "1080p"))
 length = f"exactly {os.environ['DURATION']} seconds long, not a 10-second clip, " if os.environ.get("DURATION") else ""
 body["prompt"] += (f"\n\nOUTPUT: one finished video, {length}in the highest resolution available: "
-                   f"4K UHD {uhd} if possible, otherwise full HD {hd} (1080p), never 720p.")
+                   + (f"4K UHD {uhd} if possible, otherwise full HD {hd} (1080p), never 720p."
+                      if os.environ.get("STYLE") == "travel" else f"full HD {hd} (1080p), never 720p."))
 if os.environ.get("SIZE"):
     body["size"] = os.environ["SIZE"]
 if os.environ.get("DURATION"):
