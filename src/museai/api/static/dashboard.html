@@ -95,6 +95,25 @@
   .err { font-size: 12px; color: var(--bad); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .side { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
   .side .meta { font-variant-numeric: tabular-nums; }
+  /* posting queue */
+  .posts { display: grid; gap: 10px; margin-bottom: 28px; }
+  .post { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px;
+          display: grid; grid-template-columns: 90px 1fr; gap: 14px; }
+  .post video { width: 90px; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 6px; background: #000; display: block; }
+  .post-body { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .post-top { display: flex; align-items: center; gap: 8px; }
+  .post-name { font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .post textarea { font: inherit; font-size: 13px; color: var(--text); background: var(--bg); width: 100%;
+                   border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; resize: vertical; min-height: 56px; }
+  .plats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .plat { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; }
+  .plat.done { border-color: var(--ok); background: var(--ok-bg); }
+  .plat button { padding: 3px 8px; font-size: 13px; font-weight: 500; }
+  .plat label { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 4px; cursor: pointer; }
+  .plat.done label { color: var(--ok); }
+  .linkish { border: 0; background: none; padding: 0; font-size: 12px; color: var(--muted); }
+  .linkish:hover { color: var(--bad); }
+  .hint { font-size: 12px; color: var(--muted); margin: -4px 0 10px; }
   .empty { padding: 32px; text-align: center; color: var(--muted); }
   .more { display: block; margin: 12px auto 0; }
   .more[hidden] { display: none; }
@@ -102,6 +121,9 @@
     .stats { grid-template-columns: repeat(2, 1fr); }
     .row { grid-template-columns: 48px 1fr; }
     .thumb { width: 48px; height: 48px; }
+    .plats { grid-template-columns: repeat(2, 1fr); }
+    .post { grid-template-columns: 64px 1fr; }
+    .post video { width: 64px; }
     .side { grid-column: 2; flex-direction: row; justify-content: flex-start; gap: 8px; text-align: left; }
   }
 </style>
@@ -116,6 +138,13 @@
   </header>
 
   <div class="stats" id="stats"></div>
+
+  <section id="postSection" hidden>
+    <h2>Ready to post <span id="postCount"></span></h2>
+    <p class="hint">Click a platform: the caption is copied and the video is shown in Finder, so drag it into the
+      upload page that opens. Tick “posted” after publishing; when all four are ticked, the video moves to the Trash.</p>
+    <div class="posts" id="posts"></div>
+  </section>
 
   <h2>Accounts</h2>
   <div class="accounts" id="cards"></div>
@@ -304,6 +333,72 @@ function rowHtml(t) {
 
 function render() { renderStats(); renderCards(); renderRows(); }
 
+let posts = { platforms: [], videos: [] }, postsSig = "";
+const postUrl = (name, rest = "") => `/dashboard/posts/${encodeURIComponent(name)}${rest}`;
+
+function renderPosts() {
+  // Re-rendering would reload the previews and drop a caption being typed, so only on change.
+  const sig = JSON.stringify(posts);
+  if (sig === postsSig || document.activeElement?.closest?.("#posts textarea")) return;
+  postsSig = sig;
+  $("postSection").hidden = !posts.videos.length;
+  $("postCount").textContent = posts.videos.length ? `(${posts.videos.length})` : "";
+  $("posts").innerHTML = posts.videos.map((v) => {
+    const n = Object.keys(v.posted).length;
+    return `<div class="post" data-name="${esc(v.name)}">
+      <video src="${esc(postUrl(v.name, "/file"))}#t=0.5" preload="metadata" controls muted playsinline></video>
+      <div class="post-body">
+        <div class="post-top">
+          <span class="post-name" title="${esc(v.name)}">${esc(v.name)}</span>
+          ${pill(n ? ["p-run", `${n}/${posts.platforms.length} posted`] : ["p-idle", "Not posted"])}
+          <button class="linkish" data-done title="Move to the Trash without posting everywhere">Delete</button>
+        </div>
+        <textarea data-caption placeholder="Caption and hashtags (copied when you click a platform)">${esc(v.caption)}</textarea>
+        <div class="plats">${posts.platforms.map((p) => `
+          <div class="plat ${v.posted[p.id] ? "done" : ""}">
+            <button data-open="${esc(p.id)}">${esc(p.name)} ↗</button>
+            <label><input type="checkbox" data-posted="${esc(p.id)}" ${v.posted[p.id] ? "checked" : ""}> posted</label>
+          </div>`).join("")}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function loadPosts() {
+  try { posts = await api("/dashboard/posts"); renderPosts(); } catch (e) { /* the videos list shows the error */ }
+}
+
+async function updatePost(name, body) {
+  try {
+    const r = await api(postUrl(name), JSON.stringify(body));
+    if (r.trashed) alert(`${name} is posted everywhere and was moved to the Trash.`);
+  } catch (err) {
+    alert(`${name}: ${err.message}`);
+  }
+  postsSig = ""; loadPosts();
+}
+
+$("posts").addEventListener("click", async (e) => {
+  const card = e.target.closest(".post"); if (!card) return;
+  const name = card.dataset.name;
+  const open = e.target.closest("[data-open]");
+  if (open) {
+    const p = posts.platforms.find((x) => x.id === open.dataset.open);
+    window.open(p.url, "_blank", "noopener");
+    const caption = card.querySelector("[data-caption]").value;
+    if (caption) navigator.clipboard?.writeText(caption).catch(() => {});
+    api(postUrl(name, "/reveal"), "{}").catch(() => {});
+    return;
+  }
+  if (e.target.closest("[data-done]") && confirm(`Move ${name} to the Trash?`)) updatePost(name, { done: true });
+});
+$("posts").addEventListener("change", (e) => {
+  const name = e.target.closest(".post")?.dataset.name; if (!name) return;
+  if (e.target.dataset.posted) updatePost(name, { platform: e.target.dataset.posted, posted: e.target.checked });
+  else if (e.target.matches("[data-caption]")) updatePost(name, { caption: e.target.value });
+});
+
 async function load() {
   try {
     const d = await api("/dashboard/data");
@@ -312,6 +407,7 @@ async function load() {
     tasks = d.videos;
     $("updated").textContent = "updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
     render();
+    loadPosts();
   } catch (e) {
     $("updated").textContent = "error: " + e.message;
   }

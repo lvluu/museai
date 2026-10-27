@@ -196,3 +196,32 @@ def test_admin_accounts_crud(client, auth, admin):
     assert client.post(f"/admin/accounts/{acc['id']}/renew", headers=admin).json()["ok"]
     assert client.delete(f"/admin/accounts/{acc['id']}", headers=admin).status_code == 200
     assert client.get("/admin/status", headers=admin).json()["accounts"]["total"] == 0
+
+
+def test_posting_queue(client, admin, settings, monkeypatch):
+    from museai.api.routes import posting
+
+    trashed = []
+    monkeypatch.setattr(posting, "_trash", lambda p: (trashed.append(p.name), p.unlink()))
+    settings.post_dir.mkdir()
+    (settings.post_dir / "ep1.mp4").write_bytes(b"video")
+    (settings.post_dir / "notes.txt").write_text("not a video")
+
+    d = client.get("/dashboard/posts", headers=admin).json()
+    assert [v["name"] for v in d["videos"]] == ["ep1.mp4"]
+    assert {p["id"] for p in d["platforms"]} == {"youtube", "tiktok", "facebook", "instagram"}
+    assert client.get("/dashboard/posts/ep1.mp4/file", headers=admin).content == b"video"
+    assert client.get("/dashboard/posts/notes.txt/file", headers=admin).status_code == 404
+
+    r = client.post("/dashboard/posts/ep1.mp4", headers=admin, json={"caption": "hi #fyp"}).json()
+    assert r["video"]["caption"] == "hi #fyp"
+    for p in ("youtube", "tiktok", "facebook"):
+        r = client.post("/dashboard/posts/ep1.mp4", headers=admin, json={"platform": p}).json()
+        assert not r["trashed"]
+    r = client.post("/dashboard/posts/ep1.mp4", headers=admin,
+                    json={"platform": "tiktok", "posted": False}).json()
+    assert set(r["video"]["posted"]) == {"youtube", "facebook"}
+    for p in ("tiktok", "instagram"):
+        r = client.post("/dashboard/posts/ep1.mp4", headers=admin, json={"platform": p}).json()
+    assert r["trashed"] and trashed == ["ep1.mp4"]
+    assert client.get("/dashboard/posts", headers=admin).json()["videos"] == []

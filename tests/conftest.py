@@ -16,6 +16,7 @@ def settings(tmp_path) -> Settings:
     return Settings(
         _env_file=None,
         data_dir=tmp_path / "data",
+        post_dir=tmp_path / "desktop",
         api_key=API_KEY,
         admin_key=ADMIN_KEY,
         driver="mock",
