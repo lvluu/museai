@@ -75,7 +75,7 @@ p = subprocess.Popen(
      "-r", str(fps), "-i", "-", "-i", src, "-map", "0:v", "-map", "1:a?",
      "-c:v", "libx264", "-crf", "14", "-pix_fmt", "yuv420p", "-c:a", "copy", dst],
     stdin=subprocess.PIPE)
-for f, M in zip(frames, Ms):
+for f, M in zip(frames, Ms, strict=True):
     p.stdin.write(cv2.warpPerspective(f, S @ M, (W, H), flags=cv2.INTER_LANCZOS4,
                                       borderMode=cv2.BORDER_REFLECT).tobytes())
 p.stdin.close()
