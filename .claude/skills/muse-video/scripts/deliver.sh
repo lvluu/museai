@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
-# Usage: deliver.sh final.mp4 work_dir [prefix]            (preview)
-#        FINAL=1 deliver.sh final.mp4 work_dir [prefix]    (final)
-# Preview (default): copies the QA-passed video to ~/Desktop (DEST=dir to change) at its rendered
-# size and keeps everything, so the user can review it and ask for fixes from the work folder.
-# Final, only once the user has accepted the preview: copies it as 4K UHD (upscale.sh, Real-ESRGAN,
-# ~1 h for 15 s, so never before the video is final; UHD=0 keeps the rendered size), checks the
-# copy, then moves everything else made for it to the Trash: the work folder (raw clips, sheets, mouth strips,
-# frame grabs, cues, words, prompts) and the ~/Movies/museai files whose name starts with
-# prefix (default: the work folder's name, e.g. ep10). Trash, not rm: a mistake stays recoverable.
-# The server's own copies in data/media/ are left alone (data/tasks.json points at them).
+# Usage: FINAL=1 deliver.sh final.mp4 work_dir [prefix]
+# Only once the user has accepted the 1080p preview (shown from the work folder, never copied to
+# the Desktop): writes the ONE deliverable, the 4K UHD video (upscale.sh, Real-ESRGAN, ~1 h for 15 s;
+# UHD=0 keeps the rendered size), to ~/Desktop (DEST=dir to change) and checks it. Then it deletes
+# every other resource made for the video: earlier Desktop copies whose name starts with prefix,
+# the work folder (raw clips, takes, sheets, mouth strips, frame grabs, cues, words, prompts), the
+# ~/Movies/museai renders starting with prefix, and the server's identical copies in data/media/.
+# prefix defaults to the work folder's name (e.g. ep10). Deleted = moved to the Trash.
 set -euo pipefail
 final=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
 work=$(cd "$2" && pwd)
@@ -25,12 +23,7 @@ esac
 
 mkdir -p "$dest"
 out="$dest/$(basename "$final")"
-if [ "${FINAL:-0}" != 1 ]; then
-  cp "$final" "$out"
-  cmp -s "$final" "$out" || { echo "copy differs: $out" >&2; exit 1; }
-  echo "PREVIEW $out (rendered size; work folder kept). Once the user accepts it: FINAL=1 $0 $*"
-  exit 0
-fi
+[ "${FINAL:-0}" = 1 ] || { echo "preview: show $final from the work folder; nothing goes to the Desktop before FINAL=1" >&2; exit 1; }
 if [ "${UHD:-1}" = 0 ]; then
   cp "$final" "$out"
   cmp -s "$final" "$out" || { echo "copy differs: $out" >&2; exit 1; }
@@ -42,8 +35,18 @@ fi
 ffprobe -v error -show_entries format=duration -of csv=p=0 "$out" >/dev/null || { echo "copy unreadable: $out" >&2; exit 1; }
 echo "DELIVERED $out"
 
-junk=("$work")
 shopt -s nullglob
-for f in "$HOME/Movies/museai/$prefix"*; do junk+=("$f"); done
-for f in "${junk[@]}"; do echo "trash $f"; done
+junk=("$work")
+# "$prefix"[-_.]* so ep1 never takes ep10.mp4 along
+for f in "$dest/$prefix"[-_.]*; do [ "$f" = "$out" ] || junk+=("$f"); done
+renders=("$HOME/Movies/museai/$prefix"*)
+junk+=(${renders[@]+"${renders[@]}"})
+media="$(cd "$(dirname "$0")/../../../.." && pwd)/data/media"
+for m in "$media"/vid_*.mp4; do
+  for f in ${renders[@]+"${renders[@]}"} "$work"/*.mp4 "$work"/*/*.mp4; do
+    [ "$(stat -f%z "$m")" = "$(stat -f%z "$f")" ] && cmp -s "$m" "$f" && { junk+=("$m"); break; }
+  done
+done
+for f in "${junk[@]}"; do echo "delete $f"; done
 trash "${junk[@]}"
+echo "LEFT ONLY $out"
