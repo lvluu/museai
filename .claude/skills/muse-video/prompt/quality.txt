@@ -6,7 +6,7 @@ Create fluid, believable motion throughout the entire video. Maintain consistent
 
 Prefer a continuous take when possible. When a scene change is necessary, preserve the exact action, body position, gaze direction, movement speed and object placement across the transition. Each new shot must naturally continue the previous shot, without resetting or repeating movements. No abrupt stitched-clip effect, duplicated frames, missing actions or distracting transitions.
 
-Make the interaction feel like a real everyday conversation. Characters listen attentively and respond at an appropriate moment, with brief, natural conversational pauses. No awkward delays, unintended interruptions or overlapping dialogue. Only the person speaking moves their mouth to form words. The listener keeps their lips pressed together in a closed-mouth smile, jaw still, and never mouths the other person's words; one mouth moves at a time, and the speaker's lips close before the other person's open. Each line's voice comes from the labelled speaker's own lips: a woman's voice never comes from a man's mouth and a man's voice never from a woman's. Keep both faces turned toward the camera in three-quarter view, never strict profile, so every mouth is fully visible.
+Make the interaction feel like a real everyday conversation. Characters listen attentively and respond at an appropriate moment, with brief, natural conversational pauses. No awkward delays, unintended interruptions or overlapping dialogue. Only the person speaking moves their mouth to form words. The listener keeps their lips gently closed and relaxed, jaw still, and never mouths the other person's words; one mouth moves at a time, and the speaker's lips close before the other person's open. Each line's voice comes from the labelled speaker's own lips: a woman's voice never comes from a man's mouth and a man's voice never from a woman's. Keep both faces turned toward the camera in three-quarter view, never strict profile, so every mouth is fully visible.
 
 Synchronize every spoken syllable precisely with the speaker's lips and jaw. Mouth movements must begin and end with the corresponding audio, with no visible delay or drift. The speaker articulates clearly: the jaw visibly opens on every syllable and the lips form each sound (lips press together on b, p, m; round on o, u, ü; spread on i), never mumbling through a closed smile. The listener's lips stay sealed and still for the whole line: soft neutral expression, no parted-teeth smile, no mouthing along, no chewing or lip twitches. Match facial expressions and gestures to the meaning of the dialogue.
 
@@ -17,6 +17,30 @@ Use clear, natural speech at a normal everyday conversational pace for the spoke
 Keep acting subtle and purposeful. Use occasional natural blinks, small expressions and restrained gestures only when appropriate. No repetitive nodding, excessive blinking, head bobbing, exaggerated smiles, random hand movements or unnecessary idle actions. Eye contact, pointing and body orientation must match the person or object being addressed. Maintain physical realism within the chosen visual style.
 
 Only the listed cast is ever in frame: no extra people anywhere, not in the background, not passing behind, not entering at the end. When one person turns to address the camera, everyone else keeps looking at that person and does not turn toward the camera. A question asked to the camera (the viewer) is never answered by anyone on screen.
+
+STABLE CAMERA AND STRICT SPEAKER–MOUTH SYNCHRONIZATION
+
+Use a steady medium two-shot showing both characters comfortably throughout the conversation. Keep the camera fixed whenever possible. Do not alternate between close-ups of individual faces. No sudden zooms, punch-ins, whip pans, rapid cuts, framing jumps or repeated camera changes. Preserve smooth, continuous movement and consistent character positions across any necessary transition.
+
+Assign each dialogue line explicitly to its intended character and unique voice. Never swap voices or transfer speech animation between characters.
+
+Only the character whose voice is currently audible may articulate the dialogue. When the woman speaks, only her lips and jaw form the words; the man listens with his mouth gently closed and relaxed. When the man speaks, only his lips and jaw form the words; the woman listens with her mouth gently closed and relaxed. Never animate both characters as speaking simultaneously. No silent mouthing, unrelated mouth movements, duplicated lip animation or listener lip-sync.
+
+Match the active speaker’s mouth precisely to every audible syllable, including the beginning and end of each line. After finishing a line, the speaker’s mouth returns naturally to rest. The next character responds after a brief, natural conversational pause. Keep dialogue sequential, with no unintended overlapping speech or awkward delays.
+
+Listeners remain attentive through natural eye contact and subtle facial expressions. Avoid repetitive nodding, head bobbing, excessive blinking, constant smiling, random gestures or exaggerated reactions. Do not add a gesture to every sentence. Stillness is appropriate when listening; retain subtle breathing and natural posture without looking frozen.
+
+Maintain normal everyday speaking speed throughout. Never speed up dialogue to fit the duration. Allow enough time for each line and its natural response.
+
+Before finalizing, check every speaking turn: correct voice, correct visible speaker, accurate lip-sync, listener’s mouth at rest, restrained gestures and stable framing. Treat any wrong-speaker mouth movement or unintended simultaneous speaking as an error requiring correction.
+
+STANDARD MANDARIN PRONUNCIATION
+
+Speak all Chinese dialogue in clear, natural Standard Mandarin (Putonghua), with accurate initials, finals, lexical tones, contextual tone changes and neutral tones. No regional accent, dialect pronunciation, misread characters, incorrect tones or slurred syllables. Resolve polyphonic characters according to the meaning and context of each sentence.
+
+Read the Chinese script exactly as written, without adding, omitting, replacing or repeating words. Maintain normal everyday conversational speed and natural intonation throughout; do not rush, exaggerate articulation or read mechanically.
+
+Verify every word and syllable against the intended script. Treat even one mispronounced word or incorrect tone as an error requiring correction and regeneration of the affected line. Preserve precise lip-sync with the corrected audio.
 
 CAPTIONS AND SCREEN COMPOSITION
 

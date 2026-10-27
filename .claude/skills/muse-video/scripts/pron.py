@@ -38,6 +38,17 @@ def hear(clip):
     return t2s("".join(x.text for x in segs)).strip()
 
 
+def check(zh, heard):
+    want, got = syl(zh), syl(heard)
+    sm = difflib.SequenceMatcher(None, want, got, autojunk=False)
+    diffs = [(op, " ".join(want[a1:a2]) or "-", " ".join(got[b1:b2]) or "-")
+             for op, a1, a2, b1, b2 in sm.get_opcodes() if op != "equal"]
+    # neutral-tone particle swaps (了 le5 -> 啦 la5) are not tone errors
+    diffs = [d for d in diffs if not (d[0] == "replace" and all(x.endswith("5") for x in f"{d[1]} {d[2]}".split()))]
+    # extra heard syllables are neighbouring lines bleeding in; a missing or changed one is an error
+    return sm, diffs, all(op == "insert" for op, *_ in diffs)
+
+
 fails = []
 for i, (s, e, zh, *_) in enumerate(cues):
     # pad with silence: Whisper drops a syllable that starts right at the clip edge (EP10: 不 after the cut)
@@ -46,14 +57,15 @@ for i, (s, e, zh, *_) in enumerate(cues):
     heard = hear(clip)
     if not heard:  # very short lines (可以, 0.4 s) come back empty when padded; retry on the bare audio
         heard = hear(audio[int(max(s - 0.4, 0) * 16000):int((e + 0.4) * 16000)])
-    want, got = syl(zh), syl(heard)
-    sm = difflib.SequenceMatcher(None, want, got, autojunk=False)
-    diffs = [(op, " ".join(want[a1:a2]) or "-", " ".join(got[b1:b2]) or "-")
-             for op, a1, a2, b1, b2 in sm.get_opcodes() if op != "equal"]
-    # neutral-tone particle swaps (了 le5 -> 啦 la5) are not tone errors
-    diffs = [d for d in diffs if not (d[0] == "replace" and all(x.endswith("5") for x in f"{d[1]} {d[2]}".split()))]
-    # extra heard syllables are neighbouring lines bleeding in; a missing or changed one is an error
-    ok = all(op == "insert" for op, *_ in diffs)
+    sm, diffs, ok = check(zh, heard)
+    if not ok and i:
+        # a 2-syllable line alone is too little audio (EP10 dub: 可以 heard as 课题, but right
+        # together with the line before it), so retry with the previous line as context
+        ps, _, pzh, *_ = cues[i - 1]
+        ctx = hear(np.concatenate([pad, audio[int(max(ps - 0.2, 0) * 16000):int((e + 0.25) * 16000)], pad]))
+        csm, cdiffs, cok = check(pzh + zh, ctx)
+        if cok:
+            heard, sm, diffs, ok = f"{ctx} (with line {i})", csm, cdiffs, True
     print(f"{'ok  ' if ok else 'FAIL'} {i + 1:>2} {sm.ratio():4.0%} {zh}  heard {heard}  "
           + "; ".join(f"{a} -> {b}" for _, a, b in diffs))
     ok or fails.append(str(i + 1))
