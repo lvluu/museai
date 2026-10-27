@@ -3,7 +3,7 @@
 Quality gate for a muse video. Exit 1 when any check fails.
 --travel: no dialogue, so voice/pace are skipped, 16:9 or 9:16 are allowed,
           sound only needs no clipping + audible music, and the sheet samples 12 even frames.
-  format  1080x1920, 24-30 fps (length is not checked: it follows the dialogue)
+  format  1080x1920 or 4K 2160x3840, 24-30 fps (length is not checked: it follows the dialogue)
   voice   Whisper transcript matches the script (>= 90% of characters, lists missing/extra words)
   sound   no clipping, dialogue loud enough
   noise   no hiss/static floor (quietest 50 ms windows above 7 kHz < -70 dB)
@@ -52,10 +52,9 @@ w, h = probe["streams"][0]["width"], probe["streams"][0]["height"]
 dur = float(probe["format"]["duration"])
 num, den = probe["streams"][0]["avg_frame_rate"].split("/")
 fps = float(num) / float(den or 1)
-if travel:
-    ok = (w, h) in ((1080, 1920), (1920, 1080)) and 23.5 <= fps <= 30.5
-else:
-    ok = (w, h) == (1080, 1920) and 23.5 <= fps <= 30.5
+# muse renders 1080p; upscale.sh (run by deliver.sh) makes the delivered file 4K UHD
+sizes = ((1080, 1920), (2160, 3840)) + (((1920, 1080), (3840, 2160)) if travel else ())
+ok = (w, h) in sizes and 23.5 <= fps <= 30.5
 print(f"format  {'ok  ' if ok else 'FAIL'} {w}x{h} {dur:.1f}s {fps:.1f}fps")
 ok or fails.append("format")
 
