@@ -110,4 +110,4 @@ Real destination, no dialogue, no captions. Rules 3-6 above don't apply; rules 1
 4. No captions, no burn step. Deliver after PASS + sheet check. with `scripts/deliver.sh`.
 
 ## Maintaining this skill
-Agents update this skill directly, without asking, whenever a render, QA run or user correction teaches something new: fix the rule here, in `prompt/*.txt` or in `scripts/`, commit on a branch, open a PR, and copy the changed files to `~/.claude/skills/muse-video/` so the installed copy stays in sync. Record only lessons proven by a render, not guesses.
+Agents update this skill directly, without asking, whenever a render, QA run or user correction teaches something new: fix the rule here, in `prompt/*.txt` or in `scripts/`, commit on a branch and open a PR. The skill lives only in this repo; never copy it to `~/.claude/skills/` or another folder. Record only lessons proven by a render, not guesses.
