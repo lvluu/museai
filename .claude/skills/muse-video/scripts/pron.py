@@ -29,11 +29,23 @@ model = WhisperModel(os.environ.get("WMODEL", "large-v3"), device="cpu", compute
 t2s = opencc.OpenCC("t2s").convert
 
 
-DIGITS = str.maketrans("0123456789", "零一二三四五六七八九")  # Whisper writes 六点半 as 6点半
+DIGITS = "零一二三四五六七八九"  # Whisper writes 六点半 as 6点半
+
+
+def number(m):
+    # read a whole number as spoken: Whisper writes 八十块 as 80块, and digit by digit that read 八零 (EP16)
+    s = m.group()
+    if len(s) > 4 or (len(s) > 1 and s[0] == "0"):
+        return "".join(DIGITS[int(d)] for d in s)
+    out = ""
+    for d, unit in zip(s, ["千", "百", "十", ""][4 - len(s):], strict=True):
+        out += "零" if d == "0" else DIGITS[int(d)] + unit
+    out = re.sub("零+", "零", out).rstrip("零") or "零"
+    return out[1:] if out.startswith("一十") else out
 
 
 def syl(text):
-    s = lazy_pinyin(re.sub(r"[^一-鿿]", "", text.translate(DIGITS)), style=Style.TONE3, neutral_tone_with_five=True)
+    s = lazy_pinyin(re.sub(r"[^一-鿿]", "", re.sub(r"\d+", number, text)), style=Style.TONE3, neutral_tone_with_five=True)
     # 3-3 tone sandhi, applied to script and transcript alike: 几点 is spoken jí diǎn, and Whisper
     # writes it as 急点 ji2 (EP14: a correct 几点 failed as ji3 -> ji2). Right to left, so a chain
     # 你几点 becomes nǐ jí diǎn as spoken, not ní jí diǎn
