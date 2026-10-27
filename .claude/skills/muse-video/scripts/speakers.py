@@ -29,7 +29,7 @@ Env: FEMALE=W (who has the higher voice), LEFT=W (who stands on screen left).
   sheet   writes mouths.jpg (one column per line, 6 frames of the mouth band) to look at the
           flagged lines.
   report  REPORT=report.json writes per line: times, speaker, verdicts, median speaker face box
-          [cx, cy, w, h] (fractions of the frame); reframe.py turns it into punch-ins.
+          [cx, cy, w, h] (fractions of the frame).
 Exit 1 when any line fails voice, face, mouth or sync."""
 import difflib
 import json
