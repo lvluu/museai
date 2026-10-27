@@ -108,6 +108,7 @@ class TaskManager:
         *,
         dedupe_key: str | None = None,
         session: str | None = None,
+        reuse: Callable[[Task], bool] | None = None,
     ) -> Task:
         if dedupe_key:
             for task_id in self._running:
@@ -115,6 +116,15 @@ class TaskManager:
                 if same and same.dedupe_key == dedupe_key and not same.finished:
                     log.info("duplicate %s request joined in-flight %s", kind, same.id)
                     return same
+            # The same request sent again after it finished renders the same thing again
+            # on another account; hand back the finished result unless ``reuse`` says no.
+            done = [t for t in self._tasks.values() if t.dedupe_key == dedupe_key
+                    and t.status == TaskStatus.SUCCEEDED]
+            if done and reuse:
+                last = max(done, key=lambda t: t.updated_at)
+                if reuse(last):
+                    log.info("duplicate %s request reused finished %s", kind, last.id)
+                    return last
         task = Task(kind=kind, request=request, dedupe_key=dedupe_key, session=session)
         self._tasks[task.id] = task
         self._persist()

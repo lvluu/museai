@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import time
 
 from fastapi import APIRouter, Depends, Request
 
@@ -13,6 +14,9 @@ from ...services.container import Services
 from ...services.tasks import Task
 from ..deps import get_services, public_base, require_api_key
 from ..schemas import VideoCreateRequest
+
+# An identical request within this window gets the finished clip back instead of a new render.
+REUSE_WINDOW = 3600.0
 
 router = APIRouter(tags=["videos"], dependencies=[Depends(require_api_key)])
 
@@ -54,8 +58,19 @@ async def create_video(body: VideoCreateRequest, request: Request,
     key = hashlib.sha256(json.dumps(request_meta, sort_keys=True).encode())
     if first_frame:
         key.update(first_frame.data)
+
+    def reuse(done: Task) -> bool:
+        # X-Muse-Retake asks for a new take of the same clip on purpose.
+        if request.headers.get("x-muse-retake") or time.time() - done.updated_at > REUSE_WINDOW:
+            return False
+        try:  # the file may have been deleted since
+            svc.media.path_of(str((done.result or {}).get("url", "")).rsplit("/", 1)[-1])
+        except NotFound:
+            return False
+        return True
+
     task = svc.tasks.submit("video", request_meta, runner, dedupe_key=key.hexdigest(),
-                            session=request.headers.get("x-muse-session") or None)
+                            session=request.headers.get("x-muse-session") or None, reuse=reuse)
     return _task_view(task)
 
 

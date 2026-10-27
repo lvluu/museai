@@ -80,6 +80,21 @@ def test_video_task(client, auth):
     assert task["result"]["url"].endswith(".mp4")
 
 
+def test_finished_video_is_not_rendered_again(client, auth):
+    def render(**headers):
+        task_id = client.post("/v1/videos", headers={**auth, **headers},
+                              json={"prompt": "same clip"}).json()["id"]
+        for _ in range(50):
+            if client.get(f"/v1/videos/{task_id}", headers=auth).json()["status"] == "succeeded":
+                return task_id
+            time.sleep(0.02)
+        raise AssertionError("video did not finish")
+
+    first = render()
+    assert render() == first
+    assert render(**{"X-Muse-Retake": "1"}) != first
+
+
 def test_video_task_records_account(client, auth, admin):
     acc = client.post("/admin/accounts", headers=admin, json={
         "label": "a1", "cookies": {"hatch_sess": "s", "hatch_native_auth_device": "d"}},
