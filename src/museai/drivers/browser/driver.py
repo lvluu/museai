@@ -84,6 +84,9 @@ class _Tab:
     turns: list[tuple[str, str]] = field(default_factory=list)
     image_count: int = 0
     thread_url: str = ""
+    # Media srcs already returned from this tab: a new thread can still show the
+    # previous thread's DOM, so a list index alone mistakes old media for new.
+    media_srcs: set[str] = field(default_factory=set)
 
 
 class BrowserDriver(MuseDriver):
@@ -600,7 +603,7 @@ class BrowserDriver(MuseDriver):
         on_progress,
         cancel: asyncio.Event | None,
     ) -> dict:
-        base_atts = len(base.get("attachments", []))
+        seen = tab.media_srcs | {a.get("src") for a in base.get("attachments", [])}
         base_count = base.get("agentCount", 0)
         started = time.monotonic()
         text_only_since: float | None = None
@@ -611,8 +614,11 @@ class BrowserDriver(MuseDriver):
             await asyncio.sleep(0.6)
             st = await self._state(tab)
             atts = st.get("attachments", [])
-            fresh = [a for a in atts[base_atts:] if a.get("src") and a.get("kind") == kind]
+            fresh = [
+                a for a in atts if a.get("src") and a.get("kind") == kind and a["src"] not in seen
+            ]
             if fresh:
+                tab.media_srcs.add(fresh[-1]["src"])
                 return fresh[-1]
             elapsed = time.monotonic() - started
             if on_progress:
