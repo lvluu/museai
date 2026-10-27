@@ -9,11 +9,15 @@ Quality gate for a muse video. Exit 1 when any check fails.
   noise   no hiss/static floor (quietest 50 ms windows above 7 kHz < -70 dB)
   pace    one steady daily-conversation speed, no long pauses (pace.py)
   pron    Mandarin: every syllable heard with the script's sound and tone (pron.py, Whisper large-v3)
-  smooth  no frozen stretches or duplicated frames, number of hard cuts == expected (default 0)
+  voices  SPEAKERS=WWM... (one letter per cue): each character keeps one voice (voices.py);
+          required for dialogue with 2+ lines per character, missing = FAIL
+  smooth  no frozen stretches, duplicated frames or one-frame picture jumps (jumps.py; seams
+          not eased with ease_seams.py, muse in-clip snaps), hard cuts == expected (default 0)
   mouth   writes a contact sheet (one frame mid-line per cue) to check realism + lip sync by eye
 """
 import difflib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -110,6 +114,24 @@ if not travel and any(re.search(r"[\u4e00-\u9fff]", c[2]) for c in cues):
         print("       ", line.strip())
     pron.returncode == 0 or fails.append("pron")
 
+# voices: muse picks a new voice per clip; EP09 v7 passed every other check while the user heard
+# both characters' voices change between lines (dub.py fixes it)
+if not travel:
+    who = os.environ.get("SPEAKERS", "")
+    if not who:
+        print("voices  FAIL set SPEAKERS=<one letter per cue, e.g. WWMWM> to check each character keeps one voice")
+        fails.append("voices")
+    else:
+        vo = subprocess.run(["uv", "run", "-q", "--no-project", "--python", "3.11", "--with", "resemblyzer",
+                             "--with", "librosa", "--with", "setuptools", "python",
+                             str(Path(__file__).with_name("voices.py")), video, cues_path, who],
+                            capture_output=True, text=True)
+        lines = [ln for ln in vo.stdout.splitlines() if ln.startswith(("VOICE", "RESULT"))]
+        print(f"voices  {'ok  ' if vo.returncode == 0 else 'FAIL'} {lines[-1] if lines else vo.stderr[-300:]}")
+        for line in lines[:-1]:
+            print("       ", line.strip())
+        vo.returncode == 0 or fails.append("voices")
+
 # smooth
 freezes = re.findall(r"freeze_duration: ([\d.]+)", ffmpeg_log("-vf", "freezedetect=n=0.0005:d=0.5"))
 cuts = re.findall(r"pts_time:([\d.]+)", ffmpeg_log("-vf", "select='gt(scene,0.35)',showinfo"))
@@ -117,9 +139,15 @@ cuts = re.findall(r"pts_time:([\d.]+)", ffmpeg_log("-vf", "select='gt(scene,0.35
 kept = len(re.findall(r"pts_time:", ffmpeg_log("-vf", "mpdecimate=hi=64*4:lo=64:frac=0.1,showinfo")))
 total = round(dur * fps)
 dup = 1 - kept / total if total else 0
-ok = not freezes and len(cuts) == expected_cuts and dup <= 0.05
+sys.path.insert(0, str(Path(__file__).parent))
+from jumps import jumps  # noqa: E402
+
+# a planned hard cut is a jump too; it is counted with the cuts instead
+snaps = [round(t, 2) for t, *_ in jumps(video) if all(abs(t - float(c)) > 0.1 for c in cuts)]
+ok = not freezes and len(cuts) == expected_cuts and dup <= 0.05 and not snaps
 print(f"smooth  {'ok  ' if ok else 'FAIL'} freezes={[f'{float(f):.1f}s' for f in freezes]} "
-      f"repeated frames {dup:.0%} (max 5%) cuts at {[round(float(c), 2) for c in cuts]} (expected {expected_cuts})")
+      f"repeated frames {dup:.0%} (max 5%) cuts at {[round(float(c), 2) for c in cuts]} (expected {expected_cuts}) "
+      f"jumps at {snaps} (seam -> ease_seams.py, inside a clip -> re-render it)")
 ok or fails.append("smooth")
 
 # mouth: contact sheet, one frame in the middle of each line (travel: 12 even frames, whole frame)
