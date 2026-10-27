@@ -114,7 +114,7 @@ def test_video_task_records_account(client, auth, admin):
 def test_dashboard_page(client, admin):
     r = client.get("/dashboard")
     assert r.status_code == 200
-    assert "Videos by account" in r.text
+    assert "Ready to post" in r.text
     # TestClient's peer is "testclient", not loopback, so the admin key is required.
     assert client.get("/dashboard/data").status_code == 401
     assert client.get("/dashboard/data", headers=admin).json() == {

@@ -19,8 +19,20 @@
   html { scrollbar-gutter: stable; overflow-y: scroll; }
   body { margin: 0; background: var(--bg); color: var(--text);
          font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
-  header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
+  .shell { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
+  .nav { position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column; gap: 4px;
+         padding: 20px 12px; border-right: 1px solid var(--line); background: var(--panel); }
+  .brand { font-weight: 700; font-size: 16px; padding: 0 10px 14px; }
+  .nav button[data-view] { display: flex; align-items: center; justify-content: space-between; gap: 8px;
+         border: 0; background: none; text-align: left; padding: 8px 10px; border-radius: 8px; }
+  .nav button[data-view]:hover { background: var(--soft); }
+  .nav button[data-view].on { background: var(--soft); color: var(--accent); }
+  .badge { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .badge.hot { color: #fff; background: var(--accent); border-radius: 999px; padding: 0 7px; }
+  .nav-foot { margin-top: auto; display: flex; flex-direction: column; gap: 8px; padding: 0 10px; }
+  main { max-width: 1000px; width: 100%; padding: 24px 24px 48px; }
+  [data-section][hidden] { display: none; }
+  header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
   h1 { font-size: 20px; margin: 0; }
   h2 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em;
        margin: 0 0 10px; }
@@ -117,6 +129,15 @@
   .empty { padding: 32px; text-align: center; color: var(--muted); }
   .more { display: block; margin: 12px auto 0; }
   .more[hidden] { display: none; }
+  @media (max-width: 760px) {
+    .shell { grid-template-columns: 1fr; }
+    .nav { position: sticky; z-index: 2; height: auto; flex-direction: row; align-items: center; overflow-x: auto;
+           padding: 8px 12px; border-right: 0; border-bottom: 1px solid var(--line); }
+    .brand, .nav-foot { display: none; }
+    .nav button[data-view] { white-space: nowrap; }
+    main { padding: 16px 16px 48px; }
+    .toolbar { top: 49px; }
+  }
   @media (max-width: 640px) {
     .stats { grid-template-columns: repeat(2, 1fr); }
     .row { grid-template-columns: 48px 1fr; }
@@ -129,36 +150,44 @@
 </style>
 </head>
 <body>
-<main id="app">
-  <header>
-    <h1>Videos by account</h1>
-    <span class="spacer"></span>
+<div class="shell">
+<nav class="nav">
+  <div class="brand">museai</div>
+  <button data-view="post">Ready to post <span class="badge" id="navPost"></span></button>
+  <button data-view="accounts">Accounts <span class="badge" id="navAcc"></span></button>
+  <button data-view="videos">Videos <span class="badge" id="navVid"></span></button>
+  <div class="nav-foot">
     <label class="live"><input type="checkbox" id="auto" checked> live · <span id="updated">loading…</span></label>
     <button id="refresh">Refresh</button>
-  </header>
-
-  <div class="stats" id="stats"></div>
-
-  <section id="postSection" hidden>
-    <h2>Ready to post <span id="postCount"></span></h2>
+  </div>
+</nav>
+<main id="app">
+  <section data-section="post" hidden>
+    <header><h1>Ready to post</h1></header>
     <p class="hint">Click a platform: the caption is copied and the video is shown in Finder, so drag it into the
       upload page that opens. Tick “posted” after publishing; when all four are ticked, the video moves to the Trash.</p>
     <div class="posts" id="posts"></div>
   </section>
 
-  <h2>Accounts</h2>
-  <div class="accounts" id="cards"></div>
-  <input type="file" id="cookieFile" accept=".json,application/json" hidden>
+  <section data-section="accounts" hidden>
+    <header><h1>Accounts</h1></header>
+    <div class="stats" id="stats"></div>
+    <div class="accounts" id="cards"></div>
+    <input type="file" id="cookieFile" accept=".json,application/json" hidden>
+  </section>
 
-  <h2>Videos</h2>
-  <div class="toolbar">
-    <div class="tabs" id="tabs"></div>
-    <span id="accChip"></span>
-    <input id="fText" type="search" placeholder="Search prompt or task id">
-  </div>
-  <div class="list" id="rows"></div>
-  <button class="more" id="more" hidden>Show more</button>
+  <section data-section="videos" hidden>
+    <header><h1>Videos by account</h1></header>
+    <div class="toolbar">
+      <div class="tabs" id="tabs"></div>
+      <span id="accChip"></span>
+      <input id="fText" type="search" placeholder="Search prompt or task id">
+    </div>
+    <div class="list" id="rows"></div>
+    <button class="more" id="more" hidden>Show more</button>
+  </section>
 </main>
+</div>
 <script>
 const UNKNOWN = "__unknown__";
 const PAGE = 40;
@@ -331,7 +360,26 @@ function rowHtml(t) {
   </div>`;
 }
 
-function render() { renderStats(); renderCards(); renderRows(); }
+function render() {
+  renderStats(); renderCards(); renderRows();
+  $("navAcc").textContent = `${accounts.filter((a) => accState(a, false)[1] === "Ready").length}/${accounts.length}`;
+  const active = tasks.filter(isActive).length;
+  $("navVid").textContent = active ? `${active} rendering` : tasks.length;
+}
+
+// One section at a time, picked in the sidebar, so nothing needs scrolling past.
+const VIEWS = ["post", "accounts", "videos"];
+let view = "";
+function show(v) {
+  view = VIEWS.includes(v) ? v : "post";
+  for (const el of document.querySelectorAll("[data-section]")) el.hidden = el.dataset.section !== view;
+  for (const b of document.querySelectorAll("[data-view]")) b.classList.toggle("on", b.dataset.view === view);
+  if (location.hash.slice(1) !== view && !key) history.replaceState(null, "", "#" + view);
+  scrollTo(0, 0);
+}
+document.querySelector(".nav").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-view]"); if (b) show(b.dataset.view);
+});
 
 let posts = { platforms: [], videos: [] }, postsSig = "";
 const postUrl = (name, rest = "") => `/dashboard/posts/${encodeURIComponent(name)}${rest}`;
@@ -341,8 +389,9 @@ function renderPosts() {
   const sig = JSON.stringify(posts);
   if (sig === postsSig || document.activeElement?.closest?.("#posts textarea")) return;
   postsSig = sig;
-  $("postSection").hidden = !posts.videos.length;
-  $("postCount").textContent = posts.videos.length ? `(${posts.videos.length})` : "";
+  $("navPost").textContent = posts.videos.length || "";
+  $("navPost").classList.toggle("hot", posts.videos.length > 0);
+  if (!posts.videos.length) { $("posts").innerHTML = `<div class="empty">Nothing waiting to be posted.</div>`; return; }
   $("posts").innerHTML = posts.videos.map((v) => {
     const n = Object.keys(v.posted).length;
     return `<div class="post" data-name="${esc(v.name)}">
@@ -356,7 +405,7 @@ function renderPosts() {
         <textarea data-caption placeholder="Caption and hashtags (copied when you click a platform)">${esc(v.caption)}</textarea>
         <div class="plats">${posts.platforms.map((p) => `
           <div class="plat ${v.posted[p.id] ? "done" : ""}">
-            <button data-open="${esc(p.id)}">${esc(p.name)} ↗</button>
+            <button data-open="${esc(p.id)}" title="Upload to ${esc(p.name)}">${esc(p.name.split(" ")[0])} ↗</button>
             <label><input type="checkbox" data-posted="${esc(p.id)}" ${v.posted[p.id] ? "checked" : ""}> posted</label>
           </div>`).join("")}
         </div>
@@ -436,8 +485,8 @@ $("cards").addEventListener("click", (e) => {
   const rn = e.target.closest("[data-rename]");
   if (rn) { e.stopPropagation(); rename(rn.dataset.rename); return; }
   const c = e.target.closest(".acc"); if (!c) return;
-  selected = selected === c.dataset.id ? "" : c.dataset.id;
-  shown = PAGE; renderCards(); renderRows();
+  selected = c.dataset.id;
+  shown = PAGE; renderCards(); renderRows(); show("videos");
 });
 $("cookieFile").addEventListener("change", async (e) => {
   const file = e.target.files[0]; e.target.value = "";
@@ -464,6 +513,8 @@ $("more").addEventListener("click", () => { shown += PAGE; renderRows(); });
 $("fText").addEventListener("input", () => { shown = PAGE; renderRows(); });
 $("refresh").addEventListener("click", load);
 $("auto").addEventListener("change", schedule);
+addEventListener("hashchange", () => { if (!key) show(location.hash.slice(1)); });
+show(location.hash.slice(1));
 load(); schedule();
 </script>
 </body>
