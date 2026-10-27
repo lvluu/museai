@@ -7,6 +7,9 @@
 # the cast (they tend to walk in during the last second), spoken words not in the
 # script (e.g. someone answering the ending question), the listener turning to the
 # camera, or a seam jump between the first two tiles.
+# "jumps:" lists one-frame picture snaps inside the clip (jumps.py). Any jump = re-render:
+# muse changed pose/face between two frames and no warp hides it (EP09 v7 clip B). The seam
+# reframe against the previous clip is fixed later by ease_seams.py, so it is not counted here.
 # SCRIPT=script.txt ("W: line" / "M: line" per spoken line) also runs speakers.py:
 # voice pitch per line must fit the labelled speaker and the listener's lips must stay
 # still (both automatic; WRONG VOICE = re-render, LISTENER MOUTH MOVES = reframe.py in the edit); it also writes mouths_<clip>.jpg.
@@ -14,6 +17,7 @@ set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 f=$1; b=$(basename "$f" .mp4); tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
 ffprobe -v error -select_streams v:0 -show_entries stream=width,height:format=duration -of csv=p=0 "$f" | tr '\n' ' '; echo
+echo "jumps: $(python3 "$here/jumps.py" "$f" | tr '\n' ' ')"
 echo "cuts: $(ffmpeg -hide_banner -i "$f" -vf "select='gt(scene,0.25)',showinfo" -f null - 2>&1 | grep -oE 'pts_time:[0-9.]+' | cut -d: -f2 | tr '\n' ' ')"
 # VAD=0: with VAD on, Whisper drops the first line of a clip
 VAD=0 WMODEL=${WMODEL:-medium} uv run --no-project --python 3.12 --with faster-whisper --with opencc-python-reimplemented python "$here/transcribe.py" "$f" "words_$b.json" 2>&1 | grep -E '^ +[0-9]' || true

@@ -2,7 +2,7 @@ MOTION, CONTINUITY AND NATURAL PERFORMANCE REQUIREMENTS
 
 Photorealistic live-action footage, as if filmed on a real cinema camera. Real people with natural skin texture; no plastic, waxy, cartoon or CGI look. No AI artifacts: no morphing faces, melting hands, extra or missing fingers, warped objects or garbled background text.
 
-Create fluid, believable motion throughout the entire video. Maintain consistent timing, anatomy, facial features (each person keeps the exact same face, age and hairstyle in every shot, before and after any cut), clothing, lighting and object positions. No jitter, stuttering, frozen frames, flickering, sudden pose changes, unnatural acceleration or sliding movements.
+Create fluid, believable motion throughout the entire video. Maintain consistent timing, anatomy, facial features (each person keeps the exact same face, age and hairstyle in every shot, before and after any cut), clothing, lighting and object positions. No jitter, stuttering, frozen frames, flickering, sudden pose changes, unnatural acceleration or sliding movements. Every frame flows smoothly into the next: a head, face, body or the framing never jumps to a new position or size between two consecutive frames, and the first frame continues the given image at exactly the same framing and zoom.
 
 Prefer a continuous take when possible. When a scene change is necessary, preserve the exact action, body position, gaze direction, movement speed and object placement across the transition. Each new shot must naturally continue the previous shot, without resetting or repeating movements. No abrupt stitched-clip effect, duplicated frames, missing actions or distracting transitions.
 
@@ -22,7 +22,7 @@ STABLE CAMERA AND STRICT SPEAKER–MOUTH SYNCHRONIZATION
 
 Use a steady medium two-shot showing both characters comfortably throughout the conversation. Keep the camera fixed whenever possible. Do not alternate between close-ups of individual faces. No sudden zooms, punch-ins, whip pans, rapid cuts, framing jumps or repeated camera changes. Preserve smooth, continuous movement and consistent character positions across any necessary transition.
 
-Assign each dialogue line explicitly to its intended character and unique voice. Never swap voices or transfer speech animation between characters.
+Assign each dialogue line explicitly to its intended character and unique voice. Never swap voices or transfer speech animation between characters. Each character keeps exactly the same voice (timbre, pitch, age, accent) on every line from the first to the last.
 
 Only the character whose voice is currently audible may articulate the dialogue. When the woman speaks, only her lips and jaw form the words; the man listens with his mouth gently closed and relaxed. When the man speaks, only his lips and jaw form the words; the woman listens with her mouth gently closed and relaxed. Never animate both characters as speaking simultaneously. No silent mouthing, unrelated mouth movements, duplicated lip animation or listener lip-sync.
 
