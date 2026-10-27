@@ -16,6 +16,7 @@
             --ok-bg: #1d2e21; --bad-bg: #3a1f1f; --run-bg: #36281a; --idle-bg: #2a2a28; }
   }
   * { box-sizing: border-box; }
+  html { scrollbar-gutter: stable; overflow-y: scroll; }
   body { margin: 0; background: var(--bg); color: var(--text);
          font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
   main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
@@ -49,6 +50,7 @@
   .acc-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
   .rename { color: var(--muted); font-size: 13px; padding: 0 4px; border-radius: 4px; visibility: hidden; }
   .acc:hover .rename, .rename:focus { visibility: visible; }
+  @media (hover: none) { .rename { visibility: visible; } }
   .rename:hover { color: var(--accent); }
   .acc-now { font-size: 12px; color: var(--run); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .acc-nums { display: flex; gap: 14px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
@@ -69,10 +71,12 @@
   .p-idle { color: var(--idle); background: var(--idle-bg); }
 
   /* videos */
-  .toolbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
+  .toolbar { position: sticky; top: 0; z-index: 1; background: var(--bg); padding: 8px 0;
+             display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 2px; }
   .tabs { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 2px; }
   .tabs button { border: 0; padding: 4px 10px; border-radius: 6px; font-size: 13px; }
-  .tabs button.on { background: var(--soft); font-weight: 600; }
+  .tabs button.on { background: var(--soft); color: var(--accent); }
+  .tabs button small { font-variant-numeric: tabular-nums; }
   .tabs button small { color: var(--muted); margin-left: 3px; }
   .chip { font-size: 12px; padding: 4px 8px; border-radius: 6px; background: var(--soft); }
   .chip button { border: 0; background: none; padding: 0 0 0 4px; color: var(--muted); }
@@ -253,30 +257,49 @@ function renderRows() {
   $("more").hidden = list.length <= shown;
   if (!list.length) { $("rows").innerHTML = `<div class="empty">No videos here.</div>`; return; }
   let lastDay = "";
-  $("rows").innerHTML = list.slice(0, shown).map((t) => {
+  const nodes = [];
+  for (const t of list.slice(0, shown)) {
     const d = fmtDay(t.created_at);
-    const head = d !== lastDay ? `<div class="day">${esc(d)}</div>` : "";
+    if (d !== lastDay) nodes.push(nodeFor("day:" + d, `<div class="day">${esc(d)}</div>`));
     lastDay = d;
-    const url = t.result?.url;
-    const thumb = url
-      ? `<a class="thumb" href="${esc(url)}" target="_blank" rel="noopener" title="Open video"><video src="${esc(url)}#t=0.5" preload="metadata" muted></video></a>`
-      : `<span class="thumb"></span>`;
-    const [cls, text] = TASK_PILL[t.status] || ["p-idle", t.status];
-    const status = isActive(t) && t.progress ? `${text} ${t.progress}%` : text;
-    const retried = (t.attempts || []).length > 1 ? ` · retried after ${t.attempts.slice(0, -1).map((a) => acctName(a)).join(", ")}` : "";
-    const meta = [fmtClock(t.created_at), acctName(acctKey(t), t.account_label),
-                  t.request?.size, t.request?.duration && t.request.duration + "s"].filter(Boolean).join(" · ");
-    const took = isActive(t) ? "" : fmtDur(t.updated_at - t.created_at);
-    return `${head}<div class="row">
-      ${thumb}
-      <div class="info">
-        <div class="title" title="${esc(t.request?.prompt)}">${esc(titleOf(t.request?.prompt))}</div>
-        <div class="meta" title="${esc(t.id)}">${esc(meta + retried)}</div>
-        ${t.error ? `<div class="err" title="${esc(t.error.message)}">${esc(t.error.message)}</div>` : ""}
-      </div>
-      <div class="side">${pill([cls, status])}${took ? `<span class="meta">${took}</span>` : ""}</div>
-    </div>`;
-  }).join("");
+    nodes.push(nodeFor(t.id, rowHtml(t)));
+  }
+  $("rows").replaceChildren(...nodes);
+}
+
+// Rebuilding every row on each refresh reloads every thumbnail and makes the list flicker,
+// so a row keeps its DOM node until its content changes.
+const rowCache = new Map();
+function nodeFor(id, html) {
+  const hit = rowCache.get(id);
+  if (hit && hit.html === html) return hit.node;
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html.trim();
+  const node = tpl.content.firstElementChild;
+  rowCache.set(id, { html, node });
+  return node;
+}
+
+function rowHtml(t) {
+  const url = t.result?.url;
+  const thumb = url
+    ? `<a class="thumb" href="${esc(url)}" target="_blank" rel="noopener" title="Open video"><video src="${esc(url)}#t=0.5" preload="metadata" muted onerror="this.remove()"></video></a>`
+    : `<span class="thumb"></span>`;
+  const [cls, text] = TASK_PILL[t.status] || ["p-idle", t.status];
+  const status = isActive(t) && t.progress ? `${text} ${t.progress}%` : text;
+  const retried = (t.attempts || []).length > 1 ? ` · retried after ${t.attempts.slice(0, -1).map((a) => acctName(a)).join(", ")}` : "";
+  const meta = [fmtClock(t.created_at), acctName(acctKey(t), t.account_label),
+                t.request?.size, t.request?.duration && t.request.duration + "s"].filter(Boolean).join(" · ");
+  const took = isActive(t) ? "" : fmtDur(t.updated_at - t.created_at);
+  return `<div class="row">
+    ${thumb}
+    <div class="info">
+      <div class="title" title="${esc(t.request?.prompt)}">${esc(titleOf(t.request?.prompt))}</div>
+      <div class="meta" title="${esc(t.id)}">${esc(meta + retried)}</div>
+      ${t.error ? `<div class="err" title="${esc(t.error.message)}">${esc(t.error.message)}</div>` : ""}
+    </div>
+    <div class="side">${pill([cls, status])}${took ? `<span class="meta">${took}</span>` : ""}</div>
+  </div>`;
 }
 
 function render() { renderStats(); renderCards(); renderRows(); }
