@@ -14,6 +14,8 @@ Quality gate for a muse video. Exit 1 when any check fails.
   gaze    GAZE=CMWM... (one letter per cue, gaze.py): both people look at each other on dialogue
           lines (W/M), only the host looks at the lens on C lines; side profile counts as off.
           Required for dialogue, missing = FAIL
+  motion  --travel: nature moves like real footage, not a frozen photo, an in-place warp or a
+          time-lapse (motion.py: optical flow per 10 % band)
   smooth  no frozen stretches, duplicated frames or one-frame picture jumps (jumps.py; seams
           not eased with ease_seams.py, muse in-clip snaps), hard cuts == expected (default 0)
   mouth   writes a contact sheet (one frame mid-line per cue) to check realism + lip sync by eye
@@ -170,6 +172,16 @@ print(f"smooth  {'ok  ' if ok else 'FAIL'} freezes={[f'{float(f):.1f}s' for f in
       f"repeated frames {dup:.0%} (max 5%) cuts at {[round(float(c), 2) for c in cuts]} (expected {expected_cuts}) "
       f"jumps at {snaps} (seam -> ease_seams.py, inside a clip -> re-render it)")
 ok or fails.append("smooth")
+
+# motion (travel): frozen photo / in-place wobble / time-lapse, which smooth and the sheet miss
+if travel:
+    mo = subprocess.run(["uv", "run", "-q", "--no-project", "--python", "3.12",
+                         "--with", "opencv-python-headless==4.10.0.84", "--with", "numpy", "python",
+                         str(Path(__file__).with_name("motion.py")), video], capture_output=True, text=True)
+    lines = [ln for ln in mo.stdout.splitlines() if not ln.startswith(("band", "RESULT"))]
+    print(f"motion  {'ok  ' if mo.returncode == 0 else 'FAIL'} "
+          f"{'; '.join(lines) if lines else 'nature travels at real-time speed' if mo.returncode == 0 else mo.stderr[-300:]}")
+    mo.returncode == 0 or fails.append("motion")
 
 # mouth: contact sheet, one frame in the middle of each line (travel: 12 even frames, whole frame)
 times = [dur * (i + 0.5) / 12 for i in range(12)] if travel else [(s + e) / 2 for s, e, *_ in cues]
