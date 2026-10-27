@@ -17,6 +17,7 @@ import asyncio
 import base64
 import contextlib
 import logging
+import re
 import time
 from collections import defaultdict
 from collections.abc import AsyncIterator
@@ -31,6 +32,7 @@ from ...errors import (
     GenerationTimeout,
     UpstreamAuthError,
     UpstreamError,
+    UpstreamMediaLost,
     UpstreamQuotaError,
     UpstreamRefused,
     UpstreamTimeout,
@@ -62,6 +64,8 @@ HOT_BUBBLE_LIMIT = 16
 # to grow an attachment, then ask in the same thread for the file, up to MEDIA_NUDGES times.
 TEXT_ONLY_GRACE = 90.0
 MEDIA_NUDGES = 2
+# Short final replies meaning muse's generator lost the clip ("Video not found"), not a refusal.
+LOST_MEDIA = re.compile(r"\b(not found|went wrong|failed|error)\b", re.I)
 
 
 def is_thread_url(url: str) -> bool:
@@ -374,7 +378,11 @@ class BrowserDriver(MuseDriver):
         return state
 
     async def _prepare(self, account: Account, prompt: str, images: list[InputImage]):
-        tab = await self._tab(account)
+        try:
+            tab = await self._tab(account)
+        except CDPError as exc:
+            # Browser socket dropped while opening the tab: retryable, so the job fails over.
+            raise UpstreamError(f"browser error: {exc}") from exc
         try:
             await self._new_thread(tab)
             base = await self._state(tab)
@@ -619,6 +627,8 @@ class BrowserDriver(MuseDriver):
             if time.monotonic() - text_only_since < TEXT_ONLY_GRACE:
                 continue
             if nudges >= MEDIA_NUDGES:
+                if LOST_MEDIA.search(text) and len(text) < 200:
+                    raise UpstreamMediaLost(f"upstream lost the {kind}: {text[:200]}")
                 raise UpstreamRefused(f"upstream replied with text only: {text[:200]}")
             nudges += 1
             log.info(
