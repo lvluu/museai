@@ -36,7 +36,7 @@ Before finalizing, check every speaking turn: correct voice, correct visible spe
 
 STANDARD MANDARIN PRONUNCIATION
 
-Speak all Chinese dialogue in clear, natural Standard Mandarin (Putonghua), with accurate initials, finals, lexical tones, contextual tone changes and neutral tones. No regional accent, dialect pronunciation, misread characters, incorrect tones or slurred syllables. Resolve polyphonic characters according to the meaning and context of each sentence.
+Speak all Chinese dialogue in clear, natural Standard Mandarin (Putonghua), with accurate initials, finals, lexical tones, contextual tone changes and neutral tones. No regional accent, dialect pronunciation, misread characters, incorrect tones or slurred syllables. Resolve polyphonic characters according to the meaning and context of each sentence. Articulate crisply, like a CCTV presenter in a relaxed conversation: every syllable fully formed and clearly separated, never swallowed or merged into the next one; keep similar initials distinct (d/t, zh/z/j, ch/c/q, sh/s/x, f/h, n/l); each character of a two-syllable word keeps its own sound, e.g. 地铁 dì tiě (never tiě tiě), 吃饭 chī fàn, 多少 duō shao.
 
 Read the Chinese script exactly as written, without adding, omitting, replacing or repeating words. Maintain normal everyday conversational speed and natural intonation throughout; do not rush, exaggerate articulation or read mechanically.
 

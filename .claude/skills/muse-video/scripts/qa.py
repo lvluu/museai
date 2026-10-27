@@ -8,6 +8,7 @@ Quality gate for a muse video. Exit 1 when any check fails.
   sound   no clipping, dialogue loud enough
   noise   no hiss/static floor (quietest 50 ms windows above 7 kHz < -70 dB)
   pace    one steady daily-conversation speed, no long pauses (pace.py)
+  pron    Mandarin: every syllable heard with the script's sound and tone (pron.py, Whisper large-v3)
   smooth  no frozen stretches or duplicated frames, number of hard cuts == expected (default 0)
   mouth   writes a contact sheet (one frame mid-line per cue) to check realism + lip sync by eye
 """
@@ -98,6 +99,16 @@ if not travel:
     for line in bad:
         print("       ", line.strip())
     pace.returncode == 0 or fails.append("pace")
+# pron: Mandarin lines only; voice >= 90 % passed EP09 v6 with 地铁 heard as 铁铁 and 吃饭 as 区方
+if not travel and any(re.search(r"[\u4e00-\u9fff]", c[2]) for c in cues):
+    pron = subprocess.run(["uv", "run", "-q", "--no-project", "--python", "3.12", "--with", "faster-whisper",
+                           "--with", "pypinyin", "--with", "opencc-python-reimplemented", "python",
+                           str(Path(__file__).with_name("pron.py")), video, cues_path], capture_output=True, text=True)
+    lines = [ln for ln in pron.stdout.splitlines() if ln.startswith(("FAIL", "RESULT"))]
+    print(f"pron    {'ok  ' if pron.returncode == 0 else 'FAIL'} {lines[-1] if lines else pron.stderr[-300:]}")
+    for line in lines[:-1]:
+        print("       ", line.strip())
+    pron.returncode == 0 or fails.append("pron")
 
 # smooth
 freezes = re.findall(r"freeze_duration: ([\d.]+)", ffmpeg_log("-vf", "freezedetect=n=0.0005:d=0.5"))
