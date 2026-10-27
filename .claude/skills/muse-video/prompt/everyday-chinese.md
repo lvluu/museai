@@ -2,7 +2,7 @@
 
 The user writes each episode brief in this exact format (EP12, 2026-10-27). When asked for the next
 episode, copy it, bump the number, pick a topic not in the log below, and change only TITLE, CAST
-outfits/roles, the set line, SCRIPT and ENDING. Keep every other section word for word.
+outfits/roles, the set line, SCRIPT and ENDING. Keep every other section word for word (the eye-line line in ACTING AND CAMERA was added after EP12, where the woman sat in profile looking past the man).
 
 Script rules: one intro line to camera, 9-10 dialogue lines alternating MAN/WOMAN, one ending question
 to camera; about 85-95 syllables in total (30-40 s at a natural pace); each line ≤ 14 syllables;
@@ -38,7 +38,7 @@ Keep mouths visible. Never retime footage after lip-sync. Correct pronunciation 
 ACTING AND CAMERA
 Relaxed posture, still hands, subtle breathing and ordinary brief blinks. Expressions follow the dialogue.
 No nodding, waving, pointing, swaying, eye fluttering, winking or prolonged eye closure.
-Look at each other during conversation.
+Eye line: while talking and listening, each person's eyes rest on the other person's face; never on the room, counter, floor or lens, never past the other person. Heads turn only partway toward each other (three-quarter to the camera, never side profile); the eyes carry the rest of the look.
 Intro: woman centered, facing camera. One hard cut to a locked medium two-shot. Keep both faces visible.
 No alternating close-ups, zooms, pans or further cuts.
 For separate clips, use the previous final frame as the next starting reference. Match poses, gaze, hands, background and lighting. Continue motion smoothly; no replayed actions, freezes, jumps or stutter.

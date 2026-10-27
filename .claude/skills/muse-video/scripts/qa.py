@@ -11,6 +11,9 @@ Quality gate for a muse video. Exit 1 when any check fails.
   pron    Mandarin: every syllable heard with the script's sound and tone (pron.py, Whisper large-v3)
   voices  SPEAKERS=WWM... (one letter per cue): each character keeps one voice (voices.py);
           required for dialogue with 2+ lines per character, missing = FAIL
+  gaze    GAZE=CMWM... (one letter per cue, gaze.py): both people look at each other on dialogue
+          lines (W/M), only the host looks at the lens on C lines; side profile counts as off.
+          Required for dialogue, missing = FAIL
   smooth  no frozen stretches, duplicated frames or one-frame picture jumps (jumps.py; seams
           not eased with ease_seams.py, muse in-clip snaps), hard cuts == expected (default 0)
   mouth   writes a contact sheet (one frame mid-line per cue) to check realism + lip sync by eye
@@ -130,6 +133,25 @@ if not travel:
         for line in lines[:-1]:
             print("       ", line.strip())
         vo.returncode == 0 or fails.append("voices")
+
+# gaze: EP12 passed voice, pron and voices while the woman sat in profile with wandering eyes and the
+# man half-turned to the lens in the ending; the user saw it as AI generated
+if not travel:
+    targets = os.environ.get("GAZE", "")
+    if not targets:
+        print("gaze    FAIL set GAZE=<one letter per cue: W/M speaker, C to camera, e.g. CMWMWC> to check eye lines")
+        fails.append("gaze")
+    else:
+        gz = subprocess.run(["uv", "run", "-q", "--no-project", "--python", "3.12", "--with", "mediapipe==0.10.14",
+                             "--with", "opencv-python-headless==4.10.0.84", "python",
+                             str(Path(__file__).with_name("gaze.py")), video, cues_path, targets,
+                             str(Path(video).with_suffix("")) + "_gaze.jpg"],
+                            capture_output=True, text=True)
+        lines = [ln for ln in gz.stdout.splitlines() if "OFF GAZE" in ln or ln.startswith("RESULT")]
+        print(f"gaze    {'ok  ' if gz.returncode == 0 else 'FAIL'} {lines[-1] if lines else gz.stderr[-300:]}")
+        for line in lines[:-1]:
+            print("       ", line.strip())
+        gz.returncode == 0 or fails.append("gaze")
 
 # smooth
 freezes = re.findall(r"freeze_duration: ([\d.]+)", ffmpeg_log("-vf", "freezedetect=n=0.0005:d=0.5"))

@@ -13,6 +13,9 @@
 # SCRIPT=script.txt ("W: line" / "M: line" per spoken line) also runs speakers.py:
 # voice pitch per line must fit the labelled speaker and the listener's lips must stay
 # still (both automatic; WRONG VOICE = re-render, LISTENER MOUTH MOVES = reframe.py in the edit); it also writes mouths_<clip>.jpg.
+# GAZE=O (a dialogue-only clip) or C (a to-camera clip) also runs gaze.py on the whole clip:
+# OFF GAZE (a face in side profile, eyes on the room/floor/lens instead of the other person) =
+# re-render; no edit fixes an eye line (EP12: the woman in profile, eyes wandering, every line).
 set -euo pipefail
 here=$(cd "$(dirname "$0")" && pwd)
 f=$1; b=$(basename "$f" .mp4); tmp=$(mktemp -d); trap 'rm -rf "$tmp"' EXIT
@@ -30,4 +33,8 @@ echo "sheet: sheet_$b.jpg"
 if [ -n "${SCRIPT:-}" ]; then
   uv run -q --no-project --python 3.12 --with mediapipe==0.10.14 --with opencv-python-headless==4.10.0.84 --with librosa \
     python "$here/speakers.py" "$f" "$SCRIPT" "words_$b.json" "mouths_$b.jpg" 2>&1 | grep -vE 'WARNING|INFO|^W0000|^I0000' || true
+fi
+if [ -n "${GAZE:-}" ]; then
+  uv run -q --no-project --python 3.12 --with mediapipe==0.10.14 --with opencv-python-headless==4.10.0.84 \
+    python "$here/gaze.py" "$f" - "$GAZE" "gaze_$b.jpg" 2>&1 | grep -vE 'WARN|warn|INFO|^W0000|^I0000' || true
 fi
