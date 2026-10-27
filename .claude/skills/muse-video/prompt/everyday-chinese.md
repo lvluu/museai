@@ -14,6 +14,7 @@ No payment, food handling or object exchange in the scene.
 - EP12 Ordering takeout (takeaway restaurant, cashier)
 - EP13 Finding the subway (quiet street, passer-by giving directions)
 - EP14 At the pharmacy (neighbourhood pharmacy, pharmacist) - drafted
+- EP16 Getting a haircut (salon reception, stylist)
 
 ## Template
 
