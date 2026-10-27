@@ -29,8 +29,11 @@ model = WhisperModel(os.environ.get("WMODEL", "large-v3"), device="cpu", compute
 t2s = opencc.OpenCC("t2s").convert
 
 
+DIGITS = str.maketrans("0123456789", "零一二三四五六七八九")  # Whisper writes 六点半 as 6点半
+
+
 def syl(text):
-    return lazy_pinyin(re.sub(r"[^一-鿿]", "", text), style=Style.TONE3, neutral_tone_with_five=True)
+    return lazy_pinyin(re.sub(r"[^一-鿿]", "", text.translate(DIGITS)), style=Style.TONE3, neutral_tone_with_five=True)
 
 
 def hear(clip):
