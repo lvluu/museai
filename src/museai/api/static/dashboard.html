@@ -53,6 +53,12 @@
   .tid { font: 12px ui-monospace, monospace; color: var(--muted); }
   video { width: 90px; border-radius: 4px; background: #000; display: block; }
   .tag { font-size: 11px; padding: 1px 6px; border-radius: 10px; border: 1px solid var(--line); color: var(--muted); }
+  .upload { display: inline-block; margin-top: 8px; font-size: 12px; color: var(--accent);
+            border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; }
+  .upload:hover, .rename:hover { border-color: var(--accent); }
+  .rename { font-size: 11px; color: var(--muted); border: 1px solid transparent; border-radius: 6px;
+            padding: 0 4px; margin-left: 4px; font-weight: 400; }
+  .card.bad { border-color: var(--bad); }
   .empty { padding: 24px; text-align: center; color: var(--muted); }
   @media (max-width: 640px) { .hide-sm { display: none; } }
 </style>
@@ -67,6 +73,7 @@
     <button id="refresh">Refresh</button>
   </header>
   <div class="cards" id="cards"></div>
+  <input type="file" id="cookieFile" accept=".json,application/json" hidden>
   <div class="filters">
     <select id="fStatus">
       <option value="">All statuses</option>
@@ -94,10 +101,16 @@ let accounts = [], usage = {}, tasks = [], selected = "", timer = null;
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 
-async function api(path) {
-  const r = await fetch(path, { headers: key ? { Authorization: "Bearer " + key } : {} });
+async function api(path, body) {
+  const headers = key ? { Authorization: "Bearer " + key } : {};
+  const opts = body === undefined ? { headers }
+    : { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body };
+  const r = await fetch(path, opts);
   if (r.status === 401) throw new Error("not local: open /dashboard#key=<admin key>");
-  if (!r.ok) throw new Error(r.status + " " + r.statusText);
+  if (!r.ok) {
+    const e = await r.json().catch(() => null);
+    throw new Error(e?.error?.message || r.status + " " + r.statusText);
+  }
   return r.json();
 }
 
@@ -155,15 +168,17 @@ function renderCards() {
     const name = id ? acctName(id, list[0]?.account_label) : "All accounts";
     const sub = id === UNKNOWN ? "recorded before tracking" : id || "every video task";
     const stat = acc ? `<span class="tag">${esc(acc.enabled ? acc.status : "disabled")}</span>` : "";
-    return `<button class="card ${id === selected ? "sel" : ""}" data-id="${esc(id)}">
-      <div class="name"><span>${esc(name)}</span>${stat}</div>
+    const upload = acc?.status === "invalid"
+      ?`<span class="upload" role="button" tabindex="0" data-upload="${esc(acc.id)}" title="Cookie-Editor JSON export of muse.ai">Upload cookies JSON</span>` : "";
+    return `<button class="card ${id === selected ? "sel" : ""} ${acc?.status === "invalid" ? "bad" : ""}" data-id="${esc(id)}">
+      <div class="name"><span>${esc(name)}${acc ? `<span class="rename" role="button" tabindex="0" data-rename="${esc(acc.id)}" title="Rename, e.g. to the muse.ai login email">✎ rename</span>` : ""}</span>${stat}</div>
       <div class="id">${esc(sub)}</div>
       <div class="big">${list.length}</div>
       <div class="counts">
         <span class="s-succeeded">${c("succeeded")} ok</span>
         <span class="s-failed">${c("failed")} failed</span>
         <span class="s-running">${c("running") + c("queued")} active</span>
-      </div>${usageLine(acc, list)}</button>`;
+      </div>${usageLine(acc, list)}${upload}</button>`;
   }).join("");
 }
 
@@ -215,9 +230,38 @@ function schedule() {
   if ($("auto").checked) timer = setInterval(load, 10000);
 }
 
+async function rename(id) {
+  const label = prompt("New name for this account (e.g. the muse.ai login email):", acctName(id));
+  if (label === null || !label.trim() || label.trim() === acctName(id)) return;
+  try {
+    await api(`/dashboard/accounts/${encodeURIComponent(id)}/label`, JSON.stringify({ label: label.trim() }));
+  } catch (err) {
+    alert(`rename failed: ${err.message}`);
+  }
+  load();
+}
+
+let uploadFor = "";
 $("cards").addEventListener("click", (e) => {
+  const u = e.target.closest("[data-upload]");
+  if (u) { e.stopPropagation(); uploadFor = u.dataset.upload; $("cookieFile").click(); return; }
+  const rn = e.target.closest("[data-rename]");
+  if (rn) { e.stopPropagation(); rename(rn.dataset.rename); return; }
   const c = e.target.closest(".card"); if (!c) return;
   selected = c.dataset.id; renderCards(); renderRows();
+});
+$("cookieFile").addEventListener("change", async (e) => {
+  const file = e.target.files[0]; e.target.value = "";
+  if (!file || !uploadFor) return;
+  const name = acctName(uploadFor);
+  try {
+    JSON.parse(await file.text());
+    const r = await api(`/dashboard/accounts/${encodeURIComponent(uploadFor)}/cookies`, await file.text());
+    alert(r.check.ok ? `${name}: cookies updated and verified.` : `${name}: cookies saved, check failed: ${r.check.error}`);
+  } catch (err) {
+    alert(`${name}: upload failed: ${err.message}`);
+  }
+  load();
 });
 $("fStatus").addEventListener("change", renderRows);
 $("fText").addEventListener("input", renderRows);

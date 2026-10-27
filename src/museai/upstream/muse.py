@@ -39,6 +39,33 @@ def missing_session_cookies(cookies: dict[str, str]) -> list[str]:
     return [name for name in SESSION_COOKIES if not cookies.get(name)]
 
 
+def parse_cookie_export(data: object) -> tuple[dict[str, str], dict[str, int]]:
+    """Read a browser cookie export into (cookies, expiry epoch per cookie).
+
+    Accepts a Cookie-Editor / DevTools array of ``{name, value, domain, expirationDate}``,
+    the same wrapped as ``{"cookies": [...]}``, or a flat ``{name: value}`` object.
+    Cookies of other sites in the export are dropped.
+    """
+    if isinstance(data, dict) and "cookies" in data:
+        data = data["cookies"]
+    if isinstance(data, dict):
+        return {str(k): str(v) for k, v in data.items() if v}, {}
+    if not isinstance(data, list):
+        raise ValueError("expected a JSON array of cookies or a {name: value} object")
+    cookies: dict[str, str] = {}
+    expires: dict[str, int] = {}
+    for item in data:
+        if not isinstance(item, dict) or not item.get("name") or not item.get("value"):
+            continue
+        if not str(item.get("domain") or "muse.ai").lstrip(".").endswith("muse.ai"):
+            continue
+        cookies[item["name"]] = str(item["value"])
+        exp = item.get("expirationDate") or item.get("expires")
+        if isinstance(exp, (int, float)) and exp > 0:
+            expires[item["name"]] = int(exp)
+    return cookies, expires
+
+
 async def renew_session(
     cookies: dict[str, str], *, wake_vm: bool = True, timeout: float = 15.0
 ) -> SessionInfo:

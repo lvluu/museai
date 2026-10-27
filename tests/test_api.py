@@ -120,6 +120,45 @@ def test_dashboard_data_open_to_loopback(settings):
         assert c.get("/dashboard/data").status_code == 200
 
 
+def test_dashboard_cookie_upload(client, admin):
+    acc = client.post("/admin/accounts", headers=admin, json={
+        "label": "a1", "cookies": {"hatch_sess": "old", "hatch_native_auth_device": "d"},
+    }).json()["account"]
+    client.patch(f"/admin/accounts/{acc['id']}", headers=admin, json={"enabled": True})
+    url = f"/dashboard/accounts/{acc['id']}/cookies"
+    export = [
+        {"name": "hatch_sess", "value": "new", "domain": ".muse.ai", "expirationDate": 1893456000.5},
+        {"name": "hatch_native_auth_device", "value": "d2", "domain": "muse.ai"},
+        {"name": "other", "value": "x", "domain": ".example.com"},
+    ]
+    assert client.post(url, json=export).status_code == 401
+    r = client.post(url, headers=admin, json=export)
+    assert r.status_code == 200
+    assert r.json()["account"]["status"] == "active"
+    r = client.post(url, headers=admin, json=[{"name": "datr", "value": "x"}])
+    assert r.status_code == 400
+    assert "hatch_sess" in r.json()["error"]["message"]
+
+
+def test_dashboard_rename(client, admin):
+    acc = client.post("/admin/accounts", headers=admin, json={
+        "label": "a1", "cookies": {"hatch_sess": "s", "hatch_native_auth_device": "d"},
+    }).json()["account"]
+    url = f"/dashboard/accounts/{acc['id']}/label"
+    assert client.post(url, json={"label": "x"}).status_code == 401
+    assert client.post(url, headers=admin, json={"label": " "}).status_code == 400
+    r = client.post(url, headers=admin, json={"label": " me@example.com "})
+    assert r.json()["account"]["label"] == "me@example.com"
+
+
+def test_parse_cookie_export():
+    from museai.upstream.muse import parse_cookie_export
+
+    assert parse_cookie_export({"cookies": {"a": "1", "b": ""}}) == ({"a": "1"}, {})
+    assert parse_cookie_export([{"name": "a", "value": "1", "expirationDate": 5.9}]) == (
+        {"a": "1"}, {"a": 5})
+
+
 def test_reserved_endpoints(client, auth):
     assert client.post("/v1/responses", headers=auth, json={}).status_code == 501
     assert client.post("/v1/images/edits", headers=auth).status_code == 501

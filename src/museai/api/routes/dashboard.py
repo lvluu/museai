@@ -13,9 +13,12 @@ from typing import Any
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import FileResponse
 
-from ...accounts.model import Account
+from ...accounts.keepalive import renew_account
+from ...accounts.model import Account, AccountStatus
+from ...errors import InvalidRequest, NotFound
 from ...services.container import Services
 from ...services.tasks import Task, TaskStatus
+from ...upstream import muse
 from ..deps import get_services, require_admin_key
 
 router = APIRouter(tags=["dashboard"])
@@ -57,6 +60,43 @@ def _local_or_admin(request: Request) -> None:
     except ValueError:
         pass
     require_admin_key(request)
+
+
+@router.post("/dashboard/accounts/{account_id}/cookies", include_in_schema=False,
+             dependencies=[Depends(_local_or_admin)])
+async def upload_cookies(account_id: str, request: Request,
+                         svc: Services = Depends(get_services)) -> dict:
+    """Replace an account's cookies with a browser export, then check them upstream."""
+    acc = svc.pool.get(account_id)
+    if acc is None:
+        raise NotFound(f"account '{account_id}' not found")
+    try:
+        cookies, expires = muse.parse_cookie_export(await request.json())
+    except ValueError as exc:
+        raise InvalidRequest(f"not a cookie export: {exc}") from exc
+    if missing := muse.missing_session_cookies(cookies):
+        raise InvalidRequest(f"export is missing session cookies: {', '.join(missing)}")
+    acc.cookies, acc.cookie_expires = cookies, expires
+    acc.status, acc.cooldown_until, acc.last_error = AccountStatus.ACTIVE, 0.0, None
+    await svc.pool.upsert(acc)
+    # Also drops the account's open tab, so the next job uses the new cookies.
+    check = await renew_account(svc.pool, svc.driver, account_id)
+    return {"account": svc.pool.get(account_id).public(), "check": check}
+
+
+@router.post("/dashboard/accounts/{account_id}/label", include_in_schema=False,
+             dependencies=[Depends(_local_or_admin)])
+async def rename_account(account_id: str, body: dict, svc: Services = Depends(get_services)) -> dict:
+    """Rename an account, e.g. to the muse.ai login email (muse.ai never tells us)."""
+    acc = svc.pool.get(account_id)
+    if acc is None:
+        raise NotFound(f"account '{account_id}' not found")
+    label = str(body.get("label") or "").strip()
+    if not label:
+        raise InvalidRequest("label must not be empty")
+    acc.label = label[:100]
+    await svc.pool.upsert(acc)
+    return {"account": acc.public()}
 
 
 @router.get("/dashboard", include_in_schema=False)

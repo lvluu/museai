@@ -89,6 +89,12 @@ class GenerationTimeout(UpstreamTimeout):
     retryable = False
 
 
+class UpstreamMediaLost(UpstreamError):
+    """Upstream generated nothing it could attach ("Video not found"); retry elsewhere."""
+
+    code = "upstream_media_lost"
+
+
 class UpstreamRefused(UpstreamError):
     """Upstream answered but did not produce what was asked (e.g. text instead of an image)."""
 
