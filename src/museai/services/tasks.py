@@ -43,6 +43,8 @@ class Task(BaseModel):
     account_id: str | None = None
     account_label: str | None = None
     attempts: list[str] = Field(default_factory=list)
+    # When the current attempt got its account; before that the job waits in the queue.
+    started_at: float | None = None
     # Identical in-flight submissions share one task instead of rendering again.
     dedupe_key: str | None = None
     # Client session (X-Muse-Session); one session renders one job at a time, so one
@@ -52,7 +54,7 @@ class Task(BaseModel):
     def assign(self, account_id: str, label: str) -> None:
         self.account_id, self.account_label = account_id, label
         self.attempts.append(account_id)
-        self.updated_at = time.time()
+        self.started_at = self.updated_at = time.time()
 
     @property
     def finished(self) -> bool:

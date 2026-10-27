@@ -126,6 +126,12 @@
   .linkish { border: 0; background: none; padding: 0; font-size: 12px; color: var(--muted); }
   .linkish:hover { color: var(--bad); }
   .hint { font-size: 12px; color: var(--muted); margin: -4px 0 10px; }
+  /* queue */
+  .qlist { margin-bottom: 24px; }
+  .qrow { display: grid; grid-template-columns: 72px 1fr auto; gap: 12px; align-items: center;
+          padding: 10px 14px; border-top: 1px solid var(--line); }
+  .qrow:first-child { border-top: 0; }
+  .qpos { white-space: nowrap; font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .empty { padding: 32px; text-align: center; color: var(--muted); }
   .more { display: block; margin: 12px auto 0; }
   .more[hidden] { display: none; }
@@ -155,6 +161,7 @@
   <div class="brand">museai</div>
   <button data-view="post">Ready to post <span class="badge" id="navPost"></span></button>
   <button data-view="activity">Activity <span class="badge" id="navVid"></span></button>
+  <button data-view="queue">Queue <span class="badge" id="navQueue"></span></button>
   <div class="nav-foot">
     <label class="live"><input type="checkbox" id="auto" checked> live · <span id="updated">loading…</span></label>
     <button id="refresh">Refresh</button>
@@ -166,6 +173,20 @@
     <p class="hint">Click a platform: the caption is copied and the video is shown in Finder, so drag it into the
       upload page that opens. Tick “posted” after publishing; when all four are ticked, the video moves to the Trash.</p>
     <div class="posts" id="posts"></div>
+  </section>
+
+  <section data-section="queue" hidden>
+    <header><h1>Queue</h1></header>
+    <p class="hint">Requests the server holds right now, oldest first. Between two clips a client works on its own
+      side (checking the take, writing the next prompt, or waiting 2 min before a retry) and sends nothing, so
+      accounts show Ready until its next request arrives.</p>
+    <div class="stats" id="qStats"></div>
+    <h2>Waiting and rendering</h2>
+    <div class="list qlist" id="qNow"></div>
+    <h2>Clients, last 3 hours</h2>
+    <div class="list qlist" id="qClients"></div>
+    <h2>Recent events</h2>
+    <div class="list qlist" id="qLog"></div>
   </section>
 
   <section data-section="activity" hidden>
@@ -225,6 +246,7 @@ function fmtDay(t) {
 function fmtDur(s) {
   if (!(s > 0)) return "";
   const m = Math.floor(s / 60), r = Math.round(s % 60);
+  if (m >= 60) return `${Math.floor(m / 60)}h ${m % 60}m`;
   return m ? `${m}m ${r}s` : `${r}s`;
 }
 const acctKey = (t) => t.account_id || UNKNOWN;
@@ -357,14 +379,90 @@ function rowHtml(t) {
   </div>`;
 }
 
+// Where a job in flight is: behind its client's earlier clip (one clip per session at a
+// time), waiting for a free account, or rendering on one.
+function queueState(t) {
+  if (t.status === "queued") return ["p-idle", "Waiting for its client's earlier clip"];
+  if (!t.account_id) return ["p-run", "Waiting for a free account"];
+  return ["p-ok", "Rendering on " + acctName(t.account_id, t.account_label)];
+}
+const since = (t) => fmtDur(Date.now() / 1000 - t) || "0s";
+const client = (t) => t.session ? "client " + t.session.slice(0, 6) : "no client id";
+const qRow = (lead, t, sub, side) => `<div class="qrow">
+    <span class="qpos">${lead}</span>
+    <div class="info">
+      <div class="title" title="${esc(t.request?.prompt)}">${esc(titleOf(t.request?.prompt))}</div>
+      <div class="meta" title="${esc(t.id)}">${esc(sub)}</div>
+    </div>
+    <div class="side">${side}</div>
+  </div>`;
+
+function renderQueue() {
+  const now = Date.now() / 1000, recent = tasks.filter((t) => t.created_at > now - 3 * 3600);
+  const live = tasks.filter(isActive).sort((a, b) => a.created_at - b.created_at);
+  const states = live.map(queueState);
+  const count = (label) => states.filter((s) => s[1].startsWith(label)).length;
+  const busy = new Set(live.map((t) => t.account_id));
+  const free = accounts.filter((a) => !busy.has(a.id) && accState(a, false)[1] === "Ready").length;
+  $("qStats").innerHTML = [
+    [count("Waiting for a free"), "waiting for an account"],
+    [count("Waiting for its"), "waiting behind own clip"],
+    [count("Rendering"), "rendering now"],
+    [`${free}/${accounts.length}`, "accounts free"],
+  ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
+
+  const last = Math.max(0, ...tasks.map((t) => t.created_at));
+  $("qNow").innerHTML = live.map((t, i) => {
+    const st = states[i];
+    // Jobs from before started_at was recorded show their whole time as rendering.
+    const took = !t.account_id ? `waiting ${since(t.created_at)}`
+      : t.started_at ? `rendering ${since(t.started_at)}, waited ${fmtDur(t.started_at - t.created_at) || "0s"}`
+      : `rendering ${since(t.created_at)}`;
+    return qRow(`#${i + 1}`, t, `${client(t)} · sent ${fmtClock(t.created_at)}`,
+                `${pill(st)}<span class="meta">${took}</span>`);
+  }).join("") || `<div class="empty">Nothing waiting or rendering.${last ? ` Last request ${since(last)} ago.` : ""}</div>`;
+
+  const groups = new Map();
+  for (const t of recent) {
+    const k = t.session || "";
+    if (!groups.has(k)) groups.set(k, []);
+    groups.get(k).push(t);
+  }
+  $("qClients").innerHTML = [...groups.values()]
+    .map((list) => ({ list, at: Math.max(...list.map((t) => Math.max(t.created_at, t.updated_at))) }))
+    .sort((a, b) => b.at - a.at)
+    .map(({ list, at }) => {
+      const head = list.reduce((a, b) => (b.created_at > a.created_at ? b : a));
+      const n = (s) => list.filter((t) => t.status === s).length;
+      const busyOne = list.find(isActive);
+      const st = busyOne ? queueState(busyOne) : ["p-idle", `Idle ${since(at)}`];
+      return qRow(plural(list.length, "clip"), head, `${client(head)} · ${n("succeeded")} done · ${n("failed")} failed`,
+                  `${pill(st)}<span class="meta">last ${fmtClock(at)}</span>`);
+    }).join("") || `<div class="empty">No requests in the last 3 hours.</div>`;
+
+  const events = [];
+  for (const t of recent) {
+    events.push([t.created_at, ["p-idle", "Sent"], t]);
+    if (t.started_at) events.push([t.started_at, ["p-run", "Started on " + acctName(t.account_id, t.account_label)], t]);
+    if (t.status === "succeeded") events.push([t.updated_at, ["p-ok", "Done"], t]);
+    else if (t.status === "failed") events.push([t.updated_at, ["p-bad", "Failed: " + (t.error?.code || "error")], t]);
+    else if (t.status === "cancelled") events.push([t.updated_at, ["p-idle", "Cancelled"], t]);
+  }
+  $("qLog").innerHTML = events.sort((a, b) => b[0] - a[0]).slice(0, 40)
+    .map(([at, st, t]) => qRow(fmtClock(at), t, client(t), pill(st))).join("")
+    || `<div class="empty">No events in the last 3 hours.</div>`;
+}
+
 function render() {
-  renderStats(); renderCards(); renderRows();
+  renderStats(); renderCards(); renderRows(); renderQueue();
   const active = tasks.filter(isActive).length;
   $("navVid").textContent = active ? `${active} rendering` : tasks.length;
+  $("navQueue").textContent = active || "";
+  $("navQueue").classList.toggle("hot", active > 0);
 }
 
 // One section at a time, picked in the sidebar, so nothing needs scrolling past.
-const VIEWS = ["post", "activity"];
+const VIEWS = ["post", "activity", "queue"];
 let view = "";
 function show(v) {
   view = VIEWS.includes(v) ? v : ["accounts", "videos"].includes(v) ? "activity" : "post";
