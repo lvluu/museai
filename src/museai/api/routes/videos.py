@@ -48,7 +48,7 @@ async def create_video(body: VideoCreateRequest, request: Request,
                            duration=body.duration or body.seconds, first_frame=first_frame,
                            timeout=svc.settings.video_timeout, on_progress=progress)
         result = await svc.gateway.generate_video(
-            req, on_account=lambda acc: task.assign(acc.id, acc.label))
+            req, on_account=lambda acc: task.assign(acc.id, acc.label), owner=task.session)
         name = svc.media.save(result.data, result.mime, prefix="vid")
         return {"url": f"{base}/v1/media/{name}", "mime": result.mime,
                 "width": result.width, "height": result.height}

@@ -78,8 +78,9 @@ STRATEGIES: dict[str, type] = {
 
 # ---------------------------------------------------------------- lease
 class Lease:
-    def __init__(self, account: Account) -> None:
+    def __init__(self, account: Account, owner: str | None = None) -> None:
         self.account = account
+        self.owner = owner
         self.error: BaseException | None = None
 
     def fail(self, exc: BaseException) -> None:
@@ -104,6 +105,10 @@ class AccountPool:
         self.acquire_timeout = acquire_timeout
         self._accounts: dict[str, Account] = {}
         self._inflight: dict[str, int] = defaultdict(int)
+        # Fair share: leases held per owner (client session) and who waits for one.
+        self._owner_load: dict[str, int] = defaultdict(int)
+        self._waiters: dict[int, tuple[str | None, tuple[str, ...]]] = {}
+        self._seq = itertools.count()
         self._cond = asyncio.Condition()
 
     # ---- lifecycle / CRUD ----
@@ -163,48 +168,85 @@ class AccountPool:
             free.append(acc)
         return free, busy, next_ready
 
+    def _turn_key(self, seq: int) -> tuple[int, int]:
+        owner = self._waiters[seq][0]
+        return (self._owner_load[owner] if owner else 0, seq)
+
+    def _my_turn(self, seq: int) -> bool:
+        """A free account goes to the waiter whose owner holds the fewest leases, oldest
+        first, among waiters that can use one. An owner alone takes every free account."""
+        mine = self._turn_key(seq)
+        return not any(
+            self._turn_key(other) < mine and self._candidates(exclude)[0]
+            for other, (_, exclude) in self._waiters.items()
+            if other != seq
+        )
+
     async def acquire(
         self,
         *,
         exclude: Iterable[str] = (),
         hint: str | None = None,
         timeout: float | None = None,
+        owner: str | None = None,
     ) -> Account:
         """Wait for a free account. ``timeout`` defaults to ``acquire_timeout``; ``math.inf``
         waits as long as it takes. Busy and cooling accounts are waited for; only a pool
         with nothing that can ever become free fails at once."""
         exclude = tuple(exclude)
         deadline = time.monotonic() + (self.acquire_timeout if timeout is None else timeout)
+        seq = next(self._seq)
         async with self._cond:
-            while True:
-                free, busy, next_ready = self._candidates(exclude)
-                if free:
-                    acc = self.strategy.choose(free, hint)
-                    self._inflight[acc.id] += 1
-                    acc.last_used_at = time.time()
-                    return acc
-                if not busy and next_ready is None:
-                    raise NoAccountAvailable("no usable account in pool")
-                remaining = deadline - time.monotonic()
-                if remaining <= 0:
-                    raise NoAccountAvailable(
-                        "all accounts are busy, try again later"
-                        if busy
-                        else "all accounts are cooling down, try again later"
-                    )
-                wait = remaining
-                if next_ready is not None:
-                    wait = min(wait, max(0.05, next_ready - time.time()))
-                try:
-                    await asyncio.wait_for(
-                        self._cond.wait(), timeout=None if math.isinf(wait) else wait
-                    )
-                except asyncio.TimeoutError:
-                    continue
+            self._waiters[seq] = (owner, exclude)
+            try:
+                return await self._wait_turn(seq, exclude, hint, deadline, owner)
+            finally:
+                del self._waiters[seq]
+                # Waiters this one stood in front of may take a free account now.
+                self._cond.notify_all()
 
-    async def release(self, account: Account, error: BaseException | None = None) -> None:
+    async def _wait_turn(
+        self, seq: int, exclude: tuple[str, ...], hint: str | None, deadline: float,
+        owner: str | None,
+    ) -> Account:
+        while True:
+            free, busy, next_ready = self._candidates(exclude)
+            if free and self._my_turn(seq):
+                acc = self.strategy.choose(free, hint)
+                self._inflight[acc.id] += 1
+                if owner:
+                    self._owner_load[owner] += 1
+                acc.last_used_at = time.time()
+                return acc
+            if free:
+                # Another client's job goes first; it wakes us once it has its account.
+                busy = True
+            if not busy and next_ready is None:
+                raise NoAccountAvailable("no usable account in pool")
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise NoAccountAvailable(
+                    "all accounts are busy, try again later"
+                    if busy
+                    else "all accounts are cooling down, try again later"
+                )
+            wait = remaining
+            if next_ready is not None:
+                wait = min(wait, max(0.05, next_ready - time.time()))
+            try:
+                await asyncio.wait_for(
+                    self._cond.wait(), timeout=None if math.isinf(wait) else wait
+                )
+            except asyncio.TimeoutError:
+                continue
+
+    async def release(
+        self, account: Account, error: BaseException | None = None, owner: str | None = None
+    ) -> None:
         async with self._cond:
             self._inflight[account.id] = max(0, self._inflight[account.id] - 1)
+            if owner:
+                self._owner_load[owner] = max(0, self._owner_load[owner] - 1)
             self._apply_result(account, error)
             self._cond.notify_all()
         await self.persist()
@@ -237,9 +279,10 @@ class AccountPool:
         exclude: Iterable[str] = (),
         hint: str | None = None,
         timeout: float | None = None,
+        owner: str | None = None,
     ) -> AsyncIterator[Lease]:
-        acc = await self.acquire(exclude=exclude, hint=hint, timeout=timeout)
-        lease = Lease(acc)
+        acc = await self.acquire(exclude=exclude, hint=hint, timeout=timeout, owner=owner)
+        lease = Lease(acc, owner)
         try:
             yield lease
         except (asyncio.CancelledError, GeneratorExit):
@@ -249,4 +292,4 @@ class AccountPool:
             lease.error = lease.error or exc
             raise
         finally:
-            await self.release(acc, lease.error)
+            await self.release(acc, lease.error, owner)

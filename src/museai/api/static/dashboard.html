@@ -177,9 +177,9 @@
 
   <section data-section="queue" hidden>
     <header><h1>Queue</h1></header>
-    <p class="hint">Requests the server holds right now, oldest first. Between two clips a client works on its own
-      side (checking the take, writing the next prompt, or waiting 2 min before a retry) and sends nothing, so
-      accounts show Ready until its next request arrives.</p>
+    <p class="hint">Requests the server holds right now, oldest first. A free account always takes waiting work; when
+      accounts run short, the client rendering the fewest goes first. Accounts show Ready when no request
+      waits: clients are checking a take or writing the next prompt.</p>
     <div class="stats" id="qStats"></div>
     <h2>Waiting and rendering</h2>
     <div class="list qlist" id="qNow"></div>
@@ -379,11 +379,10 @@ function rowHtml(t) {
   </div>`;
 }
 
-// Where a job in flight is: behind its client's earlier clip (one clip per session at a
-// time), waiting for a free account, or rendering on one.
+// Where a job in flight is: waiting for a free account (the client holding the fewest
+// renders gets the next one) or rendering on one.
 function queueState(t) {
-  if (t.status === "queued") return ["p-idle", "Waiting for its client's earlier clip"];
-  if (!t.account_id) return ["p-run", "Waiting for a free account"];
+  if (t.status === "queued" || !t.account_id) return ["p-run", "Waiting for a free account"];
   return ["p-ok", "Rendering on " + acctName(t.account_id, t.account_label)];
 }
 const since = (t) => fmtDur(Date.now() / 1000 - t) || "0s";
@@ -406,7 +405,7 @@ function renderQueue() {
   const free = accounts.filter((a) => !busy.has(a.id) && accState(a, false)[1] === "Ready").length;
   $("qStats").innerHTML = [
     [count("Waiting for a free"), "waiting for an account"],
-    [count("Waiting for its"), "waiting behind own clip"],
+    [new Set(live.map((t) => t.session)).size, "clients sending"],
     [count("Rendering"), "rendering now"],
     [`${free}/${accounts.length}`, "accounts free"],
   ].map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");

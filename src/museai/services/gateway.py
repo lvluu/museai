@@ -36,12 +36,14 @@ class Gateway:
 
     @asynccontextmanager
     async def _lease(
-        self, exclude: list[str], hint: str | None, timeout: float | None = None
+        self, exclude: list[str], hint: str | None, timeout: float | None = None,
+        owner: str | None = None,
     ) -> AsyncIterator[Lease]:
         if not self.driver.requires_account and not self.pool.all():
             yield Lease(_ANONYMOUS)
             return
-        async with self.pool.lease(exclude=exclude, hint=hint, timeout=timeout) as lease:
+        async with self.pool.lease(exclude=exclude, hint=hint, timeout=timeout,
+                                   owner=owner) as lease:
             yield lease
 
     def _should_retry(self, exc: UpstreamError, attempt: int) -> bool:
@@ -76,10 +78,11 @@ class Gateway:
         hint: str | None = None,
         queue_timeout: float | None = None,
         on_account: Callable[[Account], None] | None = None,
+        owner: str | None = None,
     ) -> T:
         tried: list[str] = []
         for attempt in range(self.max_failover + 1):
-            async with self._lease(tried, hint, queue_timeout) as lease:
+            async with self._lease(tried, hint, queue_timeout, owner) as lease:
                 if on_account:
                     on_account(lease.account)
                 try:
@@ -98,10 +101,12 @@ class Gateway:
         )
 
     async def generate_video(
-        self, req: VideoRequest, on_account: Callable[[Account], None] | None = None
+        self, req: VideoRequest, on_account: Callable[[Account], None] | None = None,
+        owner: str | None = None,
     ) -> MediaResult:
         return await self._run(
             lambda acc: self.driver.generate_video(acc, req),
             queue_timeout=self.media_queue_timeout,
             on_account=on_account,
+            owner=owner,
         )
