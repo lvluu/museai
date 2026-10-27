@@ -6,100 +6,141 @@
 <title>museai videos</title>
 <style>
   :root {
-    --bg: #f7f7f5; --panel: #fff; --text: #1d1d1b; --muted: #6b6b66; --line: #e4e4df;
-    --accent: #3b5bdb; --ok: #2b8a3e; --bad: #c92a2a; --run: #e67700; --idle: #868e96;
+    --bg: #f6f6f4; --panel: #fff; --text: #1d1d1b; --muted: #74746e; --line: #e6e6e1; --soft: #f0f0ec;
+    --accent: #3b5bdb; --ok: #2b8a3e; --bad: #c92a2a; --run: #d9480f; --idle: #868e96;
+    --ok-bg: #ebfbee; --bad-bg: #fff0f0; --run-bg: #fff4e6; --idle-bg: #f1f3f5;
   }
   @media (prefers-color-scheme: dark) {
-    :root { --bg: #151514; --panel: #1f1f1d; --text: #ececea; --muted: #9a9a94; --line: #2f2f2c;
-            --accent: #7c95ff; --ok: #51cf66; --bad: #ff6b6b; --run: #ffa94d; --idle: #adb5bd; }
+    :root { --bg: #141413; --panel: #1e1e1c; --text: #ececea; --muted: #9a9a94; --line: #2e2e2b; --soft: #262624;
+            --accent: #8da2ff; --ok: #69db7c; --bad: #ff8787; --run: #ffa94d; --idle: #adb5bd;
+            --ok-bg: #1d2e21; --bad-bg: #3a1f1f; --run-bg: #36281a; --idle-bg: #2a2a28; }
   }
   * { box-sizing: border-box; }
+  html { scrollbar-gutter: stable; overflow-y: scroll; }
   body { margin: 0; background: var(--bg); color: var(--text);
          font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
-  main { max-width: 1200px; margin: 0 auto; padding: 20px 16px 48px; }
-  header { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+  main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 48px; }
+  header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 20px; }
   h1 { font-size: 20px; margin: 0; }
+  h2 { font-size: 13px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .04em;
+       margin: 0 0 10px; }
   .muted { color: var(--muted); }
   .spacer { flex: 1; }
-  button, select, input { font: inherit; color: var(--text); background: var(--panel);
-         border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; }
+  button, input { font: inherit; color: var(--text); background: var(--panel);
+         border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; }
   button { cursor: pointer; }
-  .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px;
-           margin-bottom: 18px; }
-  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 12px;
-          cursor: pointer; text-align: left; }
-  .card.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-  .card .name { font-weight: 600; display: flex; justify-content: space-between; gap: 6px; }
-  .card .id { font: 12px ui-monospace, monospace; color: var(--muted); }
-  .card .big { font-size: 24px; font-weight: 600; margin-top: 6px; font-variant-numeric: tabular-nums; }
-  .counts { display: flex; gap: 10px; font-size: 12px; font-variant-numeric: tabular-nums; }
-  .est { font-size: 12px; margin-top: 4px; }
-  .usage { display: flex; justify-content: space-between; gap: 6px; flex-wrap: wrap; font-size: 12px;
-           margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
-  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
-  .s-succeeded { color: var(--ok); } .s-failed { color: var(--bad); }
-  .s-running, .s-queued { color: var(--run); } .s-cancelled { color: var(--idle); }
-  .bg-succeeded { background: var(--ok); } .bg-failed { background: var(--bad); }
-  .bg-running, .bg-queued { background: var(--run); } .bg-cancelled { background: var(--idle); }
-  .filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 10px; }
-  .table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; }
-  table { width: 100%; border-collapse: collapse; }
-  th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
-  th { font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
-  tr:last-child td { border-bottom: 0; }
-  td.num { font-variant-numeric: tabular-nums; white-space: nowrap; }
-  .title { font-weight: 500; }
-  .err { color: var(--bad); font-size: 12px; }
-  .tid { font: 12px ui-monospace, monospace; color: var(--muted); }
-  video { width: 90px; border-radius: 4px; background: #000; display: block; }
-  .tag { font-size: 11px; padding: 1px 6px; border-radius: 10px; border: 1px solid var(--line); color: var(--muted); }
-  .upload { display: inline-block; margin-top: 8px; font-size: 12px; color: var(--accent);
-            border: 1px solid var(--line); border-radius: 6px; padding: 2px 8px; }
-  .upload:hover, .rename:hover { border-color: var(--accent); }
-  .rename { font-size: 11px; color: var(--muted); border: 1px solid transparent; border-radius: 6px;
-            padding: 0 4px; margin-left: 4px; font-weight: 400; }
-  .card.bad { border-color: var(--bad); }
-  .empty { padding: 24px; text-align: center; color: var(--muted); }
-  @media (max-width: 640px) { .hide-sm { display: none; } }
+  button:hover { border-color: var(--accent); }
+  .live { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .live input { margin: 0; }
+
+  /* summary */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px; }
+  .stat { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  .stat b { display: block; font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 12px; color: var(--muted); }
+
+  /* accounts */
+  .accounts { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 10px;
+              margin-bottom: 28px; }
+  .acc { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px;
+         cursor: pointer; text-align: left; display: flex; flex-direction: column; gap: 8px; }
+  .acc.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+  .acc.bad { border-color: var(--bad); }
+  .acc-top { display: flex; align-items: center; gap: 8px; }
+  .acc-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .rename { color: var(--muted); font-size: 13px; padding: 0 4px; border-radius: 4px; visibility: hidden; }
+  .acc:hover .rename, .rename:focus { visibility: visible; }
+  @media (hover: none) { .rename { visibility: visible; } }
+  .rename:hover { color: var(--accent); }
+  .acc-now { font-size: 12px; color: var(--run); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .acc-nums { display: flex; gap: 14px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .acc-nums b { color: var(--text); font-weight: 600; }
+  .acc-fix { font-size: 12px; color: var(--bad); }
+  .upload { align-self: flex-start; font-size: 12px; font-weight: 500; color: #fff; background: var(--bad);
+            border-radius: 6px; padding: 4px 10px; }
+  .meter { height: 4px; border-radius: 2px; background: var(--soft); overflow: hidden; }
+  .meter i { display: block; height: 100%; background: var(--ok); }
+
+  /* status pills */
+  .pill { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500;
+          padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+  .pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .p-ok { color: var(--ok); background: var(--ok-bg); }
+  .p-bad { color: var(--bad); background: var(--bad-bg); }
+  .p-run { color: var(--run); background: var(--run-bg); }
+  .p-idle { color: var(--idle); background: var(--idle-bg); }
+
+  /* videos */
+  .toolbar { position: sticky; top: 0; z-index: 1; background: var(--bg); padding: 8px 0;
+             display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 2px; }
+  .tabs { display: flex; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 2px; }
+  .tabs button { border: 0; padding: 4px 10px; border-radius: 6px; font-size: 13px; }
+  .tabs button.on { background: var(--soft); color: var(--accent); }
+  .tabs button small { font-variant-numeric: tabular-nums; }
+  .tabs button small { color: var(--muted); margin-left: 3px; }
+  .chip { font-size: 12px; padding: 4px 8px; border-radius: 6px; background: var(--soft); }
+  .chip button { border: 0; background: none; padding: 0 0 0 4px; color: var(--muted); }
+  #fText { flex: 1; min-width: 160px; }
+  .list { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+  .day { padding: 8px 14px; font-size: 12px; font-weight: 600; color: var(--muted); background: var(--soft); }
+  .list > .day:first-child { border-radius: 10px 10px 0 0; }
+  .row { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: center;
+         padding: 10px 14px; border-top: 1px solid var(--line); }
+  .day + .row { border-top: 0; }
+  .thumb { width: 56px; height: 56px; border-radius: 6px; background: var(--soft); overflow: hidden; display: block; }
+  .thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .info { min-width: 0; }
+  .title { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .meta { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .err { font-size: 12px; color: var(--bad); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .side { text-align: right; display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+  .side .meta { font-variant-numeric: tabular-nums; }
+  .empty { padding: 32px; text-align: center; color: var(--muted); }
+  .more { display: block; margin: 12px auto 0; }
+  .more[hidden] { display: none; }
+  @media (max-width: 640px) {
+    .stats { grid-template-columns: repeat(2, 1fr); }
+    .row { grid-template-columns: 48px 1fr; }
+    .thumb { width: 48px; height: 48px; }
+    .side { grid-column: 2; flex-direction: row; justify-content: flex-start; gap: 8px; text-align: left; }
+  }
 </style>
 </head>
 <body>
 <main id="app">
   <header>
     <h1>Videos by account</h1>
-    <span class="muted" id="updated"></span>
     <span class="spacer"></span>
-    <label class="muted"><input type="checkbox" id="auto" checked> auto-refresh</label>
+    <label class="live"><input type="checkbox" id="auto" checked> live · <span id="updated">loading…</span></label>
     <button id="refresh">Refresh</button>
   </header>
-  <div class="cards" id="cards"></div>
+
+  <div class="stats" id="stats"></div>
+
+  <h2>Accounts</h2>
+  <div class="accounts" id="cards"></div>
   <input type="file" id="cookieFile" accept=".json,application/json" hidden>
-  <div class="filters">
-    <select id="fStatus">
-      <option value="">All statuses</option>
-      <option>succeeded</option><option>failed</option><option>running</option>
-      <option>queued</option><option>cancelled</option>
-    </select>
-    <input id="fText" type="search" placeholder="Search prompt / task id">
-    <span class="muted" id="count"></span>
+
+  <h2>Videos</h2>
+  <div class="toolbar">
+    <div class="tabs" id="tabs"></div>
+    <span id="accChip"></span>
+    <input id="fText" type="search" placeholder="Search prompt or task id">
   </div>
-  <div class="table-wrap">
-    <table>
-      <thead><tr>
-        <th>Created</th><th>Account</th><th>Status</th><th>Video</th>
-        <th class="hide-sm">Prompt</th><th class="hide-sm">Took</th>
-      </tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
-  </div>
+  <div class="list" id="rows"></div>
+  <button class="more" id="more" hidden>Show more</button>
 </main>
 <script>
 const UNKNOWN = "__unknown__";
+const PAGE = 40;
+const TABS = [["", "All"], ["active", "Active"], ["succeeded", "Done"], ["failed", "Failed"]];
 // Remote viewers pass the admin key in the fragment (never sent to the server in the URL).
 const key = new URLSearchParams(location.hash.slice(1)).get("key") || "";
-let accounts = [], usage = {}, tasks = [], selected = "", timer = null;
+let accounts = [], usage = {}, tasks = [], selected = "", tab = "", shown = PAGE, timer = null;
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+const isActive = (t) => t.status === "running" || t.status === "queued";
 
 async function api(path, body) {
   const headers = key ? { Authorization: "Bearer " + key } : {};
@@ -116,10 +157,16 @@ async function api(path, body) {
 
 function titleOf(prompt) {
   const lines = String(prompt || "").split("\n").map((l) => l.trim()).filter(Boolean);
-  const line = lines.find((l) => !/^CONTINUITY:/i.test(l)) || lines[0] || "";
-  return line.length > 90 ? line.slice(0, 87) + "…" : line;
+  return lines.find((l) => !/^CONTINUITY:/i.test(l)) || lines[0] || "(no prompt)";
 }
-const fmtTime = (t) => new Date(t * 1000).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+const fmtClock = (t) => new Date(t * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+function fmtDay(t) {
+  const d = new Date(t * 1000), today = new Date();
+  const days = Math.round((new Date(today.toDateString()) - new Date(d.toDateString())) / 86400000);
+  if (days === 0) return "Today";
+  if (days === 1) return "Yesterday";
+  return d.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" });
+}
 function fmtDur(s) {
   if (!(s > 0)) return "";
   const m = Math.floor(s / 60), r = Math.round(s % 60);
@@ -127,90 +174,135 @@ function fmtDur(s) {
 }
 const acctKey = (t) => t.account_id || UNKNOWN;
 function acctName(id, fallback) {
-  if (id === UNKNOWN) return "unknown";
+  if (id === UNKNOWN) return "Unknown account";
   const a = accounts.find((x) => x.id === id);
   return (a && a.label) || fallback || id;
 }
 
-// muse.ai shows no remaining-usage number; the best signal is whether the account
-// hit "Out of usage" (pool cools it down) and how much it rendered recently.
-// The videos-left figure is an estimate learned from past "Out of usage" hits.
-function usageLine(acc, list) {
-  if (!acc) return "";
-  const day = list.filter((t) => t.created_at > Date.now() / 1000 - 86400).length;
+const TASK_PILL = { succeeded: ["p-ok", "Done"], failed: ["p-bad", "Failed"], running: ["p-run", "Rendering"],
+                    queued: ["p-run", "Queued"], cancelled: ["p-idle", "Cancelled"] };
+const pill = ([cls, text]) => `<span class="pill ${cls}">${esc(text)}</span>`;
+
+// What the account can do right now, in plain words. muse.ai shows no remaining usage,
+// so "out of usage" comes from the pool cooling the account after a quota error.
+function accState(acc, busy) {
   const until = acc.cooldown_until * 1000;
-  const at = new Date(until).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  let state = '<span class="s-succeeded">usage available</span>';
-  if (!acc.enabled) state = '<span class="muted">disabled</span>';
-  else if (acc.status === "invalid") state = '<span class="s-failed">cookies expired</span>';
-  else if (acc.status === "cooling" && until > Date.now())
-    state = /quota/i.test(acc.last_error || "")
-      ? `<span class="s-failed">out of usage · retry ${at}</span>`
-      : `<span class="s-running">cooling · retry ${at}</span>`;
-  const u = usage[acc.id];
-  const est = !u ? "" : u.cap == null
-    ? `<div class="est muted" title="Learned the first time muse.ai says Out of usage">videos left: unknown yet · ${u.used} used</div>`
-    : `<div class="est" title="Estimate: best of ${u.windows} past usage window${u.windows === 1 ? "" : "s"}">~${u.left} videos left <span class="muted">(est. ${u.used}/${u.cap} used)</span></div>`;
-  return `<div class="usage">${state}<span class="muted">${day} video${day === 1 ? "" : "s"} last 24h</span></div>${est}`;
+  if (!acc.enabled) return ["p-idle", "Disabled"];
+  if (acc.status === "invalid") return ["p-bad", "Cookies expired"];
+  if (acc.status === "cooling" && until > Date.now())
+    return /quota/i.test(acc.last_error || "")
+      ? ["p-bad", `Out of usage until ${fmtClock(until / 1000)}`]
+      : ["p-run", `Paused until ${fmtClock(until / 1000)}`];
+  return busy ? ["p-run", "Rendering"] : ["p-ok", "Ready"];
+}
+
+function renderStats() {
+  const day = Date.now() / 1000 - 86400;
+  const recent = tasks.filter((t) => t.created_at > day);
+  const finished = recent.filter((t) => t.status === "succeeded" || t.status === "failed");
+  const ok = finished.filter((t) => t.status === "succeeded").length;
+  const ready = accounts.filter((a) => accState(a, false)[1] === "Ready").length;
+  const items = [
+    [tasks.filter(isActive).length, "rendering now"],
+    [recent.filter((t) => t.status === "succeeded").length, "videos done, last 24h"],
+    [finished.length ? Math.round(ok / finished.length * 100) + "%" : "–", "success rate, last 24h"],
+    [`${ready}/${accounts.length}`, "accounts usable"],
+  ];
+  $("stats").innerHTML = items.map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
 }
 
 function renderCards() {
-  const groups = new Map(accounts.map((a) => [a.id, []]));
-  for (const t of tasks) {
-    const k = acctKey(t);
-    if (!groups.has(k)) groups.set(k, []);
-    groups.get(k).push(t);
-  }
-  const all = [["", tasks]].concat([...groups.entries()].filter(([k, v]) => k !== UNKNOWN || v.length));
-  $("cards").innerHTML = all.map(([id, list]) => {
-    const c = (s) => list.filter((t) => t.status === s).length;
-    const acc = accounts.find((a) => a.id === id);
-    const name = id ? acctName(id, list[0]?.account_label) : "All accounts";
-    const sub = id === UNKNOWN ? "recorded before tracking" : id || "every video task";
-    const stat = acc ? `<span class="tag">${esc(acc.enabled ? acc.status : "disabled")}</span>` : "";
-    const upload = acc?.status === "invalid"
-      ?`<span class="upload" role="button" tabindex="0" data-upload="${esc(acc.id)}" title="Cookie-Editor JSON export of muse.ai">Upload cookies JSON</span>` : "";
-    return `<button class="card ${id === selected ? "sel" : ""} ${acc?.status === "invalid" ? "bad" : ""}" data-id="${esc(id)}">
-      <div class="name"><span>${esc(name)}${acc ? `<span class="rename" role="button" tabindex="0" data-rename="${esc(acc.id)}" title="Rename, e.g. to the muse.ai login email">✎ rename</span>` : ""}</span>${stat}</div>
-      <div class="id">${esc(sub)}</div>
-      <div class="big">${list.length}</div>
-      <div class="counts">
-        <span class="s-succeeded">${c("succeeded")} ok</span>
-        <span class="s-failed">${c("failed")} failed</span>
-        <span class="s-running">${c("running") + c("queued")} active</span>
-      </div>${usageLine(acc, list)}${upload}</button>`;
-  }).join("");
+  const day = Date.now() / 1000 - 86400;
+  $("cards").innerHTML = accounts.map((acc) => {
+    const list = tasks.filter((t) => t.account_id === acc.id);
+    const running = list.find(isActive);
+    const state = accState(acc, !!running);
+    const today = list.filter((t) => t.created_at > day);
+    const ok = list.filter((t) => t.status === "succeeded").length;
+    const failed = list.filter((t) => t.status === "failed").length;
+    const u = usage[acc.id];
+    const left = u && u.cap != null
+      ? `<div class="acc-nums" title="Estimate from past “Out of usage” hits"><span><b>~${u.left}</b> videos left (est.)</span></div>
+         <div class="meter"><i style="width:${Math.min(100, u.left / Math.max(u.cap, 1) * 100)}%"></i></div>` : "";
+    const bad = acc.status === "invalid";
+    return `<button class="acc ${acc.id === selected ? "sel" : ""} ${bad ? "bad" : ""}" data-id="${esc(acc.id)}">
+      <div class="acc-top">
+        <span class="acc-name" title="${esc(acc.id)}">${esc(acctName(acc.id))}</span>
+        <span class="rename" role="button" tabindex="0" data-rename="${esc(acc.id)}" title="Rename (e.g. to the muse.ai login email)">✎</span>
+        ${pill(state)}
+      </div>
+      ${running ? `<div class="acc-now" title="${esc(running.request?.prompt)}">▶ ${esc(titleOf(running.request?.prompt))}</div>` : ""}
+      <div class="acc-nums"><span><b>${today.length}</b> today</span><span><b>${ok}</b> done</span><span><b>${failed}</b> failed</span></div>
+      ${left}
+      ${bad ? `<div class="acc-fix">Log in to muse.ai with this account, export the cookies, then upload them.</div>
+               <span class="upload" role="button" tabindex="0" data-upload="${esc(acc.id)}" title="Cookie-Editor JSON export of muse.ai">Upload cookies JSON</span>` : ""}
+    </button>`;
+  }).join("") || `<div class="empty">No accounts yet.</div>`;
 }
 
-function renderRows() {
-  const st = $("fStatus").value, q = $("fText").value.trim().toLowerCase();
-  const list = tasks.filter((t) =>
-    (!selected || acctKey(t) === selected) &&
-    (!st || t.status === st) &&
-    (!q || t.id.toLowerCase().includes(q) || String(t.request?.prompt || "").toLowerCase().includes(q)));
-  $("count").textContent = `${list.length} video${list.length === 1 ? "" : "s"}`;
-  if (!list.length) { $("rows").innerHTML = `<tr><td colspan="6" class="empty">No videos match.</td></tr>`; return; }
-  $("rows").innerHTML = list.map((t) => {
-    const k = acctKey(t);
-    const failover = (t.attempts || []).length > 1
-      ? `<div class="tid">tried ${t.attempts.slice(0, -1).map((a) => esc(acctName(a))).join(", ")}</div>` : "";
-    const progress = ["running", "queued"].includes(t.status) ? ` ${t.progress}%` : "";
-    const url = t.result?.url;
-    const media = url
-      ? `<a href="${esc(url)}" target="_blank" rel="noopener"><video src="${esc(url)}#t=0.5" preload="metadata" muted></video></a>`
-      : "";
-    const err = t.error ? `<div class="err">${esc(t.error.message)}</div>` : "";
-    const took = t.status === "running" || t.status === "queued" ? "" : fmtDur(t.updated_at - t.created_at);
-    return `<tr>
-      <td class="num">${fmtTime(t.created_at)}<div class="tid">${esc(t.id)}</div></td>
-      <td>${k === UNKNOWN ? '<span class="muted">unknown</span>' : esc(acctName(k, t.account_label))}${failover}</td>
-      <td class="num s-${esc(t.status)}"><span class="dot bg-${esc(t.status)}"></span>${esc(t.status)}${progress}</td>
-      <td>${media}</td>
-      <td class="hide-sm"><div class="title" title="${esc(t.request?.prompt)}">${esc(titleOf(t.request?.prompt))}</div>
-        <span class="muted">${esc([t.request?.size, t.request?.duration && t.request.duration + "s", t.request?.has_first_frame && "first frame"].filter(Boolean).join(" · "))}</span>${err}</td>
-      <td class="num hide-sm">${took}</td></tr>`;
-  }).join("");
+function matches(t) {
+  const q = $("fText").value.trim().toLowerCase();
+  return (!selected || acctKey(t) === selected) &&
+    (!q || t.id.toLowerCase().includes(q) || String(t.request?.prompt || "").toLowerCase().includes(q));
 }
+const inTab = (t, k) => !k || (k === "active" ? isActive(t) : t.status === k);
+
+function renderRows() {
+  const base = tasks.filter(matches);
+  $("tabs").innerHTML = TABS.map(([k, label]) =>
+    `<button class="${k === tab ? "on" : ""}" data-tab="${k}">${label}<small>${base.filter((t) => inTab(t, k)).length}</small></button>`).join("");
+  $("accChip").innerHTML = selected
+    ? `<span class="chip">${esc(acctName(selected))}<button data-clear title="Show all accounts">✕</button></span>` : "";
+  const list = base.filter((t) => inTab(t, tab));
+  $("more").hidden = list.length <= shown;
+  if (!list.length) { $("rows").innerHTML = `<div class="empty">No videos here.</div>`; return; }
+  let lastDay = "";
+  const nodes = [];
+  for (const t of list.slice(0, shown)) {
+    const d = fmtDay(t.created_at);
+    if (d !== lastDay) nodes.push(nodeFor("day:" + d, `<div class="day">${esc(d)}</div>`));
+    lastDay = d;
+    nodes.push(nodeFor(t.id, rowHtml(t)));
+  }
+  $("rows").replaceChildren(...nodes);
+}
+
+// Rebuilding every row on each refresh reloads every thumbnail and makes the list flicker,
+// so a row keeps its DOM node until its content changes.
+const rowCache = new Map();
+function nodeFor(id, html) {
+  const hit = rowCache.get(id);
+  if (hit && hit.html === html) return hit.node;
+  const tpl = document.createElement("template");
+  tpl.innerHTML = html.trim();
+  const node = tpl.content.firstElementChild;
+  rowCache.set(id, { html, node });
+  return node;
+}
+
+function rowHtml(t) {
+  const url = t.result?.url;
+  const thumb = url
+    ? `<a class="thumb" href="${esc(url)}" target="_blank" rel="noopener" title="Open video"><video src="${esc(url)}#t=0.5" preload="metadata" muted onerror="this.remove()"></video></a>`
+    : `<span class="thumb"></span>`;
+  const [cls, text] = TASK_PILL[t.status] || ["p-idle", t.status];
+  const status = isActive(t) && t.progress ? `${text} ${t.progress}%` : text;
+  const retried = (t.attempts || []).length > 1 ? ` · retried after ${t.attempts.slice(0, -1).map((a) => acctName(a)).join(", ")}` : "";
+  const meta = [fmtClock(t.created_at), acctName(acctKey(t), t.account_label),
+                t.request?.size, t.request?.duration && t.request.duration + "s"].filter(Boolean).join(" · ");
+  const took = isActive(t) ? "" : fmtDur(t.updated_at - t.created_at);
+  return `<div class="row">
+    ${thumb}
+    <div class="info">
+      <div class="title" title="${esc(t.request?.prompt)}">${esc(titleOf(t.request?.prompt))}</div>
+      <div class="meta" title="${esc(t.id)}">${esc(meta + retried)}</div>
+      ${t.error ? `<div class="err" title="${esc(t.error.message)}">${esc(t.error.message)}</div>` : ""}
+    </div>
+    <div class="side">${pill([cls, status])}${took ? `<span class="meta">${took}</span>` : ""}</div>
+  </div>`;
+}
+
+function render() { renderStats(); renderCards(); renderRows(); }
 
 async function load() {
   try {
@@ -218,8 +310,8 @@ async function load() {
     accounts = d.accounts;
     usage = d.usage || {};
     tasks = d.videos;
-    $("updated").textContent = "updated " + new Date().toLocaleTimeString();
-    renderCards(); renderRows();
+    $("updated").textContent = "updated " + new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    render();
   } catch (e) {
     $("updated").textContent = "error: " + e.message;
   }
@@ -247,8 +339,9 @@ $("cards").addEventListener("click", (e) => {
   if (u) { e.stopPropagation(); uploadFor = u.dataset.upload; $("cookieFile").click(); return; }
   const rn = e.target.closest("[data-rename]");
   if (rn) { e.stopPropagation(); rename(rn.dataset.rename); return; }
-  const c = e.target.closest(".card"); if (!c) return;
-  selected = c.dataset.id; renderCards(); renderRows();
+  const c = e.target.closest(".acc"); if (!c) return;
+  selected = selected === c.dataset.id ? "" : c.dataset.id;
+  shown = PAGE; renderCards(); renderRows();
 });
 $("cookieFile").addEventListener("change", async (e) => {
   const file = e.target.files[0]; e.target.value = "";
@@ -263,8 +356,16 @@ $("cookieFile").addEventListener("change", async (e) => {
   }
   load();
 });
-$("fStatus").addEventListener("change", renderRows);
-$("fText").addEventListener("input", renderRows);
+$("tabs").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-tab]"); if (!b) return;
+  tab = b.dataset.tab; shown = PAGE; renderRows();
+});
+$("accChip").addEventListener("click", (e) => {
+  if (!e.target.closest("[data-clear]")) return;
+  selected = ""; shown = PAGE; renderCards(); renderRows();
+});
+$("more").addEventListener("click", () => { shown += PAGE; renderRows(); });
+$("fText").addEventListener("input", () => { shown = PAGE; renderRows(); });
 $("refresh").addEventListener("click", load);
 $("auto").addEventListener("change", schedule);
 load(); schedule();
