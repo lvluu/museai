@@ -39,6 +39,7 @@ SIZE=9:16 DURATION=40 OUT_NAME=clip.mp4 NO_OPEN=1 scripts/muse-video -f prompt.t
 Output in `~/Movies/museai/`. The video length comes from the prompt: always set `DURATION`, and the script adds an OUTPUT line asking for exactly that many seconds in 4K UHD (2160x3840 for 9:16), falling back to full HD 1080p. It prints the delivered length and size and never rejects or blocks a render. `IMAGE=first.png` sets the first frame. A busy account (`no_account_available`), a server restart (`interrupted`) or a down server are retried automatically (`RETRIES=15`, `RETRY_WAIT=120` s), so one call yields one finished video; run it in the background and don't resubmit by hand. If muse replies with text only (`upstream_refused`), prepend "NEW STANDALONE REQUEST. Ignore any earlier versions, drafts or projects. Generate one new video from scratch and return the finished video file in this reply. Do not reply with text only." and retry.
 
 ## Prompt (per video; the quality block is added for you)
+EVERYDAY CHINESE briefs: the user's format, the episode log and the rules for drafting the next episode are in `prompt/everyday-chinese.md`; add each new episode to its log.
 Sections: CAST, SETTING, VOICE, CAMERA, SCRIPT.
 - **CAST**: age, ethnicity, hair, exact outfit colours, voice type per person. "Keep faces, hairstyles, outfits, props and voices identical for the whole video."
 - **SETTING**: one real, specific place with a few concrete objects that stay where they are.
