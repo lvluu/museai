@@ -109,6 +109,7 @@ def test_video_task_records_account(client, auth, admin):
     listed = next(t for t in client.get("/admin/tasks", headers=admin).json()["data"]
                   if t["id"] == task_id)
     assert (listed["account_label"], listed["attempts"]) == ("a1", [acc["id"]])
+    assert listed["created_at"] <= listed["started_at"] <= listed["updated_at"]
 
 
 def test_dashboard_page(client, admin):

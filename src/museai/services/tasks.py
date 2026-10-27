@@ -43,16 +43,18 @@ class Task(BaseModel):
     account_id: str | None = None
     account_label: str | None = None
     attempts: list[str] = Field(default_factory=list)
+    # When the current attempt got its account; before that the job waits in the queue.
+    started_at: float | None = None
     # Identical in-flight submissions share one task instead of rendering again.
     dedupe_key: str | None = None
-    # Client session (X-Muse-Session); one session renders one job at a time, so one
-    # caller holds at most one account and the others stay free for other sessions.
+    # Client session (X-Muse-Session). Free accounts go to the waiting session that holds
+    # the fewest (see AccountPool), so one client uses idle accounts but never starves others.
     session: str | None = None
 
     def assign(self, account_id: str, label: str) -> None:
         self.account_id, self.account_label = account_id, label
         self.attempts.append(account_id)
-        self.updated_at = time.time()
+        self.started_at = self.updated_at = time.time()
 
     @property
     def finished(self) -> bool:
@@ -65,7 +67,6 @@ class TaskManager:
         self.max_kept = max_kept
         self._tasks: dict[str, Task] = {}
         self._running: dict[str, asyncio.Task] = {}
-        self._sessions: dict[str, asyncio.Lock] = {}
         self._stopping = False
 
     async def load(self) -> None:
@@ -137,14 +138,8 @@ class TaskManager:
             task.updated_at = time.time()
 
         try:
-            if task.session:
-                # Stays queued behind the session's earlier job.
-                async with self._sessions.setdefault(task.session, asyncio.Lock()):
-                    task.status = TaskStatus.RUNNING
-                    task.result = await runner(task, progress)
-            else:
-                task.status = TaskStatus.RUNNING
-                task.result = await runner(task, progress)
+            task.status = TaskStatus.RUNNING
+            task.result = await runner(task, progress)
             task.status = TaskStatus.SUCCEEDED
             task.progress = 100
         except asyncio.CancelledError:

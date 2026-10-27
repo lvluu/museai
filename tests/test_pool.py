@@ -249,28 +249,43 @@ async def test_identical_in_flight_submission_joins_existing_task(tmp_path):
     assert retake.id != first.id
 
 
-async def test_one_session_renders_one_job_at_a_time(tmp_path):
-    from museai.services.tasks import TaskManager
+async def test_one_client_uses_every_free_account(tmp_path):
+    pool = await _pool(tmp_path, n=2)
+    first = await pool.acquire(owner="A")
+    second = await pool.acquire(owner="A")
+    assert {first.id, second.id} == {"a0", "a1"}
 
-    tasks = TaskManager(tmp_path / "tasks.json")
-    release = asyncio.Event()
-    started: list[str] = []
 
-    async def runner(task, progress):
-        started.append(task.request["prompt"])
-        await release.wait()
-        return {"url": "x"}
+async def test_free_account_goes_to_the_client_holding_fewest(tmp_path):
+    pool = await _pool(tmp_path, n=2)
+    a1 = await pool.acquire(owner="A")
+    await pool.acquire(owner="B")
+    a2 = asyncio.create_task(pool.acquire(owner="A", timeout=math.inf))
+    await asyncio.sleep(0.01)
+    b2 = asyncio.create_task(pool.acquire(owner="B", timeout=math.inf))
+    await asyncio.sleep(0.01)
+    # Both wait. A frees its account: A and B hold one each, so A's earlier request wins.
+    await pool.release(a1, owner="A")
+    await asyncio.sleep(0.01)
+    assert a2.done() and not b2.done()
+    b2.cancel()
 
-    a1 = tasks.submit("video", {"prompt": "a1"}, runner, session="A")
-    a2 = tasks.submit("video", {"prompt": "a2"}, runner, session="A")
-    b1 = tasks.submit("video", {"prompt": "b1"}, runner, session="B")
-    await asyncio.sleep(0.05)
-    # Session A's second take waits; session B still gets its own render.
-    assert sorted(started) == ["a1", "b1"]
-    assert a2.status == TaskStatus.QUEUED and a1.status == b1.status == TaskStatus.RUNNING
-    release.set()
-    await asyncio.sleep(0.05)
-    assert started[-1] == "a2" and a2.status == TaskStatus.SUCCEEDED
+
+async def test_waiting_client_goes_before_a_busy_one(tmp_path):
+    pool = await _pool(tmp_path, n=2)
+    a1 = await pool.acquire(owner="A")
+    a2 = await pool.acquire(owner="A")
+    a3 = asyncio.create_task(pool.acquire(owner="A", timeout=math.inf))
+    await asyncio.sleep(0.01)
+    b1 = asyncio.create_task(pool.acquire(owner="B", timeout=math.inf))
+    await asyncio.sleep(0.01)
+    # A holds two, B none: the next free account goes to B although A asked first.
+    await pool.release(a1, owner="A")
+    await asyncio.sleep(0.01)
+    assert b1.done() and not a3.done()
+    await pool.release(a2, owner="A")
+    await asyncio.sleep(0.01)
+    assert a3.done()
 
 
 async def test_shutdown_marks_running_jobs_interrupted(tmp_path):
