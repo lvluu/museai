@@ -93,7 +93,18 @@ The last frame of clip N-1 is the first frame of clip N.
    - Single-language video: at most two lines on screen. EVERYDAY CHINESE: one line per language (zh / pinyin / vi), each kept to one row by short cues.
    - Box x6–84 %, y57–75 %, block centred near 66 %; bottom 25 % and right-side buttons stay clear. Fixed position, no bouncing or flashing. Shown 0.15 s before speech, until 0.7 s after or the next cue.
 5. **Verify** frame grabs with captions at several cue times: text inside the box, no face, mouth, gesture or key object covered. Then deliver.
-6. **Deliver**: `scripts/deliver.sh final.mp4 <work_dir> [prefix]` copies the final video to `~/Desktop` (the user wants it there), checks the copy, then moves the work folder (raw clips, sheets, mouth strips, frame grabs, cues, prompts) and the `~/Movies/museai/<prefix>*` renders to the Trash, so only the Desktop video is left. Keep one work folder per video (e.g. `~/Work/ep10`) so this removes nothing else; it refuses home, repo and Desktop folders. Run it only after QA PASS and the frame check; a later fix means re-rendering, so ask first if the user still wants changes.
+6. **Deliver**: `scripts/deliver.sh final.mp4 <work_dir> [prefix]` copies the final video to `~/Desktop` (the user wants it there), checks the copy, then moves the work folder (raw clips, sheets, mouth strips, frame grabs, cues, prompts) and the `~/Movies/museai/<prefix>*` renders to the Trash, so only the Desktop video is left. Keep one work folder per video (e.g. `~/Work/ep10`) so this removes nothing else; it refuses home, repo and Desktop folders. Run it only after QA PASS and the frame check. The Trash keeps the clips for a later fix (see "Fixing a delivered video").
+7. **Clean up**: right after delivering, leave nothing else behind. Remove every git worktree made for this video (`git worktree remove <path>`, after its PR is merged or its changes are committed and pushed), delete its merged local branch, and trash stray files the work left in the repo or home (scratch scripts, prompt/script text files, `ep*` folders, extra Desktop copies). Only the final video on the Desktop stays.
+
+## Fixing a delivered video
+When the user reports a problem (wrong word, miming listener, bad seam, caption, sound), fix only the broken part and rebuild; never re-render the whole video for a local problem.
+1. **Update the skill first** (see "Maintaining this skill"): add the rule, prompt wording or check (prefer a `qa.py` / `check_clip.sh` gate over a sentence) that would have caught it, so the next video does not repeat it.
+2. **Get the parts back**: restore the work folder from `~/.Trash` (deliver.sh put it there) and find the broken span: which clip, which line, which seconds.
+3. **Fix the smallest unit**, cheapest first:
+   - post only, no render: captions (rerun `burn_subs.py` with fixed `cues.json`), pauses (`shorten_pauses.py`), a cut or reframe (`cutedit.py`), loudness or seams (`stitch.sh`, `ease_seams.py`);
+   - one line wrong: move or cut it at a clip boundary (see pronunciation above) before re-rendering anything;
+   - one clip unusable: re-render only that clip with `CONTINUE_FROM` the clip before it. Keep the clips after it: trim the new clip's tail to a resting pose and smooth the join to the next clip with `ease_seams.py`; re-render a later clip only if `jumps.py` still fails at that seam.
+4. **Rebuild**: `stitch.sh` with the kept + fixed clips, burn captions, run `qa.py` and the frame check, then `deliver.sh` and clean up again. Tell the user which part changed.
 
 ## Travel videos (`STYLE=travel`)
 Real destination, no dialogue, no captions. Rules 3-6 above don't apply; rules 1-2 do.
