@@ -19,6 +19,10 @@ different timbre and accent each time). Dubbing every line with the same voice f
           OVERRUN marks a part that still runs into the next one. MAX_PCT can be lowered, never
           raised above 20. The voice is never pitch-shifted, slowed or time-stretched (no
           librosa time_stretch / pitch_shift here): EP08 v4-v5 used them and sounded pitched.
+  music   muse's music bed is kept: demucs (htdemucs, run in its own uv env on Python 3.11)
+          splits the original audio, the voices are dropped and the music stem goes under the
+          new voice at MUSIC_DB (default -11 dB), ducked further while anyone speaks. Replacing
+          the whole track dropped the music the brief asks for (EP12). MUSIC=0 skips it.
   out     dubbed.mp4 and dubbed.cues.json: the cues retimed to the new voice. Burn captions
           and run qa.py / speakers.py with them; the old cues end with the lips, so captions
           vanish early and qa reads the voice as too fast (EP08: 5.6-5.7 syl/s on the lips'
@@ -114,10 +118,23 @@ for i, (c, s) in enumerate(zip(cues, who, strict=True)):
     voice_cues.append([round(spans[0][0], 2), round(end, 2), *c[2:]])
 track = track[: len(orig)] / max(1.0, np.abs(track).max() / 0.85)
 sf.write(f"{tmp}/dub.wav", track, SR)
-subprocess.run(
-    ["ffmpeg", "-v", "error", "-y", "-i", video, "-i", f"{tmp}/dub.wav", "-map", "0:v", "-map", "1:a",
-     "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", out],
-    check=True,
-)
+if os.environ.get("MUSIC", "1") == "0":
+    audio = ["-i", f"{tmp}/dub.wav", "-map", "0:v", "-map", "1:a"]
+else:
+    # EP12: music stem at -11 dB plus the duck kept every line clear (pron + voice checks passed)
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", video, "-vn", "-ac", "2", "-ar", "44100", f"{tmp}/mix.wav"],
+                   check=True)
+    subprocess.run(["uv", "run", "-q", "--no-project", "--python", "3.11", "--with", "demucs", "--with", "soundfile",
+                    "python", "-m", "demucs", "--two-stems=vocals", "-n", "htdemucs", "-o", tmp, f"{tmp}/mix.wav"],
+                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    db_ = float(os.environ.get("MUSIC_DB", -11))
+    audio = ["-i", f"{tmp}/dub.wav", "-i", f"{tmp}/htdemucs/mix/no_vocals.wav", "-filter_complex",
+             f"[1:a]aformat=channel_layouts=stereo,asplit=2[d][k];[2:a]volume={db_}dB,aformat=channel_layouts=stereo[m];"
+             "[m][k]sidechaincompress=threshold=0.02:ratio=4:attack=20:release=300[md];"
+             "[d][md]amix=inputs=2:normalize=0,alimiter=limit=0.9[a]",
+             "-map", "0:v", "-map", "[a]"]
+    print(f"music: muse's music bed kept at {db_:+.0f} dB, ducked under the voice")
+subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", video, *audio,
+                "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", out], check=True)
 json.dump(voice_cues, open(out.rsplit(".", 1)[0] + ".cues.json", "w"), ensure_ascii=False, indent=1)
 print(f"dubbed: {out}  cues timed to the voice: {out.rsplit('.', 1)[0]}.cues.json (caption and QA with these)")
