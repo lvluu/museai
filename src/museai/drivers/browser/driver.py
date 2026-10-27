@@ -95,6 +95,7 @@ class BrowserDriver(MuseDriver):
         self._tabs: dict[str, _Tab] = {}
         # Per account, so opening one account's tab never blocks another account's job.
         self._tab_locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
+        self._browser_lock = asyncio.Lock()
 
     # ------------------------------------------------------------ lifecycle
     async def startup(self) -> None:
@@ -106,9 +107,53 @@ class BrowserDriver(MuseDriver):
             self.settings.headless,
             proxy=self.settings.browser_proxy,
         )
+        await self._connect()
+        log.info("browser driver ready")
+
+    async def _connect(self) -> None:
+        assert self._chromium
+        # start() attaches when Chromium still answers on the port, else relaunches it.
         ws_url = await self._chromium.start()
         self._browser = await CDPSession.connect(ws_url)
-        log.info("browser driver ready")
+
+    def _browser_alive(self) -> bool:
+        if self._browser is None or self._browser.closed:
+            return False
+        proc = self._chromium.proc if self._chromium else None
+        return proc is None or proc.returncode is None
+
+    async def _ensure_browser(self) -> None:
+        """Reconnect (relaunching Chromium if it exited) after the browser connection drops.
+
+        Every tab's context belonged to the old connection, so all tabs are dropped and
+        reopened on demand with fresh cookies; `_load_hot` restores each conversation.
+        """
+        if self._browser_alive():
+            return
+        async with self._browser_lock:
+            if self._browser_alive():
+                return
+            proc = self._chromium.proc if self._chromium else None
+            log.warning(
+                "browser CDP connection lost (chromium exit code %s); reconnecting",
+                proc.returncode if proc else None,
+            )
+            tabs = list(self._tabs.values())
+            self._tabs.clear()
+            for tab in tabs:
+                await tab.session.close()
+            if self._browser:
+                await self._browser.close()
+            if proc and proc.returncode is not None:
+                self._chromium.proc = None
+            await self._connect()
+            # Chromium may have survived the drop; free the contexts nobody owns now.
+            for tab in tabs:
+                with contextlib.suppress(Exception):
+                    await self._browser.send(
+                        "Target.disposeBrowserContext", {"browserContextId": tab.context_id}
+                    )
+            log.info("browser driver reconnected")
 
     async def shutdown(self) -> None:
         for tab in list(self._tabs.values()):
@@ -124,6 +169,7 @@ class BrowserDriver(MuseDriver):
 
     # ------------------------------------------------------------ tabs
     async def _tab(self, account: Account) -> _Tab:
+        await self._ensure_browser()
         async with self._tab_locks[account.id]:
             tab = self._tabs.get(account.id)
             if tab and not tab.session.closed:

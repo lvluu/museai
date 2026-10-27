@@ -55,7 +55,7 @@ class CDPSession:
                         except Exception:  # noqa: BLE001
                             log.exception("cdp listener for %s failed", method)
         except Exception as exc:  # noqa: BLE001
-            log.debug("cdp reader stopped: %s", exc)
+            log.warning("cdp reader stopped: %r", exc)
         finally:
             for fut in self._pending.values():
                 if not fut.done():
