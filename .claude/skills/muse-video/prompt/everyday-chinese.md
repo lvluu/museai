@@ -12,7 +12,8 @@ No payment, food handling or object exchange in the scene.
 ## Episode log
 - EP11 Buying fruit (fruit market, vendor)
 - EP12 Ordering takeout (takeaway restaurant, cashier)
-- EP13 At the pharmacy (neighbourhood pharmacy, pharmacist) - drafted
+- EP13 Finding the subway (quiet street, passer-by giving directions)
+- EP14 At the pharmacy (neighbourhood pharmacy, pharmacist) - drafted
 
 ## Template
 
