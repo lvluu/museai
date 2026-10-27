@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Usage: deliver.sh final.mp4 work_dir [prefix]
-# Copies the finished video to ~/Desktop (DEST=dir to change), checks the copy, then moves
+# Copies the finished video to ~/Desktop (DEST=dir to change) as 4K UHD (upscale.sh; UHD=0
+# keeps the rendered size), checks the copy, then moves
 # everything else made for it to the Trash: the work folder (raw clips, sheets, mouth strips,
 # frame grabs, cues, words, prompts) and the ~/Movies/museai files whose name starts with
 # prefix (default: the work folder's name, e.g. ep10). Trash, not rm: a mistake stays recoverable.
@@ -21,8 +22,14 @@ esac
 
 mkdir -p "$dest"
 out="$dest/$(basename "$final")"
-cp "$final" "$out"
-cmp -s "$final" "$out" || { echo "copy differs: $out" >&2; exit 1; }
+if [ "${UHD:-1}" = 0 ]; then
+  cp "$final" "$out"
+  cmp -s "$final" "$out" || { echo "copy differs: $out" >&2; exit 1; }
+else
+  "$(dirname "$0")/upscale.sh" "$final" "$out"
+  frames() { ffprobe -v error -count_packets -select_streams v:0 -show_entries stream=nb_read_packets -of csv=p=0 "$1"; }
+  [ "$(frames "$final")" = "$(frames "$out")" ] || { echo "frame count differs: $out" >&2; exit 1; }
+fi
 ffprobe -v error -show_entries format=duration -of csv=p=0 "$out" >/dev/null || { echo "copy unreadable: $out" >&2; exit 1; }
 echo "DELIVERED $out"
 
