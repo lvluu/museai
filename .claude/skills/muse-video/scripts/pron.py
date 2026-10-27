@@ -33,7 +33,14 @@ DIGITS = str.maketrans("0123456789", "零一二三四五六七八九")  # Whispe
 
 
 def syl(text):
-    return lazy_pinyin(re.sub(r"[^一-鿿]", "", text.translate(DIGITS)), style=Style.TONE3, neutral_tone_with_five=True)
+    s = lazy_pinyin(re.sub(r"[^一-鿿]", "", text.translate(DIGITS)), style=Style.TONE3, neutral_tone_with_five=True)
+    # 3-3 tone sandhi, applied to script and transcript alike: 几点 is spoken jí diǎn, and Whisper
+    # writes it as 急点 ji2 (EP14: a correct 几点 failed as ji3 -> ji2). Right to left, so a chain
+    # 你几点 becomes nǐ jí diǎn as spoken, not ní jí diǎn
+    for i in reversed(range(len(s) - 1)):
+        if s[i].endswith("3") and s[i + 1].endswith("3"):
+            s[i] = s[i][:-1] + "2"
+    return s
 
 
 def hear(clip):
