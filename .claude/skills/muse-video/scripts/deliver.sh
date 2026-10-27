@@ -7,6 +7,8 @@
 # the work folder (raw clips, takes, sheets, mouth strips, frame grabs, cues, words, prompts), the
 # ~/Movies/museai renders starting with prefix, and the server's identical copies in data/media/.
 # prefix defaults to the work folder's name (e.g. ep10). Deleted = moved to the Trash.
+# CAPTION="text" or CAPTION_FILE=caption.txt: the social-media caption (hook + hashtags), saved to the
+# dashboard's "Ready to post" queue (MUSEAI_BASE, default http://127.0.0.1:18610) for the video.
 set -euo pipefail
 final=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
 work=$(cd "$2" && pwd)
@@ -34,6 +36,14 @@ else
 fi
 ffprobe -v error -show_entries format=duration -of csv=p=0 "$out" >/dev/null || { echo "copy unreadable: $out" >&2; exit 1; }
 echo "DELIVERED $out"
+caption=${CAPTION:-}
+[ -n "${CAPTION_FILE:-}" ] && caption=$(cat "$CAPTION_FILE")
+if [ -n "$caption" ]; then
+  name=$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1]))' "$(basename "$out")")
+  CAPTION="$caption" python3 -c 'import json, os; print(json.dumps({"caption": os.environ["CAPTION"]}))' |
+    curl -sf -X POST "${MUSEAI_BASE:-http://127.0.0.1:18610}/dashboard/posts/$name" -H "Content-Type: application/json" --data-binary @- >/dev/null &&
+    echo "CAPTION saved for the posting queue" || echo "caption not saved (server down?), add it on the dashboard"
+fi
 
 shopt -s nullglob
 junk=("$work")

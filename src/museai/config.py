@@ -40,6 +40,8 @@ class Settings(BaseSettings):
 
     # --- storage ---
     data_dir: Path = Path("data")
+    # Finished videos waiting to be posted to social media (the dashboard's posting queue).
+    post_dir: Path = Path.home() / "Desktop"
 
     # --- upstream driver ---
     driver: DriverName = "mock"
@@ -80,6 +82,10 @@ class Settings(BaseSettings):
     @property
     def media_dir(self) -> Path:
         return self.data_dir / "media"
+
+    @property
+    def posts_file(self) -> Path:
+        return self.data_dir / "posts.json"
 
     @property
     def accounts_file(self) -> Path:
