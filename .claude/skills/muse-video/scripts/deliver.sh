@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# Usage: deliver.sh final.mp4 work_dir [prefix]
-# Copies the finished video to ~/Desktop (DEST=dir to change) as 4K UHD (upscale.sh; UHD=0
-# keeps the rendered size), checks the copy, then moves
-# everything else made for it to the Trash: the work folder (raw clips, sheets, mouth strips,
+# Usage: deliver.sh final.mp4 work_dir [prefix]            (preview)
+#        FINAL=1 deliver.sh final.mp4 work_dir [prefix]    (final)
+# Preview (default): copies the QA-passed video to ~/Desktop (DEST=dir to change) at its rendered
+# size and keeps everything, so the user can review it and ask for fixes from the work folder.
+# Final, only once the user has accepted the preview: copies it as 4K UHD (upscale.sh, Real-ESRGAN,
+# ~1 h for 15 s, so never before the video is final; UHD=0 keeps the rendered size), checks the
+# copy, then moves everything else made for it to the Trash: the work folder (raw clips, sheets, mouth strips,
 # frame grabs, cues, words, prompts) and the ~/Movies/museai files whose name starts with
 # prefix (default: the work folder's name, e.g. ep10). Trash, not rm: a mistake stays recoverable.
 # The server's own copies in data/media/ are left alone (data/tasks.json points at them).
@@ -22,6 +25,12 @@ esac
 
 mkdir -p "$dest"
 out="$dest/$(basename "$final")"
+if [ "${FINAL:-0}" != 1 ]; then
+  cp "$final" "$out"
+  cmp -s "$final" "$out" || { echo "copy differs: $out" >&2; exit 1; }
+  echo "PREVIEW $out (rendered size; work folder kept). Once the user accepts it: FINAL=1 $0 $*"
+  exit 0
+fi
 if [ "${UHD:-1}" = 0 ]; then
   cp "$final" "$out"
   cmp -s "$final" "$out" || { echo "copy differs: $out" >&2; exit 1; }
