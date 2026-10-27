@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Usage: shot "brief" out.mp4
+# Renders one drone shot for the reel through muse-video (STYLE=travel, 9:16, 6 s) with
+# ../prompt/drone.txt appended to the brief. Run one per shot in the background: shots are
+# independent, so they render in parallel on all free accounts.
+# Env passed through to muse-video: IMAGE=first_frame.png RETAKE=1 SIZE= DURATION=
+set -euo pipefail
+SKILL_DIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+MUSE_VIDEO="$SKILL_DIR/../muse-video/scripts/muse-video"
+brief=$1
+out=$(cd "$(dirname "$2")" && pwd)/$(basename "$2")
+prompt="$brief
+
+$(cat "$SKILL_DIR/prompt/drone.txt")"
+STYLE=travel SIZE=${SIZE:-9:16} DURATION=${DURATION:-6} OUT_NAME=$(basename "$out") NO_OPEN=1 \
+  "$MUSE_VIDEO" "$prompt" "$(dirname "$out")"
