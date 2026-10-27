@@ -22,6 +22,7 @@ Nothing is delivered until `scripts/qa.py` says PASS and the contact sheet looks
 
 ## Server
 - museai FastAPI on 127.0.0.1:18610 (`uv run python -m museai` in the repo root, in a visible terminal tab). Check: `lsof -nP -iTCP:18610 -sTCP:LISTEN`; not listening → start it, wait for "Application startup complete".
+- Every job failing within seconds with `cdp_connection_closed` (EP09 v7: twice in a row, no render) means the server's Chrome is gone: restart the server (stop it, `uv run python -m museai`, wait for "browser driver ready") and resubmit. A failed submit is not a take.
 - Never print `data/api_key` or `data/accounts.json` (live muse.ai session cookies).
 - `MUSE2API_VIDEO_TIMEOUT=1500` in `.env` (30-40 s videos take >10 min).
 - Results also land in `data/media/vid_*.mp4`; copy each raw render into the working folder right away.
