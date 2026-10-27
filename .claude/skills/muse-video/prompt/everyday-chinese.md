@@ -9,6 +9,10 @@ to camera; about 85-95 syllables in total (30-40 s at a natural pace); each line
 pinyin with tone sandhi written as spoken (yí ge, yìqǐ, bú kèqi); Vietnamese natural and short.
 No payment, food handling or object exchange in the scene.
 
+Delivery title (user rule, 2026-10-27): the viewers are Vietnamese, so the final file and its posting
+caption use a Vietnamese title, `Tiếng Trung mỗi ngày NN - <topic in Vietnamese>` (EP16: Đi cắt tóc).
+The brief's own header line stays in English for muse.
+
 ## Episode log
 - EP11 Buying fruit (fruit market, vendor)
 - EP12 Ordering takeout (takeaway restaurant, cashier)
