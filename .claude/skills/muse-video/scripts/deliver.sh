@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Usage: FINAL=1 deliver.sh final.mp4 work_dir [prefix]
 # Only once the user has accepted the 1080p preview (shown from the work folder, never copied to
-# the Desktop): writes the ONE deliverable, the 4K UHD video (upscale.sh, Real-ESRGAN, ~1 h for 15 s;
-# UHD=0 keeps the rendered size), to ~/Desktop (DEST=dir to change) and checks it. Then it deletes
+# the Desktop): writes the ONE deliverable to ~/Desktop: the rendered 1080p file as is, or with
+# UHD=1 (only when the user asked for 4K) the 4K UHD video (upscale.sh, Real-ESRGAN, ~1 h for 15 s), to ~/Desktop (DEST=dir to change) and checks it. Then it deletes
 # every other resource made for the video: earlier Desktop copies whose name starts with prefix,
 # the work folder (raw clips, takes, sheets, mouth strips, frame grabs, cues, words, prompts), the
 # ~/Movies/museai renders starting with prefix, and the server's identical copies in data/media/.
@@ -26,7 +26,8 @@ esac
 mkdir -p "$dest"
 out="$dest/$(basename "$final")"
 [ "${FINAL:-0}" = 1 ] || { echo "preview: show $final from the work folder; nothing goes to the Desktop before FINAL=1" >&2; exit 1; }
-if [ "${UHD:-1}" = 0 ]; then
+# 4K only on request (UHD=1): a good 1080p render needs no upscale (user rule, 2026-10-27)
+if [ "${UHD:-0}" = 0 ]; then
   cp "$final" "$out"
   cmp -s "$final" "$out" || { echo "copy differs: $out" >&2; exit 1; }
 else
