@@ -122,4 +122,9 @@ Real destination, no dialogue, no captions. Rules 3-6 above don't apply; rules 1
 4. No captions, no burn step. Deliver after PASS + sheet check. with `scripts/deliver.sh`.
 
 ## Maintaining this skill
-Agents update this skill directly, without asking, whenever a render, QA run or user correction teaches something new: fix the rule here, in `prompt/*.txt` or in `scripts/`, commit on a branch and open a PR. The skill lives only in this repo; never copy it to `~/.claude/skills/` or another folder. Record only lessons proven by a render, not guesses.
+Agents update this skill directly, without asking, whenever a render, QA run or user correction teaches something new: fix the rule here, in `prompt/*.txt` or in `scripts/`, then run the whole flow on autopilot, never asking the user:
+1. Branch from the latest `origin/main` (`git fetch origin main`), commit, push the branch, `gh pr create`.
+2. Before merging, `git fetch origin main` again; if the PR is `CONFLICTING`/`DIRTY`, rebase onto `origin/main`, resolve keeping both sides' rules (main's newer text plus this change), check scripts (`bash -n`, `python3 -m py_compile`), `git push --force-with-lease`.
+3. `gh pr merge <n> --squash --delete-branch` once it is `MERGEABLE`, then switch the checkout back to the updated main and delete the local branch.
+Name the base branch only through `origin/main` refs or `gh` defaults: a hook blocks any command that looks like a push to main (e.g. `gh pr create --base main` in the same command as `git push`), so run push, PR create and merge as separate commands.
+ The skill lives only in this repo; never copy it to `~/.claude/skills/` or another folder. Record only lessons proven by a render, not guesses.
