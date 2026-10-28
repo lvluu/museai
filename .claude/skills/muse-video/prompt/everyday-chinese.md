@@ -10,7 +10,9 @@ pinyin with tone sandhi written as spoken (yí ge, yìqǐ, bú kèqi); Vietnames
 No payment, food handling or object exchange in the scene.
 
 Delivery title (user rule, 2026-10-27): the viewers are Vietnamese, so the final file and its posting
-caption use a Vietnamese title, `Tiếng Trung mỗi ngày NN - <topic in Vietnamese>` (EP16: Đi cắt tóc).
+caption use a Vietnamese title, `Tiếng Trung mỗi ngày NN - <topic in Vietnamese>` (EP16: Đi cắt tóc). The caption's first line is
+`Tập NN | <short hook>` (EP18: `Tập 18 | Quán hết chỗ? Nói câu này là được ngồi chung bàn ☕`);
+see SKILL.md "Caption".
 The brief's own header line stays in English for muse.
 
 ## Episode log
