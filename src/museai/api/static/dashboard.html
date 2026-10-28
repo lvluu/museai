@@ -67,8 +67,6 @@
   .acc-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
   .rename { color: var(--muted); font-size: 13px; padding: 0 4px; border-radius: 4px; }
   .rename:hover { color: var(--accent); }
-  .acc-who { font-size: 12px; color: var(--accent); align-self: flex-start; }
-  .acc-who:hover { text-decoration: underline; }
   .acc-foot { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); }
   .acc-foot.soon { color: var(--bad); }
   .acc-foot .relog:hover { color: var(--accent); text-decoration: underline; }
@@ -332,7 +330,6 @@ function renderCards() {
       ? `<div class="acc-nums" title="Estimate from past “Out of usage” hits"><span><b>~${u.left}</b> videos left (est.)</span></div>
          <div class="meter"><i style="width:${Math.min(100, u.left / Math.max(u.cap, 1) * 100)}%"></i></div>` : "";
     const bad = acc.status === "invalid";
-    const unnamed = !acc.label || /^muse-\d+$/.test(acc.label);
     const exp = cookieExpiry(acc);
     const daysLeft = exp ? Math.floor((exp - Date.now() / 1000) / 86400) : null;
     return `<button class="acc ${acc.id === selected ? "sel" : ""} ${bad ? "bad" : ""}" data-id="${esc(acc.id)}">
@@ -341,7 +338,6 @@ function renderCards() {
         <span class="rename" role="button" tabindex="0" data-rename="${esc(acc.id)}" title="Rename (e.g. to the muse.ai login email)">✎</span>
         ${pill(state)}
       </div>
-      ${unnamed ? `<span class="acc-who" role="button" tabindex="0" data-rename="${esc(acc.id)}">Which login is this? Add its email or name</span>` : ""}
       ${running ? `<div class="acc-now" title="${esc(running.request?.prompt)}">▶ ${esc(titleOf(running.request?.prompt))}</div>` : ""}
       <div class="acc-nums"><span><b>${today.length}</b> today</span><span><b>${ok}</b> done</span><span><b>${failed}</b> failed</span></div>
       ${left}
