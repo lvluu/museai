@@ -26,6 +26,12 @@ esac
 mkdir -p "$dest"
 out="$dest/$(basename "$final")"
 [ "${FINAL:-0}" = 1 ] || { echo "preview: show $final from the work folder; nothing goes to the Desktop before FINAL=1" >&2; exit 1; }
+# Every final lands on the dashboard's posting queue; without a caption it shows there empty
+# (EP20, 2026-10-28). NO_CAPTION=1 only for a video that will not be posted.
+caption=${CAPTION:-}
+[ -n "${CAPTION_FILE:-}" ] && caption=$(cat "$CAPTION_FILE")
+[ -n "$caption" ] || [ "${NO_CAPTION:-0}" = 1 ] ||
+  { echo "no caption: pass CAPTION_FILE=caption.txt (or NO_CAPTION=1 for a video that will not be posted)" >&2; exit 1; }
 # 4K only on request (UHD=1): a good 1080p render needs no upscale (user rule, 2026-10-27)
 if [ "${UHD:-0}" = 0 ]; then
   cp "$final" "$out"
@@ -37,8 +43,6 @@ else
 fi
 ffprobe -v error -show_entries format=duration -of csv=p=0 "$out" >/dev/null || { echo "copy unreadable: $out" >&2; exit 1; }
 echo "DELIVERED $out"
-caption=${CAPTION:-}
-[ -n "${CAPTION_FILE:-}" ] && caption=$(cat "$CAPTION_FILE")
 if [ -n "$caption" ]; then
   name=$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1]))' "$(basename "$out")")
   CAPTION="$caption" python3 -c 'import json, os; print(json.dumps({"caption": os.environ["CAPTION"]}))' |
