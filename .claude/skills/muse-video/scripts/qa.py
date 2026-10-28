@@ -35,7 +35,8 @@ else:
     video, cues_path, words_path = sys.argv[1:4]
     rest = sys.argv[4:]
     cues = json.load(open(cues_path))
-expected_cuts = int(rest[0]) if rest else 0
+# the docs write it as planned_cuts=1; EP23 crashed on that form, so take both
+expected_cuts = int(rest[0].removeprefix("planned_cuts=")) if rest else 0
 sheet = rest[1] if len(rest) > 1 else Path(video).stem + "_qa.jpg"
 fails = []
 
