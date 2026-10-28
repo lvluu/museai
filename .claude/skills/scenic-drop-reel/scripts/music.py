@@ -124,7 +124,17 @@ def main():
     intro_len = int(intro_s * sr)
     hop = 512
     rms = librosa.feature.rms(y=y, hop_length=hop)[0]
+    rms = rms / rms.max()
+    level = np.convolve(rms, np.ones(sr // 2 // hop) / (sr // 2 // hop), mode="same")  # 0.5 s loudness
     flat = librosa.feature.spectral_flatness(y=y, hop_length=hop)[0]
+    if engine == "ace":  # sustained harmonic energy in the voice band: where the singing is
+        S = np.abs(librosa.stft(y, hop_length=hop))
+        H, P = librosa.decompose.hpss(S)
+        band = slice(*np.searchsorted(librosa.fft_frequencies(sr=sr), [200, 4000]))
+        voice = H[band].sum(0) / (H[band].sum(0) + P[band].sum(0) + 1e-9)
+        # a pad-only stretch scores high on voice too, so the slice must also keep the drums going
+        punch = librosa.onset.onset_strength(S=librosa.amplitude_to_db(P, ref=np.max), sr=sr)
+        punch = punch / punch.max()
     valid = [b for b in beats if b >= max(intro_len, int(0.5 * sr)) and b + body_len <= len(y)]
     if not valid:
         sys.exit(f"generated track ({len(y) / sr:.1f}s) too short for {intro_s:.1f}s intro + {body_s:.1f}s body")
@@ -132,7 +142,12 @@ def main():
     def body_score(b):  # loud, even groove; MusicGen's noisy swells (high flatness) read as hiss on a phone
         i, j = b // hop, (b + body_len) // hop
         k = i + sr // hop  # the first second after the drop must be clean groove, not the tail of a swell
-        return rms[i:j].mean() - 0.5 * rms[i:j].std() - flat[i:j].mean() - flat[i:k].mean()
+        score = rms[i:j].mean() - 0.5 * rms[i:j].std() - flat[i:j].mean() - flat[i:k].mean()
+        # a breakdown inside the reel reads as the music stopping (Iceland ACE track: 1.5 s near-silence)
+        score -= 2 * max(0.0, 0.5 - level[i:j].min() / np.median(level[i:j]))
+        if engine == "ace":
+            score += 0.5 * voice[i:j].mean() + 2 * punch[i:j].mean()
+        return score
 
     b0 = max(valid, key=body_score)
     body = y[b0:b0 + body_len].copy()
