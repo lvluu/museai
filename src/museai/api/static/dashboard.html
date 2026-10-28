@@ -125,6 +125,8 @@
   .plat.done label { color: var(--ok); }
   .linkish { border: 0; background: none; padding: 0; font-size: 12px; color: var(--muted); }
   .linkish:hover { color: var(--bad); }
+.acts { display: flex; gap: 10px; }
+.acts .linkish:hover { color: var(--accent); }
   .hint { font-size: 12px; color: var(--muted); margin: -4px 0 10px; }
   /* queue */
   .qlist { margin-bottom: 24px; }
@@ -199,7 +201,7 @@
     <div class="toolbar">
       <div class="tabs" id="tabs"></div>
       <span id="accChip"></span>
-      <input id="fText" type="search" placeholder="Search prompt or task id">
+      <input id="fText" type="search" placeholder="Search prompt or task id  ( / )">
     </div>
     <div class="list" id="rows"></div>
     <button class="more" id="more" hidden>Show more</button>
@@ -233,7 +235,10 @@ async function api(path, body) {
 
 function titleOf(prompt) {
   const lines = String(prompt || "").split("\n").map((l) => l.trim()).filter(Boolean);
-  return lines.find((l) => !/^CONTINUITY:/i.test(l)) || lines[0] || "(no prompt)";
+  const line = lines.find((l) => !/^CONTINUITY:/i.test(l)) || lines[0] || "(no prompt)";
+  // Travel shots read "PLACE: <name>: ...", sometimes after a fixed "NEW STANDALONE REQUEST" preamble.
+  const place = line.match(/\bPLACE:\s*(.+)/i);
+  return place ? place[1] : line.replace(/^NEW STANDALONE REQUEST\..*?text only\.\s*/i, "");
 }
 const fmtClock = (t) => new Date(t * 1000).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 function fmtDay(t) {
@@ -360,23 +365,49 @@ function nodeFor(id, html) {
   return node;
 }
 
+// Time left on a render: from its progress once muse reports some, before that from the
+// median render time of finished clips of the same length.
+function etaOf(t) {
+  if (t.status !== "running" || !t.account_id || !t.started_at) return "";
+  const elapsed = Date.now() / 1000 - t.started_at;
+  let left;
+  if (t.progress >= 10) left = elapsed * (100 - t.progress) / t.progress;
+  else {
+    const past = tasks.filter((x) => x.status === "succeeded" && x.started_at
+      && x.request?.duration === t.request?.duration).map((x) => x.updated_at - x.started_at).sort((a, b) => a - b);
+    if (!past.length) return "";
+    left = past[Math.floor(past.length / 2)] - elapsed;
+  }
+  return left > 30 ? `~${Math.max(1, Math.round(left / 60))} min left` : "almost done";
+}
+
+function actsHtml(t) {
+  const a = [`<button class="linkish" data-copy title="Copy the full prompt">Copy prompt</button>`];
+  if (isActive(t)) a.push(`<button class="linkish" data-cancel title="Stop this render and free its account">Cancel</button>`);
+  if ((t.status === "failed" || t.status === "cancelled") && !t.request?.has_first_frame)
+    a.push(`<button class="linkish" data-retry title="Render the same request again">Retry</button>`);
+  return `<div class="acts" data-task="${esc(t.id)}">${a.join("")}</div>`;
+}
+
 function rowHtml(t) {
   const url = t.result?.url;
   const thumb = url
     ? `<a class="thumb" href="${esc(url)}" target="_blank" rel="noopener" title="Open video"><video src="${esc(url)}#t=0.5" preload="metadata" muted onerror="this.remove()"></video></a>`
     : `<span class="thumb"></span>`;
-  const [cls, text] = TASK_PILL[t.status] || ["p-idle", t.status];
+  const [cls, text] = t.status === "running" && !t.account_id ? ["p-run", "Waiting"]
+    : TASK_PILL[t.status] || ["p-idle", t.status];
   const status = isActive(t) && t.progress ? `${text} ${t.progress}%` : text;
   const retried = (t.attempts || []).length > 1 ? ` · retried after ${t.attempts.slice(0, -1).map((a) => acctName(a)).join(", ")}` : "";
   const meta = [fmtClock(t.created_at), acctName(acctKey(t), t.account_label),
                 t.request?.size, t.request?.duration && t.request.duration + "s"].filter(Boolean).join(" · ");
-  const took = isActive(t) ? "" : fmtDur(t.updated_at - t.created_at);
+  const took = isActive(t) ? etaOf(t) : fmtDur(t.updated_at - t.created_at);
   return `<div class="row">
     ${thumb}
     <div class="info">
       <div class="title" title="${esc(t.request?.prompt)}">${esc(titleOf(t.request?.prompt))}</div>
       <div class="meta" title="${esc(t.id)}">${esc(meta + retried)}</div>
       ${t.error ? `<div class="err" title="${esc(t.error.message)}">${esc(t.error.message)}</div>` : ""}
+      ${actsHtml(t)}
     </div>
     <div class="side">${pill([cls, status])}${took ? `<span class="meta">${took}</span>` : ""}</div>
   </div>`;
@@ -390,11 +421,12 @@ function queueState(t) {
 }
 const since = (t) => fmtDur(Date.now() / 1000 - t) || "0s";
 const client = (t) => t.session ? "client " + t.session.slice(0, 6) : "no client id";
-const qRow = (lead, t, sub, side) => `<div class="qrow">
+const qRow = (lead, t, sub, side, acts = "") => `<div class="qrow">
     <span class="qpos">${lead}</span>
     <div class="info">
       <div class="title" title="${esc(t.request?.prompt)}">${esc(titleOf(t.request?.prompt))}</div>
       <div class="meta" title="${esc(t.id)}">${esc(sub)}</div>
+      ${acts}
     </div>
     <div class="side">${side}</div>
   </div>`;
@@ -418,10 +450,10 @@ function renderQueue() {
     const st = states[i];
     // Jobs from before started_at was recorded show their whole time as rendering.
     const took = !t.account_id ? `waiting ${since(t.created_at)}`
-      : t.started_at ? `rendering ${since(t.started_at)}, waited ${fmtDur(t.started_at - t.created_at) || "0s"}`
+      : t.started_at ? `rendering ${since(t.started_at)}, waited ${fmtDur(t.started_at - t.created_at) || "0s"}${etaOf(t) ? ", " + etaOf(t) : ""}`
       : `rendering ${since(t.created_at)}`;
     return qRow(`#${i + 1}`, t, `${client(t)} · sent ${fmtClock(t.created_at)}`,
-                `${pill(st)}<span class="meta">${took}</span>`);
+                `${pill(st)}<span class="meta">${took}</span>`, actsHtml(t));
   }).join("") || `<div class="empty">Nothing waiting or rendering.${last ? ` Last request ${since(last)} ago.` : ""}</div>`;
 
   const groups = new Map();
@@ -607,6 +639,33 @@ $("accChip").addEventListener("click", (e) => {
 });
 $("more").addEventListener("click", () => { shown += PAGE; renderRows(); });
 $("fText").addEventListener("input", () => { shown = PAGE; renderRows(); });
+// Copy, cancel and retry buttons on video rows and in the queue.
+async function taskAction(e) {
+  const b = e.target.closest("[data-copy],[data-cancel],[data-retry]"); if (!b) return;
+  e.preventDefault(); e.stopPropagation();
+  const id = b.closest("[data-task]").dataset.task;
+  const t = tasks.find((x) => x.id === id); if (!t) return;
+  if (b.matches("[data-copy]")) {
+    await navigator.clipboard?.writeText(t.request?.prompt || "").catch(() => {});
+    b.textContent = "Copied"; setTimeout(() => { b.textContent = "Copy prompt"; }, 1200);
+    return;
+  }
+  const what = b.matches("[data-cancel]") ? "cancel" : "retry";
+  if (what === "cancel" && !confirm(`Stop “${titleOf(t.request?.prompt).slice(0, 60)}”?`)) return;
+  b.disabled = true;
+  try {
+    await api(`/dashboard/videos/${encodeURIComponent(id)}/${what}`, "{}");
+  } catch (err) {
+    alert(`${what} failed: ${err.message}`);
+  }
+  load();
+}
+$("rows").addEventListener("click", taskAction);
+$("qNow").addEventListener("click", taskAction);
+addEventListener("keydown", (e) => {
+  if (e.key !== "/" || e.target.closest("input,textarea")) return;
+  e.preventDefault(); show("activity"); $("fText").focus();
+});
 $("refresh").addEventListener("click", load);
 $("auto").addEventListener("change", schedule);
 addEventListener("hashchange", () => { if (!key) show(location.hash.slice(1)); });
