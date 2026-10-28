@@ -58,6 +58,12 @@ for m in "$media"/vid_*.mp4; do
     [ "$(stat -f%z "$m")" = "$(stat -f%z "$f")" ] && cmp -s "$m" "$f" && { junk+=("$m"); break; }
   done
 done
-for f in "${junk[@]}"; do echo "delete $f"; done
-trash "${junk[@]}"
+# a work dir ~/Movies/museai/<prefix>-x (scenic-drop-reel) also matches the renders glob: list it once,
+# or trash fails on the already-trashed path and set -e aborts the cleanup
+uniq=()
+for f in "${junk[@]}"; do
+  for u in ${uniq[@]+"${uniq[@]}"}; do [ "$u" = "$f" ] && continue 2; done
+  uniq+=("$f"); echo "delete $f"
+done
+trash "${uniq[@]}"
 echo "LEFT ONLY $out"
