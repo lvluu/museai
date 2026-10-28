@@ -14,7 +14,8 @@ Usage:
 Engines: ace = ACE-Step (sings the template's lyrics; Apache-2.0; needs the install in SKILL.md, run
 through its own venv by ace_song.py), musicgen = MusicGen instrumental (CC-BY-NC 4.0 weights:
 personal reels only). ace is used when installed, else musicgen.
-Steps: render ~2x the needed length → librosa finds the tempo → time-stretched to exactly the BPM →
+Steps: render ~2x the needed length → librosa finds the tempo → MusicGen is time-stretched to exactly
+the BPM; an ACE song keeps its own tempo (a stretch makes the voice robotic) and the beat file follows it →
 body = the loudest, cleanest beat-aligned stretch → card templates (countdown / black-title /
 coords) get an intro of intro.beats before the body: low-passed 300→7000 Hz sweep, -14→-4 dB swell
 and a noise whoosh that stops dead on the drop → tanh drive to phone loudness (-13 dB mean).
@@ -41,7 +42,8 @@ CARD_INTROS = ("countdown", "black-title", "coords")
 def generate_ace(tags, lyrics, bpm, seconds, seed, wav):
     with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as f:
         f.write(lyrics or "[instrumental]")
-    subprocess.run([str(ACE_PY), str(SCRIPTS / "ace_song.py"), "--tags", f"{tags}, {bpm:.0f} bpm",
+    tags = f"{tags}, {bpm:.0f} bpm, natural unprocessed singing voice, no autotune, no vocoder"
+    subprocess.run([str(ACE_PY), str(SCRIPTS / "ace_song.py"), "--tags", tags,
                     "--lyrics-file", f.name, "--duration", f"{seconds:.0f}", "--seed", str(seed), "--out", str(wav)],
                    check=True)
     return librosa.load(wav, sr=None, mono=True)
@@ -117,7 +119,15 @@ def main():
     tempo, _ = librosa.beat.beat_track(y=y, sr=sr, start_bpm=bpm)
     tempo = float(np.atleast_1d(tempo)[0])
     tempo = min((tempo * k for k in (0.5, 1, 2)), key=lambda t: abs(t - bpm))  # half/double-time guesses
-    y = librosa.effects.time_stretch(y, rate=bpm / tempo)
+    if engine == "ace":
+        # a phase-vocoder stretch makes the singer sound robotic and pitched (Kirkjufell reel,
+        # 134→108 BPM); keep the song as sung and cut the reel on its own tempo instead
+        target, bpm = bpm, tempo
+        beat = 60 / bpm
+        intro_s, body_s = intro_beats * beat, body_beats * beat
+    else:
+        target = bpm
+        y = librosa.effects.time_stretch(y, rate=bpm / tempo)
     _, beats = librosa.beat.beat_track(y=y, sr=sr, start_bpm=bpm, tightness=400, units="samples")
 
     body_len = int((body_s + 0.3) * sr)
@@ -176,7 +186,9 @@ def main():
     grid = [round(drop + k * beat, 4) for k in range(-intro_beats, body_beats + 1)]
     Path(a.out).with_suffix(".beats.json").write_text(json.dumps(
         {"bpm": bpm, "beats": grid, "drop": round(drop, 4) if intro_len else None, "engine": engine}))
-    print(f"{a.out} ({engine}): body from {b0 / sr:.2f}s of the raw track, tempo {tempo:.1f}→{bpm:.0f} BPM, "
+    kept = " (kept, no stretch)" if engine == "ace" else ""
+    print(f"{a.out} ({engine}): body from {b0 / sr:.2f}s of the raw track, tempo {tempo:.1f}→{bpm:.0f} BPM{kept}"
+          f" (template {target:.0f}), "
           f"drop {drop:.3f}s, length {len(track) / sr:.2f}s")
 
 
