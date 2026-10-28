@@ -7,7 +7,7 @@ description: Make an 11.6 s vertical scenery reel in the "COUNTRY 🇨🇭 3-2-1
 
 Reference: a Switzerland reel (720x1280, 11.63 s). Paths are relative to this folder (`.claude/skills/scenic-drop-reel/`). Rendering rules, server, retries and delivery come from `../muse-video/SKILL.md` (travel mode); this skill only adds the format.
 
-## Format (fixed by the music, `assets/drop-100bpm.m4a`)
+## Format (fixed by the music: 100 BPM, drop at 3.233 s)
 | time | picture | music |
 |---|---|---|
 | 0 - 3.233 s | black card, bold white serif `TITLE 🇨🇭` at 28 % height, countdown `3` (0-1 s), `2` (1-2 s), `1` (2 s-drop) below it | swelling riser, fading |
@@ -43,9 +43,13 @@ Reference: a Switzerland reel (720x1280, 11.63 s). Paths are relative to this fo
 6. **Deliver** with `../muse-video/scripts/deliver.sh` (preview first, `FINAL=1` after the user accepts; one file on the Desktop).
 
 ## Music
-Own track (preferred for posting): `scripts/music.py "<style>" --out assets/music-<slug>.m4a` generates one with MusicGen and shapes it to this format (100 BPM, 3.233 s filtered riser, drop, ≥ 9 s body). See its docstring.
+Default: `assets/music-default.m4a`, an AI track made by `scripts/music.py` (first used for the Italy reel, 11.9 s). A new track per reel keeps feeds from repeating:
+```bash
+uv run --no-project scripts/music.py "uplifting summer deep house, bright plucks, warm bass, crisp claps" --out assets/music-<slug>.m4a
+```
+It renders with MusicGen (~10 min on Apple silicon, first run downloads ~8 GB), stretches to 100 BPM and builds the 3.233 s filtered riser + drop; check its spectrogram (`ffmpeg -i t.m4a -lavfi showspectrumpic=s=1200x300 s.png`): quiet riser, clean beat at 3.233 s. `--raw x.raw.wav` re-shapes a saved render without regenerating; `--seed` for another take. MusicGen weights are CC-BY-NC 4.0: personal posts fine, not paid/commercial use - say so when the user wants to monetise.
 
-`assets/drop-100bpm.m4a` is the audio of the user's reference reel (11.0 s; the last shot runs 0.6 s past it with a short fade). It is someone else's track: fine for personal use, may be muted or claimed on Instagram/TikTok - say so when the user wants to post. Another track: `--music file --intro <drop time> --shot <60/BPM*2>`; shot count follows from the track length.
+The original reference reel's audio is someone else's track and stays out of the repo; if the user supplies it, pass it with `--music file`. Any other track: `--music file --intro <drop time> --shot <120/BPM>`; shot count follows from the track length.
 
 ## Maintaining this skill
 Same rules as `../muse-video/SKILL.md` "Maintaining this skill": record lessons proven by a render (prompt wording that held the drone move, shots muse cannot do), branch → PR → merge on autopilot.

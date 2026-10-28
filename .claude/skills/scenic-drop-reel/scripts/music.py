@@ -7,7 +7,7 @@ beat drop at --intro, steady 100 BPM body for --shots cuts of 2 beats.
 
 Usage:
   uv run --no-project scripts/music.py "uplifting summer tropical house, bright plucks, warm bass" \
-      --out assets/music-it.m4a [--seed 7] [--model facebook/musicgen-medium]
+      --out assets/music-<slug>.m4a [--seed 7] [--model facebook/musicgen-medium]
 
 Steps: MusicGen renders ~20 s from the style + "100 bpm" → librosa finds its tempo and beats →
 time-stretched to exactly 100 BPM → body = the loudest, cleanest beat-aligned stretch, starting

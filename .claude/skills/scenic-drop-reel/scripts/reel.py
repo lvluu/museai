@@ -7,7 +7,7 @@ Usage:
   uv run --no-project --python 3.12 --with pillow --with fonttools python scripts/reel.py \
       --title SWITZERLAND --flag 🇨🇭 --out reel.mp4 shot1.mp4 shot2.mp4@2.4 ...
 
-Layout copied from the reference reel (assets/drop-100bpm.m4a, 100 BPM):
+Layout copied from the reference reel (100 BPM; default music assets/music-default.m4a from music.py):
   0.000-3.233 s  black card, "TITLE <flag>" with a countdown 3 (0-1 s), 2 (1-2 s), 1 (2 s-drop)
   3.233 s        beat drop: hard cut to shot 1
   every 1.2 s    (2 beats) hard cut to the next shot, no fades, no zooms between shots
@@ -111,7 +111,8 @@ def main():
     ap.add_argument("--title", required=True, help="place name shown on the countdown, e.g. SWITZERLAND")
     ap.add_argument("--flag", default="", help="emoji after the title, e.g. 🇨🇭")
     ap.add_argument("--out", required=True)
-    ap.add_argument("--music", default=str(SKILL / "assets/drop-100bpm.m4a"))
+    ap.add_argument("--music", default=str(SKILL / "assets/music-default.m4a"),
+                    help="track with its drop at --intro; make one with scripts/music.py")
     ap.add_argument("--intro", type=float, default=3.233, help="countdown length = time of the beat drop")
     ap.add_argument("--shot", type=float, default=1.2, help="seconds per shot (2 beats at 100 BPM)")
     ap.add_argument("--fps", type=float, default=None,
