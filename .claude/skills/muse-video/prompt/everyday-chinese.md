@@ -22,6 +22,7 @@ The brief's own header line stays in English for muse.
 - EP14 At the pharmacy (neighbourhood pharmacy, pharmacist) - drafted
 - EP16 Getting a haircut (salon reception, stylist)
 - EP17 Buying bread (bakery, baker)
+- EP18 Asking to share a table (cafe, woman standing, man seated at a small table)
 
 ## Template
 
