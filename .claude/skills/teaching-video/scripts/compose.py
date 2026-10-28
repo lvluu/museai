@@ -13,6 +13,9 @@ Cards (lesson.json "card" per beat; null keeps the previous card, false clears i
   pattern   one big formula line, e.g. "A + [比] + B + tính từ".
   challenge prompt sentence + hint; a 3-2-1 countdown badge over the challenge pause.
 Each card fades and slides in (0.25 s) with a soft pop; the answer after the countdown gets a chime.
+Captions: every spoken line as a subtitle, white on a soft dark box, a Chinese word inside a Vietnamese
+sentence joined into one line, at most 2 rows (longer lines split at commas); none during the silent
+repeat pauses. 9x16: just above the card panel, over her chest, under her chin; 16x9: bottom centre.
 Prints every card window: WARN when one stays over 8 s (the lesson needs a visible change every
 4-7 s) or a Chinese sentence is shown for less than it takes to read.
 """
@@ -39,6 +42,10 @@ LAYOUT = {  # canvas, panel box (x0, y0, x1, max y1), anchor, base sizes
                  size=dict(label=34, zh=92, py=46, vi=42, pattern=68, prompt=58, hint=40, badge=58)),
 }
 PAD = 44
+CAPTION = {  # centre x, bottom y, max width, font size
+    "9x16": dict(cx=540, bottom=992, width=940, size=46),
+    "16x9": dict(cx=960, bottom=1046, width=1500, size=42),
+}
 
 
 def font(face, size):
@@ -192,6 +199,59 @@ def card_image(card, fmt, accent, countdown=None, reveal=True):
     return canvas
 
 
+def captions(timeline, fmt):
+    """[(start, end, text)]: spoken lines joined into sentences, split to fit 2 rows."""
+    C = CAPTION[fmt]
+    groups = []
+    for it in (i for i in timeline["items"] if i["kind"] == "speech"):
+        g = groups[-1] if groups else None
+        if g and g["beat"] == it["beat"] and (it["inline"] or g["inline"] or it["start"] - g["end"] < 0.2):
+            g.update(text=f"{g['text']} {it['text']}", end=it["end"], inline=it["inline"])
+        else:
+            groups.append(dict(beat=it["beat"], text=it["text"], start=it["start"], end=it["end"], inline=it["inline"]))
+    out = []
+    for n, g in enumerate(groups):
+        nxt = groups[n + 1]["start"] if n + 1 < len(groups) else g["end"] + 0.5
+        end = min(g["end"] + 0.35, nxt - 0.05)
+        parts, chunks = [], []
+        for word in g["text"].split(" "):
+            parts.append(word)
+            if word[-1:] in ",.:?;。，：？":
+                chunks.append(" ".join(parts))
+                parts = []
+        if parts:
+            chunks.append(" ".join(parts))
+        lines, cur = [], ""
+        for c in chunks:
+            test = f"{cur} {c}".strip()
+            if cur and len(layout_line(test, (0, 0, 0), (0, 0, 0), "demi", C["size"], C["width"] - 2 * PAD, 0.9)[0]) > 2:
+                lines.append(cur)
+                cur = c
+            else:
+                cur = test
+        lines.append(cur)
+        span, chars, t = end - g["start"], sum(len(x) for x in lines), g["start"]
+        for x in lines:
+            d = span * len(x) / chars
+            out.append((t, t + d, x))
+            t += d
+    return out
+
+
+def caption_image(text, fmt):
+    L, C = LAYOUT[fmt], CAPTION[fmt]
+    canvas = Image.new("RGBA", (L["W"], L["H"]), (0, 0, 0, 0))
+    white = (255, 255, 255)
+    rows, size = layout_line(text, white, white, "demi", C["size"], C["width"] - 2 * PAD, 0.9)
+    widths = [sum(f.getlength(x) for x, _, f in r) for r in rows]
+    w, h = max(widths) + 2 * 28, int(size * 1.32) * len(rows) + 2 * 14
+    x0, y0 = C["cx"] - w / 2, C["bottom"] - h
+    d = ImageDraw.Draw(canvas)
+    d.rounded_rectangle((x0, y0, x0 + w, y0 + h), radius=18, fill=(12, 12, 16, 150))
+    draw_rows(d, rows, size, x0, w, y0 + 14 - size * 0.12, align="center")
+    return canvas
+
+
 def tone(freqs, dur, tau, level_db, attack=0.003):
     t = np.arange(int(dur * 48000)) / 48000
     y = sum(np.sin(2 * np.pi * f * t) / (i + 1) for i, f in enumerate(freqs))
@@ -284,6 +344,10 @@ def compose(lesson, video, timeline, out, fmt):
             if still > 8:
                 flag += f"  WARN no visible change for {still:.1f} s (give the next beat its own card)"
             print(f"{a:6.1f}-{b:6.1f}  {c['type']:9s} {c.get('label', '')[:28]:28s}{flag}")
+        for n, (a, b, text) in enumerate(captions(timeline, fmt)):
+            p = Path(tmp) / f"cap{n:03d}.png"
+            caption_image(text, fmt).save(p)
+            layers.append((p, a, b, 0.12, True, False))
         sfx_wav = Path(tmp) / "sfx.wav"
         sf.write(sfx_wav, sfx.astype(np.float32), 48000)
 
