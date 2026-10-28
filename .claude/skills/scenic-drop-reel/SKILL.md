@@ -42,7 +42,7 @@ Paths are relative to this folder (`.claude/skills/scenic-drop-reel/`). Renderin
    ```
    `clip@2.0` forces a window start; default `@auto`. Warning `moves fast even at its calmest` → re-render slower. Prints cut times, transitions and the windows used. Without a beat file pass `--bpm` (and `--drop`).
 7. **Verify**: contact sheet (`ffmpeg -i reel.mp4 -vf "fps=2,scale=180:-1,tile=8x4" -frames:v 1 sheet.png`): intro text readable, every shot sunny/sharp/no muse text, transitions on beats, reel length ≈ music length.
-8. **Deliver** with `../muse-video/scripts/deliver.sh` (preview first, `FINAL=1` after the user accepts; one file on the Desktop).
+8. **Deliver** with `../muse-video/scripts/deliver.sh` (preview first, `FINAL=1` after the user accepts; one file on the Desktop). Always pass a posting caption with `CAPTION_FILE=caption.txt`: a hook naming the place and the reel length, one line listing the places shown, a short call to action, then 3-6 hashtags. Without it, the reel lands on the dashboard's "Ready to post" queue with an empty caption (reel-it and reel-switzerland, 2026-10-28).
 
 ## Music engines
 - **ace** (default when installed): ACE-Step sings the template's lyrics (Apache-2.0, ok for commercial posts). Install once (~8 GB, needs the user's OK):
