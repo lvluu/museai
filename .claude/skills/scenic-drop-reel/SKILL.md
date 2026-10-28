@@ -14,8 +14,12 @@ Reference: a Switzerland reel (720x1280, 11.63 s). Paths are relative to this fo
 | 3.233 s | **beat drop** → hard cut to shot 1 | full beat starts |
 | +1.2 s each | hard cut to next shot (7 shots, ends 11.633 s) | cut lands on every 2nd beat |
 
-- Cuts: plain hard cuts on the beat. No crossfades, whip pans, zoom transitions or text after the card.
-- Movement inside each shot: one smooth, steady drone move already under way (slow push-in, lateral glide, orbit or rise), landmark large and centred. Variety comes from the cut, not from camera tricks.
+- Cuts: plain one-frame hard cuts on the beat. No crossfades, whip pans, zoom transitions or text after the card.
+- **Why the reference's cuts feel smooth** (measured frame by frame): not an effect, but three matches across every cut:
+  1. *Slow, even motion*: picture change per frame (ffmpeg `signalstats` YDIF) stays 3-9 at 30 fps and flat inside a shot. Ours at 1.25x speed-up was 12-13 → jerky. So: no speed-up, output at muse's native 24 fps (every frame shown once, no 24→30 duplication judder), `drone.txt` asks for a slow constant glide, and `reel.py` picks each shot's calmest, most even 1.2 s (`@auto`).
+  2. *Same composition*: landmark dead centre, horizon in the upper third in every shot → the eye does not jump at the cut.
+  3. *Same light and grade*: all sunny midday, one grade over all shots.
+- Movement inside each shot: one slow, steady drone move already under way (push-in, lateral glide, orbit or rise). Variety comes from the cut, not from camera tricks.
 - Look: bright sunny summer, deep blue sky, saturated greens and turquoise water, crisp detail. `reel.py` adds the punchy grade (saturation 1.22, contrast 1.06, light sharpen).
 
 ## Steps
@@ -31,14 +35,16 @@ Reference: a Switzerland reel (720x1280, 11.63 s). Paths are relative to this fo
    uv run --no-project --python 3.12 --with pillow --with fonttools python scripts/reel.py \
      --title SWITZERLAND --flag 🇨🇭 --out reel-ch.mp4 s1.mp4 s2.mp4@2.0 s3.mp4 s4.mp4 s5.mp4 s6.mp4 s7.mp4
    ```
-   - `clip@start`: second where its 1.2 s window starts (default 1.5 s, past muse's start settle).
-   - `--speed 1.3` if the drone moves look sluggish in 1.2 s (reference moves are clearly visible within one shot).
+   - Each clip's window defaults to `@auto`: the 1.2 s whose motion is closest to `--target 7` YDIF/frame with the least variation and no jump. `clip@2.0` forces a start second. A warning `moves fast even at its calmest` → re-render that shot slower.
+   - Output fps = clip fps (24); cuts sit on an absolute frame grid (`round(t*fps)`), so they stay on the beat without drift. Do not add `--speed`/`--fps 30` back: both made the Switzerland reel jerky.
    - `--title` in caps, local name the audience knows (`SWITZERLAND`, `VIETNAM`, `BALI`); `--flag` any emoji with a bitmap in Apple Color Emoji (flags work).
    - Prints the cut times and the window used per shot.
 5. **Verify**: grab a frame from each shot (`3.8 + 1.2*k` s) and the card at 0.5 s; every shot sunny, sharp, no text, landmark recognisable; length 11.63 s; cuts at 3.233, 4.433 … 10.433 (`ffmpeg -vf "select='gt(scene,0.1)',metadata=print"`).
 6. **Deliver** with `../muse-video/scripts/deliver.sh` (preview first, `FINAL=1` after the user accepts; one file on the Desktop).
 
 ## Music
+Own track (preferred for posting): `scripts/music.py "<style>" --out assets/music-<slug>.m4a` generates one with MusicGen and shapes it to this format (100 BPM, 3.233 s filtered riser, drop, ≥ 9 s body). See its docstring.
+
 `assets/drop-100bpm.m4a` is the audio of the user's reference reel (11.0 s; the last shot runs 0.6 s past it with a short fade). It is someone else's track: fine for personal use, may be muted or claimed on Instagram/TikTok - say so when the user wants to post. Another track: `--music file --intro <drop time> --shot <60/BPM*2>`; shot count follows from the track length.
 
 ## Maintaining this skill
