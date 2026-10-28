@@ -34,6 +34,7 @@ Paths are relative to this folder (`.claude/skills/scenic-drop-reel/`). Renderin
    ```
    Writes `track.m4a` exactly as long as the reel and `track.beats.json` (beat grid, drop). Card intros (countdown, black-title, coords) get a filtered riser that drops on shot 1.
 5. **Check each shot** as in muse-video travel mode (`python3 ../muse-video/scripts/qa.py sN.mp4 --travel 0 sheetN.jpg`; judge only `smooth` and the sheet). Re-render only a shot with no clean window, a fake landmark or wrong weather.
+   muse can return a shot with no audio track (Reynisfjara reel s2, 2026-10-28); the reel's music replaces clip audio, so qa.py reports `sound`/`noise` as `skip no audio stream` for it instead of failing.
 6. **Compose**:
    ```bash
    uv run --no-project --python 3.12 --with pillow --with fonttools python scripts/compose.py \
