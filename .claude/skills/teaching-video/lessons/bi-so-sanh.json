@@ -97,6 +97,29 @@
    "section": "explain",
    "say": [
     {
+     "vi": "Thêm một câu nữa:"
+    },
+    {
+     "zh": "他比我忙。",
+     "slow": true,
+     "repeat": 1.6
+    },
+    {
+     "vi": "Anh ấy bận hơn tôi."
+    }
+   ],
+   "card": {
+    "type": "example",
+    "label": "Công thức",
+    "zh": "他[比]我忙。",
+    "py": "Tā [bǐ] wǒ máng.",
+    "vi": "Anh ấy bận hơn tôi."
+   }
+  },
+  {
+   "section": "explain",
+   "say": [
+    {
      "vi": "Nhớ là chữ"
     },
     {
@@ -167,6 +190,13 @@
      "repeat": 2.0
     },
     {
+     "vi": "Nói tự nhiên:"
+    },
+    {
+     "zh": "今天比昨天冷。",
+     "repeat": 1.5
+    },
+    {
      "vi": "Hôm nay lạnh hơn hôm qua."
     }
    ],
@@ -185,7 +215,11 @@
      "vi": "Ở đây mình so hai ngày với nhau, nói chuyện thời tiết là dùng ngay."
     }
    ],
-   "card": null
+   "card": {
+    "type": "pattern",
+    "label": "So thời gian",
+    "text": "今天 + [比] + 昨天"
+   }
   },
   {
    "section": "demo",
@@ -291,6 +325,9 @@
      "zh": "我比你高。",
      "slow": true,
      "repeat": 1.8
+    },
+    {
+     "vi": "Tôi cao hơn bạn."
     }
    ],
    "card": {

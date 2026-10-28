@@ -21,8 +21,9 @@ The voice is made first and the picture follows it (`scripts/voice.py synth`), n
   are refused. Both are female and sit ~0.5 semitone apart, so the language switch sounds like one person.
 - **muse's own voice is never kept**: it reads Chinese inside Vietnamese as Hán-Việt or with wrong tones
   (muse-video, 2026-10-28). Every phrase is dubbed onto muse's lip onsets (`voice.py dub`).
-- **Natural delivery**: whole phrases, never word-by-word; rate near the voice's own (RATE_VI +10 %,
-  RATE_ZH_SLOW -30 % for the learner read, RATE_ZH -5 % for natural reads and words inside Vietnamese);
+- **Natural delivery**: whole phrases, never word-by-word; everyday talking pace, not a slow lesson voice
+  (RATE_VI +25 %, RATE_ZH_SLOW -15 % for the learner read, RATE_ZH +5 % for natural reads and words inside
+  Vietnamese; +10 % / -30 % was heard as too slow, 2026-10-28); short gaps;
   never pitch-shifted or time-stretched; "!" read as "." (the TTS shouts it); varied, jittered gaps
   (short inside a sentence, longer between ideas); a soft breath before a phrase that follows silence
   (`BREATH=0` drops it if it sounds like hiss); one EQ / de-ess chain and the same loudness for both voices;
@@ -93,7 +94,8 @@ Commands assume the uv `--with` lists in each script's docstring.
    9x16/<topic>_vertical_9x16.mp4 --format 9x16` (and `16x9` -> `<topic>_horizontal_16x9.mp4`). Cards per
    format (9:16 lower panel, 16:9 right panel), accent spans, wrong/right pills, Vietnamese line revealed
    after the Chinese is heard, countdown badge + ticks over the challenge pause, soft pop / chime SFX,
-   optional `MUSIC=track.mp3` ducked under the voice, -16 LUFS. It prints the card cadence: WARN when a card
+   captions of every spoken line (9:16 just above the card panel, under her chin; 16:9 bottom centre;
+   none in the silent repeat pauses), optional `MUSIC=track.mp3` ducked under the voice, -16 LUFS. It prints the card cadence: WARN when a card
    is too short to read or nothing changes for > 8 s.
 9. **QA (both files)**: `qa_lesson.py lessons/<topic>.json 9x16/<topic>_vertical_9x16.mp4
    9x16/dubbed.timeline.json --format 9x16` must say `RESULT PASS`: name, size, fps, 110-130 s, -16 LUFS,
