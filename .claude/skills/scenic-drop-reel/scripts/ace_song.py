@@ -39,7 +39,9 @@ def main():
          guidance_scale=a.guidance, scheduler_type="euler", cfg_type="apg", omega_scale=10.0, manual_seeds=str(a.seed),
          guidance_interval=0.5, guidance_interval_decay=0.0, min_guidance_scale=3.0, use_erg_tag=True,
          use_erg_lyric=True, use_erg_diffusion=True, oss_steps="", guidance_scale_text=0.0,
-         guidance_scale_lyric=0.0, save_path=a.out, format="wav")
+         guidance_scale_lyric=0.0, save_path=str(Path(a.out).resolve()), format="wav")
+    # resolve(): ACE-Step makedirs(dirname(save_path)) and a bare file name gives makedirs('') -> crash
+    # after the whole render (Vatnajökull reel, 2026-10-28, --out track.m4a run from the reel folder).
 
 
 if __name__ == "__main__":
