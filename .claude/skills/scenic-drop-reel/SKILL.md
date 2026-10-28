@@ -35,6 +35,7 @@ Paths are relative to this folder (`.claude/skills/scenic-drop-reel/`). Renderin
    ```
    Writes `track.m4a` exactly as long as the reel and `track.beats.json` (beat grid, drop). Card intros (countdown, black-title, coords) get a filtered riser that drops on shot 1.
 5. **Check each shot** as in muse-video travel mode (`python3 ../muse-video/scripts/qa.py sN.mp4 --travel 0 sheetN.jpg`; judge only `smooth` and the sheet). Re-render only a shot with no clean window, a fake landmark or wrong weather.
+   muse paints green forests and meadows on any mountain or fjord: Svalbard reel (2026-10-28) got pine forest on the peaks shot and around the Seed Vault. For treeless places (Arctic, Iceland highlands, deserts) write it into every brief: "NO trees, NO forest, NO bushes, NO green meadows anywhere; only bare rock, scree, snow, ice and brownish tundra" - the re-render held it.
    muse can return a shot with no audio track (Reynisfjara reel s2, 2026-10-28); the reel's music replaces clip audio, so qa.py reports `sound`/`noise` as `skip no audio stream` for it instead of failing.
 6. **Compose**:
    ```bash
