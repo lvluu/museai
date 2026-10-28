@@ -26,6 +26,7 @@ The brief's own header line stays in English for muse.
 - EP19 Exchanging a shirt (clothing store service counter, shop assistant; first two-shot still had the man in profile -> clip A OFF GAZE; only a still asking for faces "turned only about 30 degrees toward each other, like a TV presenter pair" gave him a three-quarter face)
 - EP20 Changing plans on a rainy day (apartment lounge, rain at the window; man stayed in profile in all 4 clip-A takes)
 - EP21 Borrowing a phone charger (study lounge, both standing, no phone or cable on screen)
+- EP22 Asking about a delayed order (restaurant, woman seated, waiter standing; muse put the woman near profile and the waiter turned to the lens in the ending in all 3 clip-D takes; the slow intro lips left a 2.4 s gap after the dubbed line -> dubbed the line in two comma parts and trimmed the intro's silent tail before the cut)
 - EP23 Asking someone to repeat (language-school lounge, both standing; muse drew the brief's title "EVERYDAY CHINESE #23" on screen in the intro, so prompts carry no title line)
 - EP24 Ordering coffee (cafe counter, barista; man in profile in all clip A-C takes; man turned to the lens in the ending in 2 of 2 clip-C takes; timed SCRIPT lines fixed a wrong-lip line)
 - EP25 Dropping off laundry (laundry shop counter, clerk, folded coat on the counter; 72-syllable fixed script runs ~18 s at natural pace, not 30 s; clip A came back 704x1248 twice with both faces in profile; ending clip: man turned to the lens in 2 of 3 takes)
