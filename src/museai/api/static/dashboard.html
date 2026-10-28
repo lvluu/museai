@@ -4,6 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>museai videos</title>
+<link rel="manifest" href="/dashboard/static/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/dashboard/static/icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="museai">
+<meta name="theme-color" content="#3b5bdb">
 <style>
   :root {
     --bg: #f6f6f4; --panel: #fff; --text: #1d1d1b; --muted: #74746e; --line: #e6e6e1; --soft: #f0f0ec;
@@ -137,6 +142,12 @@
   .empty { padding: 32px; text-align: center; color: var(--muted); }
   .more { display: block; margin: 12px auto 0; }
   .more[hidden] { display: none; }
+  .notify { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; margin: 0 0 16px; padding: 10px 14px;
+            border: 1px solid var(--line); border-radius: 10px; background: var(--card); font-size: 13px; }
+  .notify:empty { display: none; }
+  .notify button { font: inherit; }
+  .share-row { display: flex; gap: 8px; margin: 0 0 8px; }
+  .share-row button { flex: 1; padding: 8px 10px; font: inherit; font-weight: 600; }
   @media (max-width: 760px) {
     .shell { grid-template-columns: 1fr; }
     .nav { position: sticky; z-index: 2; height: auto; flex-direction: row; align-items: center; overflow-x: auto;
@@ -174,6 +185,7 @@
     <header><h1>Ready to post</h1></header>
     <p class="hint">Click a platform: the caption is copied and the video is shown in Finder, so drag it into the
       upload page that opens. Tick “posted” after publishing; when all four are ticked, the video moves to the Trash.</p>
+    <div class="notify" id="notify"></div>
     <div class="posts" id="posts"></div>
   </section>
 
@@ -531,6 +543,10 @@ function renderPosts() {
           <button class="linkish" data-done title="Move to the Trash without posting everywhere">Delete</button>
         </div>
         <textarea data-caption placeholder="Caption and hashtags (copied when you click a platform)">${esc(v.caption)}</textarea>
+        ${canShareFiles ? `<div class="share-row">
+          <button data-share title="Copy the caption, then share the video to TikTok, Instagram, YouTube or Photos">${shareFiles.has(v.name) ? "Share video" : "Get video"}</button>
+          <button data-copycap title="Copy the caption">Copy caption</button>
+        </div>` : ""}
         <div class="plats">${posts.platforms.map((p) => `
           <div class="plat ${v.posted[p.id] ? "done" : ""}">
             <button data-open="${esc(p.id)}" title="Upload to ${esc(p.name)}">${esc(p.name.split(" ")[0])} ↗</button>
@@ -541,6 +557,85 @@ function renderPosts() {
     </div>`;
   }).join("");
 }
+
+// On the phone: share the file itself to the TikTok / Instagram / YouTube apps or Photos.
+// Safari only shares right after a tap, so the first tap downloads and the second shares.
+const canShareFiles = !!navigator.canShare?.({ files: [new File([""], "x.mp4", { type: "video/mp4" })] });
+const shareFiles = new Map();
+async function shareVideo(name, card, btn) {
+  const caption = card.querySelector("[data-caption]").value;
+  if (caption) navigator.clipboard?.writeText(caption).catch(() => {});
+  const file = shareFiles.get(name);
+  if (file) {
+    try { await navigator.share({ files: [file] }); } catch (err) { if (err.name !== "AbortError") alert(err.message); }
+    return;
+  }
+  btn.disabled = true; btn.textContent = "Downloading…";
+  try {
+    const r = await fetch(postUrl(name, "/file"), { headers: key ? { Authorization: "Bearer " + key } : {} });
+    if (!r.ok) throw new Error(r.status + " " + r.statusText);
+    shareFiles.set(name, new File([await r.blob()], name, { type: "video/mp4" }));
+    btn.textContent = "Share video";
+  } catch (err) {
+    btn.textContent = "Get video"; alert(`${name}: ${err.message}`);
+  }
+  btn.disabled = false;
+}
+
+// Notifications on this device: the dashboard installed as a phone app gets a push when a
+// new video lands in Ready to post. iPhones only allow it from the Home Screen app.
+const isIOS = /iPhone|iPad|iPod/.test(navigator.userAgent);
+const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const pushOk = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+const swReady = pushOk ? navigator.serviceWorker.register("/dashboard/static/sw.js", { scope: "/dashboard" })
+  .then(() => navigator.serviceWorker.ready).catch(() => null) : Promise.resolve(null);
+
+async function renderNotify() {
+  const box = $("notify");
+  if (!pushOk) {
+    box.innerHTML = isIOS && !standalone
+      ? "To get a notification on this iPhone when a video is ready: tap Share, then <b>Add to Home Screen</b>, and open museai from the Home Screen."
+      : "";
+    return;
+  }
+  const reg = await swReady;
+  const sub = reg && await reg.pushManager.getSubscription();
+  if (Notification.permission === "denied") {
+    box.textContent = "Notifications are blocked for museai. Allow them in Settings → Notifications.";
+  } else if (sub) {
+    box.innerHTML = `<span>🔔 This device gets a notification when a video is ready to post.</span>
+      <button class="linkish" data-push="test">Send a test</button><button class="linkish" data-push="off">Turn off</button>`;
+  } else {
+    box.innerHTML = `<button data-push="on">🔔 Notify me when a video is ready to post</button>`;
+  }
+}
+
+const b64ToBytes = (s) => Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), (c) => c.charCodeAt(0));
+$("notify").addEventListener("click", async (e) => {
+  const b = e.target.closest("[data-push]"); if (!b) return;
+  b.disabled = true;
+  try {
+    if (b.dataset.push === "on") {
+      // Asked first, while the tap still counts: Safari ignores a later request.
+      if (await Notification.requestPermission() !== "granted") throw new Error("notifications were not allowed");
+      const { key: vapid } = await api("/dashboard/push");
+      const reg = await swReady;
+      const sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64ToBytes(vapid) });
+      await api("/dashboard/push/subscribe", JSON.stringify(sub));
+      await api("/dashboard/push/test", "{}");
+    } else if (b.dataset.push === "test") {
+      await api("/dashboard/push/test", "{}");
+    } else {
+      const sub = await (await swReady)?.pushManager.getSubscription();
+      if (sub) { await api("/dashboard/push/unsubscribe", JSON.stringify({ endpoint: sub.endpoint })); await sub.unsubscribe(); }
+    }
+  } catch (err) {
+    alert(`Notifications: ${err.message}`);
+  }
+  b.disabled = false;
+  renderNotify();
+});
+renderNotify();
 
 async function loadPosts() {
   try { posts = await api("/dashboard/posts"); renderPosts(); } catch (e) { /* the videos list shows the error */ }
@@ -568,6 +663,13 @@ $("posts").addEventListener("click", async (e) => {
     api(postUrl(name, "/reveal"), "{}").catch(() => {});
     return;
   }
+  if (e.target.closest("[data-copycap]")) {
+    navigator.clipboard?.writeText(card.querySelector("[data-caption]").value).catch(() => {});
+    e.target.textContent = "Copied"; setTimeout(() => { e.target.textContent = "Copy caption"; }, 1200);
+    return;
+  }
+  const share = e.target.closest("[data-share]");
+  if (share) { shareVideo(name, card, share); return; }
   if (e.target.closest("[data-done]") && confirm(`Move ${name} to the Trash?`)) updatePost(name, { done: true });
 });
 $("posts").addEventListener("change", (e) => {

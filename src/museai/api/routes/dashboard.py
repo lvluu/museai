@@ -131,6 +131,51 @@ async def retry_video(task_id: str, request: Request, svc: Services = Depends(ge
     return {"id": task.id}
 
 
+# Phone app (PWA): the page, its service worker, manifest and icons, plus web push.
+_STATIC = {"sw.js": "text/javascript", "manifest.webmanifest": "application/manifest+json",
+           "icon-180.png": "image/png", "icon-192.png": "image/png", "icon-512.png": "image/png"}
+
+
+@router.get("/dashboard/static/{name}", include_in_schema=False)
+async def dashboard_static(name: str) -> FileResponse:
+    if name not in _STATIC:
+        raise NotFound(f"'{name}' not found")
+    # The worker lives under /dashboard/static/ but controls the page at /dashboard.
+    headers = {"Service-Worker-Allowed": "/dashboard", "Cache-Control": "no-cache"}
+    return FileResponse(_PAGE.parent / name, media_type=_STATIC[name], headers=headers)
+
+
+@router.get("/dashboard/push", include_in_schema=False, dependencies=[Depends(_local_or_admin)])
+async def push_info(svc: Services = Depends(get_services)) -> dict:
+    return {"key": svc.push.public_key, "devices": len(svc.push.subscriptions)}
+
+
+@router.post("/dashboard/push/subscribe", include_in_schema=False,
+             dependencies=[Depends(_local_or_admin)])
+async def push_subscribe(body: dict, svc: Services = Depends(get_services)) -> dict:
+    """Store a browser PushSubscription (``{endpoint, keys: {p256dh, auth}}``)."""
+    keys = body.get("keys") or {}
+    if not str(body.get("endpoint", "")).startswith("https://") or not keys.get("p256dh") \
+            or not keys.get("auth"):
+        raise InvalidRequest("not a push subscription")
+    return {"devices": svc.push.subscribe(body)}
+
+
+@router.post("/dashboard/push/unsubscribe", include_in_schema=False,
+             dependencies=[Depends(_local_or_admin)])
+async def push_unsubscribe(body: dict, svc: Services = Depends(get_services)) -> dict:
+    svc.push.unsubscribe(str(body.get("endpoint", "")))
+    return {"devices": len(svc.push.subscriptions)}
+
+
+@router.post("/dashboard/push/test", include_in_schema=False,
+             dependencies=[Depends(_local_or_admin)])
+async def push_test(svc: Services = Depends(get_services)) -> dict:
+    sent = await svc.push.notify("museai notifications are on",
+                                 "You'll get one like this when a video is ready to post.")
+    return {"sent": sent}
+
+
 @router.get("/dashboard", include_in_schema=False)
 async def dashboard() -> FileResponse:
     return FileResponse(_PAGE, media_type="text/html", headers={"Cache-Control": "no-cache"})
