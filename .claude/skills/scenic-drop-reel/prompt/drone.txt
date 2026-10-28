@@ -1,8 +1,8 @@
 AERIAL DRONE SHOT REQUIREMENTS
 
-One continuous aerial drone shot of a real place, no cuts, no transitions, no text. Bright sunny summer day, deep blue sky with a few white clouds, crisp clear air, vivid but natural colours: saturated green meadows and forests, turquoise or deep blue water, white and red-roofed buildings. High contrast, sharp detail, postcard look.
+One continuous aerial drone shot of a real place, no cuts, no transitions, no text. {LIGHT}, vivid but natural colours: saturated green meadows and forests, turquoise or deep blue water, white and red-roofed buildings. High contrast, sharp detail, postcard look.
 
-CAMERA: a stabilised drone at a steady medium speed, one smooth move for the whole clip, already moving in the first frame and never stopping, speeding up or changing direction. The subject (the landmark named in the brief) stays large and centred in the frame, roughly the middle third, for the whole clip. No shake, no wobble, no sudden turns, no zoom jumps, no fish-eye.
+CAMERA: {PACE} The subject (the landmark named in the brief) stays large and exactly in the centre of the frame for the whole clip, with the horizon in the upper third. No shake, no wobble, no sudden turns, no zoom jumps, no fish-eye.
 
 MOTION: real-time footage, not a time-lapse: clouds stay in place, light does not change. Buildings, mountains and shorelines stay perfectly rigid; only water, trees, boats, trains and cars move, at their real speed.
 

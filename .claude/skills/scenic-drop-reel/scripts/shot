@@ -3,14 +3,25 @@
 # Renders one drone shot for the reel through muse-video (STYLE=travel, 9:16, 6 s) with
 # ../prompt/drone.txt appended to the brief. Run one per shot in the background: shots are
 # independent, so they render in parallel on all free accounts.
+# LIGHT="Golden hour, ..." sets the light (pick.py prints it per shot; default sunny summer day).
+# FAST=1 for FPV templates: fast but perfectly even flight instead of the slow glide.
 # Env passed through to muse-video: IMAGE=first_frame.png RETAKE=1 SIZE= DURATION=
 set -euo pipefail
 SKILL_DIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
 MUSE_VIDEO="$SKILL_DIR/../muse-video/scripts/muse-video"
 brief=$1
 out=$(cd "$(dirname "$2")" && pwd)/$(basename "$2")
+light=${LIGHT:-Bright sunny summer day, deep blue sky with a few white clouds, crisp clear air}
+if [[ -n ${FAST:-} ]]; then
+  pace="a stabilised FPV drone flying FAST at one constant speed, one smooth continuous line for the whole clip, already moving in the first frame, never braking or jerking; the scene streams past fluidly."
+else
+  pace="a stabilised drone moving SLOWLY at one constant speed, one gentle glide for the whole clip, already moving in the first frame and never stopping, speeding up or changing direction. The scene drifts calmly across the frame like cinematic real-estate drone footage, never rushing past."
+fi
+rules=$(cat "$SKILL_DIR/prompt/drone.txt")
+rules=${rules//\{LIGHT\}/$light}
+rules=${rules//\{PACE\}/$pace}
 prompt="$brief
 
-$(cat "$SKILL_DIR/prompt/drone.txt")"
+$rules"
 STYLE=travel SIZE=${SIZE:-9:16} DURATION=${DURATION:-6} OUT_NAME=$(basename "$out") NO_OPEN=1 \
   "$MUSE_VIDEO" "$prompt" "$(dirname "$out")"
