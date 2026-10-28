@@ -23,6 +23,7 @@ The brief's own header line stays in English for muse.
 - EP16 Getting a haircut (salon reception, stylist)
 - EP17 Buying bread (bakery, baker)
 - EP18 Asking to share a table (cafe, woman standing, man seated at a small table)
+- EP21 Borrowing a phone charger (study lounge, both standing, no phone or cable on screen)
 
 ## Template
 
