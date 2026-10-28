@@ -412,8 +412,10 @@ def main():
     cur = "s0"
     for i in range(1, len(segs)):
         s = segs[i]
+        # offset a quarter frame early: ffmpeg 9 xfade drops the second input when the offset lands
+        # exactly on the first input's last frame (Tromsø reel: 53 of 262 frames)
         chains.append(f"[{cur}][s{i}]xfade=transition={s['xf']}:duration={s['d'] / F:.4f}:"
-                      f"offset={s['off'] / F:.4f}[x{i}]")
+                      f"offset={(s['off'] - 0.25) / F:.4f}[x{i}]")
         cur = f"x{i}"
 
     # overlays: (image, start frame, end frame, fade)
