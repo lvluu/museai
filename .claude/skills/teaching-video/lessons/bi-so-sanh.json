@@ -1,0 +1,427 @@
+{
+ "topic": "bi_so_sanh",
+ "title_vi": "So sánh hơn với 比",
+ "grammar": "比 - so sánh hơn (A 比 B + tính từ)",
+ "level": "beginner",
+ "situation": "mua sắm, thời tiết, đi lại",
+ "accent": "#FF7A1A",
+ "teacher": {
+  "cast": "Vietnamese woman, about 28, warm friendly face, shoulder-length straight black hair tucked behind one ear, light natural makeup, cream knit sweater over a white collared shirt, small silver stud earrings, no glasses. Warm, clear female voice.",
+  "set": "Bright modern teaching studio: soft white walls, a pale wooden shelf with two green potted plants and a few closed books far behind her, large window light from the left, soft fill light, shallow depth of field so the background stays softly blurred. No whiteboard, screen, poster, sign or any writing anywhere."
+ },
+ "beats": [
+  {
+   "section": "hook",
+   "say": [
+    {
+     "vi": "Muốn nói “tôi cao hơn bạn”, nhiều bạn sẽ nói thế này:"
+    },
+    {
+     "zh": "我比你很高。",
+     "slow": true
+    }
+   ],
+   "card": {
+    "type": "example",
+    "label": "Câu này đúng không?",
+    "zh": "我比你很高。",
+    "py": "Wǒ bǐ nǐ hěn gāo.",
+    "vi": "Tôi cao hơn bạn?"
+   }
+  },
+  {
+   "section": "hook",
+   "say": [
+    {
+     "vi": "Nghe quen đúng không? Nhưng câu này sai đấy."
+    }
+   ],
+   "card": null
+  },
+  {
+   "section": "explain",
+   "say": [
+    {
+     "vi": "Tiếng Việt mình nói: A cao hơn B."
+    }
+   ],
+   "card": {
+    "type": "pattern",
+    "label": "Tiếng Việt",
+    "text": "A + cao hơn + B"
+   }
+  },
+  {
+   "section": "explain",
+   "say": [
+    {
+     "vi": "Còn tiếng Trung, chữ"
+    },
+    {
+     "zh": "比"
+    },
+    {
+     "vi": "đứng giữa A và B, tính từ để ở cuối câu."
+    }
+   ],
+   "card": {
+    "type": "pattern",
+    "label": "Tiếng Trung",
+    "text": "A + [比] + B + tính từ"
+   }
+  },
+  {
+   "section": "explain",
+   "say": [
+    {
+     "vi": "Ví dụ nhé."
+    },
+    {
+     "zh": "我比你高。",
+     "slow": true,
+     "repeat": 2.0
+    },
+    {
+     "vi": "Tôi cao hơn bạn."
+    }
+   ],
+   "card": {
+    "type": "example",
+    "label": "Công thức",
+    "zh": "我[比]你高。",
+    "py": "Wǒ [bǐ] nǐ gāo.",
+    "vi": "Tôi cao hơn bạn."
+   }
+  },
+  {
+   "section": "explain",
+   "say": [
+    {
+     "vi": "Nhớ là chữ"
+    },
+    {
+     "zh": "比"
+    },
+    {
+     "vi": "đã mang nghĩa “hơn” rồi, nên không cần thêm gì nữa."
+    }
+   ],
+   "card": {
+    "type": "pattern",
+    "label": "Ghi nhớ",
+    "text": "[比] = hơn"
+   }
+  },
+  {
+   "section": "demo",
+   "say": [
+    {
+     "vi": "Đi mua sắm, muốn so giá, bạn nói:"
+    },
+    {
+     "zh": "这个比那个便宜。",
+     "slow": true,
+     "repeat": 1.5
+    },
+    {
+     "vi": "Nói tự nhiên:"
+    },
+    {
+     "zh": "这个比那个便宜。",
+     "repeat": 2.0
+    },
+    {
+     "vi": "Cái này rẻ hơn cái kia."
+    }
+   ],
+   "card": {
+    "type": "example",
+    "label": "Ví dụ 1 · Mua sắm",
+    "zh": "这个[比]那个便宜。",
+    "py": "Zhège [bǐ] nàge piányi.",
+    "vi": "Cái này rẻ hơn cái kia."
+   }
+  },
+  {
+   "section": "demo",
+   "say": [
+    {
+     "vi": "Chỉ cần đổi tính từ, là so được đủ thứ: đắt hơn, đẹp hơn, ngon hơn."
+    }
+   ],
+   "card": {
+    "type": "pattern",
+    "label": "Đổi tính từ",
+    "text": "đắt hơn · đẹp hơn · ngon hơn"
+   }
+  },
+  {
+   "section": "demo",
+   "say": [
+    {
+     "vi": "B không nhất thiết là người, có thể là thời gian:"
+    },
+    {
+     "zh": "今天比昨天冷。",
+     "slow": true,
+     "repeat": 2.0
+    },
+    {
+     "vi": "Hôm nay lạnh hơn hôm qua."
+    }
+   ],
+   "card": {
+    "type": "example",
+    "label": "Ví dụ 2 · Thời tiết",
+    "zh": "今天[比]昨天冷。",
+    "py": "Jīntiān [bǐ] zuótiān lěng.",
+    "vi": "Hôm nay lạnh hơn hôm qua."
+   }
+  },
+  {
+   "section": "demo",
+   "say": [
+    {
+     "vi": "Ở đây mình so hai ngày với nhau, nói chuyện thời tiết là dùng ngay."
+    }
+   ],
+   "card": null
+  },
+  {
+   "section": "demo",
+   "say": [
+    {
+     "vi": "Muốn nói “hơn nhiều”, thêm"
+    },
+    {
+     "zh": "多了"
+    },
+    {
+     "vi": "vào sau tính từ:"
+    }
+   ],
+   "card": {
+    "type": "pattern",
+    "label": "Hơn nhiều",
+    "text": "A + [比] + B + tính từ + [多了]"
+   }
+  },
+  {
+   "section": "demo",
+   "say": [
+    {
+     "zh": "地铁比打车快多了。",
+     "slow": true,
+     "repeat": 2.4
+    },
+    {
+     "vi": "Nói tự nhiên thì thế này:"
+    },
+    {
+     "zh": "地铁比打车快多了。",
+     "repeat": 1.6
+    },
+    {
+     "vi": "Đi tàu điện ngầm nhanh hơn đi taxi nhiều."
+    }
+   ],
+   "card": {
+    "type": "example",
+    "label": "Ví dụ 3 · Đi lại",
+    "zh": "地铁[比]打车快[多了]。",
+    "py": "Dìtiě [bǐ] dǎchē kuài [duō le].",
+    "vi": "Tàu điện ngầm nhanh hơn taxi nhiều."
+   }
+  },
+  {
+   "section": "demo",
+   "say": [
+    {
+     "vi": "Để ý nhé, mức độ luôn đứng sau tính từ, không đứng trước."
+    }
+   ],
+   "card": {
+    "type": "pattern",
+    "label": "Để ý",
+    "text": "tính từ + [多了]"
+   }
+  },
+  {
+   "section": "fix",
+   "say": [
+    {
+     "vi": "Giờ quay lại câu lúc nãy."
+    },
+    {
+     "zh": "我比你很高。",
+     "slow": true
+    }
+   ],
+   "card": {
+    "type": "example",
+    "mark": "wrong",
+    "label": "SAI",
+    "zh": "我比你[很]高。",
+    "py": "Wǒ bǐ nǐ [hěn] gāo.",
+    "vi": "Không dùng 很 trong câu có 比"
+   }
+  },
+  {
+   "section": "fix",
+   "say": [
+    {
+     "vi": "Lỗi nằm ở chữ"
+    },
+    {
+     "zh": "很"
+    },
+    {
+     "vi": "Vì có chữ “hơn” rồi, tính từ phía sau phải đứng một mình."
+    }
+   ],
+   "card": null
+  },
+  {
+   "section": "fix",
+   "say": [
+    {
+     "vi": "Câu đúng là:"
+    },
+    {
+     "zh": "我比你高。",
+     "slow": true,
+     "repeat": 1.8
+    }
+   ],
+   "card": {
+    "type": "example",
+    "mark": "right",
+    "label": "ĐÚNG",
+    "zh": "我[比]你高。",
+    "py": "Wǒ [bǐ] nǐ gāo.",
+    "vi": "Tôi cao hơn bạn."
+   }
+  },
+  {
+   "section": "fix",
+   "say": [
+    {
+     "vi": "Còn chữ"
+    },
+    {
+     "zh": "更"
+    },
+    {
+     "vi": "nghĩa là “còn hơn nữa”, thì dùng được:"
+    },
+    {
+     "zh": "我比你更高。",
+     "slow": true
+    }
+   ],
+   "card": {
+    "type": "example",
+    "mark": "right",
+    "label": "Cũng đúng",
+    "zh": "我[比]你[更]高。",
+    "py": "Wǒ [bǐ] nǐ [gèng] gāo.",
+    "vi": "Tôi còn cao hơn bạn."
+   }
+  },
+  {
+   "section": "challenge",
+   "say": [
+    {
+     "vi": "Đến lượt bạn. Dịch câu này: trà sữa ngon hơn cà phê."
+    },
+    {
+     "pause": 3.0,
+     "countdown": true
+    }
+   ],
+   "card": {
+    "type": "challenge",
+    "label": "Thử thách",
+    "vi": "Trà sữa ngon hơn cà phê.",
+    "hint": "A + [比] + B + tính từ"
+   }
+  },
+  {
+   "section": "challenge",
+   "say": [
+    {
+     "vi": "Đáp án là:"
+    },
+    {
+     "zh": "奶茶比咖啡好喝。",
+     "slow": true,
+     "repeat": 1.8
+    }
+   ],
+   "card": {
+    "type": "example",
+    "mark": "right",
+    "label": "Đáp án",
+    "zh": "奶茶[比]咖啡好喝。",
+    "py": "Nǎichá [bǐ] kāfēi hǎohē.",
+    "vi": "Trà sữa ngon hơn cà phê."
+   }
+  },
+  {
+   "section": "challenge",
+   "say": [
+    {
+     "vi": "Đồ uống ngon thì dùng"
+    },
+    {
+     "zh": "好喝"
+    },
+    {
+     "vi": "nhé, đồ ăn ngon mới là"
+    },
+    {
+     "zh": "好吃"
+    }
+   ],
+   "card": null
+  },
+  {
+   "section": "reinforce",
+   "say": [
+    {
+     "vi": "Nhớ nhé: A,"
+    },
+    {
+     "zh": "比"
+    },
+    {
+     "vi": "B, rồi tính từ. Như câu này:"
+    },
+    {
+     "zh": "我的中文比以前好多了。",
+     "slow": true
+    }
+   ],
+   "card": {
+    "type": "example",
+    "label": "Ghi nhớ",
+    "zh": "我的中文[比]以前好[多了]。",
+    "py": "Wǒ de Zhōngwén [bǐ] yǐqián hǎo [duō le].",
+    "vi": "Tiếng Trung của tôi giỏi hơn trước nhiều."
+   }
+  },
+  {
+   "section": "reinforce",
+   "say": [
+    {
+     "vi": "Giờ bạn thử đặt một câu, rồi viết vào phần bình luận nhé."
+    }
+   ],
+   "card": {
+    "type": "pattern",
+    "label": "Đến lượt bạn",
+    "text": "Đặt một câu với [比]"
+   }
+  }
+ ]
+}
