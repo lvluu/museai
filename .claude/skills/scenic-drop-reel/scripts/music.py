@@ -21,8 +21,10 @@ coords) get an intro of intro.beats before the body: low-passed 300→7000 Hz sw
 and a noise whoosh that stops dead on the drop → tanh drive to phone loudness (-13 dB mean).
 """
 import argparse
+import fcntl
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -42,10 +44,22 @@ CARD_INTROS = ("countdown", "black-title", "coords")
 def generate_ace(tags, lyrics, bpm, seconds, seed, wav):
     with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as f:
         f.write(lyrics or "[instrumental]")
-    tags = f"{tags}, {bpm:.0f} bpm, natural unprocessed singing voice, no autotune, no vocoder"
-    subprocess.run([str(ACE_PY), str(SCRIPTS / "ace_song.py"), "--tags", tags,
-                    "--lyrics-file", f.name, "--duration", f"{seconds:.0f}", "--seed", str(seed), "--out", str(wav)],
-                   check=True)
+    # duets and negated words ("no autotune") pull ACE toward the robotic, pitched voice the user rejected
+    tags = re.sub(r"\b(male and female|female and male) vocals\b", "female vocals", tags)
+    tags = (f"{tags}, {bpm:.0f} bpm, one natural human lead singer, relaxed in-tune mid-range voice, "
+            "clear diction, warm dry vocal sitting in balance with the instruments, organic live studio mix")
+    # one ACE render per machine: two at once share the GPU and both crawl (Svalbard + Vatnajokull reels,
+    # 2026-10-28: model load 40 s -> 285 s, 1.5 s/step -> 100+ s/step); later ones wait here
+    lock = ACE_PY.parent.parent.parent / "render.lock"
+    with open(lock, "w") as lf:
+        try:
+            fcntl.flock(lf, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            print("another ACE render is running on this machine; waiting for it", file=sys.stderr)
+            fcntl.flock(lf, fcntl.LOCK_EX)
+        subprocess.run([str(ACE_PY), str(SCRIPTS / "ace_song.py"), "--tags", tags,
+                        "--lyrics-file", f.name, "--duration", f"{seconds:.0f}", "--seed", str(seed), "--out", str(wav)],
+                       check=True)
     return librosa.load(wav, sr=None, mono=True)
 
 
@@ -157,6 +171,8 @@ def main():
         score -= 2 * max(0.0, 0.5 - level[i:j].min() / np.median(level[i:j]))
         if engine == "ace":
             score += 0.5 * voice[i:j].mean() + 2 * punch[i:j].mean()
+            h = i + 3 * sr // hop  # the first 3 s decide whether a viewer stays: start on the sung hook
+            score += voice[i:h].mean() + punch[i:h].mean()
         return score
 
     b0 = max(valid, key=body_score)
@@ -174,13 +190,14 @@ def main():
         intro[-int(0.02 * sr):] *= np.linspace(1, 0.2, int(0.02 * sr))  # tiny gap so the drop hits
         parts.insert(0, intro)
     track = np.concatenate(parts)
-    track = np.tanh(3 * track / np.abs(track).max()) / np.tanh(3)  # drive: phone-loud like the reference
-    track *= 10 ** (-1 / 20)
+    # no saturation drive: tanh clipping made the singer harsh and loud over the band (Svalbard reel);
+    # loudnorm brings it to phone level instead
+    track = track / np.abs(track).max() * 10 ** (-1 / 20)
 
     with tempfile.TemporaryDirectory() as tmp:
         wav = Path(tmp) / "t.wav"
         sf.write(wav, track, sr)
-        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(wav), "-ar", "44100", "-ac", "2",
+        subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(wav), "-af", "loudnorm=I=-14:TP=-1.5:LRA=9", "-ar", "44100", "-ac", "2",
                         "-c:a", "aac", "-b:a", "192k", a.out], check=True)
     drop = intro_len / sr
     grid = [round(drop + k * beat, 4) for k in range(-intro_beats, body_beats + 1)]
