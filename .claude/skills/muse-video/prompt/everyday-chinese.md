@@ -10,7 +10,9 @@ pinyin with tone sandhi written as spoken (yí ge, yìqǐ, bú kèqi); Vietnames
 No payment, food handling or object exchange in the scene.
 
 Delivery title (user rule, 2026-10-27): the viewers are Vietnamese, so the final file and its posting
-caption use a Vietnamese title, `Tiếng Trung mỗi ngày NN - <topic in Vietnamese>` (EP16: Đi cắt tóc).
+caption use a Vietnamese title, `Tiếng Trung mỗi ngày NN - <topic in Vietnamese>` (EP16: Đi cắt tóc). The caption's first line is
+`Tập NN | <short hook>` (EP18: `Tập 18 | Quán hết chỗ? Nói câu này là được ngồi chung bàn ☕`);
+see SKILL.md "Caption".
 The brief's own header line stays in English for muse.
 
 ## Episode log
@@ -19,6 +21,7 @@ The brief's own header line stays in English for muse.
 - EP13 Finding the subway (quiet street, passer-by giving directions)
 - EP14 At the pharmacy (neighbourhood pharmacy, pharmacist) - drafted
 - EP16 Getting a haircut (salon reception, stylist)
+- EP17 Buying bread (bakery, baker)
 - EP18 Asking to share a table (cafe, woman standing, man seated at a small table)
 
 ## Template

@@ -65,10 +65,11 @@
   .acc.bad { border-color: var(--bad); }
   .acc-top { display: flex; align-items: center; gap: 8px; }
   .acc-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
-  .rename { color: var(--muted); font-size: 13px; padding: 0 4px; border-radius: 4px; visibility: hidden; }
-  .acc:hover .rename, .rename:focus { visibility: visible; }
-  @media (hover: none) { .rename { visibility: visible; } }
+  .rename { color: var(--muted); font-size: 13px; padding: 0 4px; border-radius: 4px; }
   .rename:hover { color: var(--accent); }
+  .acc-foot { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: var(--muted); }
+  .acc-foot.soon { color: var(--bad); }
+  .acc-foot .relog:hover { color: var(--accent); text-decoration: underline; }
   .acc-now { font-size: 12px; color: var(--run); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .acc-nums { display: flex; gap: 14px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
   .acc-nums b { color: var(--text); font-weight: 600; }
@@ -308,6 +309,13 @@ function renderStats() {
   $("stats").innerHTML = items.map(([v, l]) => `<div class="stat"><b>${v}</b><span>${l}</span></div>`).join("");
 }
 
+// The session cookies (hatch_sess, device) are the login; the earliest one to expire ends it.
+function cookieExpiry(acc) {
+  const e = acc.cookie_expires || {};
+  const times = ["hatch_sess", "hatch_native_auth_device"].map((n) => e[n]).filter(Boolean);
+  return times.length ? Math.min(...times) : 0;
+}
+
 function renderCards() {
   const day = Date.now() / 1000 - 86400;
   $("cards").innerHTML = accounts.map((acc) => {
@@ -322,6 +330,8 @@ function renderCards() {
       ? `<div class="acc-nums" title="Estimate from past “Out of usage” hits"><span><b>~${u.left}</b> videos left (est.)</span></div>
          <div class="meter"><i style="width:${Math.min(100, u.left / Math.max(u.cap, 1) * 100)}%"></i></div>` : "";
     const bad = acc.status === "invalid";
+    const exp = cookieExpiry(acc);
+    const daysLeft = exp ? Math.floor((exp - Date.now() / 1000) / 86400) : null;
     return `<button class="acc ${acc.id === selected ? "sel" : ""} ${bad ? "bad" : ""}" data-id="${esc(acc.id)}">
       <div class="acc-top">
         <span class="acc-name" title="${esc(acc.id)}">${esc(acctName(acc.id))}</span>
@@ -331,8 +341,12 @@ function renderCards() {
       ${running ? `<div class="acc-now" title="${esc(running.request?.prompt)}">▶ ${esc(titleOf(running.request?.prompt))}</div>` : ""}
       <div class="acc-nums"><span><b>${today.length}</b> today</span><span><b>${ok}</b> done</span><span><b>${failed}</b> failed</span></div>
       ${left}
-      ${bad ? `<div class="acc-fix">Log in to muse.ai with this account, export the cookies, then upload them.</div>
-               <span class="upload" role="button" tabindex="0" data-upload="${esc(acc.id)}" title="Cookie-Editor JSON export of muse.ai">Upload cookies JSON</span>` : ""}
+      ${bad ? `<div class="acc-fix">Log in to muse.ai as ${esc(acctName(acc.id))}, export the cookies, then upload them.</div>
+               <span class="upload" role="button" tabindex="0" data-upload="${esc(acc.id)}" title="Cookie-Editor JSON export of muse.ai">Upload cookies JSON</span>`
+             : `<div class="acc-foot ${daysLeft != null && daysLeft < 7 ? "soon" : ""}">
+                  <span>${exp ? `Login expires ${new Date(exp * 1000).toLocaleDateString(undefined, { day: "numeric", month: "short" })} (${daysLeft < 1 ? "today" : daysLeft + " d"})` : "Login expiry unknown"}</span>
+                  <span class="relog" role="button" tabindex="0" data-upload="${esc(acc.id)}" title="Cookie-Editor JSON export of muse.ai">Update cookies</span>
+                </div>`}
     </button>`;
   }).join("") || `<div class="empty">No accounts yet.</div>`;
 }
