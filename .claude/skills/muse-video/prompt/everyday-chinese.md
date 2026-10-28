@@ -23,6 +23,7 @@ The brief's own header line stays in English for muse.
 - EP16 Getting a haircut (salon reception, stylist)
 - EP17 Buying bread (bakery, baker)
 - EP18 Asking to share a table (cafe, woman standing, man seated at a small table)
+- EP19 Exchanging a shirt (clothing store service counter, shop assistant; first two-shot still had the man in profile -> clip A OFF GAZE; only a still asking for faces "turned only about 30 degrees toward each other, like a TV presenter pair" gave him a three-quarter face)
 - EP20 Changing plans on a rainy day (apartment lounge, rain at the window; man stayed in profile in all 4 clip-A takes)
 - EP21 Borrowing a phone charger (study lounge, both standing, no phone or cable on screen)
 
