@@ -279,8 +279,11 @@ function renderStats() {
   const finished = recent.filter((t) => t.status === "succeeded" || t.status === "failed");
   const ok = finished.filter((t) => t.status === "succeeded").length;
   const ready = accounts.filter((a) => accState(a, false)[1] === "Ready").length;
+  const active = tasks.filter(isActive);
+  const rendering = active.filter((t) => t.status === "running" && t.account_id).length;
+  const waiting = active.length - rendering;
   const items = [
-    [tasks.filter(isActive).length, "rendering now"],
+    [rendering, waiting ? `rendering now, ${waiting} waiting for an account` : "rendering now"],
     [recent.filter((t) => t.status === "succeeded").length, "videos done, last 24h"],
     [finished.length ? Math.round(ok / finished.length * 100) + "%" : "–", "success rate, last 24h"],
     [`${ready}/${accounts.length}`, "accounts usable"],
