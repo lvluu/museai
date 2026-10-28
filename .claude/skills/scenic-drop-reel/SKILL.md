@@ -1,6 +1,6 @@
 ---
 name: scenic-drop-reel
-description: Make a short vertical travel reel of any country, region, city or single place from one of 20 templates picked at random - countdown drops, pin-and-flow, numbered top lists, coordinates intros, POV arrivals, golden-hour dissolves, FPV ramps, day-in-a-place and more - with aerial shots rendered through muse (muse-video), cut on the beat of an AI track generated for that template (catchy, with sung lyrics when ACE-Step is installed), and assembled with ffmpeg. Use when the user asks for a "travel reel", "drop reel", "countdown reel", "scenic reel", "beat-cut travel video", "video like the Switzerland/Italy one", or a destination montage of a place.
+description: Make a short vertical travel reel of any country, region, city or single place from one of 20 templates picked at random - countdown drops, pin-and-flow, numbered top lists, coordinates intros, POV arrivals, golden-hour dissolves, FPV ramps, day-in-a-place and more - with aerial shots rendered through muse (muse-video), cut on the beat of an AI track generated for that template (catchy, with sung lyrics when ACE-Step is installed), and assembled with ffmpeg. Use when the user asks for a "travel reel", "drop reel", "countdown reel", "scenic reel", "beat-cut travel video", "video like the Switzerland/Italy one", or a destination montage of a place. Default for every travel or place video request (e.g. "generate for <place>", a place photo), unless the user asks for one continuous documentary shot.
 ---
 
 # scenic-drop-reel

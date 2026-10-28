@@ -116,7 +116,7 @@ When the user reports a problem (wrong word, miming listener, bad seam, caption,
 
 ## Travel videos (`STYLE=travel`)
 Real destination, no dialogue, no captions. Rules 3-6 above don't apply; rules 1-2 do.
-Fast beat-cut montage with a "COUNTRY 3-2-1" countdown (7 drone shots, 1.2 s each, bundled music) → `../scenic-drop-reel/SKILL.md`.
+**Default for every travel / place request (user rule, 2026-10-28): the drone reel in `../scenic-drop-reel/SKILL.md`** (aerial drone shots cut on the beat, random template), also when the request only names a place or attaches a photo of it ("generate for Svalbard"). Use the single-shot documentary below only when the user asks for one continuous shot, a calm/locked view or "documentary mode".
 1. **Prompt** sections: PLACE, TIME + WEATHER, SHOTS, MUSIC.
    - **PLACE**: real named location + the concrete landmarks/terrain actually there (e.g. "Ha Long Bay, Vietnam: limestone karsts rising from emerald water, wooden junk boats"). Never ask for things that are not there.
    - **TIME + WEATHER**: one time of day and weather for the whole clip (e.g. "early morning, light mist, soft low sun from the left").
