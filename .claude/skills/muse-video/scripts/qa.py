@@ -76,27 +76,35 @@ if not travel:
             print(f"        {op}: script '{script[a1:a2]}' -> heard '{heard[b1:b2]}'")
     ok or fails.append("voice")
 
-# sound
-vol = subprocess.run(["ffmpeg", "-hide_banner", "-i", video, "-vn", "-af", "volumedetect", "-f", "null", "-"],
-                     capture_output=True, text=True).stderr
-peak = float(re.search(r"max_volume: (-?[\d.]+)", vol).group(1))
-mean = float(re.search(r"mean_volume: (-?[\d.]+)", vol).group(1))
-floor = -35 if travel else -30
-ok = peak < -0.5 and mean > floor
-print(f"sound   {'ok  ' if ok else 'FAIL'} peak {peak} dB, mean {mean} dB (peak < -0.5, mean > {floor})")
-ok or fails.append("sound")
+# sound + noise: muse can return a shot with no audio track (scenic-drop-reel Reynisfjara s2);
+# travel music replaces clip audio, so only dialogue fails on it
+has_audio = bool(subprocess.run(["ffprobe", "-v", "error", "-select_streams", "a", "-show_entries", "stream=index",
+                                 "-of", "csv=p=0", video], capture_output=True, text=True).stdout.strip())
+if not has_audio:
+    print(f"sound   {'skip' if travel else 'FAIL'} no audio stream")
+    print("noise   skip no audio stream")
+    travel or fails.append("sound")
+else:
+    vol = subprocess.run(["ffmpeg", "-hide_banner", "-i", video, "-vn", "-af", "volumedetect", "-f", "null", "-"],
+                         capture_output=True, text=True).stderr
+    peak = float(re.search(r"max_volume: (-?[\d.]+)", vol).group(1))
+    mean = float(re.search(r"mean_volume: (-?[\d.]+)", vol).group(1))
+    floor = -35 if travel else -30
+    ok = peak < -0.5 and mean > floor
+    print(f"sound   {'ok  ' if ok else 'FAIL'} peak {peak} dB, mean {mean} dB (peak < -0.5, mean > {floor})")
+    ok or fails.append("sound")
 
-# noise: hiss/static shows as a steady floor above 7 kHz in the quietest 50 ms windows
-# (muse returned EP10 clips with white hiss at -51 dB there; clean clips sit near -90 dB)
-rms = subprocess.run(["ffmpeg", "-v", "error", "-i", video, "-vn", "-af",
-                      "aresample=48000,highpass=f=7000,highpass=f=7000,asetnsamples=2400,"
-                      "astats=metadata=1:reset=1,ametadata=print:key=lavfi.astats.Overall.RMS_level:file=-",
-                      "-f", "null", "-"], capture_output=True, text=True).stdout
-levels = sorted(float(v) for v in re.findall(r"RMS_level=(-?[\d.]+)", rms))
-floor = levels[len(levels) // 10] if levels else -200
-ok = floor < -70
-print(f"noise   {'ok  ' if ok else 'FAIL'} hiss floor {floor:.0f} dB above 7 kHz (< -70; stitch.sh denoises)")
-ok or fails.append("noise")
+    # noise: hiss/static shows as a steady floor above 7 kHz in the quietest 50 ms windows
+    # (muse returned EP10 clips with white hiss at -51 dB there; clean clips sit near -90 dB)
+    rms = subprocess.run(["ffmpeg", "-v", "error", "-i", video, "-vn", "-af",
+                          "aresample=48000,highpass=f=7000,highpass=f=7000,asetnsamples=2400,"
+                          "astats=metadata=1:reset=1,ametadata=print:key=lavfi.astats.Overall.RMS_level:file=-",
+                          "-f", "null", "-"], capture_output=True, text=True).stdout
+    levels = sorted(float(v) for v in re.findall(r"RMS_level=(-?[\d.]+)", rms))
+    floor = levels[len(levels) // 10] if levels else -200
+    ok = floor < -70
+    print(f"noise   {'ok  ' if ok else 'FAIL'} hiss floor {floor:.0f} dB above 7 kHz (< -70; stitch.sh denoises)")
+    ok or fails.append("noise")
 
 # pace
 if not travel:
