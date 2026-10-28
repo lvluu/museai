@@ -12,7 +12,8 @@ Usage:
 
 Timing comes from the music's beat grid (track.beats.json written by music.py: {"beats": [...],
 "drop": t|null}). With a "drop" the first shot starts on it (the intro card fills 0..drop);
-otherwise after the template's intro.beats. Shot k lasts pattern[k] beats; every cut sits on a
+otherwise after the template's intro.beats. Shot k lasts plan.shots[k].beats (--plan; pick.py
+varies them per reel) or the template's pattern[k] beats; every cut sits on a
 beat, every transition is centred on its beat. Output fps = the clips' fps (24 for muse), so each
 source frame is shown once. Each shot's window defaults to @auto: the stretch whose motion is
 closest to the template's target and most even (YDIF), skipping jumps; clip@seconds forces it.
@@ -295,7 +296,8 @@ def beat_grid(a, music_len):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("clips", nargs="+", help="shot.mp4, shot.mp4@start_seconds or shot.mp4@auto, in order")
-    ap.add_argument("--template", required=True)
+    ap.add_argument("--template", help="default: the plan's")
+    ap.add_argument("--plan", help="plan.json from pick.py: per-shot beats (default: the template's pattern)")
     ap.add_argument("--place", required=True, help="name shown in titles, e.g. 'Amalfi Coast'")
     ap.add_argument("--title", help="override the intro text")
     ap.add_argument("--flag", default="", help="emoji after the title, e.g. 🇮🇹")
@@ -310,11 +312,15 @@ def main():
     ap.add_argument("--fps", type=float, help="default: first clip's")
     a = ap.parse_args()
 
+    plan = json.loads(Path(a.plan).read_text()) if a.plan else None
+    a.template = a.template or (plan and plan["template"]) or ap.error("--template or --plan")
     data = json.loads((SKILL / "templates.json").read_text())
     t = next((x for x in data["templates"] if x["id"] == a.template), None) or sys.exit(f"no template {a.template}")
     w, h = map(int, a.size.split("x"))
     clips = a.clips
     n = len(clips)
+    if plan and len(plan["shots"]) != n:
+        sys.exit(f"{n} clips for {len(plan['shots'])} planned shots")
     F = a.fps or fps(clips[0].partition("@")[0])
     music_len = duration(a.music)
     beats, drop = beat_grid(a, music_len)
@@ -331,7 +337,7 @@ def main():
         b0 = intro["beats"] if card_intro else 0
     idx = [b0]
     for k in range(n):
-        idx.append(idx[-1] + t["pattern"][k % len(t["pattern"])])
+        idx.append(idx[-1] + (plan["shots"][k]["beats"] if plan else t["pattern"][k % len(t["pattern"])]))
     T = [round(beat_t(i) * F) for i in idx]  # frame of each cut; T[0] = first shot
     if not card_intro:
         T[0] = 0
@@ -377,7 +383,7 @@ def main():
         src_fps = fps(path)
         ramp = round(min(0.3, (s["b"] - s["a"]) / F / 3) * F) if t["ramp"] and d_out else 0
         n_src = round((length - ramp + 2.5 * ramp) * src_fps / F)
-        info = {"clip": path, "beats": t["pattern"][k % len(t["pattern"])]}
+        info = {"clip": path, "beats": idx[k + 1] - idx[k]}
         if start in ("", "auto"):
             _, j, mean, std = pick_window(ydif(path), n_src, src_fps, t["target"] * F / src_fps)
             st = j / src_fps
