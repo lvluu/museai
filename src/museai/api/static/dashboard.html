@@ -515,10 +515,12 @@ function renderQueue() {
 
 function render() {
   renderStats(); renderCards(); renderRows(); renderQueue();
-  const active = tasks.filter(isActive).length;
-  $("navVid").textContent = active ? `${active} rendering` : tasks.length;
-  $("navQueue").textContent = active || "";
-  $("navQueue").classList.toggle("hot", active > 0);
+  // A job holding an account is rendering; one without is waiting in the queue.
+  const live = tasks.filter(isActive);
+  const rendering = live.filter((t) => t.account_id).length, waiting = live.length - rendering;
+  $("navVid").textContent = rendering ? `${rendering} rendering` : tasks.length;
+  $("navQueue").textContent = waiting || "";
+  $("navQueue").classList.toggle("hot", waiting > 0);
 }
 
 // One section at a time, picked in the sidebar, so nothing needs scrolling past.
