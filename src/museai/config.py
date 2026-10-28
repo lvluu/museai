@@ -42,6 +42,8 @@ class Settings(BaseSettings):
     data_dir: Path = Path("data")
     # Finished videos waiting to be posted to social media (the dashboard's posting queue).
     post_dir: Path = Path.home() / "Desktop"
+    # Push "ready to post" to phones that installed the dashboard and turned notifications on.
+    push_enabled: bool = True
 
     # --- upstream driver ---
     driver: DriverName = "mock"

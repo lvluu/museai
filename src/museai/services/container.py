@@ -12,6 +12,7 @@ from ..core.media import MediaStore
 from ..drivers.base import MuseDriver
 from ..drivers.registry import create_driver
 from .gateway import Gateway
+from .push import Push
 from .tasks import TaskManager
 
 
@@ -23,6 +24,7 @@ class Services:
     gateway: Gateway
     tasks: TaskManager
     media: MediaStore
+    push: Push
 
     @classmethod
     def build(cls, settings: Settings, driver: MuseDriver | None = None) -> Services:
@@ -47,4 +49,5 @@ class Services:
             ),
             tasks=TaskManager(settings.tasks_file),
             media=MediaStore(settings.media_dir),
+            push=Push(settings.data_dir, settings.post_dir),
         )

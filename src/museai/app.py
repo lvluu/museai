@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import json
 import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -19,6 +20,7 @@ from .config import Settings, get_settings
 from .drivers.base import MuseDriver
 from .errors import Muse2APIError
 from .services.container import Services
+from .services.push import watch_loop
 
 log = logging.getLogger("museai")
 
@@ -38,14 +40,25 @@ def create_app(settings: Settings | None = None, driver: MuseDriver | None = Non
             keepalive = asyncio.create_task(
                 keepalive_loop(services.pool, services.driver, settings.keepalive_interval)
             )
+
+        def captions() -> dict[str, str]:
+            try:
+                state = json.loads(settings.posts_file.read_text())
+            except (FileNotFoundError, json.JSONDecodeError):
+                return {}
+            return {name: e.get("caption", "") for name, e in state.items()}
+
+        watcher = asyncio.create_task(watch_loop(services.push, captions)) \
+            if settings.push_enabled else None
         log.info("museai %s ready (driver=%s)", __version__, services.driver.name)
         try:
             yield
         finally:
-            if keepalive:
-                keepalive.cancel()
-                with contextlib.suppress(asyncio.CancelledError):
-                    await keepalive
+            for loop in (keepalive, watcher):
+                if loop:
+                    loop.cancel()
+                    with contextlib.suppress(asyncio.CancelledError):
+                        await loop
             await services.tasks.shutdown()
             await services.driver.shutdown()
 

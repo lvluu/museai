@@ -21,13 +21,14 @@ Paths are relative to this folder (`.claude/skills/scenic-drop-reel/`). Renderin
 ## Steps
 1. **Pick**: `python3 scripts/pick.py --place "Positano" --scope place --setting coast --country italy > plan.json`
    - `--scope` = what the user named (country | region | city | place); `--setting` coast island mountain lake city oldtown nature desert snow; `--country` picks the local instruments for `local-flavour`; `--id` forces a template.
-   - The plan lists per shot: beats, camera `move`, `light`, transition; plus `intro`, `text`, `music`, `fast`.
+   - The plan lists per shot: beats, render `duration`, camera `move`, `light`, transition; plus `seconds`, `intro`, `text`, `music`, `fast`.
+   - **Length is random**, not a fixed 14-15 s: each reel draws a length suited to the template's pace (slow holds 12-30 s and may hold each shot 6-8 beats, mid 10-24 s, one-beat bursts 8-18 s, capped by 12 shots and 26 s without ACE-Step); the shot count follows. A template's `"length": [min, max]` overrides the range; `--length 20` or `--n 6` forces it when the user asks.
 2. **Plan the shots** (`len(plan.shots)`): real, recognisable subjects of the place, each a different subject type, alternating wide/close, best view last. For a single place, shoot it from different angles/details (`one-place-angles`). For `number`/`label`/`time` text templates also write the per-shot labels.
 3. **Render all shots at once**, each in its own background call:
    ```bash
-   LIGHT="<shot.light>" scripts/shot "PLACE: Positano, Amalfi Coast, Italy: pastel houses stacked down the cliff to the beach. DRONE: <shot.move>, village centred." ~/Movies/museai/reel-<slug>/s1.mp4
+   DURATION=<shot.duration> LIGHT="<shot.light>" scripts/shot "PLACE: Positano, Amalfi Coast, Italy: pastel houses stacked down the cliff to the beach. DRONE: <shot.move>, village centred." ~/Movies/museai/reel-<slug>/s1.mp4
    ```
-   Add `FAST=1` when `plan.fast` is true (FPV templates). 9:16, 6 s, `prompt/drone.txt` with `{LIGHT}`/`{PACE}` filled in. Wait with `pgrep -f "bash scripts/shot"`. Upstream 502/503 → retry later.
+   Add `FAST=1` when `plan.fast` is true (FPV templates). 9:16, `shot.duration` s (6-10, long enough for a held window), `prompt/drone.txt` with `{LIGHT}`/`{PACE}` filled in. Wait with `pgrep -f "bash scripts/shot"`. Upstream 502/503 → retry later.
 4. **Music** (in parallel with the renders):
    ```bash
    uv run --no-project scripts/music.py --plan plan.json --out ~/Movies/museai/reel-<slug>/track.m4a
@@ -38,12 +39,12 @@ Paths are relative to this folder (`.claude/skills/scenic-drop-reel/`). Renderin
 6. **Compose**:
    ```bash
    uv run --no-project --python 3.12 --with pillow --with fonttools python scripts/compose.py \
-     --template <plan.template> --place "Positano" [--flag 🇮🇹] [--labels "A|B|…"] [--coords "40.63° N  14.48° E"] \
+     --plan plan.json --place "Positano" [--flag 🇮🇹] [--labels "A|B|…"] [--coords "40.63° N  14.48° E"] \
      --music track.m4a --out reel.mp4 s1.mp4 s2.mp4@2.0 s3.mp4 …
    ```
-   `clip@2.0` forces a window start; default `@auto`. Warning `moves fast even at its calmest` → re-render slower. Prints cut times, transitions and the windows used. Without a beat file pass `--bpm` (and `--drop`).
+   `--plan` cuts each shot on its planned beats (the template's pattern only when no plan is passed). `clip@2.0` forces a window start; default `@auto`. Warning `moves fast even at its calmest` → re-render slower. Prints cut times, transitions and the windows used. Without a beat file pass `--bpm` (and `--drop`).
 7. **Verify**: contact sheet (`ffmpeg -i reel.mp4 -vf "fps=2,scale=180:-1,tile=8x4" -frames:v 1 sheet.png`): intro text readable, every shot sunny/sharp/no muse text, transitions on beats, reel length ≈ music length.
-8. **Deliver** with `../muse-video/scripts/deliver.sh` (preview first, `FINAL=1` after the user accepts; one file on the Desktop). Always pass a posting caption with `CAPTION_FILE=caption.txt`: a hook naming the place and the reel length, one line listing the places shown, a short call to action, then 3-6 hashtags. Without it, the reel lands on the dashboard's "Ready to post" queue with an empty caption (reel-it and reel-switzerland, 2026-10-28).
+8. **Deliver** with `../muse-video/scripts/deliver.sh` (preview first, `FINAL=1` after the user accepts; one file on the Desktop). Always pass a posting caption with `CAPTION_FILE=caption.txt`: a scroll-stopping first line (curiosity, surprise or a bold claim: "This beach looks fake… but it's real", "Nobody told me Italy looked like this", "POV: you finally made it to …"; never the reel length or "X in N seconds", which reads like a label), one line naming the place and listing the places shown, a short call to action, then 3-6 hashtags. Without it, the reel lands on the dashboard's "Ready to post" queue with an empty caption (reel-it and reel-switzerland, 2026-10-28).
 
 ## Music engines
 - **ace** (default when installed): ACE-Step sings the template's lyrics (Apache-2.0, ok for commercial posts). Install once (~8 GB, needs the user's OK):
