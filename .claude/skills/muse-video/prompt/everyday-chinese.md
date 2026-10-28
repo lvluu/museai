@@ -26,6 +26,7 @@ The brief's own header line stays in English for muse.
 - EP19 Exchanging a shirt (clothing store service counter, shop assistant; first two-shot still had the man in profile -> clip A OFF GAZE; only a still asking for faces "turned only about 30 degrees toward each other, like a TV presenter pair" gave him a three-quarter face)
 - EP20 Changing plans on a rainy day (apartment lounge, rain at the window; man stayed in profile in all 4 clip-A takes)
 - EP21 Borrowing a phone charger (study lounge, both standing, no phone or cable on screen)
+- EP25 Dropping off laundry (laundry shop counter, clerk, folded coat on the counter; 72-syllable fixed script runs ~18 s at natural pace, not 30 s; clip A came back 704x1248 twice with both faces in profile; ending clip: man turned to the lens in 2 of 3 takes)
 
 ## Template
 
