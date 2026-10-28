@@ -184,7 +184,8 @@ def ov_bigword(w, h, text):
     img, d = canvas(w, h)
     t = text.upper()
     f, sp = fit(d, t, "futura", round(w * 0.24), w * 0.9, spacing_ratio=0.12)
-    line(d, img, (w / 2, h * 0.53), t, f, spacing=sp)
+    # upper band: shots centre their subject, so a mid-frame word hid the hook (Svalbard bear, 2026-10-28)
+    line(d, img, (w / 2, h * 0.2), t, f, spacing=sp)
     return img
 
 
