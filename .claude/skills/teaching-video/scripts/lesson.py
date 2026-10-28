@@ -155,9 +155,10 @@ def zh_pinyin(zh, lesson):
 
 FRAMING = {
     "9x16": ("9:16", "Vertical 9:16 frame. She stands centred, framed from the waist up, facing the lens. Her head sits in "
-             "the upper third (top of her hair about 8 % below the frame top). Her hands gesture at chest height and never "
-             "drop below the middle of the frame. The lower 45 % of the frame shows only her still torso and the softly "
-             "blurred room; nothing moves there (text is added there later)."),
+             "the upper third (top of her hair about 8 % below the frame top). Her face, neck and shoulders stay in the "
+             "upper half of the frame and are never covered by her hands. Her hands stay low, resting loosely together "
+             "at her waist near the bottom edge, with only small, calm gestures there (text is added over her chest "
+             "later)."),
     "16x9": ("16:9", "Horizontal 16:9 frame. She stands in the LEFT third of the frame, her face about 25 % from the left "
              "edge, framed from the waist up, body turned very slightly toward frame right, eyes on the lens. The RIGHT 55 % "
              "of the frame is a calm, softly blurred bright wall with nothing on it (text is added there later). She never "
@@ -213,7 +214,9 @@ def clips(lesson, timeline, out, fmt, max_len=9.0):
                 lines.append(f"{r:4.1f}-{r + it['repeat']:4.1f} s  SILENT: lips closed, small nod and an inviting open palm, "
                              "letting the viewer repeat. She says nothing.")
         last = g[-1]["end"] + (g[-1].get("repeat") or 0) - t0
-        prompt = (f"TEACHING CLIP - PART {n} of {len(groups)} ({lesson['grammar']}), 10 seconds\n\n"
+        first = ("FIRST FRAME: The attached image is the exact first frame (still.sh). Keep her face, hair, outfit, "
+                 "framing, camera position, lighting and background exactly as in it.\n\n") if n == 1 else ""
+        prompt = (first + f"TEACHING CLIP - PART {n} of {len(groups)} ({lesson['grammar']}), 10 seconds\n\n"
                   f"CAST: {lesson['teacher']['cast']} Keep her face, hairstyle, outfit and voice identical in every part.\n\n"
                   f"SETTING: {lesson['teacher']['set']}\n\n"
                   f"FRAMING: {framing}\n\n"
