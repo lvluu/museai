@@ -64,6 +64,7 @@ HOT_BUBBLE_LIMIT = 16
 # to grow an attachment, then ask in the same thread for the file, up to MEDIA_NUDGES times.
 TEXT_ONLY_GRACE = 90.0
 MEDIA_NUDGES = 2
+REVEAL_WAIT = 3.0
 # Short final replies meaning muse's generator lost the clip ("Video not found"), not a refusal.
 LOST_MEDIA = re.compile(r"\b(not found|went wrong|failed|error)\b", re.I)
 
@@ -607,7 +608,7 @@ class BrowserDriver(MuseDriver):
         base_count = base.get("agentCount", 0)
         started = time.monotonic()
         text_only_since: float | None = None
-        last_text, nudges = "", 0
+        last_text, nudges, revealed = "", 0, False
         while time.monotonic() - started < timeout:
             if cancel and cancel.is_set():
                 raise asyncio.CancelledError
@@ -632,6 +633,14 @@ class BrowserDriver(MuseDriver):
                 continue
             if time.monotonic() - text_only_since < TEXT_ONLY_GRACE:
                 continue
+            if not revealed:
+                # Mount any attachment still showing only its poster, then look again.
+                revealed = True
+                with contextlib.suppress(CDPError):
+                    found = await tab.session.evaluate(dom.REVEAL_MEDIA)
+                    log.info("%s reply has no %s; attachments: %s", tab.account_id, kind, found)
+                await asyncio.sleep(REVEAL_WAIT)
+                continue
             if nudges >= MEDIA_NUDGES:
                 if LOST_MEDIA.search(text) and len(text) < 200:
                     raise UpstreamMediaLost(f"upstream lost the {kind}: {text[:200]}")
@@ -646,7 +655,7 @@ class BrowserDriver(MuseDriver):
                 MEDIA_NUDGES,
             )
             base_count = st.get("agentCount", 0)
-            text_only_since, last_text = None, ""
+            text_only_since, last_text, revealed = None, "", False
             await self._send(tab, self._nudge_prompt(kind))
         raise GenerationTimeout(
             f"{kind} generation timed out after {timeout:.0f}s; raise MUSE2API_{kind.upper()}_TIMEOUT"

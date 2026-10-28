@@ -66,6 +66,11 @@ class Settings(BaseSettings):
     first_token_timeout: float = 45.0
     image_timeout: float = 240.0
     video_timeout: float = 1500.0  # 30-40 s videos often take 10+ min
+    # A clip of known length gets base + per_second * duration (capped by video_timeout):
+    # 6-10 s clips finish in 2-4 min (p95 638 s for 10 s), so a stuck one fails over after
+    # ~16 min instead of holding its account for 25.
+    video_timeout_base: float = 360.0
+    video_timeout_per_second: float = 60.0
 
     # --- account pool ---
     pool_strategy: PoolStrategyName = "affinity"

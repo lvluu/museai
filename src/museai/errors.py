@@ -62,6 +62,8 @@ class UpstreamError(Muse2APIError):
     error_type = "upstream_error"
     code = "upstream_error"
     retryable: bool = True
+    # False when the account is healthy and only this job went wrong: fail over, no cooldown.
+    cools_account: bool = True
 
 
 class UpstreamAuthError(UpstreamError):
@@ -84,9 +86,9 @@ class UpstreamTimeout(UpstreamError):
 
 class GenerationTimeout(UpstreamTimeout):
     """An image/video job ran past its deadline. The account is healthy, so it is not cooled
-    down, and the job is not retried on another account (it would just time out again)."""
+    down; the job moves to another account, where a stuck render often goes through."""
 
-    retryable = False
+    cools_account = False
 
 
 class UpstreamMediaLost(UpstreamError):
@@ -96,7 +98,9 @@ class UpstreamMediaLost(UpstreamError):
 
 
 class UpstreamRefused(UpstreamError):
-    """Upstream answered but did not produce what was asked (e.g. text instead of an image)."""
+    """Upstream answered but did not produce what was asked (e.g. text instead of an image).
+    muse's agent does this per conversation, not per account: a fresh thread on another
+    account usually renders the clip."""
 
     code = "upstream_refused"
-    retryable = False
+    cools_account = False

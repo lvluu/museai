@@ -35,6 +35,14 @@ def _task_view(task: Task) -> dict:
     }
 
 
+def video_timeout(settings, duration: int | None) -> float:
+    """Render deadline for one clip; unknown length gets the full ``video_timeout``."""
+    if not duration:
+        return settings.video_timeout
+    return min(settings.video_timeout,
+               settings.video_timeout_base + settings.video_timeout_per_second * duration)
+
+
 def submit_video(svc: Services, base: str, meta: dict, first_frame: InputImage | None,
                  session: str | None, reuse=None) -> Task:
     """Queue a video render; an identical request still in flight is joined, not rendered twice."""
@@ -42,7 +50,8 @@ def submit_video(svc: Services, base: str, meta: dict, first_frame: InputImage |
     async def runner(task: Task, progress) -> dict:
         req = VideoRequest(prompt=meta["prompt"], model=meta["model"], size=meta["size"],
                            duration=meta["duration"], first_frame=first_frame,
-                           timeout=svc.settings.video_timeout, on_progress=progress)
+                           timeout=video_timeout(svc.settings, meta["duration"]),
+                           on_progress=progress)
         result = await svc.gateway.generate_video(
             req, on_account=lambda acc: task.assign(acc.id, acc.label), owner=task.session)
         name = svc.media.save(result.data, result.mime, prefix="vid")
