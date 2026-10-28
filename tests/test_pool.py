@@ -8,6 +8,8 @@ import pytest
 
 from museai.accounts import Account, AccountPool, AccountStatus, JsonAccountStore
 from museai.api.routes.dashboard import usage_estimate
+from museai.api.routes.videos import video_timeout
+from museai.config import Settings
 from museai.drivers.base import ChatRequest, VideoRequest
 from museai.drivers.mock import MockDriver
 from museai.errors import (
@@ -16,6 +18,7 @@ from museai.errors import (
     UpstreamAuthError,
     UpstreamError,
     UpstreamQuotaError,
+    UpstreamRefused,
 )
 from museai.services.gateway import Gateway
 from museai.services.tasks import Task, TaskStatus
@@ -131,7 +134,7 @@ class _SlowVideoDriver(MockDriver):
         raise GenerationTimeout("video generation timed out")
 
 
-async def test_generation_timeout_keeps_account_and_does_not_fail_over(tmp_path):
+async def test_generation_timeout_keeps_account_and_raises_with_no_other_account(tmp_path):
     pool = await _pool(tmp_path, n=1)
     driver = _SlowVideoDriver()
     gw = Gateway(pool, driver, max_failover=2)
@@ -140,6 +143,41 @@ async def test_generation_timeout_keeps_account_and_does_not_fail_over(tmp_path)
     assert driver.calls == 1
     assert pool.get("a0").status == AccountStatus.ACTIVE
     assert (await pool.acquire()).id == "a0"
+
+
+class _OneBadVideoDriver(MockDriver):
+    requires_account = True
+
+    def __init__(self, exc: Exception):
+        super().__init__(delay=0)
+        self.exc, self.accounts = exc, []
+
+    async def generate_video(self, account, req):
+        self.accounts.append(account.id)
+        if len(self.accounts) == 1:
+            raise self.exc
+        return await super().generate_video(account, req)
+
+
+@pytest.mark.parametrize(
+    "exc", [GenerationTimeout("timed out"), UpstreamRefused("text only: Done, attached below")]
+)
+async def test_stuck_or_refused_video_moves_to_another_account_without_cooldown(tmp_path, exc):
+    pool = await _pool(tmp_path, n=2, strategy="round_robin")
+    driver = _OneBadVideoDriver(exc)
+    gw = Gateway(pool, driver, max_failover=2)
+    result = await gw.generate_video(VideoRequest(prompt="p", model="m"))
+    assert result.data
+    assert len(set(driver.accounts)) == 2
+    assert all(a.status == AccountStatus.ACTIVE for a in pool.all())
+
+
+def test_video_timeout_scales_with_clip_length():
+    s = Settings(video_timeout=1500, video_timeout_base=360, video_timeout_per_second=60)
+    assert video_timeout(s, 6) == 720
+    assert video_timeout(s, 10) == 960
+    assert video_timeout(s, 30) == 1500
+    assert video_timeout(s, None) == 1500
 
 
 class _HeldVideoDriver(MockDriver):

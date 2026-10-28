@@ -7,7 +7,7 @@ from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from typing import TypeVar
 
-from ..accounts.model import Account
+from ..accounts.model import Account, AccountStatus
 from ..accounts.pool import AccountPool, Lease
 from ..drivers.base import ChatRequest, ImageRequest, MediaResult, MuseDriver, VideoRequest
 from ..errors import UpstreamError
@@ -46,8 +46,16 @@ class Gateway:
                                    owner=owner) as lease:
             yield lease
 
-    def _should_retry(self, exc: UpstreamError, attempt: int) -> bool:
-        return exc.retryable and attempt < self.max_failover
+    def _should_retry(self, exc: UpstreamError, attempt: int, tried: list[str]) -> bool:
+        """Fail over only to an account not tried yet; with none left the caller gets
+        the upstream error instead of "no usable account"."""
+        if not exc.retryable or attempt >= self.max_failover:
+            return False
+        accounts = self.pool.all()
+        return not accounts or any(
+            a.enabled and a.status != AccountStatus.INVALID and a.id not in tried
+            for a in accounts
+        )
 
     async def chat_stream(self, req: ChatRequest) -> AsyncIterator[str]:
         tried: list[str] = []
@@ -61,11 +69,11 @@ class Gateway:
                     return
                 except UpstreamError as exc:
                     lease.fail(exc)
+                    tried.append(lease.account.id)
                     # Once text reached the client we cannot transparently switch accounts.
-                    if emitted or not self._should_retry(exc, attempt):
+                    if emitted or not self._should_retry(exc, attempt, tried):
                         raise
                     log.warning("chat failed on %s (%s), failing over", lease.account.id, exc)
-                    tried.append(lease.account.id)
 
     async def chat_complete(self, req: ChatRequest) -> str:
         return await self._run(
@@ -89,10 +97,10 @@ class Gateway:
                     return await fn(lease.account)
                 except UpstreamError as exc:
                     lease.fail(exc)
-                    if not self._should_retry(exc, attempt):
+                    tried.append(lease.account.id)
+                    if not self._should_retry(exc, attempt, tried):
                         raise
                     log.warning("call failed on %s (%s), failing over", lease.account.id, exc)
-                    tried.append(lease.account.id)
         raise AssertionError("unreachable")
 
     async def generate_image(self, req: ImageRequest) -> list[MediaResult]:

@@ -69,6 +69,17 @@ CHAT_STATE = f"""(() => {{
 }})()"""
 
 
+# A video attachment shows only a poster until its <video> mounts in view, so a reply that
+# says "attached below" can read as text-only. Scroll each attachment into view to mount
+# it, and report what is there for the log.
+REVEAL_MEDIA = f"""(() => [...document.querySelectorAll({q(ATTACHMENT)})].map(a => {{
+  a.scrollIntoView({{ block: 'center' }});
+  const v = a.querySelector('video');
+  return {{ tid: a.getAttribute('data-testid') || '', video: !!v,
+            src: v ? (v.currentSrc || v.src || '').slice(0, 24) : '' }};
+}}))()"""
+
+
 def fill_input(text: str) -> str:
     """Set the textarea value through the native setter so React picks it up."""
     return f"""(() => {{

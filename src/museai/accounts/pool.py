@@ -268,7 +268,7 @@ class AccountPool:
             acc.cooldown_until = time.time() + max(self.cooldown, 3600)
             acc.quota_hits = [*acc.quota_hits, time.time()][-QUOTA_HISTORY:]
             log.warning("account %s out of quota, cooling down", acc.id)
-        elif getattr(error, "retryable", False):
+        elif getattr(error, "retryable", False) and getattr(error, "cools_account", True):
             acc.status = AccountStatus.COOLING
             acc.cooldown_until = time.time() + self.cooldown
 
