@@ -37,9 +37,13 @@ EOF
   rm "$out/still.json"
   exit 0
 fi
-ffmpeg -v error -y -i "$pick" -vf "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080" "$out/first_16x9.png"
-# 9:16 window of the full still height around the face
 read -r w h < <(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x "$pick" | tr x ' ')
+# 16:9: muse returns wider stills (2240x1120); a centre crop cut the teacher's shoulder off, so keep
+# her face about 25 % from the left edge
+sw=$(( (w * 1080 / h + 1) / 2 * 2 ))
+fx=$(python3 -c "print(max(0, min($sw - 1920, int($sw * ${FACE_X:-0.25} - 480))))")
+ffmpeg -v error -y -i "$pick" -vf "scale=$sw:1080,crop=1920:1080:$fx:0" "$out/first_16x9.png"
+# 9:16 window of the full still height around the face
 cw=$(( h * 9 / 16 / 2 * 2 ))
 cx=$(python3 -c "print(max(0, min($w - $cw, int($w * ${FACE_X:-0.25} - $cw / 2))))")
 ffmpeg -v error -y -i "$pick" -vf "crop=$cw:$h:$cx:0" "$out/crop_9x16.png"

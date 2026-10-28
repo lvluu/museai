@@ -11,7 +11,9 @@ One voice for the whole lesson, made once and reused by both formats, so the nar
            muse's own voice reads Chinese inside Vietnamese as Hán-Việt or with wrong tones (muse-video
            skill, hientang 2026-10-28), so every word is dubbed.
   natural  what keeps it from sounding like TTS: whole phrases, never word-by-word; rate left near the
-           voice's own (RATE_VI +10 %: HoaiMy at +0 % measured 3.8 syl/s, slower than a brisk teacher; RATE_ZH_SLOW -30 % for example sentences (Xiaoxiao at -20 % still read 4 syl/s, natural speed, not a learner pace), RATE_ZH -5 % for a word
+           voice's own, at an everyday talking pace (RATE_VI +25 %: HoaiMy at +0 % measured 3.8 syl/s and +10 % still
+           sounded slow to the user, 2026-10-28; RATE_ZH_SLOW -15 % for the learner read of an example, clearly slower
+           but not dragged (-30 % was heard as too slow); RATE_ZH +5 % for natural reads and a word
            inside a Vietnamese sentence), never pitch-shifted or time-stretched (muse-video EP08: the user
            heard it as pitched and fake); "!" read as "." (the voice shouts it); gaps between phrases vary
            like speech (shorter inside a sentence, longer between ideas, +-12 % jitter, never one fixed gap);
@@ -44,9 +46,9 @@ import soundfile as sf
 SR = 48000
 VOICE_VI = os.environ.get("VOICE_VI", "vi-VN-HoaiMyNeural")
 VOICE_ZH = os.environ.get("VOICE_ZH", "zh-CN-XiaoxiaoNeural")
-RATE_VI = os.environ.get("RATE_VI", "+10%")
-RATE_ZH_SLOW = os.environ.get("RATE_ZH_SLOW", "-30%")
-RATE_ZH = os.environ.get("RATE_ZH", "-5%")
+RATE_VI = os.environ.get("RATE_VI", "+25%")
+RATE_ZH_SLOW = os.environ.get("RATE_ZH_SLOW", "-15%")
+RATE_ZH = os.environ.get("RATE_ZH", "+5%")
 BREATH = os.environ.get("BREATH", "1") != "0"
 TARGETS = {"hook": 8, "explain": 30, "demo": 80, "fix": 100, "challenge": 113, "reinforce": 120}  # section ends
 PHRASE_CHAIN = ("highpass=f=70,equalizer=f=180:t=q:w=1:g=1.5,equalizer=f=3000:t=q:w=1.5:g=-1.5,"
@@ -79,16 +81,22 @@ def tts_text(lang, text):
 
 async def _say(text, voice, rate, path):
     import edge_tts
-    for attempt in range(12):  # HoaiMy intermittently returns NoAudioReceived for text that works next time
-        try:
-            await edge_tts.Communicate(text, voice, rate=rate).save(str(path))
-            if path.exists() and path.stat().st_size > 1000:
-                return
-        except Exception as e:  # noqa: BLE001 - edge_tts raises several types for the same flake
-            err = e
-        path.unlink(missing_ok=True)
-        await asyncio.sleep(1 + attempt)
-    sys.exit(f"edge-tts failed 12 times for {voice}: {text} ({err if 'err' in dir() else 'empty audio'})")
+    # HoaiMy flakes with NoAudioReceived, and above +10 % some phrases fail at one exact rate every time
+    # ("Nghe quen đúng không?" at +20 %, fine at +15 %; 2026-10-28), so after 3 tries step to a rate 1-3 % off
+    r0 = int(rate.rstrip("%"))
+    for r in (r0, r0 - 1, r0 + 1, r0 - 2, r0 + 2, r0 - 3, r0 + 3):
+        for attempt in range(3):
+            try:
+                await edge_tts.Communicate(text, voice, rate=f"{r:+d}%").save(str(path))
+                if path.exists() and path.stat().st_size > 1000:
+                    if r != r0:
+                        print(f"  note: {voice} read at {r:+d}% (edge-tts gave no audio at {rate}): {text}")
+                    return
+            except Exception as e:  # noqa: BLE001 - edge_tts raises several types for the same flake
+                err = e
+            path.unlink(missing_ok=True)
+            await asyncio.sleep(1 + attempt)
+    sys.exit(f"edge-tts failed at {rate} +-3 % for {voice}: {text} ({err if 'err' in dir() else 'empty audio'})")
 
 
 def load(path):
@@ -143,17 +151,17 @@ def gap(prev, it, new_beat, new_section):
     if prev.get("repeat"):
         return prev["repeat"]
     if new_section:
-        g = 0.75
+        g = 0.6
     elif new_beat:
-        g = 0.5
+        g = 0.4
     elif prev["kind"] == "pause" or it["kind"] == "pause":
         g = 0.25
     elif it.get("inline") or prev.get("inline"):
         g = 0.12  # a Chinese word inside a Vietnamese sentence
     elif prev["text"].rstrip()[-1:] in ".?。？:：":
-        g = 0.38
+        g = 0.3
     else:
-        g = 0.22
+        g = 0.18
     return g * jitter(it["id"])
 
 
