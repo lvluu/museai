@@ -19,7 +19,8 @@ from ...errors import InvalidRequest, NotFound
 from ...services.container import Services
 from ...services.tasks import Task, TaskStatus
 from ...upstream import muse
-from ..deps import get_services, require_admin_key
+from ..deps import get_services, public_base, require_admin_key
+from .videos import submit_video
 
 router = APIRouter(tags=["dashboard"])
 
@@ -97,6 +98,37 @@ async def rename_account(account_id: str, body: dict, svc: Services = Depends(ge
     acc.label = label[:100]
     await svc.pool.upsert(acc)
     return {"account": acc.public()}
+
+
+def _video(svc: Services, task_id: str) -> Task:
+    task = svc.tasks.get(task_id)
+    if task is None or task.kind != "video":
+        raise NotFound(f"video task '{task_id}' not found")
+    return task
+
+
+@router.post("/dashboard/videos/{task_id}/cancel", include_in_schema=False,
+             dependencies=[Depends(_local_or_admin)])
+async def cancel_video(task_id: str, svc: Services = Depends(get_services)) -> dict:
+    """Stop a waiting or rendering video; its account is free for the next job."""
+    _video(svc, task_id)
+    return {"cancelled": await svc.tasks.cancel(task_id)}
+
+
+@router.post("/dashboard/videos/{task_id}/retry", include_in_schema=False,
+             dependencies=[Depends(_local_or_admin)])
+async def retry_video(task_id: str, request: Request, svc: Services = Depends(get_services)) -> dict:
+    """Render a failed or cancelled video again with the same request.
+
+    The same request still in flight is joined instead, so a double click never renders twice.
+    """
+    old = _video(svc, task_id)
+    if not old.finished or old.status == TaskStatus.SUCCEEDED:
+        raise InvalidRequest("only a failed or cancelled video can be retried")
+    if old.request.get("has_first_frame"):
+        raise InvalidRequest("this video started from an image that is not stored; resend it from the client")
+    task = submit_video(svc, public_base(request), old.request, None, old.session)
+    return {"id": task.id}
 
 
 @router.get("/dashboard", include_in_schema=False)

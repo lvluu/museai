@@ -35,17 +35,13 @@ def _task_view(task: Task) -> dict:
     }
 
 
-@router.post("/v1/videos")
-async def create_video(body: VideoCreateRequest, request: Request,
-                       svc: Services = Depends(get_services)) -> dict:
-    spec = resolve_model(body.model, "video")
-    frame_ref = body.image or body.input_reference
-    first_frame = InputImage(*(await load_image_ref(frame_ref))) if frame_ref else None
-    base = public_base(request)
+def submit_video(svc: Services, base: str, meta: dict, first_frame: InputImage | None,
+                 session: str | None, reuse=None) -> Task:
+    """Queue a video render; an identical request still in flight is joined, not rendered twice."""
 
     async def runner(task: Task, progress) -> dict:
-        req = VideoRequest(prompt=body.prompt, model=spec.id, size=body.size,
-                           duration=body.duration or body.seconds, first_frame=first_frame,
+        req = VideoRequest(prompt=meta["prompt"], model=meta["model"], size=meta["size"],
+                           duration=meta["duration"], first_frame=first_frame,
                            timeout=svc.settings.video_timeout, on_progress=progress)
         result = await svc.gateway.generate_video(
             req, on_account=lambda acc: task.assign(acc.id, acc.label), owner=task.session)
@@ -53,11 +49,21 @@ async def create_video(body: VideoCreateRequest, request: Request,
         return {"url": f"{base}/v1/media/{name}", "mime": result.mime,
                 "width": result.width, "height": result.height}
 
-    request_meta = {"model": spec.id, "prompt": body.prompt, "size": body.size,
-                    "duration": body.duration or body.seconds, "has_first_frame": bool(first_frame)}
-    key = hashlib.sha256(json.dumps(request_meta, sort_keys=True).encode())
+    key = hashlib.sha256(json.dumps(meta, sort_keys=True).encode())
     if first_frame:
         key.update(first_frame.data)
+    return svc.tasks.submit("video", meta, runner, dedupe_key=key.hexdigest(),
+                            session=session, reuse=reuse)
+
+
+@router.post("/v1/videos")
+async def create_video(body: VideoCreateRequest, request: Request,
+                       svc: Services = Depends(get_services)) -> dict:
+    spec = resolve_model(body.model, "video")
+    frame_ref = body.image or body.input_reference
+    first_frame = InputImage(*(await load_image_ref(frame_ref))) if frame_ref else None
+    request_meta = {"model": spec.id, "prompt": body.prompt, "size": body.size,
+                    "duration": body.duration or body.seconds, "has_first_frame": bool(first_frame)}
 
     def reuse(done: Task) -> bool:
         # X-Muse-Retake asks for a new take of the same clip on purpose.
@@ -69,8 +75,8 @@ async def create_video(body: VideoCreateRequest, request: Request,
             return False
         return True
 
-    task = svc.tasks.submit("video", request_meta, runner, dedupe_key=key.hexdigest(),
-                            session=request.headers.get("x-muse-session") or None, reuse=reuse)
+    task = submit_video(svc, public_base(request), request_meta, first_frame,
+                        request.headers.get("x-muse-session") or None, reuse)
     return _task_view(task)
 
 

@@ -226,3 +226,31 @@ def test_posting_queue(client, admin, settings, monkeypatch):
         r = client.post("/dashboard/posts/ep1.mp4", headers=admin, json={"platform": p}).json()
     assert r["trashed"] and trashed == ["ep1.mp4"]
     assert client.get("/dashboard/posts", headers=admin).json()["videos"] == []
+
+
+def test_dashboard_cancel_and_retry(settings, auth, admin):
+    from fastapi.testclient import TestClient
+
+    from museai.app import create_app
+    from museai.drivers.mock import MockDriver
+
+    with TestClient(create_app(settings, MockDriver(delay=0.5))) as c:
+        def status(task_id):
+            for _ in range(100):
+                task = c.get(f"/v1/videos/{task_id}", headers=auth).json()
+                if task["status"] not in ("queued", "running"):
+                    return task["status"]
+                time.sleep(0.02)
+            return task["status"]
+
+        task_id = c.post("/v1/videos", headers=auth, json={"prompt": "waves"}).json()["id"]
+        url = f"/dashboard/videos/{task_id}"
+        assert c.post(url + "/retry", headers=admin).status_code == 400  # still rendering
+        assert c.post(url + "/cancel", headers=admin).json() == {"cancelled": True}
+        assert status(task_id) == "cancelled"
+
+        again = c.post(url + "/retry", headers=admin).json()["id"]
+        assert again != task_id
+        # A second click while the retry renders joins it instead of rendering twice.
+        assert c.post(url + "/retry", headers=admin).json()["id"] == again
+        assert c.post("/dashboard/videos/nope/cancel", headers=admin).status_code == 404
