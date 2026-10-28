@@ -8,6 +8,7 @@
 # render that came out crisper and less painterly than 1080p -> 4x (and 4x faster: ~10 s per
 # 9:16 frame on an M1 Pro, ~1 h for 15 s). A temporal-only atadenoise then calms the shimmer
 # the per-frame detail adds on still buildings (frame diff 1.44 -> 1.04, source 0.69).
+# Tile 1024 (ESRGAN_TILE): 9.8 s per frame vs 11.8 s with the auto tile on an M1 Pro (Goloritze, 2026-10-27).
 # Without the binary (or ESRGAN=0) it falls back to lanczos + light unsharp and says so.
 # Audio is copied untouched and the frame count does not change, so lip sync and captions stay.
 # A file already 4K is copied as it is.
@@ -26,7 +27,7 @@ if [ "${ESRGAN:-1}" != 0 ] && [ -x "$esr/realesrgan-ncnn-vulkan" ]; then
   fps=$(ffprobe -v error -select_streams v:0 -show_entries stream=r_frame_rate -of csv=p=0 "$in")
   ffmpeg -v error -i "$in" -vf "scale=$((W/4)):$((H/4)):flags=area" "$tmp/q/%05d.png"
   echo "ESRGAN $(ls "$tmp/q" | wc -l | tr -d ' ') frames (~10 s each)..."
-  "$esr/realesrgan-ncnn-vulkan" -i "$tmp/q" -o "$tmp/x4" -n realesrgan-x4plus -s 4 -f png -m "$esr/models" >/dev/null 2>&1
+  "$esr/realesrgan-ncnn-vulkan" -i "$tmp/q" -o "$tmp/x4" -n realesrgan-x4plus -s 4 -f png -m "$esr/models" -t "${ESRGAN_TILE:-1024}" >/dev/null 2>&1
   ffmpeg -v error -y -framerate "$fps" -i "$tmp/x4/%05d.png" -i "$in" -map 0:v -map 1:a? \
     -vf "atadenoise=0a=0.04:0b=0.08:s=9,setsar=1" "${enc[@]}" -c:a copy "$out"
   how="Real-ESRGAN"

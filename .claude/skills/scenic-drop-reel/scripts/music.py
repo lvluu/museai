@@ -2,20 +2,26 @@
 # requires-python = ">=3.10,<3.13"
 # dependencies = ["torch", "transformers>=4.40", "librosa", "soundfile", "numpy", "scipy"]
 # ///
-"""Generate an AI music track shaped like the reference reel's: filtered riser under the countdown,
-beat drop at --intro, steady 100 BPM body for --shots cuts of 2 beats.
+"""Generate the music for a reel from a pick.py plan: the template's BPM, tags and lyrics, cut to
+exactly the reel's beats, plus a beat file (<out>.beats.json) compose.py cuts on.
 
 Usage:
-  uv run --no-project scripts/music.py "uplifting summer tropical house, bright plucks, warm bass" \
-      --out assets/music-<slug>.m4a [--seed 7] [--model facebook/musicgen-medium]
+  python3 scripts/pick.py --place "Amalfi Coast" ... > plan.json
+  uv run --no-project scripts/music.py --plan plan.json --out track.m4a [--engine ace|musicgen] [--seed 7]
+  uv run --no-project scripts/music.py --style "tropical house, marimba" --bpm 100 --intro-beats 5 \
+      --body-beats 15 --out track.m4a          # without a plan
 
-Steps: MusicGen renders ~20 s from the style + "100 bpm" → librosa finds its tempo and beats →
-time-stretched to exactly 100 BPM → body = the loudest, cleanest beat-aligned stretch, starting
-on a beat → intro = the 3.233 s before it, low-passed with a 300→7000 Hz sweep, quieter, plus a
-rising white-noise whoosh that stops dead on the drop → body fades over its last 0.3 s → tanh drive to the reference's loudness.
-The MusicGen weights are CC-BY-NC 4.0: fine for personal reels, not for paid/commercial posts.
+Engines: ace = ACE-Step (sings the template's lyrics; Apache-2.0; needs the install in SKILL.md, run
+through its own venv by ace_song.py), musicgen = MusicGen instrumental (CC-BY-NC 4.0 weights:
+personal reels only). ace is used when installed, else musicgen.
+Steps: render ~2x the needed length → librosa finds the tempo → time-stretched to exactly the BPM →
+body = the loudest, cleanest beat-aligned stretch → card templates (countdown / black-title /
+coords) get an intro of intro.beats before the body: low-passed 300→7000 Hz sweep, -14→-4 dB swell
+and a noise whoosh that stops dead on the drop → tanh drive to phone loudness (-13 dB mean).
 """
 import argparse
+import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -27,13 +33,25 @@ import soundfile as sf
 import torch
 from transformers import AutoProcessor, MusicgenForConditionalGeneration
 
-BPM = 100.0
+SCRIPTS = Path(__file__).resolve().parent
+ACE_PY = Path(os.environ.get("ACE_STEP_HOME", Path.home() / ".local/share/ace-step")) / "venv/bin/python"
+CARD_INTROS = ("countdown", "black-title", "coords")
 
 
-def generate(style, seconds, model_id, seed):
+def generate_ace(tags, lyrics, bpm, seconds, seed, wav):
+    with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as f:
+        f.write(lyrics or "[instrumental]")
+    subprocess.run([str(ACE_PY), str(SCRIPTS / "ace_song.py"), "--tags", f"{tags}, {bpm:.0f} bpm",
+                    "--lyrics-file", f.name, "--duration", f"{seconds:.0f}", "--seed", str(seed), "--out", str(wav)],
+                   check=True)
+    return librosa.load(wav, sr=None, mono=True)
+
+
+def generate(style, bpm, seconds, model_id, seed):
     proc = AutoProcessor.from_pretrained(model_id)
     model = MusicgenForConditionalGeneration.from_pretrained(model_id)
-    text = [f"{style}, {BPM:.0f} bpm, steady four-on-the-floor beat, instrumental, no vocals"]
+    style = ", ".join(t for t in style.split(",") if "vocal" not in t and "sing" not in t)  # MusicGen can't sing
+    text = [f"{style}, {bpm:.0f} bpm, steady beat, catchy hook, instrumental, no vocals"]
     for dev in (["mps"] if torch.backends.mps.is_available() else []) + ["cpu"]:
         torch.manual_seed(seed)
         try:
@@ -58,37 +76,58 @@ def sweep_lowpass(y, sr, f0, f1, n_fft=2048, hop=256):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("style", help="genre/instruments/mood, e.g. 'uplifting tropical house, marimba, warm bass'")
+    ap.add_argument("--plan", help="pick.py output (JSON file): bpm, tags, lyrics, intro and shot beats")
+    ap.add_argument("--style", help="no plan: genre/instruments/mood")
+    ap.add_argument("--lyrics", default="", help="no plan: lyrics with [verse]/[chorus] tags (ace only)")
+    ap.add_argument("--bpm", type=float, default=100)
+    ap.add_argument("--intro-beats", type=int, default=0, help="riser length before the drop (0 = start on the beat)")
+    ap.add_argument("--body-beats", type=int, default=16)
     ap.add_argument("--out", required=True)
-    ap.add_argument("--intro", type=float, default=3.233)
-    ap.add_argument("--shots", type=int, default=7)
-    ap.add_argument("--shot", type=float, default=1.2)
-    ap.add_argument("--seconds", type=float, default=22)
+    ap.add_argument("--engine", choices=["ace", "musicgen"], help="default: ace if installed, else musicgen")
     ap.add_argument("--seed", type=int, default=7)
     ap.add_argument("--model", default="facebook/musicgen-medium")
-    ap.add_argument("--raw", help="reuse an already generated wav instead of running MusicGen")
+    ap.add_argument("--raw", help="reuse an already generated wav instead of rendering")
     a = ap.parse_args()
+
+    if a.plan:
+        plan = json.loads(Path(a.plan).read_text())
+        m = plan["music"]
+        style, lyrics, bpm = m["tags"], m.get("lyrics", ""), float(m["bpm"])
+        intro_beats = plan["intro"].get("beats", 0) if plan["intro"]["type"] in CARD_INTROS else 0
+        body_beats = sum(s["beats"] for s in plan["shots"]) + 1
+    else:
+        style, lyrics, bpm = a.style or ap.error("--plan or --style"), a.lyrics, a.bpm
+        intro_beats, body_beats = a.intro_beats, a.body_beats
+    beat = 60 / bpm
+    intro_s, body_s = intro_beats * beat, body_beats * beat
+    engine = a.engine or ("ace" if ACE_PY.exists() else "musicgen")
+    raw = Path(a.out).with_suffix(".raw.wav")
+    seconds = max(24, 2 * (intro_s + body_s))
 
     if a.raw:
         y, sr = librosa.load(a.raw, sr=None, mono=True)
+    elif engine == "ace":
+        y, sr = generate_ace(style, lyrics, bpm, max(seconds, 40), a.seed, raw)
     else:
-        y, sr = generate(a.style, a.seconds, a.model, a.seed)
-        sf.write(Path(a.out).with_suffix(".raw.wav"), y, sr)
+        if engine == "musicgen" and lyrics and not a.engine:
+            print("ACE-Step not installed: instrumental MusicGen track, lyrics skipped", file=sys.stderr)
+        y, sr = generate(style, bpm, min(seconds, 30), a.model, a.seed)
+        sf.write(raw, y, sr)
 
-    tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+    tempo, _ = librosa.beat.beat_track(y=y, sr=sr, start_bpm=bpm)
     tempo = float(np.atleast_1d(tempo)[0])
-    tempo = min((tempo * m for m in (0.5, 1, 2)), key=lambda t: abs(t - BPM))  # half/double-time guesses
-    y = librosa.effects.time_stretch(y, rate=BPM / tempo)
-    _, beats = librosa.beat.beat_track(y=y, sr=sr, start_bpm=BPM, tightness=400, units="samples")
+    tempo = min((tempo * k for k in (0.5, 1, 2)), key=lambda t: abs(t - bpm))  # half/double-time guesses
+    y = librosa.effects.time_stretch(y, rate=bpm / tempo)
+    _, beats = librosa.beat.beat_track(y=y, sr=sr, start_bpm=bpm, tightness=400, units="samples")
 
-    body_len = int((a.shots * a.shot + 0.3) * sr)
-    intro_len = int(a.intro * sr)
+    body_len = int((body_s + 0.3) * sr)
+    intro_len = int(intro_s * sr)
     hop = 512
     rms = librosa.feature.rms(y=y, hop_length=hop)[0]
     flat = librosa.feature.spectral_flatness(y=y, hop_length=hop)[0]
-    valid = [b for b in beats if b >= max(intro_len, 2 * sr) and b + body_len <= len(y)]
+    valid = [b for b in beats if b >= max(intro_len, int(0.5 * sr)) and b + body_len <= len(y)]
     if not valid:
-        sys.exit(f"generated track too short for intro {a.intro}s + body; raise --seconds")
+        sys.exit(f"generated track ({len(y) / sr:.1f}s) too short for {intro_s:.1f}s intro + {body_s:.1f}s body")
 
     def body_score(b):  # loud, even groove; MusicGen's noisy swells (high flatness) read as hiss on a phone
         i, j = b // hop, (b + body_len) // hop
@@ -96,21 +135,21 @@ def main():
         return rms[i:j].mean() - 0.5 * rms[i:j].std() - flat[i:j].mean() - flat[i:k].mean()
 
     b0 = max(valid, key=body_score)
-
     body = y[b0:b0 + body_len].copy()
     fade = int(0.3 * sr)
     body[-fade:] *= np.linspace(1, 0, fade)
 
-    intro = sweep_lowpass(y[b0 - intro_len:b0], sr, 300, 7000)
-    t = np.linspace(0, 1, intro_len)
-    intro *= 10 ** ((-14 + 10 * t) / 20)  # -14 dB → -4 dB swell
-    noise = np.random.default_rng(a.seed).standard_normal(intro_len)
-    noise = sweep_lowpass(noise, sr, 500, 12000) * 0.08 * t ** 3  # whoosh up to the drop
-    intro = intro + noise
-    intro[-int(0.02 * sr):] *= np.linspace(1, 0.2, int(0.02 * sr))  # tiny gap so the drop hits
-
-    track = np.concatenate([intro, body])
-    track = np.tanh(3 * track / np.abs(track).max()) / np.tanh(3)  # drive: phone-loud like the reference (-13 dB mean)
+    parts = [body]
+    if intro_len:
+        intro = sweep_lowpass(y[b0 - intro_len:b0], sr, 300, 7000)
+        t = np.linspace(0, 1, intro_len)
+        intro *= 10 ** ((-14 + 10 * t) / 20)  # -14 dB → -4 dB swell
+        noise = np.random.default_rng(a.seed).standard_normal(intro_len)
+        intro = intro + sweep_lowpass(noise, sr, 500, 12000) * 0.08 * t ** 3  # whoosh up to the drop
+        intro[-int(0.02 * sr):] *= np.linspace(1, 0.2, int(0.02 * sr))  # tiny gap so the drop hits
+        parts.insert(0, intro)
+    track = np.concatenate(parts)
+    track = np.tanh(3 * track / np.abs(track).max()) / np.tanh(3)  # drive: phone-loud like the reference
     track *= 10 ** (-1 / 20)
 
     with tempfile.TemporaryDirectory() as tmp:
@@ -118,7 +157,12 @@ def main():
         sf.write(wav, track, sr)
         subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(wav), "-ar", "44100", "-ac", "2",
                         "-c:a", "aac", "-b:a", "192k", a.out], check=True)
-    print(f"{a.out}: body from {b0 / sr:.2f}s of the raw track, tempo {tempo:.1f}→{BPM:.0f} BPM, drop {a.intro}s, length {len(track) / sr:.2f}s")
+    drop = intro_len / sr
+    grid = [round(drop + k * beat, 4) for k in range(-intro_beats, body_beats + 1)]
+    Path(a.out).with_suffix(".beats.json").write_text(json.dumps(
+        {"bpm": bpm, "beats": grid, "drop": round(drop, 4) if intro_len else None, "engine": engine}))
+    print(f"{a.out} ({engine}): body from {b0 / sr:.2f}s of the raw track, tempo {tempo:.1f}→{bpm:.0f} BPM, "
+          f"drop {drop:.3f}s, length {len(track) / sr:.2f}s")
 
 
 if __name__ == "__main__":
