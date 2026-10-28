@@ -19,6 +19,7 @@ The brief's own header line stays in English for muse.
 - EP13 Finding the subway (quiet street, passer-by giving directions)
 - EP14 At the pharmacy (neighbourhood pharmacy, pharmacist) - drafted
 - EP16 Getting a haircut (salon reception, stylist)
+- EP17 Buying bread (bakery, baker)
 
 ## Template
 
