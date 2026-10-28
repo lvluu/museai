@@ -91,8 +91,8 @@ def main():
     if scen and not fast:
         own_moves = random.sample(scen["moves"], len(scen["moves"]))
         own_trans = random.sample(scen["transitions"], len(scen["transitions"]))
-        moves = [m for pair in zip(moves * len(own_moves), own_moves) for m in pair]
-        transitions = [x for pair in zip(transitions * len(own_trans), own_trans) for x in pair]
+        moves = [m for pair in zip(moves * len(own_moves), own_moves, strict=False) for m in pair]
+        transitions = [x for pair in zip(transitions * len(own_trans), own_trans, strict=False) for x in pair]
 
     beat = 60 / music["bpm"]
     pattern = list(t["pattern"])
