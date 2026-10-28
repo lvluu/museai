@@ -26,13 +26,16 @@ import numpy as np
 EASE = float(os.environ.get("EASE", "1.5"))
 
 
-def frames(path):
+def frames(path, size=None):
+    """size (w, h): scale every frame to it; muse returned EP24 clip C at 704x1248 in a 1080x1920 chain."""
     cap = cv2.VideoCapture(path)
     out = []
     while True:
         ok, f = cap.read()
         if not ok:
             return out
+        if size and (f.shape[1], f.shape[0]) != size:
+            f = cv2.resize(f, size, interpolation=cv2.INTER_LANCZOS4)
         out.append(f)
 
 
@@ -66,7 +69,9 @@ out_dir, clips = sys.argv[1], sys.argv[2:]
 os.makedirs(out_dir, exist_ok=True)
 fps = cv2.VideoCapture(clips[0]).get(cv2.CAP_PROP_FPS)
 n = max(2, round(EASE * fps))
-data = [frames(c) for c in clips]
+first = cv2.VideoCapture(clips[0])
+size = (int(first.get(cv2.CAP_PROP_FRAME_WIDTH)), int(first.get(cv2.CAP_PROP_FRAME_HEIGHT)))
+data = [frames(c, size) for c in clips]
 ident = np.eye(3)
 plan = [{} for _ in clips]  # clip -> {frame index: 3x3 sampling matrix}
 
