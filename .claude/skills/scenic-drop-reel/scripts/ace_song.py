@@ -6,8 +6,19 @@ Weights (ACE-Step/ACE-Step-v1-3.5B, ~7.7 GB) download to ~/.cache/ace-step on fi
 import argparse
 from pathlib import Path
 
+import soundfile
 import torch
+import torchaudio
 from acestep.pipeline_ace_step import ACEStepPipeline
+
+
+def _save(path, wav, sample_rate, format=None, backend=None, **_):
+    # torchaudio >= 2.9 saves only through torchcodec, which the venv lacks (Iceland reel, 2026-10-28:
+    # the song rendered, then the save raised ImportError). ACE-Step asks for soundfile anyway.
+    soundfile.write(str(path), wav.detach().cpu().float().numpy().T, sample_rate)
+
+
+torchaudio.save = _save
 
 
 def main():
