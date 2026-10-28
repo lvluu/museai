@@ -12,7 +12,8 @@ tags/lyrics with the place filled in. --id forces a template; --list prints all 
 
 Length is random per reel, in a range that suits the template's pace (a template may set
 "length": [min, max] seconds): slow dreamy templates run longer and may hold each shot 1.5-2x
-the pattern, fast cut templates stay short. The shot count follows from the length. --length
+the pattern, fast cut templates stay short. No shot is held under MIN_SHOT_S: a faster pattern
+is doubled until it is. The shot count follows from the length. --length
 forces seconds, --n the shot count. Without ACE-Step (MusicGen tops out at 30 s) the reel stays
 under 26 s. Each shot gets a render "duration" (6-10 s) long enough for its window.
 """
@@ -30,6 +31,8 @@ ACE_PY = Path(os.environ.get("ACE_STEP_HOME", Path.home() / ".local/share/ace-st
 CARD_INTROS = ("countdown", "black-title", "coords")
 MAX_SHOTS = 12  # every shot is one muse render
 MAX_SHOT_S = 5.5  # longest window a 6-10 s muse clip gives at a calm, even pace
+MIN_SHOT_S = 1.6  # shorter holds flash past before the eye settles (Svalbard reel: 0.97 s shots felt too fast)
+SLOW_MIN_SHOT_S = 2.4  # calm music (< 100 BPM) wants the view to breathe with it
 
 
 def length_range(t, shot_s):
@@ -76,11 +79,29 @@ def main():
     HISTORY.parent.mkdir(parents=True, exist_ok=True)
     HISTORY.write_text(json.dumps((history + [t["id"]])[-50:]))
 
-    beat = 60 / t["music"]["bpm"]
+    # the setting brings its own music and adds its own moves/transitions to the template's signature ones,
+    # so a snowy reel and a beach reel on the same template still look and sound different
+    scen = data["sceneries"].get(a.setting)
+    fast = "fpv" in t["moves"]
+    music = dict(t["music"])
+    if scen and not fast and t["id"] != "local-flavour":
+        style = random.choice(scen["music"])
+        music["tags"], music["bpm"] = style["tags"], random.randint(*style["bpm"])
+    moves, transitions = list(t["moves"]), list(t["transitions"])
+    if scen and not fast:
+        own_moves = random.sample(scen["moves"], len(scen["moves"]))
+        own_trans = random.sample(scen["transitions"], len(scen["transitions"]))
+        moves = [m for pair in zip(moves * len(own_moves), own_moves, strict=False) for m in pair]
+        transitions = [x for pair in zip(transitions * len(own_trans), own_trans, strict=False) for x in pair]
+
+    beat = 60 / music["bpm"]
     pattern = list(t["pattern"])
-    if min(pattern) >= 4 and t["music"]["bpm"] <= 104 and not a.n:  # slow template: sometimes hold each shot longer
+    if min(pattern) >= 4 and music["bpm"] <= 104 and not a.n:  # slow template: sometimes hold each shot longer
         hold = random.choice([b for b in (4, 6, 8) if b * beat <= MAX_SHOT_S])
         pattern = [hold] * len(pattern)
+    min_s = SLOW_MIN_SHOT_S if music["bpm"] < 100 else MIN_SHOT_S
+    while min(pattern) * beat < min_s:  # double the hold, keeping cuts on the beat and the pattern's rhythm
+        pattern = [b * 2 for b in pattern]
     shot_s = sum(pattern) / len(pattern) * beat
     intro_s = t["intro"].get("beats", 0) * beat if t["intro"]["type"] in CARD_INTROS else 0
     lo, hi = length_range(t, shot_s)
@@ -92,7 +113,6 @@ def main():
         n = min(n, len(t["times"]))
     place = a.place
     local = data["local_sounds"].get(a.country.lower() or place.lower(), data["local_sounds"]["default"])
-    music = dict(t["music"])
     music["tags"] = music["tags"].replace("{local}", local)
     music["lyrics"] = music["lyrics"].replace("{place}", place)
     shots = []
@@ -103,9 +123,9 @@ def main():
             "shot": i + 1,
             "beats": beats,
             "duration": max(6, min(10, math.ceil(beats * beat + 3))),
-            "move": data["moves"][cycle(t["moves"], i)],
+            "move": data["moves"][cycle(moves, i)],
             "light": data["lights"].get(light, light),
-            "transition_after": cycle(t["transitions"], i) if i < n - 1 else None,
+            "transition_after": cycle(transitions, i) if i < n - 1 else None,
             "time_label": cycle(t["times"], i) if "times" in t else None,
         })
     intro = dict(t["intro"])
@@ -114,7 +134,7 @@ def main():
     print(json.dumps({"template": t["id"], "name": t["name"], "vibe": t["vibe"], "place": place,
                       "seconds": round(intro_s + sum(x["beats"] for x in shots) * beat, 1),
                       "intro": intro, "text": t["text"], "grade": t["grade"], "target": t["target"],
-                      "ramp": t["ramp"], "fast": "fpv" in t["moves"], "music": music, "shots": shots}, indent=1, ensure_ascii=False))
+                      "ramp": t["ramp"], "fast": fast, "music": music, "shots": shots}, indent=1, ensure_ascii=False))
 
 
 if __name__ == "__main__":

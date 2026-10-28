@@ -49,10 +49,11 @@ GRADES = {
     "moody": "eq=saturation=0.75:contrast=1.1:brightness=-0.03,colorbalance=bs=0.06:bm=0.03,vignette=PI/4",
     "neon": "eq=saturation=1.3:contrast=1.1,colorbalance=bs=0.06:rh=0.05,unsharp=5:5:0.5",
 }
-# transition -> (xfade name, duration s); whip/rise pick their direction from the outgoing move
-XF = {"cut": ("fade", 0), "whip": ("slideleft", 0.2), "zoom": ("zoomin", 0.3), "flash": ("fadewhite", 0.3),
-      "dip": ("fadeblack", 0.5), "dissolve": ("fade", 0.6), "circle": ("circleopen", 0.5),
-      "rise": ("slidedown", 0.25), "blur": ("hblur", 0.25)}
+# transition -> (xfade name, duration s); whip/rise pick their direction from the outgoing move.
+# Svalbard reel (2026-10-28): 0.2-0.3 s whips/zooms read as the view snapping; the user wants calmer moves.
+XF = {"cut": ("fade", 0), "whip": ("slideleft", 0.4), "zoom": ("zoomin", 0.5), "flash": ("fadewhite", 0.4),
+      "dip": ("fadeblack", 0.6), "dissolve": ("fade", 0.8), "circle": ("circleopen", 0.6),
+      "rise": ("slidedown", 0.45), "blur": ("hblur", 0.4)}
 WHIP_DIR = {"lateral-left": "slideright", "orbit-right": "slideright", "rise": "slidedown",
             "top-down": "slidedown", "pull-out": "slideup"}
 

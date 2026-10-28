@@ -492,5 +492,80 @@
     "reveal": "rising over a foreground ridge or trees to reveal the subject",
     "top-down": "straight-down bird's-eye view, gliding slowly forward over the scene",
     "fpv": "fast smooth FPV drone flight skimming low and banking past the subject"
+  },
+  "sceneries": {
+    "_doc": "Per-setting style mixed into every template by pick.py: the music comes from one of the setting's styles (the template keeps its lyrics), and shots alternate the template's signature move and transition with the setting's own, so reels of different places never look or sound alike (user rule, 2026-10-28).",
+    "snow": {
+      "music": [
+        {"tags": "nordic cinematic folk pop, airy female vocal, felt piano, strings, frame drum, spacious, majestic", "bpm": [84, 98]},
+        {"tags": "icy indie folk, warm male vocal, acoustic guitar, glockenspiel, soft stomp, hopeful", "bpm": [90, 104]}
+      ],
+      "moves": ["lateral-left", "rise", "orbit-right", "top-down", "pull-out"],
+      "transitions": ["dissolve", "dip", "rise"]
+    },
+    "mountain": {
+      "music": [
+        {"tags": "epic cinematic folk pop, big drums, strings, soaring male vocal, adventure", "bpm": [88, 102]},
+        {"tags": "alpine indie pop, warm female vocal, acoustic guitar, accordion touches, uplifting", "bpm": [96, 110]}
+      ],
+      "moves": ["reveal", "rise", "orbit-left", "lateral-right", "pull-out"],
+      "transitions": ["rise", "dissolve", "dip"]
+    },
+    "lake": {
+      "music": [
+        {"tags": "dreamy chill pop, soft female vocal, warm guitar, gentle rhodes, calm", "bpm": [80, 94]},
+        {"tags": "ambient folk, hushed male vocal, piano, cello, peaceful", "bpm": [76, 90]}
+      ],
+      "moves": ["lateral-right", "pull-out", "top-down", "orbit-right"],
+      "transitions": ["dissolve", "blur", "dip"]
+    },
+    "coast": {
+      "music": [
+        {"tags": "sunny acoustic pop, ukulele, light percussion, cheerful female vocal, summer breeze", "bpm": [98, 112]},
+        {"tags": "mediterranean pop, nylon guitar, handclaps, warm male vocal, carefree", "bpm": [100, 116]}
+      ],
+      "moves": ["lateral-left", "top-down", "orbit-left", "pull-out", "push-in"],
+      "transitions": ["whip", "dissolve", "flash"]
+    },
+    "island": {
+      "music": [
+        {"tags": "tropical pop, steel drums, marimba, island groove, bright female vocal", "bpm": [100, 114]},
+        {"tags": "reggae pop, offbeat guitar, warm male vocal, laid-back beach", "bpm": [88, 100]}
+      ],
+      "moves": ["top-down", "orbit-right", "lateral-right", "pull-out"],
+      "transitions": ["whip", "flash", "dissolve"]
+    },
+    "city": {
+      "music": [
+        {"tags": "city pop, funky bass, bright synths, smooth female vocal, night lights", "bpm": [108, 122]},
+        {"tags": "indie electro pop, driving beat, male vocal, modern urban", "bpm": [112, 126]}
+      ],
+      "moves": ["lateral-right", "orbit-left", "rise", "top-down"],
+      "transitions": ["whip", "cut", "flash"]
+    },
+    "oldtown": {
+      "music": [
+        {"tags": "acoustic cafe pop, accordion, mandolin, light strings, warm female vocal, charming", "bpm": [94, 108]},
+        {"tags": "bossa nova pop, nylon guitar, brushed drums, soft male vocal, romantic", "bpm": [88, 100]}
+      ],
+      "moves": ["top-down", "lateral-left", "orbit-right", "rise"],
+      "transitions": ["whip", "dissolve", "circle"]
+    },
+    "desert": {
+      "music": [
+        {"tags": "desert blues pop, oud, hand drums, warm male vocal, hypnotic", "bpm": [90, 104]},
+        {"tags": "cinematic world pop, duduk, soft synth pads, female vocal, vast", "bpm": [84, 98]}
+      ],
+      "moves": ["lateral-right", "rise", "top-down", "pull-out"],
+      "transitions": ["dissolve", "blur", "dip"]
+    },
+    "nature": {
+      "music": [
+        {"tags": "indie folk pop, acoustic guitar, banjo, handclaps, warm female vocal, fresh", "bpm": [92, 108]},
+        {"tags": "cinematic acoustic pop, piano, strings, gentle male vocal, wonder", "bpm": [84, 98]}
+      ],
+      "moves": ["reveal", "lateral-left", "orbit-right", "pull-out", "top-down"],
+      "transitions": ["dissolve", "rise", "blur"]
+    }
   }
 }

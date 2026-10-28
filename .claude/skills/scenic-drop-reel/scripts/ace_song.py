@@ -27,7 +27,8 @@ def main():
     ap.add_argument("--lyrics-file", required=True)
     ap.add_argument("--duration", type=float, default=40)
     ap.add_argument("--seed", type=int, default=7)
-    ap.add_argument("--steps", type=int, default=60)
+    ap.add_argument("--steps", type=int, default=100)
+    ap.add_argument("--guidance", type=float, default=10.0)  # 15 gave a strained, artefacted voice
     ap.add_argument("--out", required=True)
     a = ap.parse_args()
 
@@ -35,7 +36,7 @@ def main():
     pipe = ACEStepPipeline(checkpoint_dir=str(Path.home() / ".cache/ace-step/checkpoints"),
                            dtype="float32" if mps else "bfloat16", torch_compile=False, cpu_offload=False)
     pipe(audio_duration=a.duration, prompt=a.tags, lyrics=Path(a.lyrics_file).read_text(), infer_step=a.steps,
-         guidance_scale=15.0, scheduler_type="euler", cfg_type="apg", omega_scale=10.0, manual_seeds=str(a.seed),
+         guidance_scale=a.guidance, scheduler_type="euler", cfg_type="apg", omega_scale=10.0, manual_seeds=str(a.seed),
          guidance_interval=0.5, guidance_interval_decay=0.0, min_guidance_scale=3.0, use_erg_tag=True,
          use_erg_lyric=True, use_erg_diffusion=True, oss_steps="", guidance_scale_text=0.0,
          guidance_scale_lyric=0.0, save_path=a.out, format="wav")
