@@ -161,8 +161,10 @@ def fit(d, text, kind, start, maxw, spacing_ratio=0.0):
     size = start
     while size > 20:
         f = font(kind, size)
-        words, _ = split_emoji(text)
+        words, emo = split_emoji(text)
         width = d.textlength(words, font=f) + size * spacing_ratio * max(len(words) - 1, 0)
+        if emo:  # line() draws the emoji 0.8*size wide after a 0.2*size gap
+            width += size
         if width <= maxw:
             return f, round(size * spacing_ratio)
         size -= 4
