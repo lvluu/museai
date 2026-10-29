@@ -20,7 +20,7 @@ seeing each new word on screen at the moment it is said in the dialogue. Every e
 (hanzi / tone-marked pinyin / Vietnamese) at its first spoken use in the two-shot, gold-highlighted for
 0.6 s on the word, then kept up until shortly before the next card or about 5 s; again for each word
 in the recap; cleared before the ending question. One card at a time, upper-left above the heads,
-never over a face. Made in post with `scripts/cards.py` (SKILL.md, Timing step 5), after the captions.
+never over a face. Made in post with `scripts/cards.py` (never an older episode's copied overlay script: EP31's EP28 copy drew 150 px hanzi in a gold frame and the user rejected it as too big and cramped) (SKILL.md, Timing step 5), after the captions.
 
 Delivery title (user rule, 2026-10-27): the viewers are Vietnamese, so the final file and its posting
 caption use a Vietnamese title, `Tiếng Trung mỗi ngày NN - <topic in Vietnamese>` (EP16: Đi cắt tóc). The caption's first line is
@@ -66,6 +66,7 @@ Viral rules (user rule 2026-10-29, from Chinese-learning Shorts that spread):
 - EP28 Finding a lost umbrella (mall information desk, clerk; blue umbrella on the counter; vocab cards upper-left added in post)
 - EP29 Asking about a gym membership (gym reception desk, staff in a dark-gray polo; 6 added lines on opening hours, what to bring, trainers; the man's 不客气 at the start of clip D was mouthed by the woman in 3 of 3 takes, so the line was dropped and clip D held only the recap and ending; muse's loud music hid the pauses from gaps.py, so pauses were cut on the demucs vocal stem's spans; Whisper merged the recap into one 4.9 s span, so it was dubbed word by word on the vocal-stem spans; 34 s after cutting pauses to 0.8 s; woman near profile in every two-shot line, shipped as a named failure)
 - EP33 Buying birthday flowers (flower shop counter, florist in an olive apron; sunflowers in a vase stay on display; recap with three vocab cards upper-left y16-31% to clear her head; script fills only ~22 s at natural pace, so a 40-45 s request needs more lines)
+- EP31 Printing a document at a copy shop (print-shop counter, clerk in a brown knit polo; 8 added lines on page count, stapling, wait time; muse said 打印文件 as 单笔/单日万全 in every take, whole video dubbed; muse returned clips A-B at 720p, upscaled before ease_seams; man turned to the lens in the final question in 2 of 3 clip-D takes, take 3 with "camera-shy, never looks into the lens" in CAST held; vocab cards first burned with EP28's copied overlay.py (150 px hanzi, gold border), user said too big, cramped: use `scripts/cards.py`, the EP27 style)
 
 ## Template
 
