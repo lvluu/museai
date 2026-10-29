@@ -3,7 +3,8 @@
 # Renders each segment of a plan.py plan through muse-video in parallel (independent shots; a cut
 # separates them), 9:16 or 16:9 per the plan, segment 1 from the reference photo when there is one.
 # seg<N>.txt already holds the travel block (without its music line), so QUALITY=0.
-# Also starts the soundtrack (muse-video music.py, instrumental) in parallel unless track.m4a exists.
+# Also starts the soundtrack (muse-video music.py) in parallel unless track.m4a exists: instrumental,
+# or sung by ACE-Step when the plan picked a vocal style (needs ACE-Step: scenic-drop-reel "Music engines").
 set -euo pipefail
 HERE=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
 MV="$HERE/../muse-video/scripts"
@@ -11,6 +12,13 @@ plan=$(readlink -f "$1"); shift
 work=$(dirname "$plan")
 val() { python3 -c "import json,sys; p=json.load(open('$plan')); print(eval(sys.argv[1]))" "$1"; }
 n=$(val 'len(p["segments"])')
+lyrics=$(val 'p.get("lyrics", "")')
+sing=(); [ -n "$lyrics" ] && sing=(--lyrics "$lyrics")
+ace=${ACE_STEP_HOME:-$HOME/.local/share/ace-step}/venv/bin/python
+# MusicGen cannot sing: it would turn the vocal tags into mush, so stop before any render starts
+if [ -n "$lyrics" ] && [ ! -f "$work/track.m4a" ] && [ ! -x "$ace" ]; then
+  echo "vocal style needs ACE-Step ($ace missing): install it or re-plan with --vocals off" >&2; exit 1
+fi
 segs=${*:-$(seq 1 "$n")}
 aspect=$(val 'p["aspect"]')
 for i in $segs; do
@@ -24,7 +32,7 @@ if [ ! -f "$work/track.m4a" ]; then
   secs=$(val 'p["seconds"]'); bpm=$(val 'p["bpm"]')
   beats=$(python3 -c "import math; print(math.ceil($secs*$bpm/60)+4)")
   ( uv run --no-project "$MV/music.py" --style "$(val 'p["music_style"]')" --bpm "$bpm" \
-      --body-beats "$beats" --out "$work/track.m4a" > "$work/music.log" 2>&1 \
+      --body-beats "$beats" ${sing[@]+"${sing[@]}"} --out "$work/track.m4a" > "$work/music.log" 2>&1 \
     && echo "music done" || echo "music FAILED (see music.log)" ) &
 fi
 wait

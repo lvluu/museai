@@ -17,6 +17,8 @@ Usage:
   python3 scripts/plan.py --record plan.json    # after delivery: add the episode to the history
 
 Overrides (only when the user names one): --technique --structure --shots 1|2|3 --hook --light --music.
+--vocals on|off: only sung (ACE-Step) or only instrumental styles; default auto picks from both where
+the setting/country fits a vocal style.
 History: ~/.config/scenery-director/history.json; each dimension skips its last values (series variety).
 """
 
@@ -171,6 +173,8 @@ def direct(a, rng, hist):
     light = a.light or ("from-photo" if a.photo else choose(rng, lights, "light", hist))
 
     musics = [k for k, v in LIB["music"].items() if fits(v, a.setting, a.country)]
+    if a.vocals != "auto":
+        musics = [k for k in musics if LIB["music"][k].get("vocal", False) == (a.vocals == "on")]
     music = choose(rng, musics, "music", hist, a.music)
     return structure, shots, moves, hook, light, music
 
@@ -183,7 +187,19 @@ def segment_roles(arc, n):
     return arc
 
 
-def music_cues(style_name, n):
+def music_cues(style_name, n, vocal=False):
+    if vocal:
+        cues = [
+            "the song is already playing from the first frame, the voice entering softly (no silent intro)",
+            "the chorus rises with the voice as the view opens",
+            "the voice holds its last note and the song resolves, flowing back into the opening",
+        ]
+        if n == 1:
+            return [
+                "the song is already playing from the first frame, the voice entering softly, rises "
+                "into the chorus toward the middle, then holds its last note and flows back into the opening"
+            ]
+        return [cues[0], cues[2]] if n == 2 else cues
     if n == 1:
         return [
             "the music is already playing from the first frame (no silent intro), builds slowly "
@@ -208,7 +224,7 @@ def build(a):
         k = a.seconds / 15
         segs = [[round(s * k, 2), round(e * k, 2)] for s, e in segs]
     roles = [fill(r, a) for r in segment_roles(st["arc"], shots)]
-    cues = music_cues(mu["name"], shots)
+    cues = music_cues(mu["name"], shots, mu.get("vocal", False))
     amb_keys = [WATER_AMBIENCE.get(a.water), SETTING_AMBIENCE.get(a.setting, "mountain")]
     ambience = "; ".join(L["ambience"][k] for k in dict.fromkeys(filter(None, amb_keys)))
     light_line = fill(L["lighting"][light]["line"], a)
@@ -285,6 +301,8 @@ def build(a):
         "light": light,
         "music": music,
         "music_style": mu["style"],
+        "vocal": mu.get("vocal", False),
+        "lyrics": mu.get("lyrics", "").format(place=a.place),
         "bpm": mu["bpm"],
         "ambience": ambience,
         "water": a.water,
@@ -364,7 +382,8 @@ def episode_md(p, a):
             if p["timelapse"]
             else ""
         ),
-        f"MUSIC: original instrumental, {mu['style']}, synced to the segments below; with {p['ambience']} underneath.",
+        f"MUSIC: original {'song' if p['vocal'] else 'instrumental'}, {mu['style']}, synced to the segments below; with {p['ambience']} underneath.",
+        *([f"LYRICS (one natural lead singer):\n{p['lyrics']}"] if p["vocal"] else []),
         "TIMELINE:\n"
         + "\n".join(
             f"{s['start']:g}-{s['end']:g} s: {s['role']}. {s['music'][0].upper()}{s['music'][1:]}; "
@@ -481,6 +500,7 @@ def main():
     ap.add_argument("--hook", choices=list(LIB["hooks"]))
     ap.add_argument("--light", choices=list(LIB["lighting"]))
     ap.add_argument("--music", choices=list(LIB["music"]))
+    ap.add_argument("--vocals", default="auto", choices=["auto", "on", "off"])
     ap.add_argument("--seed", type=int)
     ap.add_argument("--out", help="work folder (default ~/Movies/museai/scenic-<slug>)")
     ap.add_argument("--list", action="store_true")
