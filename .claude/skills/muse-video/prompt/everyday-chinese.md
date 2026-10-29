@@ -8,6 +8,10 @@ Script rules: one intro line to camera, 9-10 dialogue lines alternating MAN/WOMA
 to camera; about 85-95 syllables in total (30-40 s at a natural pace); each line ≤ 14 syllables;
 pinyin with tone sandhi written as spoken (yí ge, yìqǐ, bú kèqi); Vietnamese natural and short.
 No payment, food handling or object exchange in the scene.
+Fixed script vs asked length (user rule, 2026-10-29, EP35): when the brief gives EXACT DIALOGUE and a
+duration it cannot fill at a natural pace (EP35: ~69 syllables for 40-45 s), keep the exact script at
+natural speed and let the video run shorter. Do not ask, add lines or slow anything; say the delivered
+length on the preview.
 Vocabulary recap (when the brief has one): each word is said at normal speed and followed by a
 one-second review pause with its card on screen (SKILL.md, Timing step 5); never three words in a row.
 Vocabulary cards while they talk (user rule, 2026-10-29, after EP27; every episode): the user liked
@@ -57,6 +61,7 @@ Viral rules (user rule 2026-10-29, from Chinese-learning Shorts that spread):
 - EP25 Dropping off laundry (laundry shop counter, clerk, folded coat on the counter; 72-syllable fixed script runs ~18 s at natural pace, not 30 s; clip A came back 704x1248 twice with both faces in profile; ending clip: man turned to the lens in 2 of 3 takes)
 - EP26 Getting a library card (library service desk, librarian in a dark-green sweater; 6 added lines on how long, renewing online; still requests with n=2 timed out at the 240 s server limit, n=1 worked; a 5 s CONTINUE_FROM ending clip failed twice (line missing, then the question said twice), so the ending line stayed in the previous full clip; renders 704-720 px wide, faces three-quarter but gaze.py read profile)
 - EP27 Buying cinema tickets (cinema ticket counter, clerk in a navy polo; 6 added lines on which film and which hall; man turned to the lens in the final question in 3 of 3 clip-D takes, also with "stays in profile" wording; muse repeated or dropped 复习一下, dubbed in)
+- EP35 Asking about a food allergy before ordering (restaurant ordering counter, man in white shirt + brown apron; exact ~69-syllable script kept at ~25 s)
 - EP32 Reporting a leaking faucet (residential maintenance desk, man in a navy work shirt; ~20 s script kept at the user's choice; recap with one vocab card at a time upper-left, synced to the spoken word; man turned to the lens in the ending in all 3 clip-B takes despite the "stays in profile" line, shipped as a named failure)
 - EP28 Finding a lost umbrella (mall information desk, clerk; blue umbrella on the counter; vocab cards upper-left added in post)
 - EP29 Asking about a gym membership (gym reception desk, staff in a dark-gray polo; 6 added lines on opening hours, what to bring, trainers; the man's 不客气 at the start of clip D was mouthed by the woman in 3 of 3 takes, so the line was dropped and clip D held only the recap and ending; muse's loud music hid the pauses from gaps.py, so pauses were cut on the demucs vocal stem's spans; Whisper merged the recap into one 4.9 s span, so it was dubbed word by word on the vocal-stem spans; 34 s after cutting pauses to 0.8 s; woman near profile in every two-shot line, shipped as a named failure)
