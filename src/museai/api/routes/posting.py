@@ -10,8 +10,9 @@ A video missing a platform's caption gets one written in the background (service
 deliver.sh puts the thumbnails (thumbnail skill) next to the video as ``<stem> - thumbnail 9x16.jpg`` /
 ``16x9``; the dashboard shows them to drag into the upload pages, and they go to the Trash with the video.
 
-Each video also gets a posting slot: two a day at the audience's peak hours (``SLOTS``), handed out in
-delivery order, with a time per platform (``OFFSETS``) to set in each platform's scheduler.
+Each video belongs to a channel (``CHANNELS``: separate accounts, guessed from the file name, changeable
+on the card) and gets a posting slot in that channel: two a day at the audience's peak hours (``SLOTS``),
+handed out in delivery order, with a time per platform (``OFFSETS``) to set in each platform's scheduler.
 """
 
 from __future__ import annotations
@@ -62,8 +63,14 @@ TZ = ZoneInfo("Asia/Ho_Chi_Minh")  # GMT+7: the viewers are in Vietnam
 # 20-22 h peak, weekends start earlier.
 SLOTS = [("11:30", "18:00"), ("11:30", "18:00"), ("11:30", "17:30"), ("11:30", "18:00"),
          ("11:30", "18:00"), ("10:30", "17:30"), ("10:30", "17:00")]
-SLOT_FOCUS = {1: "Midday: bite-sized (stroke order, word of the day, a quick view)",
-              2: "Evening: conversations, common mistakes, quizzes that invite comments"}
+# Channels post from separate accounts, so each has its own two slots a day: (name, focus per slot).
+CHANNELS = {
+    "chinese": ("Chinese", {1: "Midday: bite-sized (stroke order, word of the day)",
+                            2: "Evening: conversations, common mistakes, quizzes that invite comments"}),
+    "travel": ("Travel", {1: "Midday: a quick view",
+                          2: "Evening: full reels and zoom-ins"}),
+}
+TRAVEL_NAME = re.compile(r"^(zoom|reel|scenic|drop|travel)[-_ ]", re.IGNORECASE)
 # Minutes after the YouTube time per platform (midday, evening). TikTok, Reels, X and Threads hand a
 # post out within the hour, so they go closer to the peak than Shorts, which needs a head start.
 OFFSETS = {"youtube": (0, 0), "tiktok": (30, 60), "facebook": (30, 90), "instagram": (0, 60),
@@ -110,6 +117,13 @@ def _video(svc: Services, name: str) -> Path:
     return path
 
 
+def _channel(name: str, entry: dict) -> str:
+    """The video's channel: the one picked on its card, else guessed from the file name."""
+    if entry.get("channel") in CHANNELS:
+        return entry["channel"]
+    return "travel" if TRAVEL_NAME.match(name) else "chinese"
+
+
 def _thumbs(path: Path) -> dict[str, Path]:
     """The video's thumbnails on disk, by kind."""
     found = {k: path.with_name(f"{path.stem} - thumbnail {k}.jpg") for k in THUMBS}
@@ -137,19 +151,20 @@ def _slots_from(now: datetime):
 
 
 def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
-    """Give every queued video a slot, oldest delivery first. A slot that passed with nothing posted
-    moves to the next free one unless the user picked it. Returns True when the state changed."""
+    """Give every queued video a slot in its channel, oldest delivery first. A slot that passed with
+    nothing posted moves to the next free one unless the user picked it. Returns True when the state
+    changed."""
     entries = [(p.name, state.setdefault(_key(p.name), {})) for p in sorted(videos, key=lambda p: p.stat().st_mtime)]
     for _, e in entries:
         if (key := e.get("slot")) and not e.get("posted") and not e.get("slot_pinned") \
                 and _slot_times(key)["youtube"] <= now:
             del e["slot"]
-    taken = {e["slot"] for _, e in entries if e.get("slot")}
-    free = (k for k in _slots_from(now) if k not in taken)
+    taken = {(_channel(n, e), e["slot"]) for n, e in entries if e.get("slot")}
+    free = {ch: (k for k in _slots_from(now) if (ch, k) not in taken) for ch in CHANNELS}
     changed = False
-    for _, e in entries:
+    for n, e in entries:
         if not e.get("slot"):
-            e["slot"] = next(free)
+            e["slot"] = next(free[_channel(n, e)])
             changed = True
     return changed
 
@@ -160,25 +175,27 @@ def _view(path: Path, entry: dict, svc: Services) -> dict:
     return {"name": path.name, "size": st.st_size, "mtime": st.st_mtime,
             "caption": entry.get("caption", ""), "captions": entry.get("captions", {}),
             "auto_captions": svc.captions.status(_key(path.name)),
-            "posted": entry.get("posted", {}), "slot": key,
+            "posted": entry.get("posted", {}), "slot": key, "channel": _channel(path.name, entry),
             "thumbnails": [{"kind": k, "use": THUMBS[k]} for k in _thumbs(path)],
             "schedule": {p: t.isoformat() for p, t in _slot_times(key).items()} if key else {}}
 
 
-def _calendar(state: dict, names: dict[str, str], now: datetime, days: int = 7) -> list[dict]:
-    """The next ``days`` days of slots with the video (file name, by state key in ``names``) booked
-    in each (or None)."""
-    booked = {e["slot"]: names[n] for n, e in state.items() if n in names and e.get("slot")}
+def _calendar(state: dict, names: dict[str, str], now: datetime, days: int = 7) -> dict[str, list[dict]]:
+    """Per channel, the next ``days`` days of slots with the video (file name, by state key in
+    ``names``) booked in each (or None)."""
+    booked = {(_channel(n, e), e["slot"]): names[n] for n, e in state.items() if n in names and e.get("slot")}
     start = now.astimezone(TZ).date()
-    out = []
-    for i in range(days):
-        d = start + timedelta(days=i)
-        slots = []
-        for n in (1, 2):
-            key = f"{d.isoformat()}/{n}"
-            slots.append({"key": key, "n": n, "time": _slot_times(key)["youtube"].isoformat(),
-                          "focus": SLOT_FOCUS[n], "video": booked.get(key)})
-        out.append({"date": d.isoformat(), "slots": slots})
+    out: dict[str, list[dict]] = {}
+    for ch, (_, focus) in CHANNELS.items():
+        out[ch] = []
+        for i in range(days):
+            d = start + timedelta(days=i)
+            slots = []
+            for n in (1, 2):
+                key = f"{d.isoformat()}/{n}"
+                slots.append({"key": key, "n": n, "time": _slot_times(key)["youtube"].isoformat(),
+                              "focus": focus[n], "video": booked.get((ch, key))})
+            out[ch].append({"date": d.isoformat(), "slots": slots})
     return out
 
 
@@ -221,6 +238,7 @@ async def list_posts(svc: Services = Depends(get_services)) -> dict:
     return {
         "folder": str(folder),
         "timezone": "GMT+7",
+        "channels": [{"id": k, "name": n, "focus": f} for k, (n, f) in CHANNELS.items()],
         "platforms": [{"id": k, "name": n, "url": u, "limit": lim}
                       for k, (n, u, lim) in PLATFORMS.items()],
         "videos": [_view(p, state.get(_key(p.name), {}), svc) for p in videos],
@@ -245,7 +263,8 @@ async def post_thumbnail(name: str, kind: str, svc: Services = Depends(get_servi
 @router.post("/dashboard/posts/{name}", include_in_schema=False)
 def update_post(name: str, body: dict, svc: Services = Depends(get_services)) -> dict:
     """Set the caption, per-platform ``captions`` (merged in; an empty text drops that platform's
-    own caption), the posting ``slot`` ("YYYY-MM-DD/1|2"; a video already there swaps into this
+    own caption), the ``channel`` (moving it drops its slot; the next listing books one there), the
+    posting ``slot`` ("YYYY-MM-DD/1|2"; a video of the same channel already there swaps into this
     one's old slot), mark a platform posted (or not), or ``{"done": true}`` to trash it now.
 
     Marking the last platform posted moves the video to the Trash.
@@ -270,13 +289,20 @@ def _update(svc: Services, path: Path, body: dict) -> dict:
                 own[platform] = text
             else:
                 own.pop(platform, None)
+    if (channel := body.get("channel")) and channel != _channel(name, entry):
+        if channel not in CHANNELS:
+            raise InvalidRequest(f"unknown channel '{channel}'")
+        entry["channel"] = channel
+        entry.pop("slot", None)
+        entry.pop("slot_pinned", None)
     if slot := body.get("slot"):
         try:
             _slot_times(slot)
         except (TypeError, AttributeError, ValueError):
             raise InvalidRequest("slot must be 'YYYY-MM-DD/1' or 'YYYY-MM-DD/2'") from None
         for other, e in state.items():
-            if other != name and e.get("slot") == slot and _exists(svc, other):
+            if other != name and e.get("slot") == slot and _channel(other, e) == _channel(name, entry) \
+                    and _exists(svc, other):
                 if old := entry.get("slot"):
                     e["slot"], e["slot_pinned"] = old, True
                 else:

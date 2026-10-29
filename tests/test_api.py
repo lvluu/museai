@@ -273,8 +273,17 @@ def test_posting_slots(tmp_path):
     assert [state[n]["slot"] for n in ("a.mp4", "b.mp4", "c.mp4")] == [
         "2026-10-29/2", "2026-10-30/1", "2026-10-30/2"]  # oldest delivery first
     assert not posting._assign_slots(state, videos, now)
-    cal = posting._calendar(state, {n: n for n in ("a.mp4", "b.mp4", "c.mp4")}, now)
+    cal = posting._calendar(state, {n: n for n in ("a.mp4", "b.mp4", "c.mp4")}, now)["chinese"]
     assert len(cal) == 7 and cal[0]["slots"][1]["video"] == "a.mp4" and cal[0]["slots"][0]["video"] is None
+
+    # Travel posts from other accounts: its videos book their own slots, the same ones Chinese uses.
+    (p := tmp_path / "zoom-madeira.mp4").write_bytes(b"v")
+    os.utime(p, (2000, 2000))
+    assert posting._assign_slots(state, [*videos, p], now)
+    assert state["zoom-madeira.mp4"]["slot"] == "2026-10-29/2"
+    cal = posting._calendar(state, {n: n for n in state}, now)
+    assert cal["travel"][0]["slots"][1]["video"] == "zoom-madeira.mp4"
+    assert cal["chinese"][0]["slots"][1]["video"] == "a.mp4"
 
 
 def test_posting_move_slot(client, admin, settings):
@@ -285,7 +294,8 @@ def test_posting_move_slot(client, admin, settings):
     slots = {v["name"]: v["slot"] for v in d["videos"]}
     assert len(set(slots.values())) == 2
     assert set(d["videos"][0]["schedule"]) == {"youtube", "tiktok", "facebook", "instagram", "x", "threads"}
-    assert sum(s["video"] is not None for day in d["calendar"] for s in day["slots"]) == 2
+    assert sum(s["video"] is not None for day in d["calendar"]["chinese"] for s in day["slots"]) == 2
+    assert {c["id"] for c in d["channels"]} == {"chinese", "travel"}
 
     r = client.post("/dashboard/posts/a.mp4", headers=admin, json={"slot": slots["b.mp4"]}).json()
     assert r["video"]["slot"] == slots["b.mp4"]
@@ -293,6 +303,20 @@ def test_posting_move_slot(client, admin, settings):
     assert moved == {"a.mp4": slots["b.mp4"], "b.mp4": slots["a.mp4"]}  # swapped
     for bad in ("2026-10-30/3", "tomorrow", "2026-13-40/1", 5):
         assert client.post("/dashboard/posts/a.mp4", headers=admin, json={"slot": bad}).status_code == 400
+
+    # Moving a to Travel frees its Chinese slot and books the first free Travel slot.
+    client.post("/dashboard/posts/a.mp4", headers=admin, json={"channel": "travel"})
+    d = client.get("/dashboard/posts", headers=admin).json()
+    a = next(v for v in d["videos"] if v["name"] == "a.mp4")
+    assert a["channel"] == "travel"
+    assert [s["key"] for day in d["calendar"]["travel"] for s in day["slots"] if s["video"]] == [a["slot"]]
+    assert sum(s["video"] is not None for day in d["calendar"]["chinese"] for s in day["slots"]) == 1
+    # A slot holding a video of the other channel is not a swap.
+    r = client.post("/dashboard/posts/b.mp4", headers=admin, json={"slot": a["slot"]}).json()
+    assert r["video"]["slot"] == a["slot"]
+    after = {v["name"]: v["slot"] for v in client.get("/dashboard/posts", headers=admin).json()["videos"]}
+    assert after == {"a.mp4": a["slot"], "b.mp4": a["slot"]}
+    assert client.post("/dashboard/posts/a.mp4", headers=admin, json={"channel": "nope"}).status_code == 400
 
 
 def test_dashboard_cancel_and_retry(settings, auth, admin):
