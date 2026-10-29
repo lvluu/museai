@@ -238,7 +238,7 @@ def build(ep_path, work):
     (work / "title.json").write_text(json.dumps(ep["title_card"], ensure_ascii=False, indent=1))
     (work / "package.md").write_text(package(ep, cast, cues, tag))
     refs = SERIES / "refs"
-    missing = sorted({k for s in ep["shots"] for k in s.get("cast", []) if not (refs / f"{k}.png").exists()})
+    missing = sorted({k for s in ep["shots"] for k in s.get("cast", []) if not (refs / f"{k}.jpg").exists()})
     print(f"built {work}: {len(ep['shots'])} shot prompts, render.sh, cues/SRT/VTT (provisional), package.md")
     if missing:
         print(f"MISSING REFS {missing}: make them first (references/faces.md); shots then need stills/<ID>.png")

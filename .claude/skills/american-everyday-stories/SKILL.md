@@ -98,7 +98,7 @@ listener instructions, ambience, continuity, the look block), `subs.provisional.
 file) and summarise; production notes stay out of the dialogue.
 
 ## Reference assets (before the first render)
-- **Character stills**: in `series/refs/` for all six (`<KEY>.png` 16:9, `<KEY>_face.png` square);
+- **Character stills**: in `series/refs/` for all six (`<KEY>.jpg` 16:9, `<KEY>_face.jpg` square);
   reuse for every episode. New or changed face: `scripts/refs.sh KEY OUT` and the checks in
   `references/faces.md` (age, sides, extra marks).
 - **Shot stills**: for each shot with a recurring character, make a 16:9 first frame through

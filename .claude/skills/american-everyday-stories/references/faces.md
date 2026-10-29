@@ -21,7 +21,7 @@ built from tend to land on famous 1980s faces; these rules steer away from that.
    individual with their own job and wants, not a type.
 
 ## Reference stills (made 2026-10-30, in `series/refs/`; reuse for every shot)
-`series/refs/<KEY>.png` (16:9 1920x1080 waist-up) and `<KEY>_face.png` (1024 square portrait) exist
+`series/refs/<KEY>.jpg` (16:9 1920x1080 waist-up) and `<KEY>_face.jpg` (1024 square portrait) exist
 for all six characters. A new character or a changed face gets new ones:
 ```bash
 scripts/refs.sh NORA ~/Movies/museai/aes-refs      # two candidates; run every key in parallel
