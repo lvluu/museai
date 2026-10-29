@@ -4,7 +4,7 @@ Usage:
   python3 scripts/plan.py --place "Ponta de São Lourenço, Madeira" --setting coast --light sunset \
       --view "jagged red volcanic cliffs dropping into a deep blue Atlantic, white surf, green headlands ..." > plan.json
   python3 scripts/plan.py --list
-Options: --focus (what the end zooms into), --country (local music), --hook ID / --reveal ID / --music ID (force), --person "..." (default: a random traveller),
+Options: --focus (what the end zooms into), --country (local music), --hook ID / --reveal ID / --music ID (force), --person "..." (default: the recurring character in styles.json, "random" for a random traveller),
 --seed N. Picks skip the last 3 hooks, reveals and music styles used (~/.config/zoominview/history.json).
 """
 import argparse
@@ -25,6 +25,13 @@ PEOPLE = [
     "a South Asian woman in her twenties with wavy black hair and a linen shirt",
     "a freckled young woman with red curly hair and a knitted sweater",
 ]
+
+
+# the attached photo only shows who she is; without this muse may open the clip on the photo itself
+FACE_REF = ("FACE REFERENCE: The attached photo shows the woman's real face, hair and glasses. It is NOT the first "
+            "frame and NOT the location: do not show this room or this pose. Render her with exactly this face, "
+            "hairstyle, bangs and glasses, at the place below. She WEARS HER THIN ROUND SILVER WIRE-RIM GLASSES IN "
+            "EVERY FRAME: never takes them off, never without glasses.\n\n")
 
 
 # muse put a second traveller in clip B for the whole reveal although the brief said "Nobody in frame"
@@ -80,7 +87,11 @@ def main():
 
     reveals = [r for r in styles["reveals"] if fits(r, "setting", a.setting)]
     reveal = choose("reveals", reveals, a.reveal)
-    hooks = [h for h in styles["hooks"] if fits(h, "setting", a.setting) and fits(h, "light", a.light)]
+    character = None if a.person else styles.get("character")
+    if a.person == "random":
+        a.person = None
+    hooks = [h for h in styles["hooks"] if fits(h, "setting", a.setting) and fits(h, "light", a.light)
+             and h["id"] not in (character or {}).get("skip_hooks", [])]
     hook = choose("hooks", hooks, a.hook)
     country = a.country.lower()
     local = [m for m in styles["music"] if country and country in m.get("country", [])
@@ -90,7 +101,7 @@ def main():
     music = choose("music", music_pool, a.music)
 
     light = styles["lights"][a.light]
-    fill = {"{place}": a.place, "{view}": a.view, "{person}": a.person or rng.choice(PEOPLE),
+    fill = {"{place}": a.place, "{view}": a.view, "{person}": character["text"] if character else a.person or rng.choice(PEOPLE),
             "{light}": light, "{focus}": a.focus, "{hook}": hook["text"], "{reveal_at}": f"{reveal['reveal_at']:g}"}
     rules = (SKILL / "prompt/reveal.txt").read_text().replace("{LIGHT}", light[0].upper() + light[1:])
 
@@ -118,7 +129,9 @@ def main():
                        "reveal_at": reveal["reveal_at"]},
             "hook": {"id": hook["id"], "name": hook["name"]},
             "reveal_time": reveal_time, "length": length, "music": m, "caption_hook": caption,
-            "prompt_a": prompt(reveal["a"]), "prompt_b": prompt(NOBODY + reveal["b"])}
+            "prompt_a": prompt((FACE_REF if character else "") + reveal["a"]), "prompt_b": prompt(NOBODY + reveal["b"])}
+    if character:
+        plan["person_image"] = str(Path(character["image"]).expanduser())
     if "c" in reveal:
         plan["prompt_c"] = prompt(NOBODY + reveal["c"])
     hist["reveals"] = (hist["reveals"] + [reveal["id"]])[-10:]

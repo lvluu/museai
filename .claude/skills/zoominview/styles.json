@@ -606,5 +606,13 @@
       "Hidden spot in {name} you need to see",
       "Nature showed off today"
     ]
+  },
+  "character": {
+    "id": "main",
+    "image": "~/.config/zoominview/character/face.jpg",
+    "text": "a young East Asian woman in her early twenties (the woman in the attached face photo, the same woman in every reel) with fair skin, a soft round face, dark brown eyes, shoulder-length layered dark brown-black hair with wispy see-through bangs, thin round silver wire-rim glasses, natural soft red lips and a light cream knit or cotton top suited to the weather,",
+    "skip_hooks": [
+      "glasses-off"
+    ]
   }
 }

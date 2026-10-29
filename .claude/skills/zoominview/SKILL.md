@@ -33,13 +33,16 @@ Add new hooks, reveals, music and caption lines to `styles.json`, never only int
 
 Reference music: reel 1 uses "Runaway" (the user supplies the full song; play it straight through, never loop a short excerpt). `assets/wow-ref.m4a` (13.8 s excerpt from the user's reel): mellow ambient, ~57 BPM, quiet under the reaction, dip 5-6.5 s, swell from 7.0 s. Audio files are gitignored: it stays local, personal posts only.
 
+## The character (one recurring girl)
+Every reel stars the same woman (user rule, 2026-10-29), so viewers recognise her across posts: `styles.json` `character` holds her fixed look (round silver wire-rim glasses, shoulder-length layered dark hair with wispy bangs, fair skin, soft red lips, light cream top) and her face photo, `~/.config/zoominview/character/face.jpg` (personal, outside the repo so every worktree finds it). `plan.py` uses her by default and adds `person_image`; `scripts/render` attaches the photo to clip A with a FACE REFERENCE line ("not the first frame, not the location"), B shows nobody. Hooks that clash with her look are skipped (`skip_hooks`: glasses-off). `--person "..."` or `--person random` for someone else. To change her, replace the photo and the `text`, never one reel's prompt.
+
 ## Steps
 1. **Plan**. Write `--view`: what is really there, the real landmarks, terrain, water, vegetation (name treeless terrain, see muse-video lessons). Pick `--setting` (coast island mountain canyon lake city oldtown nature desert snow) and `--light` (sunset sunrise golden day blue-hour night; default to sunset/golden: the reference look).
    ```bash
    python3 scripts/plan.py --place "Ponta de São Lourenço, Madeira, Portugal" --setting coast --light sunset \
      --country portugal --view "jagged red volcanic cliffs and sea stacks dropping into the deep blue Atlantic, white surf, green headlands to the horizon, sun low over the sea" > plan.json
    ```
-   It picks a hook (`styles.json` `hooks`), a reveal (`reveals`) and a music style (`music`) that fit the setting, light and country, skipping the last 3 of each used (`~/.config/zoominview/history.json`), a caption hook line (`captions`, in `caption_hook`) and a random traveller (`--person` to set one). Use `--hook` / `--reveal` / `--music` only when the user names one; `--list` shows all.
+   It picks a hook (`styles.json` `hooks`), a reveal (`reveals`) and a music style (`music`) that fit the setting, light and country, skipping the last 3 of each used (`~/.config/zoominview/history.json`), a caption hook line (`captions`, in `caption_hook`) and the recurring character (`--person` for someone else). Use `--hook` / `--reveal` / `--music` only when the user names one; `--list` shows all.
 2. **Render** (one background call; B starts from A's last frame, so they run in order):
    ```bash
    scripts/render plan.json ~/Movies/museai/zoom-<slug>
@@ -80,6 +83,7 @@ Ordinary traveller (not a model), real skin, wind in hair, silent gasp (no words
 - `whip-pan` ended clip A mid-blur, which muse cannot continue (Kelingking, 2026-10-29): every reveal's A now ends still (on the view or a still palm/shoulder/crest frame), and every B ends with the shared `zoom` text. muse's own B zoom already reaches ~1.5x, so compose with `--zoom 1`.
 - The pan has to land along the person's line of sight on a wide, far view (Kelingking v1 ended close on the headland from the side and the user said the angle was wrong for a zoom): A's pan ends with the focus small and far in the centre, the view as the person sees it; describe the classic viewpoint in `--view` ("seen from the high clifftop far above and behind it").
 - muse's B zoomed in and then back out over the last 2.5 s (Kelingking v2) even with "never zooms back out"; the `zoom` text now also says the last frame is framed exactly like the frame at 5 s. It still pulled out in 2 of 2 retakes (zoom in to ~2x by 6 s, out from 7 s): cut B at ~5 s (`ffmpeg -i b.mp4 -t 5 ... b5.mp4`), before it gets tighter than ~1.5x, and compose with that (Kelingking reel = 11 s).
+- The face photo as a reference (Kelingking with the character, 2026-10-29): take 1 kept her hair and bangs but dropped the glasses and drifted from her face; take 2 with "She WEARS HER ... GLASSES IN EVERY FRAME" in FACE_REF held the glasses, bangs and cream top and read as her. muse did not open on the room photo (FACE_REF says it is not the first frame).
 - The server returns the earlier clip for an identical request: `RETAKE=1 scripts/render plan.json DIR b` for a new take of the same prompt.
 
 ## Maintaining this skill

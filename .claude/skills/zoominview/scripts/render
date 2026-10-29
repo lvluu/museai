@@ -16,7 +16,10 @@ field() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.ar
 run() { STYLE=travel QUALITY=0 SIZE=${SIZE:-9:16} NO_OPEN=1 "$@"; }
 if [[ -z $only || $only == a ]]; then
   field prompt_a > "$out/prompt_a.txt"
-  DURATION=$(field reveal a_seconds) OUT_NAME=a.mp4 run "$MUSE_VIDEO" -f "$out/prompt_a.txt" "$out"
+  # the recurring character's face photo goes along with clip A as a face reference (B shows nobody)
+  face=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("person_image", ""))' "$plan")
+  [[ -z $face || -f $face ]] || { echo "character face photo $face missing (styles.json character.image)" >&2; exit 1; }
+  IMAGE=$face DURATION=$(field reveal a_seconds) OUT_NAME=a.mp4 run "$MUSE_VIDEO" -f "$out/prompt_a.txt" "$out"
 fi
 if [[ -z $only || $only == b ]]; then
   [[ -f $out/a.mp4 ]] || { echo "no $out/a.mp4 to continue from" >&2; exit 1; }
