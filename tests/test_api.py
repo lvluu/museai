@@ -286,6 +286,16 @@ def test_posting_slots(tmp_path):
     assert cal["chinese"][0]["slots"][1]["video"] == "a.mp4"
 
 
+def test_posting_channel_from_file_name():
+    from museai.api.routes import posting
+
+    for name in ("zoom-madeira.mp4", "reel-ilulissat.mp4", "travel-bled.mp4", "Kelingking Beach - zoominview.mp4"):
+        assert posting._channel(name, {}) == "travel", name
+    for name in ("EVERYDAY CHINESE 13 - Finding the subway.mp4", "Tiếng Trung mỗi ngày 16 - Đi cắt tóc.mp4",
+                 "lesson-bi-so-sanh_vertical_9x16.mp4", "Zoomed lesson.mp4"):
+        assert posting._channel(name, {}) == "chinese", name
+    assert posting._channel("reel-x.mp4", {"channel": "chinese"}) == "chinese"
+
 def test_posting_move_slot(client, admin, settings):
     settings.post_dir.mkdir()
     for name in ("a.mp4", "b.mp4"):

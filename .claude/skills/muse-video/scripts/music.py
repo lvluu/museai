@@ -6,12 +6,12 @@
 exactly the reel's beats, plus a beat file (<out>.beats.json) compose.py cuts on.
 
 Usage:
-  python3 scripts/pick.py --place "Amalfi Coast" ... > plan.json
+  python3 ../../scenic-drop-reel/scripts/pick.py --place "Amalfi Coast" ... > plan.json
   uv run --no-project scripts/music.py --plan plan.json --out track.m4a [--engine ace|musicgen] [--seed 7]
   uv run --no-project scripts/music.py --style "tropical house, marimba" --bpm 100 --intro-beats 5 \
       --body-beats 15 --out track.m4a          # without a plan
 
-Engines: ace = ACE-Step (sings the template's lyrics; Apache-2.0; needs the install in SKILL.md, run
+Engines: ace = ACE-Step (sings the template's lyrics; Apache-2.0; needs the install in ../SKILL.md "Music", run
 through its own venv by ace_song.py), musicgen = MusicGen instrumental (CC-BY-NC 4.0 weights:
 personal reels only). ace is used when installed, else musicgen.
 Steps: render ~2x the needed length → librosa finds the tempo → MusicGen is time-stretched to exactly

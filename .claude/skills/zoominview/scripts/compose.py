@@ -2,7 +2,7 @@
 on the view, and the music placed so its drop/swell lands the moment the view opens.
 
 Usage:
-  python3 scripts/compose.py --plan plan.json --music track.m4a --out reel.mp4 a.mp4 b.mp4 [c.mp4] [--reveal 8.4]
+  python3 scripts/compose.py --plan plan.json --music track.m4a --out zoom-<slug>.mp4 a.mp4 b.mp4 [c.mp4] [--reveal 8.4]
 
 - Join: each clip was rendered from the previous one's last frame, so its first frame is dropped and the cut sits inside the
   swing/whip/hand motion; nothing else is blended.

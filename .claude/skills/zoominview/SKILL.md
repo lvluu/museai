@@ -1,11 +1,11 @@
 ---
 name: zoominview
-description: Make a short vertical "wow reveal" reel of a place through museai - a real-looking traveller films a selfie, reacts to what they see (a hook picked per scenery: silent gasp, calm speechless awe, disbelieving laugh, sunglasses off, breathless arrival, wind gust, goosebumps, cold dawn), the camera moves the way their eyes look onto the view (pan along the cliff edge, pan onto a river/road leading line, tilt up at something towering, whip pan, hand off the lens, over the shoulder, over the crest, through the window), stops, then gently zooms in, with music that swells the moment the view opens - one of the two reference tracks or an AI track (felt piano, epic orchestral, dreamy pads, tropical chill, acoustic, synth glow, guzheng, nordic choir, gamelan, mediterranean guitar, oud, andean flute, lofi) chosen to suit the place - plus a caption hook line. Use for "zoominview", "zoom in view", "reaction reveal", "surprised person then the view", "video like the Madeira cliff one", "video like the Swiss valley one", or "zoominview <place>".
+description: Make a short vertical "wow reveal" reel of a place through museai - a real-looking traveller films a selfie, reacts to what they see (a hook picked per scenery: silent gasp, calm speechless awe, disbelieving laugh, sunglasses off, breathless arrival, wind gust, goosebumps, cold dawn), the camera moves the way their eyes look onto the view (pan along the cliff edge, pan onto a river/road leading line, tilt up at something towering, whip pan, hand off the lens, over the shoulder, over the crest, through the window), stops, then gently zooms in, with music that swells the moment the view opens - one of the two reference tracks or an AI track (felt piano, epic orchestral, dreamy pads, tropical chill, acoustic, synth glow, guzheng, nordic choir, gamelan, mediterranean guitar, oud, andean flute, lofi) chosen to suit the place - plus a caption hook line. Use for "zoominview", "zoom in view", "reaction reveal", "surprised person then the view", "video like the Madeira cliff one", "video like the Swiss valley one", or "zoominview <place>". Use instead of scenic-drop-reel (the default place reel) when the user wants a person's reaction and one continuous reveal rather than a beat-cut montage. Takes the shared brief (muse-video "Format skills"); files are named zoom-<slug>.
 ---
 
 # zoominview
 
-Paths are relative to this folder (`.claude/skills/zoominview/`). Server, retries, QA and delivery come from `../muse-video/SKILL.md`; the music engine is `../scenic-drop-reel/scripts/music.py`.
+Paths are relative to this folder (`.claude/skills/zoominview/`). Server, retries, the brief, shot history, QA and delivery come from `../muse-video/SKILL.md` ("Format skills" shared steps); the music engine is `../muse-video/scripts/music.py` ("Music"). Name everything `zoom-<slug>`.
 
 ## The format (measured on the reference reel, 13.8 s, 9:16, one continuous shot, no cut)
 | time | what | why it works |
@@ -38,7 +38,8 @@ Every reel stars the same woman (user rule, 2026-10-29), so viewers recognise he
 Other travel videos (muse-video travel mode, scenic-drop-reel shots with a person) use her too: pass `IMAGE=<this skill>/assets/character/face.jpg` and open the prompt with plan.py's `FACE_REF` text plus her `text`. To change her, generate a new face the same way (`/v1/images/generations`, n=4, head-and-shoulders, facing the camera, plain background, "original fictional person, not resembling any real person"), pick one, replace the file and the `text`, never one reel's prompt.
 
 ## Steps
-1. **Plan**. Write `--view`: what is really there, the real landmarks, terrain, water, vegetation (name treeless terrain, see muse-video lessons). Pick `--setting` (coast island mountain canyon lake city oldtown nature desert snow) and `--light` (sunset sunrise golden day blue-hour night; default to sunset/golden: the reference look).
+0. **Earlier shots**: shared step 1 (`../shot-history/scripts/shots.py check`).
+1. **Plan**. Write `--view`: what is really there, the real landmarks, terrain, water, vegetation (shared step 2: name treeless terrain). Pick `--setting` (coast island mountain canyon lake city oldtown nature desert snow) and `--light` (sunset sunrise golden day blue-hour night; default to sunset/golden: the reference look).
    ```bash
    python3 scripts/plan.py --place "Ponta de São Lourenço, Madeira, Portugal" --setting coast --light sunset \
      --country portugal --view "jagged red volcanic cliffs and sea stacks dropping into the deep blue Atlantic, white surf, green headlands to the horizon, sun low over the sea" > plan.json
@@ -57,11 +58,11 @@ Other travel videos (muse-video travel mode, scenic-drop-reel shots with a perso
 4. **Check the clips**: contact sheets (`ffmpeg -i a.mp4 -vf "fps=2,scale=180:-1,tile=6x2" -frames:v 1 a.jpg`, same for b). A: real face (pores, natural hands, 5 fingers), real surprise, no talking, ends on the transition frame (ground / blur / palm / shoulder). B: starts on that frame, reveals the real place, no person after the reveal, no text. Find the second in B when the view is fully open.
 5. **Compose**:
    ```bash
-   python3 scripts/compose.py --plan plan.json --music track.m4a --out reel.mp4 a.mp4 b.mp4 [c.mp4] --reveal <reel second the view is open> [--zoom-at <start of C>]
+   python3 scripts/compose.py --plan plan.json --music track.m4a --out zoom-<slug>.mp4 a.mp4 b.mp4 [c.mp4] --reveal <reel second the view is open> [--zoom-at <start of C>]
    ```
    Drops B's duplicated first frame at the join, cuts the head of A so the music drop lands exactly on `--reveal` (≥ 3.5 s reaction kept), eased digital push-in from the reveal (or `--zoom-at`) to the end, loops the track body when the reel is longer than the track (`--zoom 1.15`; 1.25 for a far view, 1 when muse's own push-in is enough), light grade, wind ambience under the music, denoise (afftdn, as stitch.sh; the looped reference track alone sat at -65 dB hiss), -14 LUFS.
-6. **Verify**: `python3 ../muse-video/scripts/qa.py reel.mp4 --travel 0 sheet.jpg` (judge `smooth` + sheet; `motion` TIME-LAPSE flags the pan and the zooms, check frames instead) and watch the join: no jump, face/clothes identical up to the transition, music swell on the reveal.
-7. **Deliver** with `../muse-video/scripts/deliver.sh` (preview, `FINAL=1` after OK), `THUMB_DIR=` (thumbnails from `../thumbnail/SKILL.md` with `--split`: the gasp on top, the view below) and a `CAPTION_FILE`: the plan's `caption_hook` (or a better one for this place), place line, call to action, 3-6 hashtags. Record the shots (shot-history) BEFORE `FINAL=1`: deliver trashes the work folder.
+6. **Verify**: shared step 6 (`../muse-video/scripts/qa.py zoom-<slug>.mp4 --travel 0 sheet.jpg`) and watch the join: no jump, face/clothes identical up to the transition, music swell on the reveal.
+7. **Deliver**: shared step 7. Thumbnails with `--split` (the gasp on top, the view below); captions open with the plan's `caption_hook` (or a better one for this place). The final is `zoom-<slug>.mp4`: `Kelingking Beach - zoominview.mp4` was put on the Chinese channel by the dashboard.
 
 ## Choosing hook + transition + music (what plan.py encodes)
 - The table under "Not one fixed recipe" is the map; each item's `setting` / `light` / `country` in `styles.json` is the source of truth.
