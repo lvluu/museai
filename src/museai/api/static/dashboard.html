@@ -149,6 +149,7 @@
   .plat.late:not(.done) small { color: var(--bad); font-weight: 600; }
   .plat.done small { color: inherit; }
   /* posting schedule: two slots a day, GMT+7 */
+  .chan-tabs { width: fit-content; margin-bottom: 8px; }
   .sched { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 14px; }
   .sday { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .sday h3 { margin: 0; font-size: 12px; font-weight: 600; color: var(--muted); }
@@ -223,9 +224,10 @@
 <main id="app">
   <section data-section="post" hidden>
     <header><h1>Ready to post</h1></header>
-    <p class="hint">Two videos a day at peak hours (GMT+7): slot 1 at midday for bite-sized clips, slot 2 in the
-      evening for conversations, mistakes and quizzes. New videos take the next free slot; each platform tile shows
-      the time to schedule it there. Schedule 1-2 days ahead; pick another slot on a card to move it.</p>
+    <p class="hint">Each channel posts from its own accounts, two videos a day at peak hours (GMT+7): slot 1 at
+      midday, slot 2 in the evening. New videos take the next free slot in their channel; each platform tile shows
+      the time to schedule it there. Schedule 1-2 days ahead; pick another slot or channel on a card to move it.</p>
+    <div class="tabs chan-tabs" id="chanTabs"></div>
     <div class="sched" id="sched"></div>
     <p class="hint">Each platform has its own caption, written to its length, hook and hashtag rules (tabs above
       the text; • = written for it; “Shared” is the fallback for a platform without one): pick the tab, “Copy” (YouTube: “Copy title” and “Copy description”), and “Show file”
@@ -582,6 +584,9 @@ document.querySelector(".nav").addEventListener("click", (e) => {
 });
 
 let posts = { platforms: [], videos: [] }, postsSig = "";
+// Channel tab (Chinese / Travel): filters the schedule and the cards; remembered per browser.
+let chan = (() => { try { return localStorage.getItem("postChannel") || "chinese"; } catch { return "chinese"; } })();
+const chanVideos = () => posts.videos.filter((v) => v.channel === chan);
 const postUrl = (name, rest = "") => `/dashboard/posts/${encodeURIComponent(name)}${rest}`;
 
 function renderPosts() {
@@ -591,9 +596,14 @@ function renderPosts() {
   postsSig = sig;
   $("navPost").textContent = posts.videos.length || "";
   $("navPost").classList.toggle("hot", posts.videos.length > 0);
+  const chans = posts.channels || [];
+  if (chans.length && !chans.some((c) => c.id === chan)) chan = chans[0].id;
+  $("chanTabs").innerHTML = chans.map((c) => `<button data-chan="${esc(c.id)}" class="${c.id === chan ? "on" : ""}">${
+    esc(c.name)} <small>${posts.videos.filter((v) => v.channel === c.id).length}</small></button>`).join("");
   renderSchedule();
-  if (!posts.videos.length) { $("posts").innerHTML = `<div class="empty">Nothing waiting to be posted.</div>`; return; }
-  $("posts").innerHTML = posts.videos.map((v) => {
+  const shown = chanVideos();
+  if (!shown.length) { $("posts").innerHTML = `<div class="empty">Nothing waiting to be posted in this channel.</div>`; return; }
+  $("posts").innerHTML = shown.map((v) => {
     const n = Object.keys(v.posted).length;
     return `<div class="post" data-name="${esc(v.name)}">
       <video src="${esc(postUrl(v.name, "/file"))}#t=0.5" preload="metadata" controls muted playsinline></video>
@@ -649,12 +659,10 @@ function when(iso) {
 }
 const whenLong = (iso) => iso ? `${dayLabel(iso.slice(0, 10))} ${iso.slice(11, 16)} (GMT+7)` : "no slot";
 const slotLabel = (key) => { const [d, n] = key.split("/"); return `${dayLabel(d)} · slot ${n}`; };
-const SLOT_FOCUS = { 1: "Midday: bite-sized (stroke order, word of the day, a quick view)",
-                     2: "Evening: conversations, common mistakes, quizzes" };
 const firstLine = (v, p) => (captionFor(v, p) || "").split("\n")[0].trim();
 function renderSchedule() {
   const today = todayGmt7();
-  $("sched").innerHTML = (posts.calendar || []).map((day) => `
+  $("sched").innerHTML = ((posts.calendar || {})[chan] || []).map((day) => `
     <div class="sday ${day.date === today ? "today" : ""}"><h3>${esc(dayLabel(day.date))}</h3>
       ${day.slots.map((s) => {
         const v = s.video && posts.videos.find((x) => x.name === s.video);
@@ -667,16 +675,20 @@ function renderSchedule() {
 }
 function slotHead(v) {
   if (!v.slot) return "";
-  const keys = (posts.calendar || []).flatMap((d) => d.slots.map((s) => [s.key, s.video]));
+  const keys = ((posts.calendar || {})[v.channel] || []).flatMap((d) => d.slots.map((s) => [s.key, s.video]));
   if (!keys.some(([k]) => k === v.slot)) keys.unshift([v.slot, v.name]);
   const yt = v.schedule.youtube, n = v.slot.split("/")[1];
+  const ch = (posts.channels || []).find((c) => c.id === v.channel);
   return `<div class="slot-head">
-    <select data-slot title="Move this video to another slot (a video already there swaps with it)">
+    <select data-channel title="Channel (account) this video posts on; moving it books the next free slot there">
+      ${(posts.channels || []).map((c) => `<option value="${esc(c.id)}" ${c.id === v.channel ? "selected" : ""}>${esc(c.name)}</option>`).join("")}
+    </select>
+    <select data-slot title="Move this video to another slot (a video of this channel already there swaps with it)">
       ${keys.map(([k, other]) => `<option value="${esc(k)}" ${k === v.slot ? "selected" : ""}>${esc(slotLabel(k))}${
         other && other !== v.name ? " (swap)" : ""}</option>`).join("")}
     </select>
     ${late(yt) && !Object.keys(v.posted).length ? `<span class="late">Slot passed: post now or pick a later slot</span>` : ""}
-    <span class="focus">${esc(SLOT_FOCUS[n])}</span>
+    <span class="focus">${esc(ch?.focus?.[n] || "")}</span>
   </div>`;
 }
 
@@ -861,11 +873,18 @@ $("posts").addEventListener("click", async (e) => {
 $("posts").addEventListener("change", (e) => {
   const name = e.target.closest(".post")?.dataset.name; if (!name) return;
   if (e.target.matches("[data-slot]")) updatePost(name, { slot: e.target.value });
+  else if (e.target.matches("[data-channel]")) updatePost(name, { channel: e.target.value });
   else if (e.target.dataset.posted) updatePost(name, { platform: e.target.dataset.posted, posted: e.target.checked });
   else if (e.target.matches("[data-caption]")) {
     const tab = curTab(video(e.target.closest(".post")));
     updatePost(name, tab === "all" ? { caption: e.target.value } : { captions: { [tab]: e.target.value } });
   }
+});
+$("chanTabs").addEventListener("click", (e) => {
+  const id = e.target.closest("[data-chan]")?.dataset.chan; if (!id || id === chan) return;
+  chan = id;
+  try { localStorage.setItem("postChannel", id); } catch {}
+  postsSig = ""; renderPosts();
 });
 $("sched").addEventListener("click", (e) => {
   const name = e.target.closest("[data-goto]")?.dataset.goto; if (!name) return;
