@@ -1,6 +1,7 @@
 """Usage: burn_subs.py video.mp4 cues.json out.mp4
 cues.json: [[speech_start, speech_end, zh, pinyin, vi], ...] -> 3-line subtitles burned in.
-Each pinyin syllable is coloured by its tone (TONE_COLORS) so viewers see the tones; TONES=0 keeps it white."""
+Each pinyin syllable is coloured by its tone (TONE_COLORS) so viewers see the tones; TONES=0 keeps it white.
+BOX=x0,y0,x1,y1 (pixels) overrides the caption box when a brief sets its own; never copy this script per episode."""
 import json
 import os
 import re
@@ -13,6 +14,8 @@ from PIL import Image, ImageDraw, ImageFont
 
 W, H = 1080, 1920
 BOX = (65, 1094, 907, 1440)  # x6-84%, y57-75%: block centred ~66%, bottom 25% + right edge clear
+if os.environ.get("BOX"):
+    BOX = tuple(int(v) for v in os.environ["BOX"].split(","))
 ZH_FONT = ("/System/Library/AssetsV2/com_apple_MobileAsset_Font8/86ba2c91f017a3749571a82f2c6d890ac7ffb2fb"
            ".asset/AssetData/PingFang.ttc")
 LATIN_FONT = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
