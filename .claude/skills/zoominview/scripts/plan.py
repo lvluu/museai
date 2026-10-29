@@ -55,6 +55,8 @@ def main():
     ap.add_argument("--country", default="")
     ap.add_argument("--focus", default="the most beautiful landmark of the view",
                     help="the beautiful angle the end zooms into, e.g. \"the dark basalt sea stacks in the white surf\"")
+    ap.add_argument("--line", default="the natural leading line of the view (a river, the valley floor, a road or a ridge)",
+                    help="what glide-in travels along, e.g. \"the turquoise glacier river\"")
     ap.add_argument("--reveal")
     ap.add_argument("--music")
     ap.add_argument("--hook", help="the reaction (styles.json hooks), e.g. gasp, still-awe")
@@ -101,7 +103,7 @@ def main():
 
     light = styles["lights"][a.light]
     fill = {"{place}": a.place, "{view}": a.view, "{person}": character["text"] if character else a.person or rng.choice(PEOPLE),
-            "{light}": light, "{focus}": a.focus, "{hook}": hook["text"], "{reveal_at}": f"{reveal['reveal_at']:g}"}
+            "{light}": light, "{focus}": a.focus, "{line}": a.line, "{hook}": hook["text"], "{reveal_at}": f"{reveal['reveal_at']:g}"}
     rules = (SKILL / "prompt/reveal.txt").read_text().replace("{LIGHT}", light[0].upper() + light[1:])
 
     def prompt(text):
@@ -131,6 +133,8 @@ def main():
             "prompt_a": prompt((FACE_REF if character else "") + reveal["a"]), "prompt_b": prompt(NOBODY + reveal["b"])}
     if character:
         plan["person_image"] = str(SKILL / character["image"])
+    if "compose" in reveal:  # compose.py flags the reveal needs, e.g. glide-in's digital push-in
+        plan["compose"] = reveal["compose"]
     if "c" in reveal:
         plan["prompt_c"] = prompt(NOBODY + reveal["c"])
     hist["reveals"] = (hist["reveals"] + [reveal["id"]])[-10:]

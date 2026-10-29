@@ -14,6 +14,14 @@ only=${3:-}
 field() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]] if sys.argv[3]=="" else json.load(open(sys.argv[1]))[sys.argv[2]][sys.argv[3]])' "$plan" "$1" "${2:-}"; }
 # STYLE=travel asks muse for 4K; QUALITY=0 because prompt/reveal.txt (phone look) replaces the travel block
 run() { STYLE=travel QUALITY=0 SIZE=${SIZE:-9:16} NO_OPEN=1 "$@"; }
+# plan compose.cut {"b": 6.2}: keep only that many seconds of the clip (muse freezes or drifts after it);
+# the full take stays as b_full.mp4 and the next clip continues from the cut's last frame
+cut() {
+  local s; s=$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("compose", {}).get("cut", {}).get(sys.argv[2], ""))' "$plan" "$1")
+  [[ -n $s ]] || return 0
+  mv "$out/$1.mp4" "$out/$1_full.mp4"
+  ffmpeg -v error -y -i "$out/$1_full.mp4" -t "$s" -c:v libx264 -crf 16 -preset slow -c:a aac "$out/$1.mp4"
+}
 if [[ -z $only || $only == a ]]; then
   field prompt_a > "$out/prompt_a.txt"
   # the recurring character's face photo goes along with clip A as a face reference (B shows nobody)
@@ -25,9 +33,11 @@ if [[ -z $only || $only == b ]]; then
   [[ -f $out/a.mp4 ]] || { echo "no $out/a.mp4 to continue from" >&2; exit 1; }
   field prompt_b > "$out/prompt_b.txt"
   CONTINUE_FROM="$out/a.mp4" DURATION=$(field reveal b_seconds) OUT_NAME=b.mp4 run "$MUSE_VIDEO" -f "$out/prompt_b.txt" "$out"
+  cut b
 fi
 if [[ -z $only || $only == c ]] && python3 -c 'import json,sys; sys.exit("prompt_c" not in json.load(open(sys.argv[1])))' "$plan"; then
   [[ -f $out/b.mp4 ]] || { echo "no $out/b.mp4 to continue from" >&2; exit 1; }
   field prompt_c > "$out/prompt_c.txt"
   CONTINUE_FROM="$out/b.mp4" DURATION=$(field reveal c_seconds) OUT_NAME=c.mp4 run "$MUSE_VIDEO" -f "$out/prompt_c.txt" "$out"
+  cut c
 fi
