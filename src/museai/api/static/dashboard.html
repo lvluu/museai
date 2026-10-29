@@ -616,7 +616,7 @@ function renderPosts() {
         </div>
         ${slotHead(v)}
         ${(v.thumbnails || []).length ? `<div class="thumbs">${v.thumbnails.map((t) =>
-          `<a href="${esc(postUrl(v.name, "/thumbnail/" + t.kind))}" download title="${esc(t.kind)}: ${esc(t.use)}">
+          `<a href="${esc(postUrl(v.name, "/thumbnail/" + t.kind))}" target="_blank" rel="noopener" title="Open full size: ${esc(t.kind)}: ${esc(t.use)}">
              <img src="${esc(postUrl(v.name, "/thumbnail/" + t.kind))}" alt="${esc(t.kind)} thumbnail" loading="lazy"><small>${esc(t.kind)}</small></a>`).join("")}</div>` : ""}
         <div class="cap-tabs">${[...posts.platforms.map((p) => [p.id, p.name.split(" ")[0]]), ["all", "Shared"]].map(([id, label]) =>
           `<button data-captab="${esc(id)}" ${id === "all" ? `title="Fallback for platforms without their own caption"` : ""}>${esc(label)}</button>`).join("")}</div>

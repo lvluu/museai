@@ -258,7 +258,7 @@ async def post_thumbnail(name: str, kind: str, svc: Services = Depends(get_servi
     thumb = _thumbs(_video(svc, name)).get(kind)
     if not thumb:
         raise NotFound(f"no {kind} thumbnail for '{name}'")
-    return FileResponse(thumb, filename=thumb.name)
+    return FileResponse(thumb, filename=thumb.name, content_disposition_type="inline")  # view; save from there
 
 
 # Plain def (not async): trashing and Finder run subprocesses, so FastAPI runs these in a thread.

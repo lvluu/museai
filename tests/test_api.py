@@ -220,7 +220,8 @@ def test_posting_queue(client, admin, settings, monkeypatch):
     assert client.get("/dashboard/posts/ep1.mp4/file", headers=admin).content == b"video"
     assert client.get("/dashboard/posts/notes.txt/file", headers=admin).status_code == 404
     assert [t["kind"] for t in d["videos"][0]["thumbnails"]] == ["9x16"]
-    assert client.get("/dashboard/posts/ep1.mp4/thumbnail/9x16", headers=admin).content == b"jpg"
+    thumb = client.get("/dashboard/posts/ep1.mp4/thumbnail/9x16", headers=admin)
+    assert thumb.content == b"jpg" and thumb.headers["content-disposition"].startswith("inline")  # opens, not downloads
     assert client.get("/dashboard/posts/ep1.mp4/thumbnail/16x9", headers=admin).status_code == 404
 
     r = client.post("/dashboard/posts/ep1.mp4", headers=admin, json={"caption": "hi #fyp"}).json()
