@@ -711,6 +711,14 @@ function xLength(text) {
   }
   return n;
 }
+// Refit when the box gets its width: the Post view shown after rendering hidden, or the window resized.
+const capFit = new ResizeObserver((entries) => {
+  for (const { target, contentRect } of entries) {
+    if (contentRect.width === target.fitWidth) continue;
+    target.fitWidth = contentRect.width;
+    fitCaption(target);
+  }
+});
 function showCaption(card) {
   const v = video(card); if (!v) return;
   const tab = curTab(v);
@@ -722,11 +730,13 @@ function showCaption(card) {
   ta.value = tab === "all" ? v.caption : (v.captions[tab] || "");
   ta.placeholder = tab === "all" ? "Caption for every platform without its own (copied when you click a platform)"
     : v.caption ? `Uses the “Shared” caption:\n${v.caption}` : "Caption for this platform";
+  capFit.observe(ta);
   fitCaption(ta);
   countCaption(card);
 }
 // Grow the box to show the whole caption (or the fallback shown as placeholder).
 function fitCaption(ta) {
+  if (!ta.clientWidth) return; // hidden (another view is open): nothing to measure yet
   const typed = ta.value;
   if (!typed) ta.value = ta.placeholder;
   ta.style.height = "auto";
