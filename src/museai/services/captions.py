@@ -157,7 +157,9 @@ class CaptionWriter:
             todo = [p for p in missing if p not in good]
             text = await self.gateway.chat_complete(ChatRequest(
                 prompt=prompt(path.name, caption, todo, rules, errors), model="muse-chat",
-                images=images))
+                # The rules are long and the frames upload first: muse often needs over a minute
+                # before the first token, more while renders load the machine.
+                images=images, first_token_timeout=180.0))
             got = parse(text, todo)
             if check:
                 errs, _, _ = check({**dict.fromkeys(PLATFORMS, "-"), **got})
