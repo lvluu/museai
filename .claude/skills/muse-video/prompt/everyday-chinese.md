@@ -60,6 +60,7 @@ Viral rules (user rule 2026-10-29, from Chinese-learning Shorts that spread):
 - EP32 Reporting a leaking faucet (residential maintenance desk, man in a navy work shirt; ~20 s script kept at the user's choice; recap with one vocab card at a time upper-left, synced to the spoken word; man turned to the lens in the ending in all 3 clip-B takes despite the "stays in profile" line, shipped as a named failure)
 - EP28 Finding a lost umbrella (mall information desk, clerk; blue umbrella on the counter; vocab cards upper-left added in post)
 - EP29 Asking about a gym membership (gym reception desk, staff in a dark-gray polo; 6 added lines on opening hours, what to bring, trainers; the man's 不客气 at the start of clip D was mouthed by the woman in 3 of 3 takes, so the line was dropped and clip D held only the recap and ending; muse's loud music hid the pauses from gaps.py, so pauses were cut on the demucs vocal stem's spans; Whisper merged the recap into one 4.9 s span, so it was dubbed word by word on the vocal-stem spans; 34 s after cutting pauses to 0.8 s; woman near profile in every two-shot line, shipped as a named failure)
+- EP33 Buying birthday flowers (flower shop counter, florist in an olive apron; sunflowers in a vase stay on display; recap with three vocab cards upper-left y16-31% to clear her head; script fills only ~22 s at natural pace, so a 40-45 s request needs more lines)
 
 ## Template
 
