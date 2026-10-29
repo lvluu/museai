@@ -12,6 +12,8 @@
 # captions.py before anything is copied. CAPTION="text" / CAPTION_FILE=caption.txt: the shared caption, used
 # for a platform without its own (default: the TikTok one). Both are saved to the dashboard's "Ready to
 # post" queue (MUSEAI_BASE, default http://127.0.0.1:18610) for the video.
+# THUMB_DIR=dir: the thumbnail skill's <name>_9x16.jpg + <name>_16x9.jpg, copied next to the video as
+# "<video> - thumbnail 9x16.jpg" / "16x9.jpg" (the dashboard shows them and trashes them with the video).
 set -euo pipefail
 final=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
 work=$(cd "$2" && pwd)
@@ -41,6 +43,17 @@ if [ -n "${CAPTIONS_FILE:-}" ]; then
 fi
 [ -n "$caption$captions" ] || [ "${NO_CAPTION:-0}" = 1 ] ||
   { echo "no caption: pass CAPTIONS_FILE=captions.json (social-captions skill; or NO_CAPTION=1 for a video that will not be posted)" >&2; exit 1; }
+# Every posted video gets thumbnails (user rule, 2026-10-29); NO_THUMB=1 only for one that will not be posted.
+thumbs=()
+if [ -n "${THUMB_DIR:-}" ]; then
+  for k in 9x16 16x9; do
+    t=$(ls "$THUMB_DIR"/*_"$k".jpg 2>/dev/null | head -1)
+    [ -n "$t" ] || { echo "no *_$k.jpg in $THUMB_DIR" >&2; exit 1; }
+    thumbs+=("$k=$t")
+  done
+elif [ "${NO_THUMB:-${NO_CAPTION:-0}}" != 1 ]; then
+  echo "no thumbnails: make them with ../thumbnail (scripts/thumb.py) and pass THUMB_DIR=dir (or NO_THUMB=1)" >&2; exit 1
+fi
 # 4K only on request (UHD=1): a good 1080p render needs no upscale (user rule, 2026-10-27)
 if [ "${UHD:-0}" = 0 ]; then
   cp "$final" "$out"
@@ -52,6 +65,11 @@ else
 fi
 ffprobe -v error -show_entries format=duration -of csv=p=0 "$out" >/dev/null || { echo "copy unreadable: $out" >&2; exit 1; }
 echo "DELIVERED $out"
+kept=("$out")
+for kt in ${thumbs[@]+"${thumbs[@]}"}; do
+  t="$dest/$(basename "${out%.*}") - thumbnail ${kt%%=*}.jpg"
+  cp "${kt#*=}" "$t" && kept+=("$t") && echo "THUMBNAIL $t"
+done
 if [ -n "$caption$captions" ]; then
   name=$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1]))' "$(basename "$out")")
   CAPTION="$caption" CAPTIONS="$captions" python3 -c '
@@ -65,7 +83,10 @@ fi
 shopt -s nullglob
 junk=("$work")
 # "$prefix"[-_.]* so ep1 never takes ep10.mp4 along
-for f in "$dest/$prefix"[-_.]*; do [ "$f" = "$out" ] || junk+=("$f"); done
+for f in "$dest/$prefix"[-_.]*; do
+  for k in "${kept[@]}"; do [ "$f" = "$k" ] && continue 2; done
+  junk+=("$f")
+done
 renders=("$HOME/Movies/museai/$prefix"*)
 junk+=(${renders[@]+"${renders[@]}"})
 media="$(cd "$(dirname "$0")/../../../.." && pwd)/data/media"
@@ -82,4 +103,4 @@ for f in "${junk[@]}"; do
   uniq+=("$f"); echo "delete $f"
 done
 trash "${uniq[@]}"
-echo "LEFT ONLY $out"
+for k in "${kept[@]}"; do echo "LEFT ONLY $k"; done

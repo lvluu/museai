@@ -42,7 +42,7 @@ Reference music: the reel uses "Runaway" (the user supplies the full song; play 
    ```
    Drops B's duplicated first frame at the join, cuts the head of A so the music drop lands exactly on `--reveal` (≥ 3.5 s reaction kept), eased digital push-in from the reveal (or `--zoom-at`) to the end, loops the track body when the reel is longer than the track (`--zoom 1.15`; 1.25 for a far view, 1 when muse's own push-in is enough), light grade, wind ambience under the music, denoise (afftdn, as stitch.sh; the looped reference track alone sat at -65 dB hiss), -14 LUFS.
 6. **Verify**: `python3 ../muse-video/scripts/qa.py reel.mp4 --travel 0 sheet.jpg` (judge `smooth` + sheet; `motion` TIME-LAPSE flags the pan and the zooms, check frames instead) and watch the join: no jump, face/clothes identical up to the transition, music swell on the reveal.
-7. **Deliver** with `../muse-video/scripts/deliver.sh` (preview, `FINAL=1` after OK) and a `CAPTION_FILE`: hook line ("I wasn't ready for this view…", "POV: you reach the top of …"), place line, call to action, 3-6 hashtags.
+7. **Deliver** with `../muse-video/scripts/deliver.sh` (preview, `FINAL=1` after OK), `THUMB_DIR=` (thumbnails from `../thumbnail/SKILL.md` with `--split`: the gasp on top, the view below) and a `CAPTION_FILE`: hook line ("I wasn't ready for this view…", "POV: you reach the top of …"), place line, call to action, 3-6 hashtags.
 
 ## Choosing transition + music (what plan.py encodes)
 - Cliffs, coast, canyons → `swing-tilt` (the reference); peaks, dunes, snow ridges → `crest-rise` / `over-shoulder`; city skyline, old towns, hotel views → `window-open` / `whip-pan`; anything → `hand-reveal`, `whip-pan`.
