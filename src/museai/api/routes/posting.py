@@ -31,6 +31,8 @@ PLATFORMS = {
     "tiktok": ("TikTok", "https://www.tiktok.com/tiktokstudio/upload"),
     "facebook": ("Facebook Reels", "https://www.facebook.com/reels/create"),
     "instagram": ("Instagram Reels", "https://www.instagram.com/"),
+    "x": ("X", "https://x.com/compose/post"),
+    "threads": ("Threads", "https://www.threads.com/"),
 }
 VIDEO_EXT = {".mp4", ".mov", ".m4v"}
 
