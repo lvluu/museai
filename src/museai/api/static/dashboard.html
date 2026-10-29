@@ -161,6 +161,7 @@
   .sslot.booked { border-color: var(--accent); cursor: pointer; }
   .sslot.booked span { color: var(--text); }
   .sslot.late { border-color: var(--bad); }
+  .sslot.gone { border-style: dashed; }
   .slot-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 13px; }
   .slot-head select { font: inherit; font-size: 13px; font-weight: 600; color: var(--accent); background: var(--bg);
                       border: 1px solid var(--line); border-radius: 6px; padding: 2px 4px; max-width: 100%; }
@@ -666,16 +667,16 @@ function renderSchedule() {
     <div class="sday ${day.date === today ? "today" : ""}"><h3>${esc(dayLabel(day.date))}</h3>
       ${day.slots.map((s) => {
         const v = s.video && posts.videos.find((x) => x.name === s.video);
-        const title = v ? firstLine(v, "youtube") || v.name : "free";
-        return `<button class="sslot ${v ? "booked" : ""} ${v && late(s.time) && !Object.keys(v.posted).length ? "late" : ""}"
-          ${v ? `data-goto="${esc(v.name)}"` : "disabled"} title="${esc(s.focus)}${v ? "\n" + esc(v.name) : ""}">
+        const title = v ? firstLine(v, "youtube") || v.name : s.gone ? `✓ ${s.gone.title || s.gone.name}` : "free";
+        return `<button class="sslot ${v ? "booked" : ""} ${s.gone ? "gone" : ""} ${v && late(s.time) && !Object.keys(v.posted).length ? "late" : ""}"
+          ${v ? `data-goto="${esc(v.name)}"` : "disabled"} title="${esc(s.focus)}${v ? "\n" + esc(v.name) : s.gone ? "\nPosted / deleted: " + esc(s.gone.name) : ""}">
           <b>${esc(s.time.slice(11, 16))}</b><span>${esc(title)}</span></button>`;
       }).join("")}
     </div>`).join("");
 }
 function slotHead(v) {
   if (!v.slot) return "";
-  const keys = ((posts.calendar || {})[v.channel] || []).flatMap((d) => d.slots.map((s) => [s.key, s.video]));
+  const keys = ((posts.calendar || {})[v.channel] || []).flatMap((d) => d.slots.map((s) => [s.key, s.video, s.gone]));
   if (!keys.some(([k]) => k === v.slot)) keys.unshift([v.slot, v.name]);
   const yt = v.schedule.youtube, n = v.slot.split("/")[1];
   const ch = (posts.channels || []).find((c) => c.id === v.channel);
@@ -684,8 +685,8 @@ function slotHead(v) {
       ${(posts.channels || []).map((c) => `<option value="${esc(c.id)}" ${c.id === v.channel ? "selected" : ""}>${esc(c.name)}</option>`).join("")}
     </select>
     <select data-slot title="Move this video to another slot (a video of this channel already there swaps with it)">
-      ${keys.map(([k, other]) => `<option value="${esc(k)}" ${k === v.slot ? "selected" : ""}>${esc(slotLabel(k))}${
-        other && other !== v.name ? " (swap)" : ""}</option>`).join("")}
+      ${keys.map(([k, other, gone]) => `<option value="${esc(k)}" ${k === v.slot ? "selected" : ""}>${esc(slotLabel(k))}${
+        other && other !== v.name ? " (swap)" : gone ? " (posted)" : ""}</option>`).join("")}
     </select>
     ${late(yt) && !Object.keys(v.posted).length ? `<span class="late">Slot passed: post now or pick a later slot</span>` : ""}
     <span class="focus">${esc(ch?.focus?.[n] || "")}</span>

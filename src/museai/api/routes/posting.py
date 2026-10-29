@@ -158,21 +158,41 @@ def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
     nothing posted moves to the next free one unless the user picked it. Returns True when the state
     changed."""
     entries = [(p.name, state.setdefault(_key(p.name), {})) for p in sorted(videos, key=lambda p: p.stat().st_mtime)]
+    changed = False
     for _, e in entries:
+        if e.pop("done", None):  # the same name delivered again: a new video, not the old record
+            e.pop("slot", None)
+            e.pop("slot_pinned", None)
+            changed = True
         if (key := e.get("slot")) and not e.get("posted") and not e.get("slot_pinned") \
                 and _slot_times(key)["youtube"] <= now:
             del e["slot"]
-    taken = {(_channel(n, e), e["slot"]) for n, e in entries if e.get("slot")}
+    # Slots of videos already posted or deleted stay booked, so a new video never refills them.
+    taken = {(_channel(n, e), e["slot"]) for n, e in state.items() if e.get("slot")}
     def free_slots(ch: str) -> Iterator[str]:  # a function, so each generator keeps its own ``ch``
         return (k for k in _slots_from(now) if (ch, k) not in taken)
 
     free = {ch: free_slots(ch) for ch in CHANNELS}
-    changed = False
     for n, e in entries:
         if not e.get("slot"):
             e["slot"] = next(free[_channel(n, e)])
             changed = True
     return changed
+
+
+def _forget_old(state: dict, now: datetime, keep_days: int = 14) -> bool:
+    """Drop records of posted / deleted videos whose slot is more than ``keep_days`` behind."""
+    cut = (now.astimezone(TZ).date() - timedelta(days=keep_days)).isoformat()
+    old = [n for n, e in state.items() if e.get("done") and e.get("slot", "") < cut]
+    for n in old:
+        del state[n]
+    return bool(old)
+
+
+def _record(entry: dict, name: str) -> dict:
+    """What stays of a posted / deleted video: its slot, channel and title, for the calendar."""
+    caption = (entry.get("captions", {}).get("youtube") or entry.get("caption") or "").split("\n")[0].strip()
+    return {"slot": entry["slot"], "channel": _channel(name, entry), "title": caption, "done": time.time()}
 
 
 def _view(path: Path, entry: dict, svc: Services) -> dict:
@@ -188,8 +208,11 @@ def _view(path: Path, entry: dict, svc: Services) -> dict:
 
 def _calendar(state: dict, names: dict[str, str], now: datetime, days: int = 7) -> dict[str, list[dict]]:
     """Per channel, the next ``days`` days of slots with the video (file name, by state key in
-    ``names``) booked in each (or None)."""
+    ``names``) booked in each (or None), and ``gone`` (name, title) for a video already posted or
+    deleted from that slot."""
     booked = {(_channel(n, e), e["slot"]): names[n] for n, e in state.items() if n in names and e.get("slot")}
+    gone = {(_channel(n, e), e["slot"]): {"name": n, "title": e.get("title", "")}
+            for n, e in state.items() if n not in names and e.get("slot")}
     start = now.astimezone(TZ).date()
     out: dict[str, list[dict]] = {}
     for ch, (_, focus) in CHANNELS.items():
@@ -200,7 +223,8 @@ def _calendar(state: dict, names: dict[str, str], now: datetime, days: int = 7) 
             for n in (1, 2):
                 key = f"{d.isoformat()}/{n}"
                 slots.append({"key": key, "n": n, "time": _slot_times(key)["youtube"].isoformat(),
-                              "focus": focus[n], "video": booked.get((ch, key))})
+                              "focus": focus[n], "video": booked.get((ch, key)),
+                              "gone": None if (ch, key) in booked else gone.get((ch, key))})
             out[ch].append({"date": d.isoformat(), "slots": slots})
     return out
 
@@ -236,7 +260,7 @@ async def list_posts(svc: Services = Depends(get_services)) -> dict:
     now = datetime.now(TZ)
     with _state_lock:
         state = _load(svc)
-        if _assign_slots(state, videos, now):
+        if _forget_old(state, now) | _assign_slots(state, videos, now):
             _save(svc, state)
     for p in videos:
         svc.captions.schedule(_key(p.name), p, state.get(_key(p.name), {}),
@@ -329,7 +353,10 @@ def _update(svc: Services, path: Path, body: dict) -> dict:
         for thumb in _thumbs(path).values():
             _trash(thumb)
         _trash(path)
-        state.pop(name, None)
+        if entry.get("slot"):
+            state[name] = _record(entry, name)  # keeps the slot booked: the next video takes the one after
+        else:
+            state.pop(name, None)
     _save(svc, state)
     return {"trashed": bool(done), "video": None if done else _view(path, entry, svc)}
 
