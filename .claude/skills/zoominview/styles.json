@@ -1,0 +1,269 @@
+{
+  "_doc": "zoominview styles. plan.py picks one reveal (transition) and one music style that fit --setting/--light, skipping the last 3 reveals and 3 music styles used. reveal.a = clip A (the person's reaction, ends on the transition frame); reveal.b = clip B, rendered from A's last frame (CONTINUE_FROM), turns that frame into the view and pushes in. {place}, {view}, {person}, {light} are filled by plan.py. reveal_at = seconds into clip B when the view is fully open (negative: the view opens inside clip A, before it ends) (the music drop lands there). music.style feeds ../scenic-drop-reel/scripts/music.py --style; file = a ready track with its own .beats.json (drop = when it swells). Optional reveal.c = clip C, rendered from B's last frame (e.g. B pulls back wide, C zooms in on the best angle).",
+  "reveals": [
+    {
+      "id": "swing-tilt",
+      "name": "Gasp at the view off to the side, one pan the way the eyes look onto the view, then one long zoom in (the reference reel)",
+      "setting": [
+        "coast",
+        "island",
+        "mountain",
+        "canyon",
+        "nature",
+        "lake",
+        "desert",
+        "snow"
+      ],
+      "a_seconds": 6,
+      "b_seconds": 9,
+      "reveal_at": -0.5,
+      "a": "Vertical smartphone selfie video, front camera held at arm's length, slightly below the face. {person} stands near the edge of a high viewpoint at {place}, looking past the camera and off to the RIGHT side of the frame at something enormous there. Behind the person there is only sky with clouds and the top of a grassy hillside: no sea, no cliffs, the view is NOT behind them. Real, overwhelmed surprise: eyes wide, mouth falling open in a silent gasp, one hand pressed to the forehead, wind blowing the hair. The head stays up and the eyes stay fixed on the view to the right, amazed: never bowing the head, never closing the eyes, never covering the face. In the last 2.5 seconds the phone pans to the RIGHT, exactly the way the eyes are looking, in one continuous fluid handheld move with motion blur: the face slides out of the left edge of the frame, the camera sweeps across the grass and scrub on the hillside, follows the rough edge of the cliff, and the view the person was staring at opens up beyond the edge: {view}. The pan eases out and STOPS: for the last 0.7 seconds the phone is held completely still and level on that view.",
+      "b": "Continue the same handheld smartphone video from exactly the first frame. The camera stays aimed at {focus}, in the centre of the frame: it never turns, pans, tilts or moves sideways, never looks away, never reframes. From the very first frame the lens ZOOMS IN slowly and smoothly toward {focus}, a gentle zoom of only about 1.5x in total, like a careful hand on a phone camera. After about 5 seconds the zoom eases out and STOPS, with {focus} filling only about a third of the frame and the cliffs, sea and sky still all around it: a balanced composition, never a close-up. For the rest of the clip the phone is held still on that framing: it never zooms further in and never zooms back out: {view}. The light stays exactly as in the first frame: same sunset glow, the sun does not set further, no darkening. Nobody in frame."
+    },
+    {
+      "id": "whip-pan",
+      "name": "Gasp, fast whip pan sideways onto the view",
+      "setting": [
+        "any"
+      ],
+      "a_seconds": 6,
+      "b_seconds": 10,
+      "reveal_at": 1.0,
+      "a": "Vertical smartphone selfie video, front camera at arm's length. {person} at {place} stares past the camera to the side, frozen in disbelief: jaw drops, a silent 'oh my god', both hands rise to the cheeks, eyebrows up, a short disbelieving laugh without words. In the last second the phone whips sideways to the right in one fast horizontal pan, strong motion blur, and the clip ends mid-whip on a streaked blur of light and colour. The view is NOT shown sharply yet.",
+      "b": "Continue the same handheld smartphone video. It starts in the streaked motion blur of a fast sideways pan that decelerates smoothly, and settles level on the full view: {view}. Then the camera holds steady and slowly pushes in toward the most beautiful part of the view for the rest of the clip. Nobody in frame."
+    },
+    {
+      "id": "hand-reveal",
+      "name": "Hand covers the lens, slides away to the view",
+      "setting": [
+        "any"
+      ],
+      "a_seconds": 5,
+      "b_seconds": 10,
+      "reveal_at": 1.6,
+      "a": "Vertical smartphone selfie video, front camera at arm's length. {person} at {place} looks past the camera at something behind it, gasping silently, eyes filling with wonder, covers the mouth with one hand, shakes the head slowly in disbelief. Then the other hand comes up toward the lens and covers it completely; the clip ends on the warm, softly lit palm filling the whole frame.",
+      "b": "Continue the same handheld smartphone video. It starts on a palm filling the frame; the hand slides away to the side, the exposure adjusts naturally, and behind it the full view is revealed: {view}. Then the camera holds steady and slowly pushes in toward the most beautiful part of the view for the rest of the clip. Nobody in frame after the hand leaves."
+    },
+    {
+      "id": "over-shoulder",
+      "name": "Gasp, turns to the view, camera rises over the shoulder and glides in",
+      "setting": [
+        "mountain",
+        "lake",
+        "snow",
+        "desert",
+        "coast",
+        "nature",
+        "canyon",
+        "city"
+      ],
+      "a_seconds": 6,
+      "b_seconds": 10,
+      "reveal_at": 2.4,
+      "a": "Vertical smartphone video filmed by a friend facing {person} at {place}. The person looks past the camera, stunned, mouth open in a silent gasp, hand on the chest, then slowly turns around toward the view behind them. The camera follows close behind the shoulder and hair; the clip ends on the back of the head and shoulder filling most of the frame, bright sky glowing around it.",
+      "b": "Continue the same handheld smartphone video. It starts close behind the person's shoulder and hair; the camera rises gently over the shoulder and glides forward past them, the person slides out of the frame at the bottom, and the full view opens out: {view}. Then the camera keeps slowly pushing in toward the most beautiful part of the view for the rest of the clip."
+    },
+    {
+      "id": "crest-rise",
+      "name": "Reaches the top, points ahead, camera rises over the crest",
+      "setting": [
+        "mountain",
+        "snow",
+        "desert",
+        "canyon",
+        "nature",
+        "island"
+      ],
+      "a_seconds": 6,
+      "b_seconds": 10,
+      "reveal_at": 2.8,
+      "a": "Vertical smartphone selfie video, front camera at arm's length. {person}, slightly out of breath, takes the last steps up a trail at {place}, glances over the top, freezes, mouth open in a silent gasp, eyes wide, hand on the head in disbelief, then points ahead past the camera. The phone tips down and the clip ends on the trail and the edge of the crest right in front of the boots, sky above it. The view is NOT shown yet.",
+      "b": "Continue the same handheld smartphone video. It starts on the trail and the crest edge; the camera moves forward and rises slowly over the crest, and the full view opens out beyond it: {view}. Then the camera holds level and slowly pushes in toward the most beautiful part of the view for the rest of the clip. Nobody in frame."
+    },
+    {
+      "id": "window-open",
+      "name": "Opens the shutters/curtains, bright light, steps out to the view",
+      "setting": [
+        "city",
+        "oldtown",
+        "coast",
+        "lake",
+        "island",
+        "mountain"
+      ],
+      "a_seconds": 6,
+      "b_seconds": 10,
+      "reveal_at": 2.4,
+      "a": "Vertical smartphone selfie video, front camera, inside a simple hotel room at {place}. {person}, just woken up, pulls the curtains open; light floods the face, the person looks out past the camera and freezes, mouth open in a silent gasp, covers the mouth with both hands in disbelief. Then the phone turns toward the bright open window and the clip ends on the softly overexposed glowing window frame.",
+      "b": "Continue the same handheld smartphone video. It starts on a softly overexposed bright window; the exposure settles naturally as the camera moves through the window onto the balcony, and the full view opens out: {view}. Then the camera holds steady and slowly pushes in toward the most beautiful part of the view for the rest of the clip. Nobody in frame."
+    }
+  ],
+  "music": [
+    {
+      "id": "wow-ref",
+      "name": "Reference reel track (user-supplied, mellow ambient swell)",
+      "file": "assets/wow-ref.m4a",
+      "setting": [
+        "any"
+      ],
+      "light": [
+        "sunset",
+        "sunrise",
+        "golden"
+      ]
+    },
+    {
+      "id": "piano-swell",
+      "name": "Cinematic felt-piano swell",
+      "bpm": 72,
+      "style": "cinematic emotional felt piano, soft strings swell, warm sub bass, hopeful, awe, slow build into a full warm chorus, instrumental",
+      "setting": [
+        "mountain",
+        "lake",
+        "nature",
+        "snow",
+        "coast"
+      ],
+      "light": [
+        "sunrise",
+        "golden",
+        "day",
+        "sunset"
+      ]
+    },
+    {
+      "id": "epic-rise",
+      "name": "Epic orchestral rise",
+      "bpm": 90,
+      "style": "epic cinematic orchestral, deep taiko drums, rising brass and strings, massive choir hit, awe, heroic, instrumental",
+      "setting": [
+        "canyon",
+        "desert",
+        "mountain",
+        "snow"
+      ],
+      "light": [
+        "any"
+      ]
+    },
+    {
+      "id": "dream-pads",
+      "name": "Dreamy ambient pads with airy ooh",
+      "bpm": 64,
+      "style": "dreamy ambient, shimmering synth pads, soft reverb guitar, airy wordless female ooh vocal, ethereal, magical, slow",
+      "lyrics": "[verse]\nooh ooh ooh\nah ah ah\n[chorus]\nooh ooh ooh ooh\nah ah ah ah",
+      "setting": [
+        "snow",
+        "lake",
+        "nature",
+        "mountain"
+      ],
+      "light": [
+        "blue-hour",
+        "night",
+        "sunrise",
+        "any"
+      ]
+    },
+    {
+      "id": "tropic-chill",
+      "name": "Tropical chill house",
+      "bpm": 100,
+      "style": "tropical chill house, warm marimba, soft plucks, steel drums, gentle four-on-the-floor drop, sunny, uplifting, instrumental",
+      "setting": [
+        "coast",
+        "island"
+      ],
+      "light": [
+        "day",
+        "golden"
+      ]
+    },
+    {
+      "id": "acoustic-glow",
+      "name": "Warm acoustic fingerpicking",
+      "bpm": 84,
+      "style": "warm acoustic fingerpicked guitar, soft cello, light shaker, cozy, nostalgic, sunlit, gentle build, instrumental",
+      "setting": [
+        "oldtown",
+        "nature",
+        "lake",
+        "coast"
+      ],
+      "light": [
+        "day",
+        "golden",
+        "sunrise"
+      ]
+    },
+    {
+      "id": "city-glow",
+      "name": "Night-city synth glow",
+      "bpm": 96,
+      "style": "dreamy synthwave, warm analog synth arpeggio, deep soft kick, city lights, wonder, smooth build, instrumental",
+      "setting": [
+        "city"
+      ],
+      "light": [
+        "night",
+        "blue-hour",
+        "sunset"
+      ]
+    },
+    {
+      "id": "east-strings",
+      "name": "Guzheng and strings cinematic",
+      "bpm": 72,
+      "style": "cinematic asian, guzheng and erhu melody, soft strings, deep drums, majestic, peaceful awe, instrumental",
+      "setting": [
+        "mountain",
+        "nature",
+        "lake",
+        "oldtown"
+      ],
+      "light": [
+        "any"
+      ],
+      "country": [
+        "china",
+        "vietnam",
+        "japan",
+        "korea",
+        "taiwan",
+        "thailand"
+      ]
+    },
+    {
+      "id": "nordic-choir",
+      "name": "Nordic folk choir",
+      "bpm": 68,
+      "style": "nordic folk, hardanger fiddle, deep frame drum, wordless ethereal choir, vast, cold, majestic, instrumental",
+      "setting": [
+        "snow",
+        "mountain",
+        "coast",
+        "lake"
+      ],
+      "light": [
+        "any"
+      ],
+      "country": [
+        "norway",
+        "iceland",
+        "sweden",
+        "finland",
+        "faroe islands",
+        "greenland",
+        "svalbard"
+      ]
+    }
+  ],
+  "lights": {
+    "sunset": "golden sunset light, the sun low over the horizon, warm orange and pink clouds, long soft shadows",
+    "sunrise": "soft sunrise light, pastel pink and gold sky, gentle mist in the valleys",
+    "golden": "warm golden-hour light, glowing low sun, rich warm colours",
+    "day": "bright sunny day, deep blue sky with a few white clouds, crisp clear air",
+    "blue-hour": "blue hour just after sunset, deep blue sky, first lights glowing",
+    "night": "clear night, city lights glowing, a deep blue-black sky"
+  }
+}

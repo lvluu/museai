@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Usage: render plan.json out_dir [a|b|c]
+# Renders the two muse clips of a zoominview reel: a.mp4 (the reaction, ending on the transition frame),
+# then b.mp4 started from a.mp4's last frame (CONTINUE_FROM) so the join hides inside the transition.
+# A plan with prompt_c also renders c.mp4 from b.mp4's last frame. Pass "a", "b" or "c" to render only that clip
+# (B and C continue from the existing previous clip).
+# Env passed to muse-video: RETAKE=1 SIZE= (default 9:16)
+set -euo pipefail
+SKILL_DIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+MUSE_VIDEO="$SKILL_DIR/../muse-video/scripts/muse-video"
+plan=$1
+out=$(mkdir -p "$2" && cd "$2" && pwd)
+only=${3:-}
+field() { python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))[sys.argv[2]] if sys.argv[3]=="" else json.load(open(sys.argv[1]))[sys.argv[2]][sys.argv[3]])' "$plan" "$1" "${2:-}"; }
+# STYLE=travel asks muse for 4K; QUALITY=0 because prompt/reveal.txt (phone look) replaces the travel block
+run() { STYLE=travel QUALITY=0 SIZE=${SIZE:-9:16} NO_OPEN=1 "$@"; }
+if [[ -z $only || $only == a ]]; then
+  field prompt_a > "$out/prompt_a.txt"
+  DURATION=$(field reveal a_seconds) OUT_NAME=a.mp4 run "$MUSE_VIDEO" -f "$out/prompt_a.txt" "$out"
+fi
+if [[ -z $only || $only == b ]]; then
+  [[ -f $out/a.mp4 ]] || { echo "no $out/a.mp4 to continue from" >&2; exit 1; }
+  field prompt_b > "$out/prompt_b.txt"
+  CONTINUE_FROM="$out/a.mp4" DURATION=$(field reveal b_seconds) OUT_NAME=b.mp4 run "$MUSE_VIDEO" -f "$out/prompt_b.txt" "$out"
+fi
+if [[ -z $only || $only == c ]] && python3 -c 'import json,sys; sys.exit("prompt_c" not in json.load(open(sys.argv[1])))' "$plan"; then
+  [[ -f $out/b.mp4 ]] || { echo "no $out/b.mp4 to continue from" >&2; exit 1; }
+  field prompt_c > "$out/prompt_c.txt"
+  CONTINUE_FROM="$out/b.mp4" DURATION=$(field reveal c_seconds) OUT_NAME=c.mp4 run "$MUSE_VIDEO" -f "$out/prompt_c.txt" "$out"
+fi
