@@ -50,14 +50,20 @@ never paste one caption six times with different hashtags.
   YouTube title is `Tập NN | <hook>` under ~60 characters with the emoji, naming the everyday
   situation as a question or promise (e.g. `Tập 18 | Quán hết chỗ? Nói câu này là được ngồi chung bàn ☕`),
   never a long "muốn … thì nói tiếng Trung thế nào?" sentence. Hooks on other platforms drop the
-  `Tập NN |` prefix. Put the key Chinese phrase (hanzi + pinyin) in the body. Tags from
-  `#hoctiengtrung #tiengtrung #tiengtrunggiaotiep #learnchinese`.
+  `Tập NN |` prefix. The hook names an urgent everyday dilemma (ordering food, Wi-Fi, a charger,
+  haggling, a seat) or a wrong habit (`Đừng nói "Nǐ hǎo" khi vào quán ăn!`), never the grammar or a word list.
+  Put the key Chinese phrase (hanzi + pinyin + Vietnamese) in the body. The CTA is the episode's quiz:
+  "Comment câu trả lời của bạn bên dưới xem đúng không nhé!" (comments are what every platform rewards).
+  Tags from `#hoctiengtrung #tiengtrung #tiengtrunggiaotiep #learnchinese`.
 - **Grammar lessons (teaching-video)**: Vietnamese; hook names the mistake or the pattern
-  (`Bạn vẫn nói sai 了?`), body gives the pattern; tags like `#nguphaptiengtrung #hoctiengtrung`.
+  (`Bạn vẫn nói sai 了?`), body gives the pattern, CTA is the challenge as a comment quiz (as above);
+  tags like `#nguphaptiengtrung #hoctiengtrung`.
   One `captions.json` per export (9:16 and 16:9 can share the text; YouTube title may differ).
 - **Travel reels (scenic-drop-reel, zoominview)**: English unless asked; hook is curiosity or surprise
   ("This beach looks fake… but it's real", "POV: you finally made it to …"); body names the place and
-  the spots shown; tags: place, country, `#travel` style topics.
+  the spots shown; tags: place, country, `#travel` style topics. YouTube title: a scannable curiosity
+  question or claim under 50 characters that is true of the place ("Is this the bluest ice on Earth? 🧊",
+  "The most surreal beach on Earth"), never a format label ("Golden Hour reel", "Iceland in 15 seconds").
 
 ## Maintaining this skill
 When a platform changes a limit or the user corrects a caption, update `scripts/captions.py` (`RULES`),

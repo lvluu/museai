@@ -17,6 +17,21 @@ caption use a Vietnamese title, `Tiếng Trung mỗi ngày NN - <topic in Vietna
 see SKILL.md "Caption".
 The brief's own header line stays in English for muse.
 
+Viral rules (user rule 2026-10-29, from Chinese-learning Shorts that spread):
+- **Hook in the first 1-2 s is the situation, not an intro**: the intro line to camera states the
+  everyday problem or the wrong habit (`Đừng nói "Nǐ hǎo" khi vào quán ăn, hãy nói câu này!`,
+  "Quán hết chỗ thì nói gì?"), never a greeting, a self-introduction or the episode name. Pick topics
+  viewers hit this week: ordering food, asking for Wi-Fi or a charger, haggling, asking the way, a
+  seat, the toilet, paying (said, not handed over: no object exchange in the scene).
+- **Captions show the tones**: three lines hanzi / pinyin / Vietnamese side by side; `burn_subs.py`
+  colours each pinyin syllable by tone (1 red, 2 orange, 3 green, 4 blue, neutral white).
+- **The ending loops and asks**: the ENDING question is a mini quiz on the episode's key phrase (a
+  blank to fill, or "which one is right?") and its wording echoes the hook, so a replay lands back on
+  the problem it answers. The posting caption's CTA asks for the answer in the comments
+  ("Comment câu trả lời của bạn bên dưới xem đúng không nhé!").
+- **Title and cover name the dilemma**: the `Tập NN | <hook>` line and the first frame state the urgent
+  everyday problem ("Quán hết chỗ?", "Điện thoại sắp hết pin?"), not the grammar or the word list.
+
 ## Episode log
 - EP11 Buying fruit (fruit market, vendor)
 - EP12 Ordering takeout (takeaway restaurant, cashier)

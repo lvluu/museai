@@ -11,8 +11,10 @@ Usage:
   [--flag 🇮🇹] [--labels "Positano|Ravello|..."] [--coords "40.63° N  14.48° E"] [--beats track.beats.json]
 
 Timing comes from the music's beat grid (track.beats.json written by music.py: {"beats": [...],
-"drop": t|null}). With a "drop" the first shot starts on it (the intro card fills 0..drop);
-otherwise after the template's intro.beats. Shot k lasts plan.shots[k].beats (--plan; pick.py
+"drop": t|null}). Shot 1, the hook, shows from frame 0: a card intro (countdown, black-title, coords)
+sits on it over a dark scrim until the drop (or intro.beats), and shot 2 cuts in after shot 1's own
+beats. A plan shot marked "reprise" takes no clip: it replays clip 1's frames just before shot 1's
+window, so the last frame flows into the first and the reel loops seamlessly. Shot k lasts plan.shots[k].beats (--plan; pick.py
 varies them per reel) or the template's pattern[k] beats; every cut sits on a
 beat, every transition is centred on its beat. Output fps = the clips' fps (24 for muse), so each
 source frame is shown once. Each shot's window defaults to @auto: the stretch whose motion is
@@ -220,9 +222,12 @@ def ov_pov(w, h, text):
     return img
 
 
+SCRIM = (0, 0, 0, 120)  # card intros darken shot 1, never hide it: the view is the hook
+
+
 def ov_card(w, h, title, sub=None):
-    """Black full-frame card: title (with trailing emoji) at 28 % height, optional line below."""
-    img = Image.new("RGBA", (w, h), (0, 0, 0, 255))
+    """Scrim card: title (with trailing emoji) at 28 % height, optional line below."""
+    img = Image.new("RGBA", (w, h), SCRIM)
     d = ImageDraw.Draw(img)
     f, _ = fit(d, title, "serif", round(w * 0.068), w * 0.86)
     y = round(h * 0.28)
@@ -233,7 +238,7 @@ def ov_card(w, h, title, sub=None):
 
 
 def ov_center_card(w, h, text):
-    img = Image.new("RGBA", (w, h), (0, 0, 0, 255))
+    img = Image.new("RGBA", (w, h), SCRIM)
     d = ImageDraw.Draw(img)
     f, sp = fit(d, text, "futura", round(w * 0.11), w * 0.86, spacing_ratio=0.08)
     line(d, img, (w / 2, h * 0.5), text, f, shadow=False, spacing=sp)
@@ -242,7 +247,7 @@ def ov_center_card(w, h, text):
 
 def ov_coords(w, h, coords, place, shown):
     """Typewriter frame: first `shown` chars of coords, place name under it once complete."""
-    img = Image.new("RGBA", (w, h), (0, 0, 0, 255))
+    img = Image.new("RGBA", (w, h), SCRIM)
     d = ImageDraw.Draw(img)
     f = font("light", round(w * 0.05))
     d.text((w / 2 - d.textlength(coords, font=f) / 2, h * 0.47), coords[:shown] + ("|" if shown < len(coords) else ""),
@@ -320,9 +325,12 @@ def main():
     t = next((x for x in data["templates"] if x["id"] == a.template), None) or sys.exit(f"no template {a.template}")
     w, h = map(int, a.size.split("x"))
     clips = a.clips
+    loop = bool(plan and plan["shots"][-1].get("reprise"))
+    if plan and len(plan["shots"]) - loop != len(clips):
+        sys.exit(f"{len(clips)} clips for {len(plan['shots']) - loop} planned shots to render")
+    if loop:
+        clips = clips + [clips[0].partition("@")[0]]
     n = len(clips)
-    if plan and len(plan["shots"]) != n:
-        sys.exit(f"{n} clips for {len(plan['shots'])} planned shots")
     F = a.fps or fps(clips[0].partition("@")[0])
     music_len = duration(a.music)
     beats, drop = beat_grid(a, music_len)
@@ -331,7 +339,7 @@ def main():
     def beat_t(i):
         return beats[i] if i < len(beats) else beats[-1] + (i - len(beats) + 1) * step
 
-    intro = t["intro"]
+    intro = plan["intro"] if plan else t["intro"]
     card_intro = intro["type"] in ("countdown", "black-title", "coords")
     if drop is not None and card_intro:
         b0 = min(range(len(beats)), key=lambda i: abs(beats[i] - drop))
@@ -340,16 +348,14 @@ def main():
     idx = [b0]
     for k in range(n):
         idx.append(idx[-1] + (plan["shots"][k]["beats"] if plan else t["pattern"][k % len(t["pattern"])]))
-    T = [round(beat_t(i) * F) for i in idx]  # frame of each cut; T[0] = first shot
-    if not card_intro:
-        T[0] = 0
+    T = [round(beat_t(i) * F) for i in idx]  # frame of each cut
+    card_end = T[0] if card_intro else 0  # the card sits on shot 1 until here
+    T[0] = 0
     end = T[-1]
     if end / F > music_len + 0.7:
         print(f"warning: reel {end / F:.1f}s outruns the music {music_len:.1f}s", file=sys.stderr)
 
-    # segments: optional black intro, then shots
-    segs = ([{"kind": "intro", "a": 0, "b": T[0]}] if card_intro and T[0] > 0 else []) + \
-           [{"kind": "shot", "k": k, "a": T[k], "b": T[k + 1]} for k in range(n)]
+    segs = [{"kind": "shot", "k": k, "a": T[k], "b": T[k + 1]} for k in range(n)]
     moves = t["moves"]
     trans = t["transitions"]
     for i, s in enumerate(segs):  # transition INTO segment i (from i-1)
@@ -357,10 +363,8 @@ def main():
             s["xf"], s["d"] = None, 0
             continue
         name = trans[(i - 1) % len(trans)]
-        if segs[i - 1]["kind"] == "intro" and intro["type"] == "countdown":
-            name = "cut"
         xf, dur = XF[name]
-        if name in ("whip", "rise") and segs[i - 1]["kind"] == "shot":
+        if name in ("whip", "rise"):
             xf = WHIP_DIR.get(moves[segs[i - 1]["k"] % len(moves)], xf)
         slot = min(s["b"] - s["a"], segs[i - 1]["b"] - segs[i - 1]["a"])
         d = max(1, min(round(dur * F), slot // 2))
@@ -373,20 +377,25 @@ def main():
         d_in = s["d"]
         d_out = segs[i + 1]["d"] if i + 1 < len(segs) else 0
         s["off"] = s["a"] - d_in // 2  # frame where this segment's xfade starts
-        length = (s["b"] + d_out - d_out // 2) - s["off"]
-        s["len"] = length
-        if s["kind"] == "intro":
-            inputs += ["-f", "lavfi", "-i", f"color=c=black:s={w}x{h}:r={F:g}:d={length / F + 0.1:.3f}"]
-            chains.append(f"[{_count(inputs)}:v]trim=end_frame={length},setpts=PTS-STARTPTS,format=yuv420p,"
-                          f"setsar=1,settb=AVTB[s{i}]")
-            continue
-        k = s["k"]
+        s["len"] = (s["b"] + d_out - d_out // 2) - s["off"]
+        s["ramp"] = round(min(0.3, (s["b"] - s["a"]) / F / 3) * F) if t["ramp"] and d_out else 0
+    rep_src, shot1_start = 0, 0.0  # reprise: source frames played before shot 1's window, which starts here
+    if loop:
+        rep_src = round(segs[-1]["len"] * fps(clips[0].partition("@")[0]) / F)
+    for i, s in enumerate(segs):
+        length, ramp, k = s["len"], s["ramp"], s["k"]
         path, _, start = clips[k].partition("@")
         src_fps = fps(path)
-        ramp = round(min(0.3, (s["b"] - s["a"]) / F / 3) * F) if t["ramp"] and d_out else 0
         n_src = round((length - ramp + 2.5 * ramp) * src_fps / F)
         info = {"clip": path, "beats": idx[k + 1] - idx[k]}
-        if start in ("", "auto"):
+        if loop and k == n - 1:
+            st = max(0.0, shot1_start - rep_src / src_fps)
+            info["reprise"] = 1
+        elif loop and k == 0 and start in ("", "auto"):  # window for the reprise + shot 1, back to back
+            _, j, mean, std = pick_window(ydif(path), rep_src + n_src, src_fps, t["target"] * F / src_fps)
+            st = (j + rep_src) / src_fps
+            info.update(motion=round(mean, 1), steady=round(std, 1))
+        elif start in ("", "auto"):
             _, j, mean, std = pick_window(ydif(path), n_src, src_fps, t["target"] * F / src_fps)
             st = j / src_fps
             info.update(motion=round(mean, 1), steady=round(std, 1))
@@ -396,6 +405,10 @@ def main():
         else:
             st = float(start)
         st = max(0.0, min(st, duration(path) - n_src / src_fps - 0.02))
+        if loop and k == 0:
+            shot1_start = st
+            if st < rep_src / src_fps:
+                print(f"warning: {path} is too short for a seamless loop: render shot 1 longer", file=sys.stderr)
         info["start"] = round(st, 2)
         used.append(info)
         inputs += ["-ss", f"{st:.3f}", "-i", path]
@@ -425,34 +438,34 @@ def main():
     title = a.title or intro.get("text", "{place}").replace("{place}", place).replace("{PLACE}", place.upper()) \
         .replace("{n}", str(n))
     ovs = []
-    shot0 = segs[1] if segs[0]["kind"] == "intro" else segs[0]
+    shot0 = segs[0]
     kind = intro["type"]
     if kind == "countdown":
-        cuts = [0, round(T[0] / 3), round(2 * T[0] / 3), T[0]]
+        cuts = [0, round(card_end / 3), round(2 * card_end / 3), card_end]
         for c, num in enumerate((3, 2, 1)):
             ovs.append((ov_card(w, h, f"{(a.title or place).upper()} {a.flag}".strip(), str(num)), cuts[c], cuts[c + 1], 0))
     elif kind == "black-title":
-        ovs.append((ov_center_card(w, h, f"{title} {a.flag}".strip()), 0, T[0], 0.3))
+        ovs.append((ov_center_card(w, h, f"{title} {a.flag}".strip()), 0, card_end, 0.15))
     elif kind == "coords":
         coords = a.coords or place.upper()
         steps = min(len(coords), 24)
-        typing = round(T[0] * 0.6)
+        typing = round(card_end * 0.6)
         for c in range(steps):
             shown = round(len(coords) * (c + 1) / steps)
             ovs.append((ov_coords(w, h, coords, place, shown) if a.coords else ov_center_card(w, h, place.upper()),
-                        round(typing * c / steps), round(typing * (c + 1) / steps) if c < steps - 1 else T[0], 0))
+                        round(typing * c / steps), round(typing * (c + 1) / steps) if c < steps - 1 else card_end, 0))
     elif kind == "pin":
         ovs.append((ov_pin(w, h, f"{place}"), round(0.25 * F), segs[min(1, len(segs) - 1)]["b"], 0.25))
     elif kind == "pov":
         ovs.append((ov_pov(w, h, title), 0, shot0["b"] + (segs[1]["b"] - segs[1]["a"] if len(segs) > 1 else 0), 0.2))
     elif kind == "title":
-        ovs.append((ov_title(w, h, f"{title} {a.flag}".strip()), round(0.2 * F), shot0["b"], 0.4))
+        ovs.append((ov_title(w, h, f"{title} {a.flag}".strip()), 0, shot0["b"], 0.15))
     elif kind == "bigword":
         ovs.append((ov_bigword(w, h, a.title or place), 0, shot0["b"], 0.15))
     labels = [x.strip() for x in a.labels.split("|")] if a.labels else []
     per = t["text"].get("per_shot")
     for s in segs:
-        if s["kind"] != "shot" or not per:
+        if not per or (loop and s is segs[-1]):
             continue
         k = s["k"]
         lab = labels[k] if k < len(labels) else ""
@@ -485,7 +498,9 @@ def main():
     mi = _count(inputs)
     total = end / F
     chains.append(f"[{cur}]format=yuv420p[v]")
-    chains.append(f"[{mi}:a]apad,atrim=0:{total:.4f},afade=t=out:st={max(0, min(total, music_len) - 0.4):.4f}:d=0.4[a]")
+    fade = 0.06 if loop else 0.4  # a loop ends on its last beat, only declicked
+    chains.append(f"[{mi}:a]apad,atrim=0:{total:.4f},"
+                  f"afade=t=out:st={max(0, min(total, music_len) - fade):.4f}:d={fade}[a]")
     cmd = ["ffmpeg", "-v", "error", "-y", *inputs, "-filter_complex", ";".join(chains), "-map", "[v]", "-map", "[a]",
            "-c:v", "libx264", "-preset", "slow", "-crf", "17", "-r", f"{F:g}", "-pix_fmt", "yuv420p",
            "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", "-t", f"{total:.4f}", a.out]

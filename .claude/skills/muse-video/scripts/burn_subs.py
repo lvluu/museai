@@ -1,6 +1,9 @@
 """Usage: burn_subs.py video.mp4 cues.json out.mp4
-cues.json: [[speech_start, speech_end, zh, pinyin, vi], ...] -> 3-line subtitles burned in."""
+cues.json: [[speech_start, speech_end, zh, pinyin, vi], ...] -> 3-line subtitles burned in.
+Each pinyin syllable is coloured by its tone (TONE_COLORS) so viewers see the tones; TONES=0 keeps it white."""
 import json
+import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -15,6 +18,13 @@ ZH_FONT = ("/System/Library/AssetsV2/com_apple_MobileAsset_Font8/86ba2c91f017a37
 LATIN_FONT = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
 LINES = [(ZH_FONT, 112, 8), (LATIN_FONT, 66, 6), (LATIN_FONT, 66, 6)]  # font, max size, stroke
 GAP = 6
+# tone 1 red, 2 orange, 3 green, 4 blue, neutral white: the common Pleco-style scheme
+TONE_COLORS = {1: (255, 92, 92), 2: (255, 176, 46), 3: (88, 214, 120), 4: (84, 170, 255), 0: (255, 255, 255)}
+TONE_MARKS = {c: t for t, cs in enumerate(("āēīōūǖĀĒĪŌŪǕ", "áéíóúǘÁÉÍÓÚǗ", "ǎěǐǒǔǚǍĚǏǑǓǙ", "àèìòùǜÀÈÌÒÙǛ"), 1)
+              for c in cs}
+VOWELS = "aeiouüvAEIOUÜ" + "".join(TONE_MARKS)
+SYLLABLE = re.compile(rf"(?:[zcsZCS]h|[bpmfdtnlgkhjqxrzcsywBPMFDTNLGKHJQXRZCSYW])?[{VOWELS}]+"
+                      rf"(?:ng(?![{VOWELS}])|n(?![{VOWELS}])|r(?![{VOWELS}]))?")
 MIN_RATIO = 0.75  # shrink a line at most to 75% of its size, then wrap it instead
 
 
@@ -44,15 +54,29 @@ def fit(path, size, text):
     return [(font_at(path, s), p) for p in parts]
 
 
+def tone_runs(text):
+    """[(chunk, colour)]: each pinyin syllable in its tone colour, everything else white."""
+    if os.environ.get("TONES") == "0":
+        return [(text, TONE_COLORS[0])]
+    runs, at = [], 0
+    for m in SYLLABLE.finditer(text):
+        if m.start() > at:
+            runs.append((text[at:m.start()], TONE_COLORS[0]))
+        tone = next((TONE_MARKS[c] for c in m.group() if c in TONE_MARKS), 0)
+        runs.append((m.group(), TONE_COLORS[tone]))
+        at = m.end()
+    return runs + ([(text[at:], TONE_COLORS[0])] if at < len(text) else [])
+
+
 def row_h(font, stroke):
     return font.size * 1.02 + 2 * stroke
 
 
 def layout(texts, scale):
     rows = []
-    for (path, size, stroke), text in zip(LINES, texts, strict=False):
-        rows += [(font, line, stroke) for font, line in fit(path, int(size * scale), text)]
-    height = sum(row_h(f, st) for f, _, st in rows) + GAP * (len(rows) - 1)
+    for n, ((path, size, stroke), text) in enumerate(zip(LINES, texts, strict=False)):
+        rows += [(font, line, stroke, n == 1) for font, line in fit(path, int(size * scale), text)]
+    height = sum(row_h(f, st) for f, _, st, _ in rows) + GAP * (len(rows) - 1)
     return rows, height
 
 
@@ -66,9 +90,12 @@ def render(texts, dest):
         rows, height = layout(texts, scale)
     y = BOX[1] + (BOX[3] - BOX[1] - height) / 2
     cx = (BOX[0] + BOX[2]) / 2
-    for font, line, stroke in rows:
-        draw.text((cx, y + row_h(font, stroke) / 2), line, font=font, anchor="mm", fill="white",
-                  stroke_width=stroke, stroke_fill=(20, 20, 20, 235))
+    for font, line, stroke, pinyin in rows:
+        x = cx - font.getlength(line) / 2
+        for chunk, colour in tone_runs(line) if pinyin else [(line, TONE_COLORS[0])]:
+            draw.text((x, y + row_h(font, stroke) / 2), chunk, font=font, anchor="lm", fill=colour,
+                      stroke_width=stroke, stroke_fill=(20, 20, 20, 235))
+            x += font.getlength(chunk)
         y += row_h(font, stroke) + GAP
     img.save(dest)
 
