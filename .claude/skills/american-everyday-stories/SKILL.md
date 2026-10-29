@@ -24,6 +24,7 @@ This skill keeps only what is specific to the series.
 | `scripts/assemble.py` | `cut` shots → graded film + cut.json; `mix` music bed ducked under speech |
 | `scripts/align.py` | Whisper (English) → words.json, cues aligned to the real speech |
 | `scripts/qa_episode.py` | the gate: format, sound, cuts, words, pace, smooth, voices, contact sheet |
+| `scripts/refs.sh` | character reference still candidates through museai |
 | `scripts/finish.py` | title card + EN/中文 subtitles burned in, final .srt/.vtt |
 
 ## Ground rules
@@ -97,8 +98,9 @@ listener instructions, ambience, continuity, the look block), `subs.provisional.
 file) and summarise; production notes stay out of the dialogue.
 
 ## Reference assets (before the first render)
-- **Character stills**: `references/faces.md`. One per character into `series/refs/<KEY>.png`; reuse
-  for every episode. Show them to the user before Episode 1 renders.
+- **Character stills**: in `series/refs/` for all six (`<KEY>.jpg` 16:9, `<KEY>_face.jpg` square);
+  reuse for every episode. New or changed face: `scripts/refs.sh KEY OUT` and the checks in
+  `references/faces.md` (age, sides, extra marks).
 - **Shot stills**: for each shot with a recurring character, make a 16:9 first frame through
   `/v1/images/generations` from the shot prompt's CAST + FRAMING + place (plus "matches the attached
   references"), pick the take whose faces match the refs, save `WORK/stills/<ID>.png`. render.sh
