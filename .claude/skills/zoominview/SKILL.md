@@ -79,7 +79,7 @@ Ordinary traveller (not a model), real skin, wind in hair, silent gasp (no words
 - muse put a second tourist in clip B: `plan.py` opens B with the NOBODY rule.
 - `whip-pan` ended clip A mid-blur, which muse cannot continue (Kelingking, 2026-10-29): every reveal's A now ends still (on the view or a still palm/shoulder/crest frame), and every B ends with the shared `zoom` text. muse's own B zoom already reaches ~1.5x, so compose with `--zoom 1`.
 - The pan has to land along the person's line of sight on a wide, far view (Kelingking v1 ended close on the headland from the side and the user said the angle was wrong for a zoom): A's pan ends with the focus small and far in the centre, the view as the person sees it; describe the classic viewpoint in `--view` ("seen from the high clifftop far above and behind it").
-- muse's B zoomed in and then back out over the last 2.5 s (Kelingking v2) even with "never zooms back out"; the `zoom` text now also says the last frame is framed exactly like the frame at 5 s. If it still pulls out, cut B where the zoom peaks.
+- muse's B zoomed in and then back out over the last 2.5 s (Kelingking v2) even with "never zooms back out"; the `zoom` text now also says the last frame is framed exactly like the frame at 5 s. It still pulled out in 2 of 2 retakes (zoom in to ~2x by 6 s, out from 7 s): cut B at ~5 s (`ffmpeg -i b.mp4 -t 5 ... b5.mp4`), before it gets tighter than ~1.5x, and compose with that (Kelingking reel = 11 s).
 - The server returns the earlier clip for an identical request: `RETAKE=1 scripts/render plan.json DIR b` for a new take of the same prompt.
 
 ## Maintaining this skill
