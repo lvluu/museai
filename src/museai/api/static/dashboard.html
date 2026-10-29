@@ -125,7 +125,7 @@
   .post-name { font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .post textarea { font: inherit; font-size: 13px; color: var(--text); background: var(--bg); width: 100%;
                    border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; resize: vertical; min-height: 56px; }
-  .plats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+  .plats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .plat { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; }
   .plat.done { border-color: var(--ok); background: var(--ok-bg); }
   .plat button { padding: 3px 8px; font-size: 13px; font-weight: 500; }
@@ -188,7 +188,7 @@
   <section data-section="post" hidden>
     <header><h1>Ready to post</h1></header>
     <p class="hint">Click a platform: the caption is copied and the video is shown in Finder, so drag it into the
-      upload page that opens. Tick “posted” after publishing; when all four are ticked, the video moves to the Trash.</p>
+      upload page that opens. Tick “posted” after publishing; when all platforms are ticked, the video moves to the Trash.</p>
     <div class="notify" id="notify"></div>
     <div class="posts" id="posts"></div>
   </section>
@@ -563,7 +563,7 @@ function renderPosts() {
         </div>
         <textarea data-caption placeholder="Caption and hashtags (copied when you click a platform)">${esc(v.caption)}</textarea>
         ${canShareFiles ? `<div class="share-row">
-          <button data-share title="Copy the caption, then share the video to TikTok, Instagram, YouTube or Photos">${shareFiles.has(v.name) ? "Share video" : "Get video"}</button>
+          <button data-share title="Copy the caption, then share the video to TikTok, Instagram, YouTube, X, Threads or Photos">${shareFiles.has(v.name) ? "Share video" : "Get video"}</button>
           <button data-copycap title="Copy the caption">Copy caption</button>
         </div>` : ""}
         <div class="plats">${posts.platforms.map((p) => `

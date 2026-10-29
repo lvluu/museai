@@ -212,7 +212,9 @@ def test_posting_queue(client, admin, settings, monkeypatch):
 
     d = client.get("/dashboard/posts", headers=admin).json()
     assert [v["name"] for v in d["videos"]] == ["ep1.mp4"]
-    assert {p["id"] for p in d["platforms"]} == {"youtube", "tiktok", "facebook", "instagram"}
+    assert {p["id"] for p in d["platforms"]} == {
+        "youtube", "tiktok", "facebook", "instagram", "x", "threads"
+    }
     assert client.get("/dashboard/posts/ep1.mp4/file", headers=admin).content == b"video"
     assert client.get("/dashboard/posts/notes.txt/file", headers=admin).status_code == 404
 
@@ -224,7 +226,10 @@ def test_posting_queue(client, admin, settings, monkeypatch):
     r = client.post("/dashboard/posts/ep1.mp4", headers=admin,
                     json={"platform": "tiktok", "posted": False}).json()
     assert set(r["video"]["posted"]) == {"youtube", "facebook"}
-    for p in ("tiktok", "instagram"):
+    for p in ("tiktok", "instagram", "x"):
+        r = client.post("/dashboard/posts/ep1.mp4", headers=admin, json={"platform": p}).json()
+        assert not r["trashed"]
+    for p in ("threads",):
         r = client.post("/dashboard/posts/ep1.mp4", headers=admin, json={"platform": p}).json()
     assert r["trashed"] and trashed == ["ep1.mp4"]
     assert client.get("/dashboard/posts", headers=admin).json()["videos"] == []
