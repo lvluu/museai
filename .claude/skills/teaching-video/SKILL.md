@@ -50,6 +50,14 @@ Copy `lessons/bi-so-sanh.json` (比 comparisons, worked example) and edit. Field
 - `card`: `example` (zh, py, vi; `mark` wrong|right; `py_ok` to accept a rare reading), `pattern` (`text`),
   `challenge` (`vi`, `hint`); `null` keeps the previous card, `false` clears it. `[...]` marks the target
   grammar in the accent colour (red on a `wrong` card); spans in `zh` and `py` must match.
+- Viral rules (user rule 2026-10-29): the first 1-2 s is the hook itself, never "Xin chào các bạn" or the
+  lesson name: open on the real-life problem or the mistake ("Bạn vẫn nói 我很喜欢吃 sai chỗ này?") with
+  its card already on screen. Pick patterns tied to urgent everyday situations (ordering food, Wi-Fi,
+  chargers, haggling, directions). Cards keep hanzi + tone-marked pinyin + Vietnamese side by side. The
+  challenge is the comment quiz: the reinforce line asks viewers to write their answer in the comments
+  ("Comment câu trả lời của bạn bên dưới xem đúng không nhé!") and echoes the hook's question, so a
+  replay starts on the problem the viewer just solved. For a short cut-down (Shorts under 60 s), a
+  stroke-order card of the key character loops well: end on the character the video opened with.
 - Structure (fixed, checked): hook 0-8 s (common mistake or question), explain 8-30 s (Vietnamese vs Chinese
   pattern), demo 30-80 s (exactly 3 example cards, real situations), fix 80-100 s (one wrong + one right card),
   challenge 100-113 s (task, real >= 3 s pause, answer card), reinforce 113-120 s (pattern recap + invite).
