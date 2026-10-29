@@ -118,7 +118,9 @@ def test_dashboard_page(client, admin):
     assert "Ready to post" in r.text
     # TestClient's peer is "testclient", not loopback, so the admin key is required.
     assert client.get("/dashboard/data").status_code == 401
-    assert client.get("/dashboard/data", headers=admin).json() == {
+    data = client.get("/dashboard/data", headers=admin).json()
+    assert data["system"]["level"] in {"ok", "busy", "overloaded"}
+    assert {k: v for k, v in data.items() if k != "system"} == {
         "accounts": [],
         "usage": {},
         "videos": [],

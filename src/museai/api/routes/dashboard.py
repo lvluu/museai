@@ -6,6 +6,7 @@ key, passed to the page as ``/dashboard#key=<admin key>``.
 
 from __future__ import annotations
 
+import asyncio
 import ipaddress
 from pathlib import Path
 from typing import Any
@@ -15,6 +16,7 @@ from fastapi.responses import FileResponse
 
 from ...accounts.keepalive import renew_account
 from ...accounts.model import Account, AccountStatus
+from ...core.system import cpu_load
 from ...errors import InvalidRequest, NotFound
 from ...services.container import Services
 from ...services.tasks import Task, TaskStatus
@@ -189,4 +191,5 @@ async def dashboard_data(limit: int = 1000, svc: Services = Depends(get_services
         "accounts": [a.public() for a in accounts],
         "usage": {a.id: usage_estimate(a, videos) for a in accounts},
         "videos": [t.model_dump(mode="json") for t in videos],
+        "system": await asyncio.to_thread(cpu_load),
     }
