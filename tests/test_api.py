@@ -319,6 +319,7 @@ def test_posting_move_slot(client, admin, settings):
     assert r["video"]["slot"] == slots["b.mp4"]
     moved = {v["name"]: v["slot"] for v in client.get("/dashboard/posts", headers=admin).json()["videos"]}
     assert moved == {"a.mp4": slots["b.mp4"], "b.mp4": slots["a.mp4"]}  # swapped
+    assert list(moved) == ["b.mp4", "a.mp4"]  # cards in posting order
     for bad in ("2026-10-30/3", "tomorrow", "2026-13-40/1", 5):
         assert client.post("/dashboard/posts/a.mp4", headers=admin, json={"slot": bad}).status_code == 400
 

@@ -247,7 +247,9 @@ async def list_posts(svc: Services = Depends(get_services)) -> dict:
         "channels": [{"id": k, "name": n, "focus": f} for k, (n, f) in CHANNELS.items()],
         "platforms": [{"id": k, "name": n, "url": u, "limit": lim}
                       for k, (n, u, lim) in PLATFORMS.items()],
-        "videos": [_view(p, state.get(_key(p.name), {}), svc) for p in videos],
+        # Cards in posting order: the next slot first.
+        "videos": sorted((_view(p, state.get(_key(p.name), {}), svc) for p in videos),
+                         key=lambda v: v["slot"] or "~"),
         "calendar": _calendar(state, {_key(p.name): p.name for p in videos}, now),
     }
 
