@@ -217,9 +217,11 @@
 <main id="app">
   <section data-section="post" hidden>
     <header><h1>Ready to post</h1></header>
-    <p class="hint">Two videos a day at peak hours (GMT+7): slot 1 at midday for bite-sized clips, slot 2 in the
-      evening for conversations, mistakes and quizzes. New videos take the next free slot; each platform tile shows
-      the time to schedule it there. Schedule 1-2 days ahead; pick another slot on a card to move it.</p>
+    <p class="hint">Two videos a day: slot 1 for bite-sized clips, slot 2 for conversations, mistakes and quizzes.
+      New videos take the next free slot. Each platform peaks at its own hours in the viewers' clock (set on each card:
+      Chinese lessons default to Vietnam; travel reels to Everyone, posted at Europe's then the US's evening peak), so each tile shows when
+      to schedule it there in your time (the strip below shows YouTube's). Schedule 1-2 days ahead; pick another
+      slot on a card to move it.</p>
     <div class="sched" id="sched"></div>
     <p class="hint">Each platform has its own caption (tabs above the text; • = written for it, otherwise the
       “All” caption is used): pick the tab, “Copy” (YouTube: “Copy title” and “Copy description”), and “Show file”
@@ -611,7 +613,7 @@ function renderPosts() {
         </div>` : ""}
         <div class="plats">${posts.platforms.map((p) => `
           <label class="plat ${v.posted[p.id] ? "done" : ""} ${late(v.schedule[p.id]) ? "late" : ""}"
-                 title="Schedule on ${esc(p.name)} for ${esc(whenLong(v.schedule[p.id]))}; tick once posted">
+                 title="Schedule on ${esc(p.name)} for ${esc(whenLong(v.schedule[p.id]))} your time (${esc(audTime(v, p.id))}); tick once posted">
             <input type="checkbox" data-posted="${esc(p.id)}" ${v.posted[p.id] ? "checked" : ""}>
             <span>${esc(p.name.split(" ")[0])}<small>${esc(when(v.schedule[p.id]))}</small></span>
           </label>`).join("")}
@@ -622,24 +624,27 @@ function renderPosts() {
   for (const card of $("posts").querySelectorAll(".post")) showCaption(card);
 }
 
-// Posting slots. Times come as ISO strings in GMT+7 ("2026-10-30T11:30:00+07:00"); they are shown as
-// written (GMT+7), whatever this device's own time zone.
+// Posting slots. Times come as ISO strings in the audience's clock ("2026-10-30T19:00:00-04:00" for
+// US East); they are shown in this device's clock, where the platform schedulers run, with the
+// audience's own time beside them. Calendar days are the server's (GMT+7) dates.
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const dayName = (ymd) => DAYS[new Date(ymd + "T00:00:00Z").getUTCDay()];
 const dayLabel = (ymd) => `${dayName(ymd)} ${+ymd.slice(8, 10)} ${MONTHS[+ymd.slice(5, 7) - 1]}`;
 const late = (iso) => !!iso && Date.parse(iso) < Date.now();
 const todayGmt7 = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
+const pad = (n) => String(n).padStart(2, "0");
+const ymdOf = (d) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const hmOf = (iso) => { const d = new Date(iso); return `${pad(d.getHours())}:${pad(d.getMinutes())}`; };
 function when(iso) {
   if (!iso) return "";
-  const d = iso.slice(0, 10), today = todayGmt7();
-  const tomorrow = new Date(Date.parse(today + "T00:00:00Z") + 86400e3).toISOString().slice(0, 10);
-  return `${d === today ? "Today" : d === tomorrow ? "Tomorrow" : dayName(d)} ${iso.slice(11, 16)}`;
+  const d = ymdOf(new Date(iso));
+  const label = d === ymdOf(new Date()) ? "Today" : d === ymdOf(new Date(Date.now() + 86400e3)) ? "Tomorrow" : dayName(d);
+  return `${label} ${hmOf(iso)}`;
 }
-const whenLong = (iso) => iso ? `${dayLabel(iso.slice(0, 10))} ${iso.slice(11, 16)} (GMT+7)` : "no slot";
+const whenLong = (iso) => iso ? `${dayLabel(ymdOf(new Date(iso)))} ${hmOf(iso)}` : "no slot";
+const audTime = (v, p) => v.schedule[p] ? `${dayName(v.schedule[p].slice(0, 10))} ${v.schedule[p].slice(11, 16)} ${v.clock} time` : "";
 const slotLabel = (key) => { const [d, n] = key.split("/"); return `${dayLabel(d)} · slot ${n}`; };
-const SLOT_FOCUS = { 1: "Midday: bite-sized (stroke order, word of the day, a quick view)",
-                     2: "Evening: conversations, common mistakes, quizzes" };
 const firstLine = (v, p) => (captionFor(v, p) || "").split("\n")[0].trim();
 function renderSchedule() {
   const today = todayGmt7();
@@ -650,7 +655,7 @@ function renderSchedule() {
         const title = v ? firstLine(v, "youtube") || v.name : "free";
         return `<button class="sslot ${v ? "booked" : ""} ${v && late(s.time) && !Object.keys(v.posted).length ? "late" : ""}"
           ${v ? `data-goto="${esc(v.name)}"` : "disabled"} title="${esc(s.focus)}${v ? "\n" + esc(v.name) : ""}">
-          <b>${esc(s.time.slice(11, 16))}</b><span>${esc(title)}</span></button>`;
+          <b>${esc(hmOf(s.time))}${ymdOf(new Date(s.time)) > day.date ? " +1" : ""}</b><span>${esc(title)}</span></button>`;
       }).join("")}
     </div>`).join("");
 }
@@ -658,14 +663,17 @@ function slotHead(v) {
   if (!v.slot) return "";
   const keys = (posts.calendar || []).flatMap((d) => d.slots.map((s) => [s.key, s.video]));
   if (!keys.some(([k]) => k === v.slot)) keys.unshift([v.slot, v.name]);
-  const yt = v.schedule.youtube, n = v.slot.split("/")[1];
+  const yt = v.schedule.youtube;
   return `<div class="slot-head">
     <select data-slot title="Move this video to another slot (a video already there swaps with it)">
       ${keys.map(([k, other]) => `<option value="${esc(k)}" ${k === v.slot ? "selected" : ""}>${esc(slotLabel(k))}${
         other && other !== v.name ? " (swap)" : ""}</option>`).join("")}
     </select>
+    <select data-audience title="Where the viewers live: posting times follow their clock">
+      ${(posts.audiences || []).map((a) => `<option value="${esc(a.id)}" ${a.id === v.audience ? "selected" : ""}>${esc(a.name)}</option>`).join("")}
+    </select>
     ${late(yt) && !Object.keys(v.posted).length ? `<span class="late">Slot passed: post now or pick a later slot</span>` : ""}
-    <span class="focus">${esc(SLOT_FOCUS[n])}</span>
+    <span class="focus">${esc(v.focus)}</span>
   </div>`;
 }
 
@@ -715,7 +723,7 @@ function countCaption(card) {
   const fmt = (n, lim) => `<b class="${n > lim ? "over" : ""}">${n}</b>/${lim}`;
   card.querySelector("[data-copytab=title]").hidden = tab !== "youtube";
   card.querySelector("[data-copytab=text]").textContent = tab === "youtube" ? "Copy description" : "Copy";
-  const at = p && v.schedule[tab] ? ` · post ${esc(whenLong(v.schedule[tab]))}` : "";
+  const at = p && v.schedule[tab] ? ` · post ${esc(whenLong(v.schedule[tab]))} your time (${esc(audTime(v, tab))})` : "";
   card.querySelector("[data-capcount]").innerHTML = (!p ? `${[...text].length} characters`
     : tab === "youtube" ? `title ${fmt([...ytSplit(text)[0]].length, 100)} · description ${fmt([...ytSplit(text)[1]].length, p.limit)}`
     : tab === "x" ? `${fmt(xLength(text), p.limit)} (X weighted)` : fmt([...text].length, p.limit)) + at;
@@ -848,6 +856,7 @@ $("posts").addEventListener("click", async (e) => {
 $("posts").addEventListener("change", (e) => {
   const name = e.target.closest(".post")?.dataset.name; if (!name) return;
   if (e.target.matches("[data-slot]")) updatePost(name, { slot: e.target.value });
+  else if (e.target.matches("[data-audience]")) updatePost(name, { audience: e.target.value });
   else if (e.target.dataset.posted) updatePost(name, { platform: e.target.dataset.posted, posted: e.target.checked });
   else if (e.target.matches("[data-caption]")) {
     const tab = capTab.get(name) || "all";

@@ -251,25 +251,41 @@ def test_posting_slots(tmp_path):
 
     from museai.api.routes import posting
 
-    # Thursday 2026-10-29 12:00 GMT+7: today's midday slot (11:30) has passed.
+    # Thursday 2026-10-29 12:00 GMT+7: today's slot 1 for Vietnam (YouTube 12:00) has passed.
     now = datetime(2026, 10, 29, 12, 0, tzinfo=posting.TZ)
     times = posting._slot_times("2026-10-31/2")  # Saturday evening
-    assert times["youtube"].isoformat() == "2026-10-31T17:30:00+07:00"
-    assert times["x"].isoformat() == "2026-10-31T19:30:00+07:00"
-    assert posting._slot_times("2026-11-01/1")["tiktok"].isoformat() == "2026-11-01T11:00:00+07:00"
+    assert times["youtube"].isoformat() == "2026-10-31T19:00:00+07:00"
+    assert times["x"].isoformat() == "2026-10-31T13:00:00+07:00"
+    assert posting._slot_times("2026-11-01/1")["tiktok"].isoformat() == "2026-11-01T09:00:00+07:00"
+    assert set(posting.TIMES) == set(posting.PLATFORMS)
+    assert all(len(week) == 7 for week in posting.TIMES.values())
 
     videos = []
     for i, name in enumerate(("a.mp4", "b.mp4", "c.mp4")):
         (p := tmp_path / name).write_bytes(b"v")
         os.utime(p, (1000 + i, 1000 + i))
         videos.append(p)
-    state = {"b.mp4": {"slot": "2026-10-29/1", "posted": {}}}  # missed, not pinned
+    vn = {"caption": "Học tiếng Trung"}  # Vietnamese caption -> Vietnam audience
+    state = {"a.mp4": dict(vn), "b.mp4": {**vn, "slot": "2026-10-29/1", "posted": {}},  # missed, not pinned
+             "c.mp4": dict(vn)}
     assert posting._assign_slots(state, videos, now)
     assert [state[n]["slot"] for n in ("a.mp4", "b.mp4", "c.mp4")] == [
         "2026-10-29/2", "2026-10-30/1", "2026-10-30/2"]  # oldest delivery first
     assert not posting._assign_slots(state, videos, now)
     cal = posting._calendar(state, {"a.mp4", "b.mp4", "c.mp4"}, now)
     assert len(cal) == 7 and cal[0]["slots"][1]["video"] == "a.mp4" and cal[0]["slots"][0]["video"] is None
+
+
+def test_posting_global_audience():
+    from museai.api.routes import posting
+
+    assert posting._audience({"caption": "This beach looks fake"}) == "global"
+    assert posting._audience({"captions": {"tiktok": "Nói câu này"}}) == "vn"
+    assert posting._audience({"caption": "Nói câu này", "audience": "global"}) == "global"
+    # Global: slot 1 at Europe's evening peak, slot 2 at the US East evening peak.
+    t1, t2 = posting._slot_times("2026-10-31/1", "global"), posting._slot_times("2026-10-31/2", "global")
+    assert t1["youtube"].isoformat() == "2026-10-31T19:00:00+00:00"  # London, 02:00 Sunday in Vietnam
+    assert t2["youtube"].isoformat() == "2026-10-31T19:00:00-04:00"  # New York
 
 
 def test_posting_move_slot(client, admin, settings):
@@ -286,6 +302,9 @@ def test_posting_move_slot(client, admin, settings):
     assert r["video"]["slot"] == slots["b.mp4"]
     moved = {v["name"]: v["slot"] for v in client.get("/dashboard/posts", headers=admin).json()["videos"]}
     assert moved == {"a.mp4": slots["b.mp4"], "b.mp4": slots["a.mp4"]}  # swapped
+    r = client.post("/dashboard/posts/a.mp4", headers=admin, json={"audience": "vn"}).json()["video"]
+    assert r["audience"] == "vn" and r["schedule"]["youtube"].endswith("+07:00")
+    assert client.post("/dashboard/posts/a.mp4", headers=admin, json={"audience": "mars"}).status_code == 400
     for bad in ("2026-10-30/3", "tomorrow", "2026-13-40/1", 5):
         assert client.post("/dashboard/posts/a.mp4", headers=admin, json={"slot": bad}).status_code == 400
 

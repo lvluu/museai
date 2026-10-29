@@ -5,8 +5,8 @@ per platform (``captions``, written by the social-captions skill; ``caption`` is
 platform without one) and one button per platform that opens its upload page; the user marks each platform as
 posted, and once every platform is done the video moves to the Trash.
 
-Each video also gets a posting slot: two a day at the audience's peak hours (``SLOTS``), handed out in
-delivery order, with a time per platform (``OFFSETS``) to set in each platform's scheduler.
+Each video also gets a posting slot (day + slot 1 or 2), two a day, handed out in delivery order, and
+each platform has its own peak time for that slot (``TIMES``) to set in its scheduler.
 """
 
 from __future__ import annotations
@@ -46,18 +46,37 @@ PLATFORMS = {
 }
 VIDEO_EXT = {".mp4", ".mov", ".m4v"}
 
-TZ = ZoneInfo("Asia/Ho_Chi_Minh")  # GMT+7: the viewers are in Vietnam
-# Two Shorts a day (user rule 2026-10-29), Monday first: (slot 1 midday, slot 2 evening) YouTube times.
-# 5-6 h apart so the two don't compete in subscribers' feeds; evening posts go up ~2 h before the
-# 20-22 h peak, weekends start earlier.
-SLOTS = [("11:30", "18:00"), ("11:30", "18:00"), ("11:30", "17:30"), ("11:30", "18:00"),
-         ("11:30", "18:00"), ("10:30", "17:30"), ("10:30", "17:00")]
-SLOT_FOCUS = {1: "Midday: bite-sized (stroke order, word of the day, a quick view)",
-              2: "Evening: conversations, common mistakes, quizzes that invite comments"}
-# Minutes after the YouTube time per platform (midday, evening). TikTok, Reels, X and Threads hand a
-# post out within the hour, so they go closer to the peak than Shorts, which needs a head start.
-OFFSETS = {"youtube": (0, 0), "tiktok": (30, 60), "facebook": (30, 90), "instagram": (0, 60),
-           "x": (30, 120), "threads": (0, 90)}
+TZ = ZoneInfo("Asia/Ho_Chi_Minh")  # the user's own clock: days in the calendar start here
+# Where a video's viewers live: its posting times are their local time. Chinese lessons are for
+# Vietnamese learners (Vietnamese captions -> vn); travel reels are for everyone (-> global, user rule
+# 2026-10-29). Global has no single clock: slot 1 goes out at Europe's evening peak (US lunch), slot 2
+# at the US East evening peak (Asia's next morning), both from the table's evening column.
+AUDIENCES = {
+    "vn": ("Vietnam", "Asia/Ho_Chi_Minh"),
+    "global": ("Everyone (Europe, Americas, Asia)", None),
+}
+VIETNAMESE = re.compile(r"[ăâđêôơưạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ]", re.IGNORECASE)
+# Two videos a day (user rule 2026-10-29). Each platform peaks at its own hours, so each gets its own
+# time per slot, Monday first, "slot 1 slot 2" in the audience's local time. Sources and reasoning:
+# .claude/skills/social-captions/references/posting-times.md (Buffer 2026 studies of 1.8-14M posts,
+# all in the audience's local time; Vietnamese audience data agrees).
+#   YouTube Shorts: evenings 19-20h win, Friday 16-18h; slot 1 in the lunch break.
+#   TikTok: evenings 19-22h, Sunday 9h is the week's peak, Thursday 13h, Saturday 17h.
+#   Facebook Reels: weekday mornings 8-9h and evenings 20-22h; afternoons are worst.
+#   Instagram Reels: evenings 18-22h; Wednesday noon, Thursday 9h.
+#   X: weekday mornings 9-11h and early afternoon; evenings and Saturday are weakest.
+#   Threads: mornings 9-11h and noon; evenings are weakest.
+TIMES = {
+    "youtube":   ["12:00 20:00", "12:00 20:00", "12:00 19:00", "12:00 19:00", "12:00 17:00", "11:00 19:00", "11:00 19:00"],
+    "tiktok":    ["11:00 20:00", "12:00 21:30", "12:00 21:30", "13:00 21:30", "12:00 19:00", "11:30 17:00", "09:00 19:00"],
+    "facebook":  ["12:00 21:00", "08:00 20:00", "08:00 20:30", "09:00 20:30", "08:00 20:30", "11:30 22:00", "10:00 20:30"],
+    "instagram": ["12:00 19:00", "15:00 19:00", "12:00 18:00", "09:00 20:00", "12:00 21:00", "12:00 21:00", "12:00 21:00"],
+    "x":         ["09:00 14:00", "09:00 13:00", "10:00 14:00", "09:00 13:00", "09:00 13:00", "10:00 13:00", "10:00 13:00"],
+    "threads":   ["09:00 12:00", "09:00 12:00", "09:00 12:00", "09:00 12:00", "09:00 12:00", "10:00 13:00", "11:00 14:00"],
+}  # fmt: skip
+SLOT_FOCUS = {1: "Bite-sized (stroke order, word of the day, a quick view)",
+              2: "Conversations, common mistakes, quizzes that invite comments"}
+GLOBAL_FOCUS = {1: "Europe's evening peak (US lunch)", 2: "US evening peak (Asia's next morning)"}
 SLOT_KEY = re.compile(r"^(\d{4}-\d{2}-\d{2})/([12])$")
 
 
@@ -82,22 +101,40 @@ def _video(svc: Services, name: str) -> Path:
     return path
 
 
-def _slot_times(key: str) -> dict[str, datetime]:
-    """Posting time per platform for a slot key "YYYY-MM-DD/1|2"."""
+def _audience(entry: dict) -> str:
+    """The video's audience: the one the user picked, else guessed from the caption's language."""
+    if entry.get("audience") in AUDIENCES:
+        return entry["audience"]
+    text = " ".join([entry.get("caption", ""), *entry.get("captions", {}).values()])
+    return "vn" if VIETNAMESE.search(text) else "global"
+
+
+def _clock(audience: str, n: int) -> tuple[ZoneInfo, int]:
+    """The time zone a slot follows and which column of ``TIMES`` (0 = slot 1, 1 = slot 2) it uses."""
+    if audience == "global":
+        return ZoneInfo("Europe/London" if n == 1 else "America/New_York"), 1
+    return ZoneInfo(AUDIENCES[audience][1]), n - 1
+
+
+def _slot_times(key: str, audience: str = "vn") -> dict[str, datetime]:
+    """Posting time per platform for a slot key "YYYY-MM-DD/1|2", on that day in the audience's time."""
     day, n = SLOT_KEY.match(key).groups()
-    d, n = date.fromisoformat(day), int(n)
-    hh, mm = map(int, SLOTS[d.weekday()][n - 1].split(":"))
-    base = datetime(d.year, d.month, d.day, hh, mm, tzinfo=TZ)
-    return {p: base + timedelta(minutes=off[n - 1]) for p, off in OFFSETS.items()}
+    d = date.fromisoformat(day)
+    tz, col = _clock(audience, int(n))
+    out = {}
+    for p, week in TIMES.items():
+        hh, mm = map(int, week[d.weekday()].split()[col].split(":"))
+        out[p] = datetime(d.year, d.month, d.day, hh, mm, tzinfo=tz)
+    return out
 
 
-def _slots_from(now: datetime):
-    """Slot keys from today on whose YouTube time is still ahead of ``now``."""
-    d = now.astimezone(TZ).date()
+def _slots_from(now: datetime, audience: str):
+    """Slot keys from today on whose YouTube time (the slot's anchor) is still ahead of ``now``."""
+    d = now.astimezone(TZ).date() - timedelta(days=1)  # an audience west of the user is a day behind
     while True:
         for n in (1, 2):
             key = f"{d.isoformat()}/{n}"
-            if _slot_times(key)["youtube"] > now:
+            if _slot_times(key, audience)["youtube"] > now:
                 yield key
         d += timedelta(days=1)
 
@@ -108,30 +145,32 @@ def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
     entries = [(p.name, state.setdefault(p.name, {})) for p in sorted(videos, key=lambda p: p.stat().st_mtime)]
     for _, e in entries:
         if (key := e.get("slot")) and not e.get("posted") and not e.get("slot_pinned") \
-                and _slot_times(key)["youtube"] <= now:
+                and _slot_times(key, _audience(e))["youtube"] <= now:
             del e["slot"]
     taken = {e["slot"] for _, e in entries if e.get("slot")}
-    free = (k for k in _slots_from(now) if k not in taken)
     changed = False
     for _, e in entries:
         if not e.get("slot"):
-            e["slot"] = next(free)
+            e["slot"] = next(k for k in _slots_from(now, _audience(e)) if k not in taken)
+            taken.add(e["slot"])
             changed = True
     return changed
 
 
 def _view(path: Path, entry: dict) -> dict:
     st = path.stat()
-    key = entry.get("slot")
+    key, audience = entry.get("slot"), _audience(entry)
     return {"name": path.name, "size": st.st_size, "mtime": st.st_mtime,
             "caption": entry.get("caption", ""), "captions": entry.get("captions", {}),
-            "posted": entry.get("posted", {}), "slot": key,
-            "schedule": {p: t.isoformat() for p, t in _slot_times(key).items()} if key else {}}
+            "posted": entry.get("posted", {}), "slot": key, "focus": (GLOBAL_FOCUS if audience == "global" else SLOT_FOCUS)[int(key[-1])] if key else "",
+            "audience": audience,
+            "clock": str(_clock(audience, int(key[-1]))[0]).split("/")[-1].replace("_", " ") if key else "",
+            "schedule": {p: t.isoformat() for p, t in _slot_times(key, audience).items()} if key else {}}
 
 
 def _calendar(state: dict, names: set[str], now: datetime, days: int = 7) -> list[dict]:
     """The next ``days`` days of slots with the video booked in each (or None)."""
-    booked = {e["slot"]: n for n, e in state.items() if n in names and e.get("slot")}
+    booked = {e["slot"]: (n, _audience(e)) for n, e in state.items() if n in names and e.get("slot")}
     start = now.astimezone(TZ).date()
     out = []
     for i in range(days):
@@ -139,8 +178,9 @@ def _calendar(state: dict, names: set[str], now: datetime, days: int = 7) -> lis
         slots = []
         for n in (1, 2):
             key = f"{d.isoformat()}/{n}"
-            slots.append({"key": key, "n": n, "time": _slot_times(key)["youtube"].isoformat(),
-                          "focus": SLOT_FOCUS[n], "video": booked.get(key)})
+            video, audience = booked.get(key, (None, "vn"))
+            slots.append({"key": key, "n": n, "time": _slot_times(key, audience)["youtube"].isoformat(),
+                          "focus": SLOT_FOCUS[n], "video": video})
         out.append({"date": d.isoformat(), "slots": slots})
     return out
 
@@ -166,7 +206,7 @@ async def list_posts(svc: Services = Depends(get_services)) -> dict:
         _save(svc, state)
     return {
         "folder": str(folder),
-        "timezone": "GMT+7",
+        "audiences": [{"id": k, "name": n, "tz": tz} for k, (n, tz) in AUDIENCES.items()],
         "platforms": [{"id": k, "name": n, "url": u, "limit": lim}
                       for k, (n, u, lim) in PLATFORMS.items()],
         "videos": [_view(p, state.get(p.name, {})) for p in videos],
@@ -184,7 +224,7 @@ async def post_file(name: str, svc: Services = Depends(get_services)) -> FileRes
 def update_post(name: str, body: dict, svc: Services = Depends(get_services)) -> dict:
     """Set the caption, per-platform ``captions`` (merged in; an empty text drops that platform's
     own caption), the posting ``slot`` ("YYYY-MM-DD/1|2"; a video already there swaps into this
-    one's old slot), mark a platform posted (or not), or ``{"done": true}`` to trash it now.
+    one's old slot), the ``audience`` (an ``AUDIENCES`` id: times follow its clock), mark a platform posted (or not), or ``{"done": true}`` to trash it now.
 
     Marking the last platform posted moves the video to the Trash.
     """
@@ -202,6 +242,10 @@ def update_post(name: str, body: dict, svc: Services = Depends(get_services)) ->
                 own[platform] = text
             else:
                 own.pop(platform, None)
+    if audience := body.get("audience"):
+        if audience not in AUDIENCES:
+            raise InvalidRequest(f"audience must be one of {', '.join(AUDIENCES)}")
+        entry["audience"] = audience
     if slot := body.get("slot"):
         try:
             _slot_times(slot)

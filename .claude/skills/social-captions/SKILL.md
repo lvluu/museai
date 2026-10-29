@@ -19,7 +19,9 @@ Paths are relative to this folder (`.claude/skills/social-captions/`). Rules and
 `python3 scripts/captions.py check captions.json` must print PASS (errors = hard limits; fix every
 WARN too unless you have a reason). Deliver with `CAPTIONS_FILE=captions.json` (see muse-video
 `scripts/deliver.sh`): it re-runs the check, then saves all six to the dashboard, where each platform
-button copies its own caption and every caption can be edited in its tab.
+button copies its own caption and every caption can be edited in its tab. The dashboard also books the
+video into the next free posting slot (two a day) and shows each platform's peak time for it:
+`references/posting-times.md`.
 
 ## Write
 Start from the video itself: its topic, the situation or place, the one thing a viewer gets (a phrase,
