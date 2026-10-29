@@ -519,6 +519,74 @@
         "island",
         "coast"
       ]
+    },
+    "dreamy-vocal": {
+      "name": "Dreamy vocal ballad",
+      "style": "dreamy cinematic ballad, soft airy female vocal, breathy and tender, warm piano, shimmering string pads, slow and spacious, peaceful",
+      "bpm": 68,
+      "fits": [
+        "mountain",
+        "snow",
+        "lake",
+        "nature",
+        "coast"
+      ],
+      "vocal": true,
+      "lyrics": "[verse]\nMorning light on {place}\nquiet water, open sky\n[chorus]\nHold me here, where the mountains breathe\nlet the world slow down with me\nHold me here, in the light of {place}\nstill and free"
+    },
+    "nordic-kulning": {
+      "name": "Nordic folk song",
+      "style": "nordic folk song, ethereal female vocal with high kulning calls, hardanger fiddle, soft frame drum, wide airy hall, majestic and calm",
+      "bpm": 72,
+      "fits": [
+        "mountain",
+        "snow",
+        "lake",
+        "coast"
+      ],
+      "vocal": true,
+      "regions": [
+        "norway",
+        "sweden",
+        "finland",
+        "iceland",
+        "denmark",
+        "greenland",
+        "svalbard",
+        "faroe"
+      ],
+      "lyrics": "[verse]\nHey-o, over the water\nhey-o, under the snow\n[chorus]\nCall me home to {place}\nwhere the cold rivers flow\nhey-o, hey-o\ncall me home"
+    },
+    "acoustic-ballad": {
+      "name": "Acoustic folk ballad",
+      "style": "gentle acoustic folk ballad, warm soft male vocal, fingerpicked guitar, light cello, intimate and hopeful",
+      "bpm": 84,
+      "fits": [
+        "coast",
+        "island",
+        "lake",
+        "oldtown",
+        "nature"
+      ],
+      "vocal": true,
+      "lyrics": "[verse]\nSlow road down to {place}\nsun upon the stone\n[chorus]\nI could stay a while here\nI could call it home\nevery wave says stay here\nI'm not alone"
+    },
+    "asian-ballad": {
+      "name": "East Asian vocal ballad",
+      "style": "cinematic east asian ballad, pure soft female vocal, guzheng, bamboo flute, light strings, serene and graceful",
+      "bpm": 70,
+      "fits": [
+        "*"
+      ],
+      "vocal": true,
+      "regions": [
+        "china",
+        "japan",
+        "vietnam",
+        "korea",
+        "taiwan"
+      ],
+      "lyrics": "[verse]\nMist upon the river\nlantern light in {place}\n[chorus]\nFloating like a petal\ndrifting on the stream\nstay with me in {place}\nlike a dream"
     }
   },
   "ambience": {

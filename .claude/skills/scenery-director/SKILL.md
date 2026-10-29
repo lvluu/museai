@@ -1,6 +1,6 @@
 ---
 name: scenery-director
-description: Direct a calm, photoreal cinematic scenery episode (default 15 s, 9:16, 24 fps, Shorts / TikTok / Reels) of a real place through museai, as an elite landscape cinematographer - one primary camera technique from a 12-move library (static panorama, slow push-in, lateral tracking, aerial glide, aerial reveal, low-angle environmental, crane rise, foreground parallax, long-lens compression, panoramic sweep, overhead, multi-shot), a storytelling structure (wonder and discovery, peaceful immersion, grand scale, intimate detail, atmospheric transformation, multi-shot), an opening-frame hook, natural real-time motion with selective sky-only time-lapse, consistent light, an original instrumental score synced to the shots over real ambience, no narration or text, prefers a reference photo as first frame, and varies every dimension across the series. Writes the six-part director's brief (title, concept, reference image, camera and storytelling plan, ready-to-paste generation prompt, production tip) and renders it. Use for "cinematic scenery video", "scenery episode", "cinematic travel documentary short", "director mode", "calm landscape video with music", "series episode of <place>", "ready-to-paste video prompt for <place>", or a place photo with a request for a cinematic (not beat-cut) short.
+description: Direct a calm, photoreal cinematic scenery episode (default 15 s, 9:16, 24 fps, Shorts / TikTok / Reels) of a real place through museai, as an elite landscape cinematographer - one primary camera technique from a 12-move library (static panorama, slow push-in, lateral tracking, aerial glide, aerial reveal, low-angle environmental, crane rise, foreground parallax, long-lens compression, panoramic sweep, overhead, multi-shot), a storytelling structure (wonder and discovery, peaceful immersion, grand scale, intimate detail, atmospheric transformation, multi-shot), an opening-frame hook, natural real-time motion with selective sky-only time-lapse, consistent light, an original score synced to the shots over real ambience (instrumental, or a song with one beautiful natural AI singer through ACE-Step on settings that suit it), no narration or text, prefers a reference photo as first frame, and varies every dimension across the series. Writes the six-part director's brief (title, concept, reference image, camera and storytelling plan, ready-to-paste generation prompt, production tip) and renders it. Use for "cinematic scenery video", "scenery episode", "cinematic travel documentary short", "director mode", "calm landscape video with music", "series episode of <place>", "ready-to-paste video prompt for <place>", or a place photo with a request for a cinematic (not beat-cut) short.
 ---
 
 # scenery-director
@@ -10,14 +10,14 @@ Paths are relative to this folder (`.claude/skills/scenery-director/`). Server, 
 You are the director: an elite landscape cinematographer and documentary editor. Every episode is photoreal, geographically accurate, calm, and beautiful from the very first frame.
 
 ## Defaults (unless the user says otherwise)
-15 s, 9:16, 24 fps, 1080x1920 (4K via `UHD=1` at delivery), photoreal cinematic travel documentary, original instrumental soundtrack over real ambience, no narration, no text, no watermarks, reference image to video when the user gives a photo.
+15 s, 9:16, 24 fps, 1080x1920 (4K via `UHD=1` at delivery), photoreal cinematic travel documentary, original soundtrack (instrumental or sung) over real ambience, no narration, no text, no watermarks, reference image to video when the user gives a photo.
 
 ## How it differs from the other place formats
 | format | feel |
 |---|---|
 | `../scenic-drop-reel/` | beat-cut drone montage, sung track, on-screen text; the default for a bare place request |
 | `../zoominview/` | a person's reaction, then the view |
-| **scenery-director** | one calm cinematic idea, 1-3 long shots, instrumental score, no text, a series that never repeats itself |
+| **scenery-director** | one calm cinematic idea, 1-3 long shots, calm score (instrumental or a soft sung ballad), no text, a series that never repeats itself |
 
 ## The library (`library.json`)
 - **techniques** (skill 1, camera director): 12 moves with when to use them, which work from a photo (`photo`: best / ok / limited / no) and muse-safe wording. One primary technique per episode; a single photo restricts it to `best`/`ok` moves (muse can only animate what the photo shows, and a bigger move redraws the place).
@@ -25,7 +25,8 @@ You are the director: an elite landscape cinematographer and documentary editor.
 - **structures** A-F (skill 3): A Wonder and Discovery, B Peaceful Immersion, C Grand Scale, D Intimate Natural Detail, E Atmospheric Transformation, F Cinematic Multi-shot; each has a three-beat arc and the techniques that serve it.
 - **water** + **timelapse** (skill 4): real-time motion lines per water type (falls, sea, lake, river, none); time-lapse only on the sky (clouds, mist, sunrise/sunset light, aurora, cloud shadows) and only in structure E; water, animals, people and boats are never accelerated.
 - **lighting** (skill 5): golden sunrise, golden sunset, blue hour, misty morning, soft overcast, after-rain, storm light, clear day, aurora night (`--north`); with a photo the light is the photo's (`from-photo` + `--photo-light` in words). One light direction for the whole episode; no oversaturation, no HDR.
-- **music** + **ambience** (skill 6): felt piano, epic orchestral, nordic folk, ethereal pads, warm acoustic, East Asian traditional, desert world, tropical calm, matched to setting and country; always original instrumental, cued per segment (present from frame 1, swells on the open view, resolves to loop), with the place's real ambience underneath.
+- **music** + **ambience** (skill 6): felt piano, epic orchestral, nordic folk, ethereal pads, warm acoustic, East Asian traditional, desert world, tropical calm, matched to setting and country; cued per segment (present from frame 1, swells on the open view, resolves to loop), with the place's real ambience underneath.
+  - **Sung styles** (`"vocal": true`, ACE-Step with the style's `lyrics`, `{place}` filled in): dreamy vocal ballad (mountain, snow, lake, nature, coast), nordic folk song with kulning calls (Nordic countries), acoustic folk ballad (coast, island, lake, old town), East Asian vocal ballad (China, Japan, Vietnam, Korea, Taiwan). `--vocals auto` (default) picks among sung and instrumental styles that fit; `on` / `off` when the user asks for a singer or for none. The singer wording (one natural lead singer, no duets, no negated words) comes from `music.py`, the user's rule from scenic-drop-reel. `render` stops before any render when a sung style is planned and ACE-Step is not installed (MusicGen cannot sing): install it (scenic-drop-reel "Music engines") or re-plan with `--vocals off`. Listen to the cut: the voice must be in the 15 s slice.
 - **avoid** (skill 7, photorealism): the list every prompt carries.
 - **edits** (skill 8): A one shot 0-15, B two shots 0-7 / 7-15, C three shots 0-4 / 4-10 / 10-15.
 
@@ -66,7 +67,7 @@ You are the director: an elite landscape cinematographer and documentary editor.
    9. Are there no invented landmarks, duplicated mountains, warped buildings, equipment, people popping in or out?
    10. Is there no text, subtitle, logo or watermark?
    11. Does the music fit the place, start at frame 1 and change with the shots?
-   12. Is the real ambience audible under the music, no narration or singing?
+   12. Is the real ambience audible under the music, no narration; any singing only the planned song's one natural voice?
    13. Does the last frame flow back into the first for a replay loop?
    14. Does this episode differ from the last ones in the series (technique, structure, hook, light, music)?
 7. **Deliver** (shared step 7): preview from the work folder with the six-part brief; after the user accepts, record the shots (`../shot-history/scripts/shots.py record --skill scenery-director --template <structure>`) and the episode (`python3 scripts/plan.py --record plan.json`) **before** `FINAL=1` (it trashes the work folder), then `FINAL=1 [UHD=1] ../muse-video/scripts/deliver.sh scenic-<slug>.mp4 <work>` with `THUMB_DIR=` and `CAPTIONS_FILE=` (no text in the video, so the caption carries the place name).
