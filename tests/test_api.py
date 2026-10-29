@@ -245,6 +245,51 @@ def test_posting_queue(client, admin, settings, monkeypatch):
     assert client.get("/dashboard/posts", headers=admin).json()["videos"] == []
 
 
+def test_posting_slots(tmp_path):
+    import os
+    from datetime import datetime
+
+    from museai.api.routes import posting
+
+    # Thursday 2026-10-29 12:00 GMT+7: today's midday slot (11:30) has passed.
+    now = datetime(2026, 10, 29, 12, 0, tzinfo=posting.TZ)
+    times = posting._slot_times("2026-10-31/2")  # Saturday evening
+    assert times["youtube"].isoformat() == "2026-10-31T17:30:00+07:00"
+    assert times["x"].isoformat() == "2026-10-31T19:30:00+07:00"
+    assert posting._slot_times("2026-11-01/1")["tiktok"].isoformat() == "2026-11-01T11:00:00+07:00"
+
+    videos = []
+    for i, name in enumerate(("a.mp4", "b.mp4", "c.mp4")):
+        (p := tmp_path / name).write_bytes(b"v")
+        os.utime(p, (1000 + i, 1000 + i))
+        videos.append(p)
+    state = {"b.mp4": {"slot": "2026-10-29/1", "posted": {}}}  # missed, not pinned
+    assert posting._assign_slots(state, videos, now)
+    assert [state[n]["slot"] for n in ("a.mp4", "b.mp4", "c.mp4")] == [
+        "2026-10-29/2", "2026-10-30/1", "2026-10-30/2"]  # oldest delivery first
+    assert not posting._assign_slots(state, videos, now)
+    cal = posting._calendar(state, {"a.mp4", "b.mp4", "c.mp4"}, now)
+    assert len(cal) == 7 and cal[0]["slots"][1]["video"] == "a.mp4" and cal[0]["slots"][0]["video"] is None
+
+
+def test_posting_move_slot(client, admin, settings):
+    settings.post_dir.mkdir()
+    for name in ("a.mp4", "b.mp4"):
+        (settings.post_dir / name).write_bytes(b"v")
+    d = client.get("/dashboard/posts", headers=admin).json()
+    slots = {v["name"]: v["slot"] for v in d["videos"]}
+    assert len(set(slots.values())) == 2
+    assert set(d["videos"][0]["schedule"]) == {"youtube", "tiktok", "facebook", "instagram", "x", "threads"}
+    assert sum(s["video"] is not None for day in d["calendar"] for s in day["slots"]) == 2
+
+    r = client.post("/dashboard/posts/a.mp4", headers=admin, json={"slot": slots["b.mp4"]}).json()
+    assert r["video"]["slot"] == slots["b.mp4"]
+    moved = {v["name"]: v["slot"] for v in client.get("/dashboard/posts", headers=admin).json()["videos"]}
+    assert moved == {"a.mp4": slots["b.mp4"], "b.mp4": slots["a.mp4"]}  # swapped
+    for bad in ("2026-10-30/3", "tomorrow", "2026-13-40/1", 5):
+        assert client.post("/dashboard/posts/a.mp4", headers=admin, json={"slot": bad}).status_code == 400
+
+
 def test_dashboard_cancel_and_retry(settings, auth, admin):
     from fastapi.testclient import TestClient
 
