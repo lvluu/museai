@@ -18,7 +18,10 @@ import sys
 import numpy as np
 import opencc
 from faster_whisper import WhisperModel
-from pypinyin import Style, lazy_pinyin
+from pypinyin import Style, lazy_pinyin, load_phrases_dict
+
+# pypinyin reads a bare 还车 (recap word) as hái chē; it is huán chē (EP40)
+load_phrases_dict({"还车": [["huán"], ["chē"]]})
 
 video, cues = sys.argv[1], json.load(open(sys.argv[2]))
 pcm = subprocess.run(["ffmpeg", "-v", "error", "-i", video, "-vn", "-ac", "1", "-ar", "16000",
