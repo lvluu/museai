@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Usage: hero photo.jpg out_dir name [center_x 0..1] [seconds]
+# Renders one muse image-to-video hero shot of a REAL product photo: crops the photo to a sharp
+# 1080x1920 first frame around center_x (default 0.5), then muse animates only light + a slow push-in
+# (prompt/product.txt). Check the letters on the result (check.py) before using it in the ad.
+set -euo pipefail
+SKILL_DIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+MUSE_VIDEO="$SKILL_DIR/../muse-video/scripts/muse-video"
+photo=$1
+out=$(mkdir -p "$2" && cd "$2" && pwd)
+name=$3
+cx=${4:-0.5}
+secs=${5:-5}
+first="$out/$name.first.png"
+# 9:16 crop from the full source height, never upscaled from a small crop (muse renders soft from a soft frame)
+ffmpeg -v error -y -i "$photo" -vf "crop=ih*9/16:ih:max(0\,min(iw-ih*9/16\,iw*$cx-ih*9/32)):0,scale=1080:1920:flags=lanczos" "$first"
+cat > "$out/$name.prompt.txt" <<EOF
+NEW STANDALONE REQUEST. Ignore any earlier versions, drafts, images or projects. Use ONLY the image attached to this message as the first frame.
+
+A ${secs}-second vertical product beauty shot for a short social-media ad, made from the attached product photo.
+
+$(cat "$SKILL_DIR/prompt/product.txt")
+EOF
+IMAGE="$first" DURATION=$secs SIZE=9:16 QUALITY=0 NO_OPEN=1 OUT_NAME="$name.mp4" "$MUSE_VIDEO" -f "$out/$name.prompt.txt" "$out"

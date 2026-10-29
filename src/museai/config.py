@@ -44,6 +44,8 @@ class Settings(BaseSettings):
     post_dir: Path = Path.home() / "Desktop"
     # Push "ready to post" to phones that installed the dashboard and turned notifications on.
     push_enabled: bool = True
+    # Write the per-platform captions a queued video is missing through muse chat.
+    auto_captions: bool = True
 
     # --- upstream driver ---
     driver: DriverName = "mock"

@@ -11,6 +11,7 @@ from ..config import Settings
 from ..core.media import MediaStore
 from ..drivers.base import MuseDriver
 from ..drivers.registry import create_driver
+from .captions import CaptionWriter
 from .gateway import Gateway
 from .push import Push
 from .tasks import TaskManager
@@ -25,6 +26,7 @@ class Services:
     tasks: TaskManager
     media: MediaStore
     push: Push
+    captions: CaptionWriter
 
     @classmethod
     def build(cls, settings: Settings, driver: MuseDriver | None = None) -> Services:
@@ -37,17 +39,19 @@ class Services:
             cooldown=settings.account_cooldown,
             acquire_timeout=settings.pool_acquire_timeout,
         )
+        gateway = Gateway(
+            pool,
+            driver,
+            max_failover=settings.max_failover,
+            media_queue_timeout=settings.media_queue_timeout or math.inf,
+        )
         return cls(
             settings=settings,
             driver=driver,
             pool=pool,
-            gateway=Gateway(
-                pool,
-                driver,
-                max_failover=settings.max_failover,
-                media_queue_timeout=settings.media_queue_timeout or math.inf,
-            ),
+            gateway=gateway,
             tasks=TaskManager(settings.tasks_file),
             media=MediaStore(settings.media_dir),
             push=Push(settings.data_dir, settings.post_dir),
+            captions=CaptionWriter(gateway, settings.auto_captions),
         )

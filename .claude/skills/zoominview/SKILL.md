@@ -61,7 +61,7 @@ Other travel videos (muse-video travel mode, scenic-drop-reel shots with a perso
    ```
    Drops B's duplicated first frame at the join, cuts the head of A so the music drop lands exactly on `--reveal` (≥ 3.5 s reaction kept), eased digital push-in from the reveal (or `--zoom-at`) to the end, loops the track body when the reel is longer than the track (`--zoom 1.15`; 1.25 for a far view, 1 when muse's own push-in is enough), light grade, wind ambience under the music, denoise (afftdn, as stitch.sh; the looped reference track alone sat at -65 dB hiss), -14 LUFS.
 6. **Verify**: `python3 ../muse-video/scripts/qa.py reel.mp4 --travel 0 sheet.jpg` (judge `smooth` + sheet; `motion` TIME-LAPSE flags the pan and the zooms, check frames instead) and watch the join: no jump, face/clothes identical up to the transition, music swell on the reveal.
-7. **Deliver** with `../muse-video/scripts/deliver.sh` (preview, `FINAL=1` after OK) and a `CAPTION_FILE`: the plan's `caption_hook` (or a better one for this place), place line, call to action, 3-6 hashtags. Record the shots (shot-history) BEFORE `FINAL=1`: deliver trashes the work folder.
+7. **Deliver** with `../muse-video/scripts/deliver.sh` (preview, `FINAL=1` after OK), `THUMB_DIR=` (thumbnails from `../thumbnail/SKILL.md` with `--split`: the gasp on top, the view below) and a `CAPTION_FILE`: the plan's `caption_hook` (or a better one for this place), place line, call to action, 3-6 hashtags. Record the shots (shot-history) BEFORE `FINAL=1`: deliver trashes the work folder.
 
 ## Choosing hook + transition + music (what plan.py encodes)
 - The table under "Not one fixed recipe" is the map; each item's `setting` / `light` / `country` in `styles.json` is the source of truth.

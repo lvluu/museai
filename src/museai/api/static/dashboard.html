@@ -121,6 +121,10 @@
           display: grid; grid-template-columns: 90px 1fr; gap: 14px; }
   .post video { width: 90px; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 6px; background: #000; display: block; }
   .post-body { min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .thumbs { display: flex; gap: 8px; align-items: flex-end; }
+  .thumbs a { display: flex; flex-direction: column; align-items: center; gap: 2px; color: inherit; text-decoration: none; }
+  .thumbs img { height: 64px; border-radius: 4px; display: block; }
+  .thumbs small { font-size: 11px; opacity: .7; }
   .post-top { display: flex; align-items: center; gap: 8px; }
   .post-name { font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .post textarea { font: inherit; font-size: 13px; color: var(--text); background: var(--bg); width: 100%;
@@ -133,6 +137,8 @@
               font-variant-numeric: tabular-nums; }
   .cap-foot .over { color: var(--bad); font-weight: 600; }
   .cap-foot span { flex: 1; }
+  .autocap { font-size: 12px; color: var(--muted); }
+  .autocap.bad { color: var(--bad); }
   .plats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .plat { border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; display: flex; align-items: center;
           gap: 10px; font-size: 14px; font-weight: 500; cursor: pointer; user-select: none; }
@@ -143,6 +149,7 @@
   .plat.late:not(.done) small { color: var(--bad); font-weight: 600; }
   .plat.done small { color: inherit; }
   /* posting schedule: two slots a day, GMT+7 */
+  .chan-tabs { width: fit-content; margin-bottom: 8px; }
   .sched { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 14px; }
   .sday { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .sday h3 { margin: 0; font-size: 12px; font-weight: 600; color: var(--muted); }
@@ -217,12 +224,13 @@
 <main id="app">
   <section data-section="post" hidden>
     <header><h1>Ready to post</h1></header>
-    <p class="hint">Two videos a day at peak hours (GMT+7): slot 1 at midday for bite-sized clips, slot 2 in the
-      evening for conversations, mistakes and quizzes. New videos take the next free slot; each platform tile shows
-      the time to schedule it there. Schedule 1-2 days ahead; pick another slot on a card to move it.</p>
+    <p class="hint">Each channel posts from its own accounts, two videos a day at peak hours (GMT+7): slot 1 at
+      midday, slot 2 in the evening. New videos take the next free slot in their channel; each platform tile shows
+      the time to schedule it there. Schedule 1-2 days ahead; pick another slot or channel on a card to move it.</p>
+    <div class="tabs chan-tabs" id="chanTabs"></div>
     <div class="sched" id="sched"></div>
-    <p class="hint">Each platform has its own caption (tabs above the text; • = written for it, otherwise the
-      “All” caption is used): pick the tab, “Copy” (YouTube: “Copy title” and “Copy description”), and “Show file”
+    <p class="hint">Each platform has its own caption, written to its length, hook and hashtag rules (tabs above
+      the text; • = written for it; “Shared” is the fallback for a platform without one): pick the tab, “Copy” (YouTube: “Copy title” and “Copy description”), and “Show file”
       to drag the video in. Tick a platform after publishing; when all are ticked, the video moves to the Trash.</p>
     <div class="notify" id="notify"></div>
     <div class="posts" id="posts"></div>
@@ -576,6 +584,9 @@ document.querySelector(".nav").addEventListener("click", (e) => {
 });
 
 let posts = { platforms: [], videos: [] }, postsSig = "";
+// Channel tab (Chinese / Travel): filters the schedule and the cards; remembered per browser.
+let chan = (() => { try { return localStorage.getItem("postChannel") || "chinese"; } catch { return "chinese"; } })();
+const chanVideos = () => posts.videos.filter((v) => v.channel === chan);
 const postUrl = (name, rest = "") => `/dashboard/posts/${encodeURIComponent(name)}${rest}`;
 
 function renderPosts() {
@@ -585,9 +596,14 @@ function renderPosts() {
   postsSig = sig;
   $("navPost").textContent = posts.videos.length || "";
   $("navPost").classList.toggle("hot", posts.videos.length > 0);
+  const chans = posts.channels || [];
+  if (chans.length && !chans.some((c) => c.id === chan)) chan = chans[0].id;
+  $("chanTabs").innerHTML = chans.map((c) => `<button data-chan="${esc(c.id)}" class="${c.id === chan ? "on" : ""}">${
+    esc(c.name)} <small>${posts.videos.filter((v) => v.channel === c.id).length}</small></button>`).join("");
   renderSchedule();
-  if (!posts.videos.length) { $("posts").innerHTML = `<div class="empty">Nothing waiting to be posted.</div>`; return; }
-  $("posts").innerHTML = posts.videos.map((v) => {
+  const shown = chanVideos();
+  if (!shown.length) { $("posts").innerHTML = `<div class="empty">Nothing waiting to be posted in this channel.</div>`; return; }
+  $("posts").innerHTML = shown.map((v) => {
     const n = Object.keys(v.posted).length;
     return `<div class="post" data-name="${esc(v.name)}">
       <video src="${esc(postUrl(v.name, "/file"))}#t=0.5" preload="metadata" controls muted playsinline></video>
@@ -599,8 +615,13 @@ function renderPosts() {
           <button class="linkish" data-done title="Move to the Trash without posting everywhere">Delete</button>
         </div>
         ${slotHead(v)}
-        <div class="cap-tabs">${[["all", "All"], ...posts.platforms.map((p) => [p.id, p.name.split(" ")[0]])].map(([id, label]) =>
-          `<button data-captab="${esc(id)}">${esc(label)}</button>`).join("")}</div>
+        ${(v.thumbnails || []).length ? `<div class="thumbs">${v.thumbnails.map((t) =>
+          `<a href="${esc(postUrl(v.name, "/thumbnail/" + t.kind))}" download title="${esc(t.kind)}: ${esc(t.use)}">
+             <img src="${esc(postUrl(v.name, "/thumbnail/" + t.kind))}" alt="${esc(t.kind)} thumbnail" loading="lazy"><small>${esc(t.kind)}</small></a>`).join("")}</div>` : ""}
+        <div class="cap-tabs">${[...posts.platforms.map((p) => [p.id, p.name.split(" ")[0]]), ["all", "Shared"]].map(([id, label]) =>
+          `<button data-captab="${esc(id)}" ${id === "all" ? `title="Fallback for platforms without their own caption"` : ""}>${esc(label)}</button>`).join("")}</div>
+        ${v.auto_captions === "writing" ? `<div class="autocap">Writing the missing captions with muse…</div>`
+          : v.auto_captions === "failed" ? `<div class="autocap bad">Auto captions failed: retrying in 30 min, or type them here.</div>` : ""}
         <textarea data-caption></textarea>
         <div class="cap-foot"><span data-capcount></span>
           <button class="linkish" data-copytab="title" hidden>Copy title</button>
@@ -638,12 +659,10 @@ function when(iso) {
 }
 const whenLong = (iso) => iso ? `${dayLabel(iso.slice(0, 10))} ${iso.slice(11, 16)} (GMT+7)` : "no slot";
 const slotLabel = (key) => { const [d, n] = key.split("/"); return `${dayLabel(d)} · slot ${n}`; };
-const SLOT_FOCUS = { 1: "Midday: bite-sized (stroke order, word of the day, a quick view)",
-                     2: "Evening: conversations, common mistakes, quizzes" };
 const firstLine = (v, p) => (captionFor(v, p) || "").split("\n")[0].trim();
 function renderSchedule() {
   const today = todayGmt7();
-  $("sched").innerHTML = (posts.calendar || []).map((day) => `
+  $("sched").innerHTML = ((posts.calendar || {})[chan] || []).map((day) => `
     <div class="sday ${day.date === today ? "today" : ""}"><h3>${esc(dayLabel(day.date))}</h3>
       ${day.slots.map((s) => {
         const v = s.video && posts.videos.find((x) => x.name === s.video);
@@ -656,22 +675,28 @@ function renderSchedule() {
 }
 function slotHead(v) {
   if (!v.slot) return "";
-  const keys = (posts.calendar || []).flatMap((d) => d.slots.map((s) => [s.key, s.video]));
+  const keys = ((posts.calendar || {})[v.channel] || []).flatMap((d) => d.slots.map((s) => [s.key, s.video]));
   if (!keys.some(([k]) => k === v.slot)) keys.unshift([v.slot, v.name]);
   const yt = v.schedule.youtube, n = v.slot.split("/")[1];
+  const ch = (posts.channels || []).find((c) => c.id === v.channel);
   return `<div class="slot-head">
-    <select data-slot title="Move this video to another slot (a video already there swaps with it)">
+    <select data-channel title="Channel (account) this video posts on; moving it books the next free slot there">
+      ${(posts.channels || []).map((c) => `<option value="${esc(c.id)}" ${c.id === v.channel ? "selected" : ""}>${esc(c.name)}</option>`).join("")}
+    </select>
+    <select data-slot title="Move this video to another slot (a video of this channel already there swaps with it)">
       ${keys.map(([k, other]) => `<option value="${esc(k)}" ${k === v.slot ? "selected" : ""}>${esc(slotLabel(k))}${
         other && other !== v.name ? " (swap)" : ""}</option>`).join("")}
     </select>
     ${late(yt) && !Object.keys(v.posted).length ? `<span class="late">Slot passed: post now or pick a later slot</span>` : ""}
-    <span class="focus">${esc(SLOT_FOCUS[n])}</span>
+    <span class="focus">${esc(ch?.focus?.[n] || "")}</span>
   </div>`;
 }
 
 // Per-platform captions: captions[platform] when written for it, else the shared caption.
 // YouTube's is "title\n\ndescription"; X counts emoji, CJK and Vietnamese letters as 2.
 const capTab = new Map();
+// Open on the first platform with its own caption; the shared one only when none has.
+const curTab = (v) => capTab.get(v.name) || posts.platforms.map((p) => p.id).find((p) => v.captions[p]) || "all";
 const video = (card) => posts.videos.find((v) => v.name === card.dataset.name);
 const captionFor = (v, p) => (p !== "all" && v.captions[p]) || v.caption;
 const ytSplit = (text) => { const [title, ...rest] = text.split("\n"); return [title.trim(), rest.join("\n").trim()]; };
@@ -686,9 +711,17 @@ function xLength(text) {
   }
   return n;
 }
+// Refit when the box gets its width: the Post view shown after rendering hidden, or the window resized.
+const capFit = new ResizeObserver((entries) => {
+  for (const { target, contentRect } of entries) {
+    if (contentRect.width === target.fitWidth) continue;
+    target.fitWidth = contentRect.width;
+    fitCaption(target);
+  }
+});
 function showCaption(card) {
   const v = video(card); if (!v) return;
-  const tab = capTab.get(v.name) || "all";
+  const tab = curTab(v);
   const ta = card.querySelector("[data-caption]");
   for (const b of card.querySelectorAll("[data-captab]")) {
     b.classList.toggle("on", b.dataset.captab === tab);
@@ -696,12 +729,14 @@ function showCaption(card) {
   }
   ta.value = tab === "all" ? v.caption : (v.captions[tab] || "");
   ta.placeholder = tab === "all" ? "Caption for every platform without its own (copied when you click a platform)"
-    : v.caption ? `Uses the “All” caption:\n${v.caption}` : "Caption for this platform";
+    : v.caption ? `Uses the “Shared” caption:\n${v.caption}` : "Caption for this platform";
+  capFit.observe(ta);
   fitCaption(ta);
   countCaption(card);
 }
 // Grow the box to show the whole caption (or the fallback shown as placeholder).
 function fitCaption(ta) {
+  if (!ta.clientWidth) return; // hidden (another view is open): nothing to measure yet
   const typed = ta.value;
   if (!typed) ta.value = ta.placeholder;
   ta.style.height = "auto";
@@ -709,7 +744,7 @@ function fitCaption(ta) {
   ta.value = typed;
 }
 function countCaption(card) {
-  const v = video(card), tab = capTab.get(v.name) || "all";
+  const v = video(card), tab = curTab(v);
   const text = card.querySelector("[data-caption]").value || (tab === "all" ? "" : v.caption);
   const p = posts.platforms.find((x) => x.id === tab);
   const fmt = (n, lim) => `<b class="${n > lim ? "over" : ""}">${n}</b>/${lim}`;
@@ -724,7 +759,7 @@ function countCaption(card) {
 function copyText(card, tab, part = "text") {
   const v = video(card), typed = card.querySelector("[data-caption]").value;
   // the textarea may hold an edit not saved yet (saved on change)
-  const text = (tab === (capTab.get(v.name) || "all") && typed) || captionFor(v, tab);
+  const text = (tab === curTab(v) && typed) || captionFor(v, tab);
   if (tab !== "youtube") return text;
   const [title, desc] = ytSplit(text);
   return part === "title" ? title : desc;
@@ -735,7 +770,7 @@ function copyText(card, tab, part = "text") {
 const canShareFiles = !!navigator.canShare?.({ files: [new File([""], "x.mp4", { type: "video/mp4" })] });
 const shareFiles = new Map();
 async function shareVideo(name, card, btn) {
-  const caption = copyText(card, capTab.get(name) || "all");
+  const caption = copyText(card, curTab(video(card)));
   if (caption) navigator.clipboard?.writeText(caption).catch(() => {});
   const file = shareFiles.get(name);
   if (file) {
@@ -832,12 +867,12 @@ $("posts").addEventListener("click", async (e) => {
   const copy = e.target.closest("[data-copytab]");
   if (copy) {
     const label = copy.textContent;
-    navigator.clipboard?.writeText(copyText(card, capTab.get(name) || "all", copy.dataset.copytab)).catch(() => {});
+    navigator.clipboard?.writeText(copyText(card, curTab(video(card)), copy.dataset.copytab)).catch(() => {});
     copy.textContent = "Copied"; setTimeout(() => { copy.textContent = label; }, 1200);
     return;
   }
   if (e.target.closest("[data-copycap]")) {
-    navigator.clipboard?.writeText(copyText(card, capTab.get(name) || "all")).catch(() => {});
+    navigator.clipboard?.writeText(copyText(card, curTab(video(card)))).catch(() => {});
     e.target.textContent = "Copied"; setTimeout(() => { e.target.textContent = "Copy caption"; }, 1200);
     return;
   }
@@ -848,11 +883,18 @@ $("posts").addEventListener("click", async (e) => {
 $("posts").addEventListener("change", (e) => {
   const name = e.target.closest(".post")?.dataset.name; if (!name) return;
   if (e.target.matches("[data-slot]")) updatePost(name, { slot: e.target.value });
+  else if (e.target.matches("[data-channel]")) updatePost(name, { channel: e.target.value });
   else if (e.target.dataset.posted) updatePost(name, { platform: e.target.dataset.posted, posted: e.target.checked });
   else if (e.target.matches("[data-caption]")) {
-    const tab = capTab.get(name) || "all";
+    const tab = curTab(video(e.target.closest(".post")));
     updatePost(name, tab === "all" ? { caption: e.target.value } : { captions: { [tab]: e.target.value } });
   }
+});
+$("chanTabs").addEventListener("click", (e) => {
+  const id = e.target.closest("[data-chan]")?.dataset.chan; if (!id || id === chan) return;
+  chan = id;
+  try { localStorage.setItem("postChannel", id); } catch {}
+  postsSig = ""; renderPosts();
 });
 $("sched").addEventListener("click", (e) => {
   const name = e.target.closest("[data-goto]")?.dataset.goto; if (!name) return;

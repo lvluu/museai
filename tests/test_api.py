@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import time
+import unicodedata
 
 
 def test_health(client):
@@ -209,6 +210,7 @@ def test_posting_queue(client, admin, settings, monkeypatch):
     settings.post_dir.mkdir()
     (settings.post_dir / "ep1.mp4").write_bytes(b"video")
     (settings.post_dir / "notes.txt").write_text("not a video")
+    (settings.post_dir / "ep1 - thumbnail 9x16.jpg").write_bytes(b"jpg")
 
     d = client.get("/dashboard/posts", headers=admin).json()
     assert [v["name"] for v in d["videos"]] == ["ep1.mp4"]
@@ -217,6 +219,9 @@ def test_posting_queue(client, admin, settings, monkeypatch):
     }
     assert client.get("/dashboard/posts/ep1.mp4/file", headers=admin).content == b"video"
     assert client.get("/dashboard/posts/notes.txt/file", headers=admin).status_code == 404
+    assert [t["kind"] for t in d["videos"][0]["thumbnails"]] == ["9x16"]
+    assert client.get("/dashboard/posts/ep1.mp4/thumbnail/9x16", headers=admin).content == b"jpg"
+    assert client.get("/dashboard/posts/ep1.mp4/thumbnail/16x9", headers=admin).status_code == 404
 
     r = client.post("/dashboard/posts/ep1.mp4", headers=admin, json={"caption": "hi #fyp"}).json()
     assert r["video"]["caption"] == "hi #fyp"
@@ -241,7 +246,7 @@ def test_posting_queue(client, admin, settings, monkeypatch):
         assert not r["trashed"]
     for p in ("threads",):
         r = client.post("/dashboard/posts/ep1.mp4", headers=admin, json={"platform": p}).json()
-    assert r["trashed"] and trashed == ["ep1.mp4"]
+    assert r["trashed"] and trashed == ["ep1 - thumbnail 9x16.jpg", "ep1.mp4"]
     assert client.get("/dashboard/posts", headers=admin).json()["videos"] == []
 
 
@@ -268,8 +273,17 @@ def test_posting_slots(tmp_path):
     assert [state[n]["slot"] for n in ("a.mp4", "b.mp4", "c.mp4")] == [
         "2026-10-29/2", "2026-10-30/1", "2026-10-30/2"]  # oldest delivery first
     assert not posting._assign_slots(state, videos, now)
-    cal = posting._calendar(state, {"a.mp4", "b.mp4", "c.mp4"}, now)
+    cal = posting._calendar(state, {n: n for n in ("a.mp4", "b.mp4", "c.mp4")}, now)["chinese"]
     assert len(cal) == 7 and cal[0]["slots"][1]["video"] == "a.mp4" and cal[0]["slots"][0]["video"] is None
+
+    # Travel posts from other accounts: its videos book their own slots, the same ones Chinese uses.
+    (p := tmp_path / "zoom-madeira.mp4").write_bytes(b"v")
+    os.utime(p, (2000, 2000))
+    assert posting._assign_slots(state, [*videos, p], now)
+    assert state["zoom-madeira.mp4"]["slot"] == "2026-10-29/2"
+    cal = posting._calendar(state, {n: n for n in state}, now)
+    assert cal["travel"][0]["slots"][1]["video"] == "zoom-madeira.mp4"
+    assert cal["chinese"][0]["slots"][1]["video"] == "a.mp4"
 
 
 def test_posting_move_slot(client, admin, settings):
@@ -280,7 +294,8 @@ def test_posting_move_slot(client, admin, settings):
     slots = {v["name"]: v["slot"] for v in d["videos"]}
     assert len(set(slots.values())) == 2
     assert set(d["videos"][0]["schedule"]) == {"youtube", "tiktok", "facebook", "instagram", "x", "threads"}
-    assert sum(s["video"] is not None for day in d["calendar"] for s in day["slots"]) == 2
+    assert sum(s["video"] is not None for day in d["calendar"]["chinese"] for s in day["slots"]) == 2
+    assert {c["id"] for c in d["channels"]} == {"chinese", "travel"}
 
     r = client.post("/dashboard/posts/a.mp4", headers=admin, json={"slot": slots["b.mp4"]}).json()
     assert r["video"]["slot"] == slots["b.mp4"]
@@ -288,6 +303,20 @@ def test_posting_move_slot(client, admin, settings):
     assert moved == {"a.mp4": slots["b.mp4"], "b.mp4": slots["a.mp4"]}  # swapped
     for bad in ("2026-10-30/3", "tomorrow", "2026-13-40/1", 5):
         assert client.post("/dashboard/posts/a.mp4", headers=admin, json={"slot": bad}).status_code == 400
+
+    # Moving a to Travel frees its Chinese slot and books the first free Travel slot.
+    client.post("/dashboard/posts/a.mp4", headers=admin, json={"channel": "travel"})
+    d = client.get("/dashboard/posts", headers=admin).json()
+    a = next(v for v in d["videos"] if v["name"] == "a.mp4")
+    assert a["channel"] == "travel"
+    assert [s["key"] for day in d["calendar"]["travel"] for s in day["slots"] if s["video"]] == [a["slot"]]
+    assert sum(s["video"] is not None for day in d["calendar"]["chinese"] for s in day["slots"]) == 1
+    # A slot holding a video of the other channel is not a swap.
+    r = client.post("/dashboard/posts/b.mp4", headers=admin, json={"slot": a["slot"]}).json()
+    assert r["video"]["slot"] == a["slot"]
+    after = {v["name"]: v["slot"] for v in client.get("/dashboard/posts", headers=admin).json()["videos"]}
+    assert after == {"a.mp4": a["slot"], "b.mp4": a["slot"]}
+    assert client.post("/dashboard/posts/a.mp4", headers=admin, json={"channel": "nope"}).status_code == 400
 
 
 def test_dashboard_cancel_and_retry(settings, auth, admin):
@@ -316,3 +345,43 @@ def test_dashboard_cancel_and_retry(settings, auth, admin):
         # A second click while the retry renders joins it instead of rendering twice.
         assert c.post(url + "/retry", headers=admin).json()["id"] == again
         assert c.post("/dashboard/videos/nope/cancel", headers=admin).status_code == 404
+
+
+def test_auto_captions_fill_missing_platforms(client, admin, settings):
+    from museai.services import captions
+
+    svc = client.app.state.services
+    svc.captions.enabled = True
+    asked = []
+
+    async def write(path, caption, missing):
+        asked.append((path.name, caption, missing))
+        return {p: f"{p} text #tag" for p in missing}
+
+    svc.captions.write = write
+    settings.post_dir.mkdir()
+    name = unicodedata.normalize("NFD", "Tiếng 1.mp4")
+    (settings.post_dir / name).write_bytes(b"video")
+    # macOS lists the name decomposed; its state is keyed composed
+    client.post(f"/dashboard/posts/{name}", headers=admin, json={"captions": {"x": "mine"}})
+    client.get("/dashboard/posts", headers=admin)
+    for _ in range(50):
+        v = client.get("/dashboard/posts", headers=admin).json()["videos"][0]
+        if len(v["captions"]) == 6 and not v["auto_captions"]:
+            break
+        time.sleep(0.05)
+    assert v["captions"]["x"] == "mine"
+    assert v["captions"]["threads"] == "threads text #tag"
+    assert v["caption"] == "tiktok text #tag"
+    assert v["auto_captions"] is None
+    assert asked == [(name, "", [p for p in captions.PLATFORMS if p != "x"])]
+
+
+def test_auto_captions_parse_and_prompt():
+    from museai.services import captions
+
+    got = captions.parse('Sure!\n```json\n{"x": "hi", "tiktok": "", "myspace": "no"}\n```', ["x", "tiktok"])
+    assert got == {"x": "hi"}
+    assert captions.parse("no json here", ["x"]) == {}
+    text = captions.prompt("a.mp4", "", ["x"], "RULES", ["x: 300 characters, limit 280"])
+    assert "RULES" in text and "x: 300 characters" in text and "frames" in text
