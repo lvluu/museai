@@ -25,6 +25,7 @@ import subprocess
 import threading
 import time
 import unicodedata
+from collections.abc import Iterator
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -162,7 +163,10 @@ def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
                 and _slot_times(key)["youtube"] <= now:
             del e["slot"]
     taken = {(_channel(n, e), e["slot"]) for n, e in entries if e.get("slot")}
-    free = {ch: (k for k in _slots_from(now) if (ch, k) not in taken) for ch in CHANNELS}
+    def free_slots(ch: str) -> Iterator[str]:  # a function, so each generator keeps its own ``ch``
+        return (k for k in _slots_from(now) if (ch, k) not in taken)
+
+    free = {ch: free_slots(ch) for ch in CHANNELS}
     changed = False
     for n, e in entries:
         if not e.get("slot"):

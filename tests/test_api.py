@@ -286,6 +286,13 @@ def test_posting_slots(tmp_path):
     assert cal["travel"][0]["slots"][1]["video"] == "zoom-madeira.mp4"
     assert cal["chinese"][0]["slots"][1]["video"] == "a.mp4"
 
+    # A new Chinese video takes the next free Chinese slot, not one only Travel has free.
+    (p := tmp_path / "d.mp4").write_bytes(b"v")
+    os.utime(p, (3000, 3000))
+    assert posting._assign_slots(state, [*videos, p], now)
+    chinese = [e["slot"] for n, e in state.items() if posting._channel(n, e) == "chinese"]
+    assert state["d.mp4"]["slot"] == "2026-10-31/1" and len(set(chinese)) == len(chinese)
+
 
 def test_posting_channel_from_file_name():
     from museai.api.routes import posting
