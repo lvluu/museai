@@ -223,8 +223,8 @@
       evening for conversations, mistakes and quizzes. New videos take the next free slot; each platform tile shows
       the time to schedule it there. Schedule 1-2 days ahead; pick another slot on a card to move it.</p>
     <div class="sched" id="sched"></div>
-    <p class="hint">Each platform has its own caption (tabs above the text; • = written for it, otherwise the
-      “All” caption is used): pick the tab, “Copy” (YouTube: “Copy title” and “Copy description”), and “Show file”
+    <p class="hint">Each platform has its own caption, written to its length, hook and hashtag rules (tabs above
+      the text; • = written for it; “Shared” is the fallback for a platform without one): pick the tab, “Copy” (YouTube: “Copy title” and “Copy description”), and “Show file”
       to drag the video in. Tick a platform after publishing; when all are ticked, the video moves to the Trash.</p>
     <div class="notify" id="notify"></div>
     <div class="posts" id="posts"></div>
@@ -601,8 +601,8 @@ function renderPosts() {
           <button class="linkish" data-done title="Move to the Trash without posting everywhere">Delete</button>
         </div>
         ${slotHead(v)}
-        <div class="cap-tabs">${[["all", "All"], ...posts.platforms.map((p) => [p.id, p.name.split(" ")[0]])].map(([id, label]) =>
-          `<button data-captab="${esc(id)}">${esc(label)}</button>`).join("")}</div>
+        <div class="cap-tabs">${[...posts.platforms.map((p) => [p.id, p.name.split(" ")[0]]), ["all", "Shared"]].map(([id, label]) =>
+          `<button data-captab="${esc(id)}" ${id === "all" ? `title="Fallback for platforms without their own caption"` : ""}>${esc(label)}</button>`).join("")}</div>
         ${v.auto_captions === "writing" ? `<div class="autocap">Writing the missing captions with muse…</div>`
           : v.auto_captions === "failed" ? `<div class="autocap bad">Auto captions failed: retrying in 30 min, or type them here.</div>` : ""}
         <textarea data-caption></textarea>
@@ -676,6 +676,8 @@ function slotHead(v) {
 // Per-platform captions: captions[platform] when written for it, else the shared caption.
 // YouTube's is "title\n\ndescription"; X counts emoji, CJK and Vietnamese letters as 2.
 const capTab = new Map();
+// Open on the first platform with its own caption; the shared one only when none has.
+const curTab = (v) => capTab.get(v.name) || posts.platforms.map((p) => p.id).find((p) => v.captions[p]) || "all";
 const video = (card) => posts.videos.find((v) => v.name === card.dataset.name);
 const captionFor = (v, p) => (p !== "all" && v.captions[p]) || v.caption;
 const ytSplit = (text) => { const [title, ...rest] = text.split("\n"); return [title.trim(), rest.join("\n").trim()]; };
@@ -692,7 +694,7 @@ function xLength(text) {
 }
 function showCaption(card) {
   const v = video(card); if (!v) return;
-  const tab = capTab.get(v.name) || "all";
+  const tab = curTab(v);
   const ta = card.querySelector("[data-caption]");
   for (const b of card.querySelectorAll("[data-captab]")) {
     b.classList.toggle("on", b.dataset.captab === tab);
@@ -700,7 +702,7 @@ function showCaption(card) {
   }
   ta.value = tab === "all" ? v.caption : (v.captions[tab] || "");
   ta.placeholder = tab === "all" ? "Caption for every platform without its own (copied when you click a platform)"
-    : v.caption ? `Uses the “All” caption:\n${v.caption}` : "Caption for this platform";
+    : v.caption ? `Uses the “Shared” caption:\n${v.caption}` : "Caption for this platform";
   fitCaption(ta);
   countCaption(card);
 }
@@ -713,7 +715,7 @@ function fitCaption(ta) {
   ta.value = typed;
 }
 function countCaption(card) {
-  const v = video(card), tab = capTab.get(v.name) || "all";
+  const v = video(card), tab = curTab(v);
   const text = card.querySelector("[data-caption]").value || (tab === "all" ? "" : v.caption);
   const p = posts.platforms.find((x) => x.id === tab);
   const fmt = (n, lim) => `<b class="${n > lim ? "over" : ""}">${n}</b>/${lim}`;
@@ -728,7 +730,7 @@ function countCaption(card) {
 function copyText(card, tab, part = "text") {
   const v = video(card), typed = card.querySelector("[data-caption]").value;
   // the textarea may hold an edit not saved yet (saved on change)
-  const text = (tab === (capTab.get(v.name) || "all") && typed) || captionFor(v, tab);
+  const text = (tab === curTab(v) && typed) || captionFor(v, tab);
   if (tab !== "youtube") return text;
   const [title, desc] = ytSplit(text);
   return part === "title" ? title : desc;
@@ -739,7 +741,7 @@ function copyText(card, tab, part = "text") {
 const canShareFiles = !!navigator.canShare?.({ files: [new File([""], "x.mp4", { type: "video/mp4" })] });
 const shareFiles = new Map();
 async function shareVideo(name, card, btn) {
-  const caption = copyText(card, capTab.get(name) || "all");
+  const caption = copyText(card, curTab(video(card)));
   if (caption) navigator.clipboard?.writeText(caption).catch(() => {});
   const file = shareFiles.get(name);
   if (file) {
@@ -836,12 +838,12 @@ $("posts").addEventListener("click", async (e) => {
   const copy = e.target.closest("[data-copytab]");
   if (copy) {
     const label = copy.textContent;
-    navigator.clipboard?.writeText(copyText(card, capTab.get(name) || "all", copy.dataset.copytab)).catch(() => {});
+    navigator.clipboard?.writeText(copyText(card, curTab(video(card)), copy.dataset.copytab)).catch(() => {});
     copy.textContent = "Copied"; setTimeout(() => { copy.textContent = label; }, 1200);
     return;
   }
   if (e.target.closest("[data-copycap]")) {
-    navigator.clipboard?.writeText(copyText(card, capTab.get(name) || "all")).catch(() => {});
+    navigator.clipboard?.writeText(copyText(card, curTab(video(card)))).catch(() => {});
     e.target.textContent = "Copied"; setTimeout(() => { e.target.textContent = "Copy caption"; }, 1200);
     return;
   }
@@ -854,7 +856,7 @@ $("posts").addEventListener("change", (e) => {
   if (e.target.matches("[data-slot]")) updatePost(name, { slot: e.target.value });
   else if (e.target.dataset.posted) updatePost(name, { platform: e.target.dataset.posted, posted: e.target.checked });
   else if (e.target.matches("[data-caption]")) {
-    const tab = capTab.get(name) || "all";
+    const tab = curTab(video(e.target.closest(".post")));
     updatePost(name, tab === "all" ? { caption: e.target.value } : { captions: { [tab]: e.target.value } });
   }
 });
