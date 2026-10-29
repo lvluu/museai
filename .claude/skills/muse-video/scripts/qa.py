@@ -111,7 +111,7 @@ else:
 if not travel:
     pace = subprocess.run([sys.executable, str(Path(__file__).with_name("pace.py")), cues_path],
                           capture_output=True, text=True)
-    bad = [ln for ln in pace.stdout.splitlines() if "TOO" in ln or "LONG" in ln or "UNEVEN" in ln]
+    bad = [ln for ln in pace.stdout.splitlines() if "TOO" in ln or "LONG" in ln or "SHORT" in ln or "UNEVEN" in ln]
     print(f"pace    {'ok  ' if pace.returncode == 0 else 'FAIL'} {pace.stdout.splitlines()[-1]}")
     for line in bad:
         print("       ", line.strip())
