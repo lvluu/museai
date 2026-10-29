@@ -1,6 +1,6 @@
 ---
 name: thumbnail
-description: Make the thumbnails for a finished museai video - one 9:16 cover (YouTube Shorts, TikTok, Facebook / Instagram Reels) and one 16:9 thumbnail (YouTube video, Facebook feed) from the video's best frame, with a big readable hook title placed clear of faces and the platform UI - and hand them to deliver.sh, which puts them next to the video on the Desktop and the dashboard. Use after every video (muse-video, EVERYDAY CHINESE, scenic-drop-reel, zoominview, product-ad, teaching-video) before the final delivery, and for "thumbnail", "cover", "ảnh bìa", "ảnh thumbnail", "make a cover for this video".
+description: Make the thumbnails for a finished museai video - one 9:16 cover (YouTube Shorts, TikTok, Facebook / Instagram Reels) and one 16:9 thumbnail (YouTube video, Facebook feed) from the video's best frame, in a style per kind of video (chinese: faces + red-box title; travel: scenery + big place name), with a big readable hook title placed clear of faces and the platform UI - and hand them to deliver.sh, which puts them next to the video on the Desktop and the dashboard. Use after every video (muse-video, EVERYDAY CHINESE, scenic-drop-reel, zoominview, product-ad, teaching-video) before the final delivery, and for "thumbnail", "cover", "ảnh bìa", "ảnh thumbnail", "make a cover for this video".
 ---
 
 # thumbnail
@@ -37,34 +37,69 @@ symmetric, still clear of the button column); on 16:9 it is centred in the text 
 - One focal point, bright saturated colour, no clutter; the same layout every episode so a series is recognisable.
 - Never misleading: the picture is a real frame from the video.
 
+## Styles
+One script, one style per kind of video. Each style is a file in `scripts/styles/`; the shared toolkit
+(frame grab, face and scenery scoring, grade, safe box, red-box title block, badge, flag emoji, picks
+sheet, 2 MB JPEG writer) is `scripts/core.py`.
+
+| Style | For | Look |
+|---|---|---|
+| `chinese` | EVERYDAY CHINESE, teaching-video, product-ad, any video with people talking | best face frame, yellow hanzi hook, title white on a red box, sub line, episode badge |
+| `travel` | scenic-drop-reel, muse-video travel mode; `--split` for zoominview | most vivid, sharp, still frame of the raw shots full bleed, dark top band, yellow hook, big Futura place name, sub with flag |
+
 ## Make them
 ```
 uv run --no-project --python 3.12 --with mediapipe==0.10.14 --with opencv-python-headless==4.10.0.84 \
-    --with pillow==11.0.0 python scripts/thumb.py VIDEO OUT_DIR --title "..." [options]
+    --with pillow==11.0.0 --with fonttools python scripts/thumb.py STYLE OUT_DIR VIDEO [VIDEO ...] [options]
 ```
+Writes `<name>_9x16.jpg`, `<name>_16x9.jpg` and, when the style picked the frame itself, `<name>_picks.jpg`
+(the 6 best frames with their times and scores). `--name` sets the prefix (default: the first video's name).
+Prints `THUMB <file> <KB>`. Look at both images (and `_picks.jpg`) before delivering: face not covered,
+text readable, frame not mid-blink or mid-transition. Re-run with `--at` from the picks sheet if needed.
+`scripts/thumb.py STYLE -h` lists a style's options.
+
+**chinese** (one video):
 - `--title` (required): 2-5 words in the viewer's language, uppercase, white on a red box.
 - `--zh`: the big hook phrase in the taught language (yellow, above the title), e.g. the ending question.
 - `--sub`: one small line under the title (a question or promise).
 - `--badge`: series tag, centred at the top, e.g. `TẬP 33`.
 - `--at T`: use this frame; without it, frames sampled at 4 fps are scored (all faces, eyes open, not
-  mid-word, smiling, toward the lens, sharp) and `<name>_picks.jpg` shows the 6 best with times.
+  mid-word, smiling, toward the lens, sharp).
 - `--skip 17.2-20.2,...`: never pick these spans (vocab cards, cuts, text cards).
 - `--cut 0.6`: the video has burned-in captions from 60 % of the height down; that part is replaced by a
   blurred mirror of the scene. Better: run on the cut **before** captions are burned in, then no `--cut`.
-- `--split [--view T]`: reaction on top, the view below (zoominview, any reel with a person reacting to a
-  place); the view is the sharpest, most vivid frame without faces unless `--view` names one.
-- `--name`: file prefix.
-Prints `THUMB <file> <KB>`. Look at both images (and `_picks.jpg`) before delivering: face not
-covered, text readable, frame not mid-blink. Re-run with `--at` from the picks sheet if needed.
+
+**travel** (the raw shots in plan order, not the reel: its intro text, dips and transitions would be picked):
+- `--title` (required): the place name; uppercase Futura, two balanced lines when it is long.
+- `--hook`: 2-5 words above it in yellow, the caption's promise ("7 waterfalls. 1 fjord.").
+- `--sub`: line under it, may end in a flag emoji ("Norway 🇳🇴").
+- `--at shot.mp4@2.5` (or seconds in the first video): use this frame. Without it the most vivid, sharp,
+  still frame of all shots wins, 0.5 s clear of each shot's ends; the first shot (the hook) gets a bonus.
+- A 9:16 shot fills the 9:16 cover and sits sharp on the right of a blurred copy on 16:9; a 16:9 shot the
+  other way round.
+- `--split [--view T]` (one video with a person): reaction on top, the view below, the title on the seam
+  (white on red, as `chinese`); the view is the best frame without faces unless `--view` names one.
 
 Per kind of video:
-- **EVERYDAY CHINESE**: `--zh "<ending question or key phrase>" --title "<topic in Vietnamese, uppercase>"
+- **EVERYDAY CHINESE**: `chinese --zh "<ending question or key phrase>" --title "<topic in Vietnamese, uppercase>"
   --sub "Nói sao bằng tiếng Trung?" --badge "TẬP NN"`, skip the vocab-card span; frame of both people
   smiling at each other or at the lens.
-- **zoominview**: `--split --title "<PLACE>" --sub "<wow line in the caption language>"`.
-- **scenic-drop-reel / travel**: no faces → the most vivid sharp frame; `--title "<PLACE>"`, `--sub` the hook.
-- **product-ad**: `--at` the hero product shot, `--title` the offer (3-4 words).
-- **teaching-video**: run on each format's video; `--zh` the pattern, `--title` the lesson in Vietnamese.
+- **teaching-video**: `chinese` on each format's video; `--zh` the pattern, `--title` the lesson in Vietnamese.
+- **product-ad**: `chinese --at` the hero product shot, `--title` the offer (3-4 words).
+- **scenic-drop-reel / muse-video travel**: `travel OUT s1.mp4 s2.mp4 ... --title "<PLACE>" --hook "<caption hook>"
+  --sub "<Country> <flag>"`.
+- **zoominview**: `travel OUT reel.mp4 --split --title "<PLACE>" --sub "<wow line in the caption language>"`.
+
+## Add a style
+1. Copy the closest `scripts/styles/*.py` to `scripts/styles/<name>.py`; its docstring's first line is the
+   `-h` help.
+2. `add_args(p)`: its options (`out_dir`, `videos` and `--name` are already there).
+3. `make(args)` returns `(9x16 image, 16x9 image, picks sheet or None, info line)`: 1080x1920 and
+   1920x1080 RGB images; `thumb.py` saves them under the usual names, so `deliver.sh` and the dashboard
+   need nothing new.
+4. Build on `core.py` (frame pick, grade, `cover`, `picks_sheet`, `emoji`); keep text inside `SAFE`
+   on 9:16 and out of the bottom-right corner on 16:9. A helper two styles need goes into `core.py`.
+5. Add it to the table above and to "Per kind of video", and point the video skill at it.
 
 ## Deliver
 Write them into the work folder (e.g. `WORK/thumbs`), then pass `THUMB_DIR=WORK/thumbs` to

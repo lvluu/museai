@@ -62,7 +62,7 @@ Other travel videos (muse-video travel mode, scenic-drop-reel shots with a perso
    ```
    Drops B's duplicated first frame at the join, cuts the head of A so the music drop lands exactly on `--reveal` (≥ 3.5 s reaction kept), eased digital push-in from the reveal (or `--zoom-at`) to the end, loops the track body when the reel is longer than the track (`--zoom 1.15`; 1.25 for a far view, 1 when muse's own push-in is enough), light grade, wind ambience under the music, denoise (afftdn, as stitch.sh; the looped reference track alone sat at -65 dB hiss), -14 LUFS.
 6. **Verify**: shared step 6 (`../muse-video/scripts/qa.py zoom-<slug>.mp4 --travel 0 sheet.jpg`) and watch the join: no jump, face/clothes identical up to the transition, music swell on the reveal.
-7. **Deliver**: shared step 7. Thumbnails with `--split` (the gasp on top, the view below); captions open with the plan's `caption_hook` (or a better one for this place). The final is `zoom-<slug>.mp4`: `Kelingking Beach - zoominview.mp4` was put on the Chinese channel by the dashboard.
+7. **Deliver**: shared step 7. Thumbnails: `thumbnail` style `travel --split` on the reel (the gasp on top, the view below); captions open with the plan's `caption_hook` (or a better one for this place). The final is `zoom-<slug>.mp4`: `Kelingking Beach - zoominview.mp4` was put on the Chinese channel by the dashboard.
 
 ## Choosing hook + transition + music (what plan.py encodes)
 - The table under "Not one fixed recipe" is the map; each item's `setting` / `light` / `country` in `styles.json` is the source of truth.
