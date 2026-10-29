@@ -40,6 +40,31 @@
       "b": "Continue the same handheld smartphone video from exactly the first frame. The camera stays aimed down the leading line at {focus}, in the centre of the frame. From the very first frame {zoom} The view: {view}. The light stays exactly as in the first frame. Nobody in frame."
     },
     {
+      "id": "glide-in",
+      "name": "Pan the way the eyes look onto a river/valley line, one steady forward glide along it that eases to a stop on a wide view, then a slow push-in toward the focus with the water flowing (reference reel 2, long form ~16 s)",
+      "setting": [
+        "mountain",
+        "lake",
+        "nature",
+        "snow",
+        "canyon"
+      ],
+      "a_seconds": 6,
+      "b_seconds": 10,
+      "reveal_at": 3.0,
+      "compose": {
+        "zoom": 1.0,
+        "cut": {
+          "b": 6.2,
+          "c": 4.0
+        }
+      },
+      "a": "Vertical smartphone selfie video, front camera held at arm's length. {person} stands in an open green meadow at {place}, looking past the camera and off to the LEFT side of the frame at something enormous there. Behind the person only a forest slope, a meadow and a bit of sky: the view is NOT behind them. {hook} The head stays up and the eyes stay on the view to the left. From second 3 the phone pans to the LEFT, the way the eyes look, in one fast fluid handheld sweep with light motion blur past a tree and the meadow, then tilts down slightly and lands on {line} at the person's feet, running from the bottom of the frame straight into the distance toward {focus}: {view}. The pan eases out and STOPS: for the last 0.7 seconds the phone is held completely still and level, {focus} small and far away above the end of the line.",
+      "b": "Continue the same video from exactly the first frame. The camera now moves FORWARD along {line}, low above the ground like a slow steady gimbal or drone glide, always aimed at {focus} in the centre of the frame. ONE CONSTANT, CALM SPEED for the whole glide, like walking pace seen from a few metres up: no speed-up, no slow-down mid-way, no rush. It travels in a straight line and only forward: it never turns away, never reverses, never orbits, never rolls or tilts the horizon, never climbs or dives suddenly. Fields, trees and banks pass by at the sides at a believable speed for that pace; {focus} grows slowly and stays rigid, the same shape and size relation to the mountains around it. At second 6 the glide eases out and STOPS on a wide, balanced view: {focus} in the upper centre, clearly closer than at the start but still far away with the land around it, {line} and the green land in the lower third. From second 7 to the end it is a LOCKED-OFF TRIPOD SHOT: the frame does not move at all, no sideways drift, no truck, no pan, no tilt, no zoom, no rise. Only the water in {line}, the grass and the clouds move. The view: {view}. The light stays exactly as in the first frame.",
+      "c_seconds": 5,
+      "c": "Continue the same video from exactly the first frame. The camera keeps going FORWARD along {line} in a very slow, steady push-in toward {focus} in the upper centre, at one constant gentle speed, slower than walking pace: no speed-up, no turn, no sideways drift, no tilt, no climb, no zoom back out. The water flows and sparkles at real speed, the grass sways a little, the clouds drift slowly. {focus} grows only slightly and stays rigid; the cliffs, trees and buildings keep their shapes. For the last second the camera is still while the water keeps flowing. The view: {view}. The light stays exactly as in the first frame."
+    },
+    {
       "id": "look-up",
       "name": "Looks UP at something towering, the phone tilts up the way the eyes look (waterfalls, peaks, temples, towers)",
       "setting": [
@@ -157,7 +182,7 @@
     },
     {
       "id": "alps-ref",
-      "name": "Reference reel 2 track (user-supplied, same mellow song, soft pulse, big hit when the zoom starts)",
+      "name": "Reference reel 2 track, whole 16.3 s song (user-supplied: soft pulse, dip 6.5-8.8 s, big hit at 9.0 s, swells 11, 13 and 15.5 s); fits glide-in",
       "file": "assets/alps-ref.m4a",
       "setting": [
         "mountain",
