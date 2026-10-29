@@ -273,13 +273,16 @@ def dub(video, timeline, out):
     m0, m1 = speech[0]["start"], speech[-1]["end"]
     s0, s1 = spans[0][0], spans[-1][1]
     k = min(1.25, max(0.8, (s1 - s0) / (m1 - m0)))
-    placed, prev, used = [], None, set()
+    placed, prev, used, mprev_end = [], None, set(), m0 - 0.3
     print(f"{'id':8s} {'lang':4s} {'master':>7s} {'placed':>7s} how")
     for it in items:
         master = it["start"]
         it = dict(it)
         exp = s0 + (it["start"] - m0) * k
-        mgap = it["start"] - (prev["end"] if prev else m0 - 0.3)
+        # gap in the master, not against the placed previous phrase: once a phrase moved to its lips,
+        # a placed-vs-master gap went negative and chained phrases snapped back over it (2026-10-29)
+        mgap = it["start"] - mprev_end
+        mprev_end = it["end"]
         floor = (prev["end"] + max(0.1, mgap * 0.7)) if prev else 0.0
         if prev and prev.get("repeat"):
             floor = prev["end"] + prev["repeat"] * 0.9

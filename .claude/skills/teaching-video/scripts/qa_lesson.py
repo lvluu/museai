@@ -219,10 +219,13 @@ def main():
         from faster_whisper import WhisperModel
         model = WhisperModel(os.environ.get("WMODEL", "large-v3"), device="cpu", compute_type="int8")
         pad = np.zeros(SR // 2, np.float32)
-        for it in items:
+        for i, it in enumerate(items):
             if it["kind"] != "speech" or it["lang"] != "vi" or syllables(it) < 3:
                 continue
-            clip = np.concatenate([pad, seg(audio, it["start"] - 0.15, it["end"] + 0.2), pad])
+            # stop before the next phrase: the onset of a Chinese word right after made Whisper invent a
+            # "subscribe to the channel" outro on a correctly spoken line (2026-10-29, b20s2)
+            nxt = items[i + 1]["start"] if i + 1 < len(items) else it["end"] + 0.2
+            clip = np.concatenate([pad, seg(audio, it["start"] - 0.15, min(it["end"] + 0.2, max(it["end"], nxt - 0.02))), pad])
             segs, _ = model.transcribe(clip, language="vi", vad_filter=False, condition_on_previous_text=False)
             heard = "".join(s.text for s in segs)
             want_w, got_w = norm_vi(it["text"]), norm_vi(heard)
