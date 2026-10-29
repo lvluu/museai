@@ -4,7 +4,7 @@
 Usage: python3 brief.py brief.json [--format zoominview]
 
 brief.json is the one input shape every format skill takes (see ../SKILL.md "Format skills"):
-  {"format": "scenic-drop-reel",           # optional: scenic-drop-reel | zoominview | travel | product-ad | teaching-video
+  {"format": "scenic-drop-reel",           # optional: scenic-drop-reel | zoominview | travel | scenery-director | product-ad | teaching-video
    "place": "Kelingking Beach, Nusa Penida", # place or subject (product name, lesson topic)
    "country": "Indonesia", "scope": "place",  # scope: country | region | city | place (scenic-drop-reel)
    "setting": "coast", "light": "sunset",     # coast island mountain canyon lake city oldtown nature desert snow
@@ -32,6 +32,7 @@ FORMATS = {
     "scenic-drop-reel": ("reel", ("9:16",), True),
     "zoominview": ("zoom", ("9:16",), True),
     "travel": ("travel", ("9:16", "16:9"), True),
+    "scenery-director": ("scenic", ("9:16", "16:9"), True),
     "product-ad": ("ad", ("9:16",), False),
     "teaching-video": ("lesson", ("9:16+16:9",), False),
 }
@@ -140,6 +141,34 @@ def route(b):
             + (music or "fits the scenery")
             + ")"
         )
+    elif fmt == "scenery-director":
+        if not b.get("view"):
+            sys.exit(
+                "scenery-director needs view: what is really there (landmarks, terrain, water)"
+            )
+        r["plan"] = cmd(
+            "python3",
+            SKILLS / "scenery-director/scripts/plan.py",
+            "--place",
+            subject,
+            "--country",
+            b.get("country"),
+            "--setting",
+            b.get("setting", "nature"),
+            "--view",
+            b["view"],
+            *(("--focus", b["focus"]) if b.get("focus") else ()),
+            *(("--light", b["light"]) if b.get("light") else ()),
+            *(("--seconds", seconds) if seconds else ()),
+            "--aspect",
+            aspect,
+            "--out",
+            out,
+        )
+        if music:
+            r["notes"].append(
+                "music: plan.py picks an instrumental style; --music <id> to force one"
+            )
     else:
         r["notes"].append(f"plan by hand: follow {r['skill']} Steps")
     return r

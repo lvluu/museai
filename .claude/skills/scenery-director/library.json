@@ -1,0 +1,554 @@
+{
+  "techniques": {
+    "static-panorama": {
+      "name": "Static panorama",
+      "photo": "best",
+      "fits": [
+        "*"
+      ],
+      "use": "the view is the star: grand vistas, waterfalls, light events; the safest move from a single photo",
+      "prompt": "THE CAMERA IS COMPLETELY LOCKED OFF for the whole shot: it does not pan, tilt, slide, drift, push in, pull out or zoom; every mountain, cliff and building stays at exactly the same pixel position and size; the framing of the last frame is identical to the first frame and nothing new comes into view at any edge; only nature moves."
+    },
+    "slow-push-in": {
+      "name": "Slow push-in",
+      "photo": "ok",
+      "fits": [
+        "*"
+      ],
+      "use": "draws the eye to one subject (a waterfall, a village, a lone tree); the payoff segment of most structures",
+      "prompt": "One slow, steady forward push-in toward {focus} at a constant gentle speed, perfectly level, no rotation, no tilt; over the whole shot {focus} grows to about 1.2 times its starting size and stays centred; the edges of the frame only crop in, nothing new comes into view."
+    },
+    "slow-lateral-tracking": {
+      "name": "Slow lateral tracking",
+      "photo": "no",
+      "fits": [
+        "coast",
+        "lake",
+        "nature",
+        "oldtown",
+        "city",
+        "island"
+      ],
+      "use": "reveals depth along a shoreline, a row of houses or a lakeside; foreground passes, the subject holds",
+      "prompt": "One slow, smooth sideways glide to the {side} at walking pace, parallel to {focus}, constant focal length, never moves forward or backward, never zooms; {focus} stays the same size in every frame, the horizon stays level."
+    },
+    "gentle-aerial-glide": {
+      "name": "Gentle aerial glide",
+      "photo": "limited",
+      "fits": [
+        "coast",
+        "lake",
+        "mountain",
+        "island",
+        "nature",
+        "canyon",
+        "desert",
+        "snow"
+      ],
+      "use": "flying calmly over water or valley toward the landscape; immersion",
+      "prompt": "A slow, level aerial glide forward at high altitude over {over}, toward {focus}, at one calm constant speed, no banking, no rolling, no diving; the horizon stays level in the upper third."
+    },
+    "gradual-aerial-reveal": {
+      "name": "Gradual aerial reveal",
+      "photo": "no",
+      "fits": [
+        "mountain",
+        "coast",
+        "canyon",
+        "lake",
+        "island",
+        "snow"
+      ],
+      "use": "wonder and discovery: hides the view behind a ridge, cliff edge or cloud, then lets it open",
+      "prompt": "The aerial view starts low behind {cover}, then rises slowly and steadily over it at one calm speed, so that {focus} gradually opens up beyond it; no sudden move, the horizon stays level, the rise eases out and holds for the last two seconds."
+    },
+    "low-angle-environmental": {
+      "name": "Low-angle environmental",
+      "photo": "limited",
+      "fits": [
+        "mountain",
+        "nature",
+        "coast",
+        "snow",
+        "canyon"
+      ],
+      "use": "foreground texture (wildflowers, rocks, grass, ice) close at the bottom, the grand view towering behind; scale and intimacy",
+      "prompt": "Low angle at ground level: {foreground} sharp and close in the lower third, {focus} towering behind; the view almost holds still, with only a very slow forward creep through the foreground at a constant speed; the horizon stays level."
+    },
+    "slow-crane-rise": {
+      "name": "Slow crane rise",
+      "photo": "no",
+      "fits": [
+        "mountain",
+        "lake",
+        "oldtown",
+        "nature",
+        "coast",
+        "city"
+      ],
+      "use": "lifts from a close foreground up to the wide view; calm grand-scale opening or ending",
+      "prompt": "One slow vertical rise straight up from just above {foreground} at a constant gentle speed, the view tilting gently to stay on {focus}; the rise eases out and holds still for the last two seconds; no sideways drift."
+    },
+    "foreground-parallax": {
+      "name": "Foreground parallax",
+      "photo": "no",
+      "fits": [
+        "mountain",
+        "nature",
+        "lake",
+        "oldtown",
+        "coast",
+        "snow"
+      ],
+      "use": "branches, rocks or flowers slide past in front while the distant view barely moves; strong depth",
+      "prompt": "A slow sideways glide to the {side} past {foreground} close in front, which slides across the frame, while {focus} far behind stays almost fixed; one constant calm speed, constant focal length, level horizon."
+    },
+    "long-lens-compressed": {
+      "name": "Long-lens compressed panorama",
+      "photo": "best",
+      "fits": [
+        "mountain",
+        "snow",
+        "desert",
+        "canyon",
+        "city",
+        "oldtown"
+      ],
+      "use": "stacks ridges, dunes or rooftops into layers; telephoto look, distant haze between layers",
+      "prompt": "Telephoto view that compresses {focus} into stacked layers with soft atmospheric haze between them; the view is held completely still, framing identical from the first to the last frame, only nature moves."
+    },
+    "controlled-panoramic-sweep": {
+      "name": "Controlled panoramic sweep",
+      "photo": "limited",
+      "fits": [
+        "coast",
+        "mountain",
+        "lake",
+        "canyon",
+        "desert",
+        "island",
+        "city"
+      ],
+      "use": "a wide view too big for one frame; one slow horizontal turn across it",
+      "prompt": "One slow, steady horizontal pan to the {side} across {focus}, about a quarter of the frame width over the whole shot, at a constant speed, perfectly level, no tilt, no zoom; the pan eases out and holds still for the last second."
+    },
+    "slow-overhead": {
+      "name": "Slow overhead observation",
+      "photo": "limited",
+      "fits": [
+        "coast",
+        "island",
+        "lake",
+        "nature",
+        "desert",
+        "snow"
+      ],
+      "use": "top-down patterns: surf on sand, turquoise water over reef, braided rivers, dunes, ice",
+      "prompt": "Straight top-down aerial view looking directly down at {focus}; the view drifts very slowly forward at a constant speed, no rotation, no zoom; patterns stay sharp and geometric."
+    },
+    "multi-shot-sequence": {
+      "name": "Multi-shot cinematic sequence",
+      "photo": "ok",
+      "fits": [
+        "*"
+      ],
+      "use": "two or three calm shots cut on the music: hook view, the move, a closing view that loops",
+      "prompt": "Each shot uses its own move below, with the same light, weather and colour grade in every shot."
+    }
+  },
+  "structures": {
+    "A": {
+      "name": "Wonder and Discovery",
+      "title": "Discovering {place}",
+      "techniques": [
+        "gradual-aerial-reveal",
+        "slow-crane-rise",
+        "gentle-aerial-glide",
+        "slow-push-in"
+      ],
+      "arc": [
+        "{focus} at once in full light, the most striking angle of {place}, instantly beautiful",
+        "the view of {place} opens wider than expected around {focus}",
+        "{focus} in full, held still so the eye settles"
+      ]
+    },
+    "B": {
+      "name": "Peaceful Immersion",
+      "title": "Quiet Hours at {place}",
+      "techniques": [
+        "static-panorama",
+        "slow-lateral-tracking",
+        "long-lens-compressed",
+        "foreground-parallax"
+      ],
+      "arc": [
+        "a calm, beautiful view of {focus} with gentle natural motion",
+        "a slow, almost meditative drift through {place}",
+        "{focus} settles in the same calm view; the last frame matches the first for a loop"
+      ]
+    },
+    "C": {
+      "name": "Grand Scale",
+      "title": "The Scale of {place}",
+      "techniques": [
+        "gentle-aerial-glide",
+        "controlled-panoramic-sweep",
+        "slow-crane-rise",
+        "long-lens-compressed"
+      ],
+      "arc": [
+        "a tiny boat, house or road dwarfed by {focus}, so the scale is felt at once",
+        "the landscape of {place} reaching far beyond {focus}",
+        "the whole of {place} held wide, {focus} small within it"
+      ]
+    },
+    "D": {
+      "name": "Intimate Natural Detail",
+      "title": "Up Close: {place}",
+      "techniques": [
+        "low-angle-environmental",
+        "foreground-parallax",
+        "slow-push-in",
+        "static-panorama"
+      ],
+      "arc": [
+        "a vivid close natural detail of {place} (flowers, moss, wet rock, ice, ripples) with {focus} soft behind",
+        "the detail and {focus} together, both sharp",
+        "{focus} in the wide view, held"
+      ]
+    },
+    "E": {
+      "name": "Atmospheric Transformation",
+      "title": "{place}, Transformed",
+      "techniques": [
+        "static-panorama",
+        "long-lens-compressed",
+        "slow-push-in"
+      ],
+      "arc": [
+        "{place} before the change: mist, first light or clouds on the peaks around {focus}",
+        "the change: light spreads, mist lifts or clouds roll over {focus}",
+        "{focus} transformed, held still"
+      ],
+      "timelapse": true
+    },
+    "F": {
+      "name": "Cinematic Multi-shot",
+      "title": "{place} in Three Moments",
+      "techniques": [
+        "multi-shot-sequence"
+      ],
+      "arc": [
+        "{focus} in full view at once, from its most striking angle",
+        "the signature move across {place} toward {focus}",
+        "a calm, wide view of {place} that settles and flows back into the opening"
+      ],
+      "shots": [
+        3
+      ]
+    }
+  },
+  "edits": {
+    "1": {
+      "name": "A: one continuous shot",
+      "segments": [
+        [
+          0,
+          15
+        ]
+      ]
+    },
+    "2": {
+      "name": "B: two shots",
+      "segments": [
+        [
+          0,
+          7
+        ],
+        [
+          7,
+          15
+        ]
+      ]
+    },
+    "3": {
+      "name": "C: three shots",
+      "segments": [
+        [
+          0,
+          4
+        ],
+        [
+          4,
+          10
+        ],
+        [
+          10,
+          15
+        ]
+      ]
+    }
+  },
+  "hooks": {
+    "landmark-full": {
+      "name": "Landmark in full light",
+      "line": "The first frame is already the most famous, most beautiful view of {place}, in full light, sharp and composed; no empty sky, no slow fade in."
+    },
+    "light-event": {
+      "name": "Light breaking through",
+      "line": "The first frame shows sunlight already breaking across {focus}, rays or a bright edge of light on the terrain; no dark empty opening."
+    },
+    "motion-event": {
+      "name": "Nature in motion",
+      "line": "The first frame is already full of natural motion on {focus}: falling water, breaking surf or drifting mist, so the eye catches movement at once."
+    },
+    "scale-cue": {
+      "name": "Tiny against huge",
+      "line": "The first frame shows a tiny human-made detail (a boat, a house, a road) against the enormous landscape, so the scale is felt at once."
+    },
+    "reflection": {
+      "name": "Mirror reflection",
+      "line": "The first frame shows {focus} mirrored in still water, a perfect symmetrical reflection."
+    },
+    "colour-pop": {
+      "name": "Colour contrast",
+      "line": "The first frame is built on one strong natural colour contrast (turquoise water against dark rock, golden grass against snow) in clear light."
+    }
+  },
+  "lighting": {
+    "golden-sunrise": {
+      "name": "Golden-hour sunrise",
+      "line": "early morning golden hour, low warm sun from the {sun}, long soft shadows, cool shadows and warm highlights",
+      "fits": [
+        "*"
+      ]
+    },
+    "golden-sunset": {
+      "name": "Golden-hour sunset",
+      "line": "late afternoon golden hour, low warm sun from the {sun}, warm amber light on the slopes, long shadows",
+      "fits": [
+        "*"
+      ]
+    },
+    "blue-hour": {
+      "name": "Blue hour",
+      "line": "blue hour just after sunset, soft cool even light, deep blue sky with a faint warm glow on the horizon, first lights in windows",
+      "fits": [
+        "city",
+        "oldtown",
+        "lake",
+        "coast",
+        "snow"
+      ]
+    },
+    "misty-morning": {
+      "name": "Misty morning",
+      "line": "early morning, soft diffused light, low mist lying in the valley and on the water, calm air",
+      "fits": [
+        "mountain",
+        "lake",
+        "nature",
+        "oldtown",
+        "snow"
+      ]
+    },
+    "soft-overcast": {
+      "name": "Soft overcast",
+      "line": "bright soft overcast, even light without hard shadows, rich natural colours, calm air",
+      "fits": [
+        "mountain",
+        "nature",
+        "coast",
+        "lake",
+        "snow",
+        "oldtown"
+      ]
+    },
+    "after-rain": {
+      "name": "After-rain clarity",
+      "line": "just after rain, crystal-clear air, wet glistening rock, fresh saturated greens, broken clouds with sun patches",
+      "fits": [
+        "mountain",
+        "nature",
+        "coast",
+        "lake",
+        "oldtown"
+      ]
+    },
+    "dramatic-storm": {
+      "name": "Dramatic storm light",
+      "line": "dark storm clouds over the peaks with a shaft of sunlight lighting {focus}, moody contrast, no rain on the lens",
+      "fits": [
+        "mountain",
+        "coast",
+        "canyon",
+        "desert",
+        "snow"
+      ]
+    },
+    "clear-midday": {
+      "name": "Clear bright day",
+      "line": "clear sunny day, high sun, deep blue sky, crisp natural colours, true-to-life water colour",
+      "fits": [
+        "coast",
+        "island",
+        "lake",
+        "desert",
+        "mountain",
+        "nature",
+        "snow"
+      ]
+    },
+    "aurora-night": {
+      "name": "Aurora night",
+      "line": "clear Arctic night, green aurora curtains rippling slowly overhead, stars, the landscape lit faintly by snow and aurora",
+      "fits": [
+        "snow"
+      ],
+      "north": true
+    },
+    "from-photo": {
+      "name": "Light of the reference photo",
+      "line": "exactly the light, sun direction, sky and weather of the reference photograph",
+      "fits": [],
+      "photo": true
+    }
+  },
+  "music": {
+    "felt-piano": {
+      "name": "Ambient felt piano",
+      "style": "ambient cinematic instrumental, soft felt piano, warm string pads, gentle swell, peaceful, no drums, no vocals",
+      "bpm": 70,
+      "fits": [
+        "*"
+      ]
+    },
+    "orchestral-epic": {
+      "name": "Epic orchestral",
+      "style": "cinematic orchestral instrumental, low strings, french horns, timpani swell, majestic and wide, no vocals",
+      "bpm": 80,
+      "fits": [
+        "mountain",
+        "canyon",
+        "snow",
+        "desert",
+        "coast"
+      ]
+    },
+    "nordic-folk": {
+      "name": "Nordic folk",
+      "style": "nordic folk instrumental, hardanger fiddle, nyckelharpa, frame drum, airy, majestic and calm, no vocals",
+      "bpm": 76,
+      "fits": [
+        "mountain",
+        "snow",
+        "lake",
+        "coast"
+      ],
+      "regions": [
+        "norway",
+        "sweden",
+        "finland",
+        "iceland",
+        "denmark",
+        "greenland",
+        "svalbard",
+        "faroe"
+      ]
+    },
+    "ethereal-pads": {
+      "name": "Ethereal ambient",
+      "style": "ethereal ambient instrumental, soft synth pads, slow shimmering textures, distant bells, dreamy, no drums, no vocals",
+      "bpm": 64,
+      "fits": [
+        "snow",
+        "lake",
+        "mountain",
+        "nature"
+      ]
+    },
+    "acoustic-warm": {
+      "name": "Warm acoustic",
+      "style": "warm acoustic instrumental, fingerpicked guitar, light cello, soft hand percussion, gentle and hopeful, no vocals",
+      "bpm": 88,
+      "fits": [
+        "oldtown",
+        "nature",
+        "lake",
+        "coast",
+        "island"
+      ]
+    },
+    "asian-traditional": {
+      "name": "East Asian traditional",
+      "style": "cinematic east asian instrumental, guzheng, bamboo flute, soft erhu, light strings, serene, no vocals",
+      "bpm": 72,
+      "fits": [
+        "*"
+      ],
+      "regions": [
+        "china",
+        "japan",
+        "vietnam",
+        "korea",
+        "taiwan"
+      ]
+    },
+    "desert-world": {
+      "name": "Desert world",
+      "style": "cinematic desert instrumental, oud, duduk, low frame drum, warm drones, spacious, no vocals",
+      "bpm": 74,
+      "fits": [
+        "desert",
+        "canyon"
+      ],
+      "regions": [
+        "morocco",
+        "jordan",
+        "egypt",
+        "oman",
+        "uae",
+        "turkey"
+      ]
+    },
+    "tropical-calm": {
+      "name": "Tropical calm",
+      "style": "calm tropical instrumental, marimba, soft nylon guitar, light shaker, warm pads, relaxed, no vocals",
+      "bpm": 90,
+      "fits": [
+        "island",
+        "coast"
+      ]
+    }
+  },
+  "ambience": {
+    "waterfall": "the deep steady roar of falling water, softer far away",
+    "sea": "waves breaking and washing up, sea breeze, distant gulls",
+    "lake": "gentle lapping water, soft breeze, a distant bird",
+    "river": "a rushing river over stones, breeze in the trees",
+    "forest": "wind in the trees, birdsong",
+    "mountain": "high mountain wind, a distant bird of prey",
+    "snow": "cold soft wind, faint creak of ice",
+    "desert": "dry wind over sand, deep silence",
+    "town": "faint distant town sounds, church bells far away, birds"
+  },
+  "water": {
+    "falls": "THE WATERFALLS MUST VISIBLY FALL, FAST: the white water races from the lip to the base in about three seconds and its white pattern is completely different every half second; the cliffs beside it stay perfectly still.",
+    "sea": "Waves break on the shore and rocks at irregular moments and spots, foam runs up, slides back and dissolves; the open surface rises and falls with small ripples and twinkling glints and does not flow, stream or slide in any direction as one sheet; rocks stay fixed.",
+    "lake": "Small wind ripples travel across the water in one direction toward the shore, reflections break into moving streaks and re-form, through the whole shot.",
+    "river": "The river flows downstream at real speed, white water over the stones, ripples travelling with the current.",
+    "none": "Only grass, leaves and thin mist move gently in the wind at real speed; rock and buildings stay rigid."
+  },
+  "timelapse": {
+    "allowed": [
+      "clouds rolling over the peaks",
+      "mist lifting from the valley",
+      "sunrise light spreading across the slopes",
+      "sunset light fading on the peaks",
+      "aurora curtains moving",
+      "cloud shadows sweeping over the land"
+    ],
+    "line": "SELECTIVE TIME-LAPSE ON THE SKY ONLY: {event} at an accelerated, smooth, even pace; everything on the ground stays real-time: water, waves, animals, people and boats move at their true real-world speed, never sped up."
+  },
+  "avoid": "No oversaturated colours, no HDR halos, no fantasy landscapes, no invented or moved landmarks, no duplicated or mirrored mountains, no warped buildings, no unnatural waves, no frozen or looping water, no flickering light, no camera shake, no text, no watermarks, no people appearing or disappearing. The camera is never seen: no tripod, camera or equipment appears anywhere in the picture."
+}
