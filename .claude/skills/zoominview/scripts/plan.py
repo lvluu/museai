@@ -1,11 +1,11 @@
-"""Plan a zoominview reel: pick a reveal transition and a music style that fit the place, fill the prompts.
+"""Plan a zoominview reel: pick a hook (reaction), a reveal transition, a music style and a caption hook that fit the place, fill the prompts.
 
 Usage:
   python3 scripts/plan.py --place "Ponta de São Lourenço, Madeira" --setting coast --light sunset \
       --view "jagged red volcanic cliffs dropping into a deep blue Atlantic, white surf, green headlands ..." > plan.json
   python3 scripts/plan.py --list
-Options: --focus (what the end zooms into), --country (local music), --reveal ID / --music ID (force), --person "..." (default: a random traveller),
---seed N. Picks skip the last 3 reveals and music styles used (~/.config/zoominview/history.json).
+Options: --focus (what the end zooms into), --country (local music), --hook ID / --reveal ID / --music ID (force), --person "..." (default: a random traveller),
+--seed N. Picks skip the last 3 hooks, reveals and music styles used (~/.config/zoominview/history.json).
 """
 import argparse
 import json
@@ -51,6 +51,7 @@ def main():
                     help="the beautiful angle the end zooms into, e.g. \"the dark basalt sea stacks in the white surf\"")
     ap.add_argument("--reveal")
     ap.add_argument("--music")
+    ap.add_argument("--hook", help="the reaction (styles.json hooks), e.g. gasp, still-awe")
     ap.add_argument("--person")
     ap.add_argument("--seed", type=int)
     ap.add_argument("--list", action="store_true")
@@ -59,6 +60,8 @@ def main():
     if a.list:
         for r in styles["reveals"]:
             print(f"reveal {r['id']:14} {','.join(r['setting']):55} {r['name']}")
+        for h in styles["hooks"]:
+            print(f"hook   {h['id']:18} {','.join(h['setting']):51} {h['name']}")
         for m in styles["music"]:
             print(f"music  {m['id']:14} {','.join(m['setting']):55} {m['name']}")
         return
@@ -67,19 +70,18 @@ def main():
     if a.light not in styles["lights"]:
         ap.error(f"--light must be one of {', '.join(styles['lights'])}")
     rng = random.Random(a.seed)
-    hist = json.loads(HISTORY.read_text()) if HISTORY.exists() else {"reveals": [], "music": []}
+    hist = {"reveals": [], "music": [], "hooks": [], **(json.loads(HISTORY.read_text()) if HISTORY.exists() else {})}
 
     def choose(kind, pool, forced):
-        if forced:
-            return next((x for x in pool if x["id"] == forced), None) or sys.exit(f"no {kind} {forced!r}")
+        if forced:  # a named one is used even when it doesn't fit the setting, light or country
+            return next((x for x in styles[kind] if x["id"] == forced), None) or sys.exit(f"no {kind} {forced!r}")
         fresh = [x for x in pool if x["id"] not in hist[kind][-3:]] or pool
         return rng.choice(fresh)
 
     reveals = [r for r in styles["reveals"] if fits(r, "setting", a.setting)]
-    # the user wants the reference move every time (Kelingking, 2026-10-29: rotation picked whip-pan, whose
-    # B starts mid-blur, which muse cannot continue); other reveals only when named or swing-tilt doesn't fit
-    default = "swing-tilt" if any(r["id"] == "swing-tilt" for r in reveals) else None
-    reveal = choose("reveals", reveals, a.reveal or default)
+    reveal = choose("reveals", reveals, a.reveal)
+    hooks = [h for h in styles["hooks"] if fits(h, "setting", a.setting) and fits(h, "light", a.light)]
+    hook = choose("hooks", hooks, a.hook)
     country = a.country.lower()
     local = [m for m in styles["music"] if country and country in m.get("country", [])
              and fits(m, "setting", a.setting)]
@@ -89,13 +91,17 @@ def main():
 
     light = styles["lights"][a.light]
     fill = {"{place}": a.place, "{view}": a.view, "{person}": a.person or rng.choice(PEOPLE),
-            "{light}": light, "{focus}": a.focus, "{reveal_at}": f"{reveal['reveal_at']:g}"}
+            "{light}": light, "{focus}": a.focus, "{hook}": hook["text"], "{reveal_at}": f"{reveal['reveal_at']:g}"}
     rules = (SKILL / "prompt/reveal.txt").read_text().replace("{LIGHT}", light[0].upper() + light[1:])
 
     def prompt(text):
+        text = text.replace("{zoom}", styles["zoom"])
         for k, v in fill.items():
             text = text.replace(k, v)
         return f"{text}\n\n{rules}"
+
+    name = a.place.split(",")[0].strip()
+    caption = rng.choice(styles["captions"].get(a.setting, []) + styles["captions"]["any"]).replace("{name}", name)
 
     reveal_time = reveal["a_seconds"] + reveal["reveal_at"]
     length = reveal["a_seconds"] + reveal["b_seconds"] + reveal.get("c_seconds", 0)
@@ -110,12 +116,14 @@ def main():
             "reveal": {"id": reveal["id"], "name": reveal["name"], "a_seconds": reveal["a_seconds"],
                        "b_seconds": reveal["b_seconds"], "c_seconds": reveal.get("c_seconds", 0),
                        "reveal_at": reveal["reveal_at"]},
-            "reveal_time": reveal_time, "length": length, "music": m,
+            "hook": {"id": hook["id"], "name": hook["name"]},
+            "reveal_time": reveal_time, "length": length, "music": m, "caption_hook": caption,
             "prompt_a": prompt(reveal["a"]), "prompt_b": prompt(NOBODY + reveal["b"])}
     if "c" in reveal:
         plan["prompt_c"] = prompt(NOBODY + reveal["c"])
     hist["reveals"] = (hist["reveals"] + [reveal["id"]])[-10:]
     hist["music"] = (hist["music"] + [music["id"]])[-10:]
+    hist["hooks"] = (hist["hooks"] + [hook["id"]])[-10:]
     HISTORY.parent.mkdir(parents=True, exist_ok=True)
     HISTORY.write_text(json.dumps(hist))
     print(json.dumps(plan, indent=1, ensure_ascii=False))
