@@ -10,6 +10,13 @@ pinyin with tone sandhi written as spoken (yí ge, yìqǐ, bú kèqi); Vietnames
 No payment, food handling or object exchange in the scene.
 Vocabulary recap (when the brief has one): each word is said at normal speed and followed by a
 one-second review pause with its card on screen (SKILL.md, Timing step 5); never three words in a row.
+Vocabulary cards while they talk (user rule, 2026-10-29, after EP27; every episode): the user liked
+seeing each new word on screen at the moment it is said in the dialogue. Every episode picks 3 key words
+(the brief's vocabulary list, or 3 words from the script when it has none) and shows each as a card
+(hanzi / tone-marked pinyin / Vietnamese) at its first spoken use in the two-shot, gold-highlighted for
+0.6 s on the word, then kept up until shortly before the next card or about 5 s; again for each word
+in the recap; cleared before the ending question. One card at a time, upper-left above the heads,
+never over a face. Made in post with `scripts/cards.py` (SKILL.md, Timing step 5), after the captions.
 
 Delivery title (user rule, 2026-10-27): the viewers are Vietnamese, so the final file and its posting
 caption use a Vietnamese title, `Tiếng Trung mỗi ngày NN - <topic in Vietnamese>` (EP16: Đi cắt tóc). The caption's first line is
