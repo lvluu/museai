@@ -36,6 +36,7 @@ The brief's own header line stays in English for muse.
 - EP26 Getting a library card (library service desk, librarian in a dark-green sweater; 6 added lines on how long, renewing online; still requests with n=2 timed out at the 240 s server limit, n=1 worked; a 5 s CONTINUE_FROM ending clip failed twice (line missing, then the question said twice), so the ending line stayed in the previous full clip; renders 704-720 px wide, faces three-quarter but gaze.py read profile)
 - EP27 Buying cinema tickets (cinema ticket counter, clerk in a navy polo; 6 added lines on which film and which hall; man turned to the lens in the final question in 3 of 3 clip-D takes, also with "stays in profile" wording; muse repeated or dropped 复习一下, dubbed in)
 - EP32 Reporting a leaking faucet (residential maintenance desk, man in a navy work shirt; ~20 s script kept at the user's choice; recap with one vocab card at a time upper-left, synced to the spoken word; man turned to the lens in the ending in all 3 clip-B takes despite the "stays in profile" line, shipped as a named failure)
+- EP28 Finding a lost umbrella (mall information desk, clerk; blue umbrella on the counter; vocab cards upper-left added in post)
 
 ## Template
 
