@@ -4,16 +4,22 @@ muse-video delivers each final video to the Desktop. The dashboard lists them wi
 per platform (``captions``, written by the social-captions skill; ``caption`` is the fallback for a
 platform without one) and one button per platform that opens its upload page; the user marks each platform as
 posted, and once every platform is done the video moves to the Trash.
+
+Each video also gets a posting slot: two a day at the audience's peak hours (``SLOTS``), handed out in
+delivery order, with a time per platform (``OFFSETS``) to set in each platform's scheduler.
 """
 
 from __future__ import annotations
 
 import ipaddress
 import json
+import re
 import shutil
 import subprocess
 import time
+from datetime import date, datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, Request
 from fastapi.responses import FileResponse
@@ -40,6 +46,20 @@ PLATFORMS = {
 }
 VIDEO_EXT = {".mp4", ".mov", ".m4v"}
 
+TZ = ZoneInfo("Asia/Ho_Chi_Minh")  # GMT+7: the viewers are in Vietnam
+# Two Shorts a day (user rule 2026-10-29), Monday first: (slot 1 midday, slot 2 evening) YouTube times.
+# 5-6 h apart so the two don't compete in subscribers' feeds; evening posts go up ~2 h before the
+# 20-22 h peak, weekends start earlier.
+SLOTS = [("11:30", "18:00"), ("11:30", "18:00"), ("11:30", "17:30"), ("11:30", "18:00"),
+         ("11:30", "18:00"), ("10:30", "17:30"), ("10:30", "17:00")]
+SLOT_FOCUS = {1: "Midday: bite-sized (stroke order, word of the day, a quick view)",
+              2: "Evening: conversations, common mistakes, quizzes that invite comments"}
+# Minutes after the YouTube time per platform (midday, evening). TikTok, Reels, X and Threads hand a
+# post out within the hour, so they go closer to the peak than Shorts, which needs a head start.
+OFFSETS = {"youtube": (0, 0), "tiktok": (30, 60), "facebook": (30, 90), "instagram": (0, 60),
+           "x": (30, 120), "threads": (0, 90)}
+SLOT_KEY = re.compile(r"^(\d{4}-\d{2}-\d{2})/([12])$")
+
 
 def _load(svc: Services) -> dict:
     try:
@@ -62,11 +82,67 @@ def _video(svc: Services, name: str) -> Path:
     return path
 
 
+def _slot_times(key: str) -> dict[str, datetime]:
+    """Posting time per platform for a slot key "YYYY-MM-DD/1|2"."""
+    day, n = SLOT_KEY.match(key).groups()
+    d, n = date.fromisoformat(day), int(n)
+    hh, mm = map(int, SLOTS[d.weekday()][n - 1].split(":"))
+    base = datetime(d.year, d.month, d.day, hh, mm, tzinfo=TZ)
+    return {p: base + timedelta(minutes=off[n - 1]) for p, off in OFFSETS.items()}
+
+
+def _slots_from(now: datetime):
+    """Slot keys from today on whose YouTube time is still ahead of ``now``."""
+    d = now.astimezone(TZ).date()
+    while True:
+        for n in (1, 2):
+            key = f"{d.isoformat()}/{n}"
+            if _slot_times(key)["youtube"] > now:
+                yield key
+        d += timedelta(days=1)
+
+
+def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
+    """Give every queued video a slot, oldest delivery first. A slot that passed with nothing posted
+    moves to the next free one unless the user picked it. Returns True when the state changed."""
+    entries = [(p.name, state.setdefault(p.name, {})) for p in sorted(videos, key=lambda p: p.stat().st_mtime)]
+    for _, e in entries:
+        if (key := e.get("slot")) and not e.get("posted") and not e.get("slot_pinned") \
+                and _slot_times(key)["youtube"] <= now:
+            del e["slot"]
+    taken = {e["slot"] for _, e in entries if e.get("slot")}
+    free = (k for k in _slots_from(now) if k not in taken)
+    changed = False
+    for _, e in entries:
+        if not e.get("slot"):
+            e["slot"] = next(free)
+            changed = True
+    return changed
+
+
 def _view(path: Path, entry: dict) -> dict:
     st = path.stat()
+    key = entry.get("slot")
     return {"name": path.name, "size": st.st_size, "mtime": st.st_mtime,
             "caption": entry.get("caption", ""), "captions": entry.get("captions", {}),
-            "posted": entry.get("posted", {})}
+            "posted": entry.get("posted", {}), "slot": key,
+            "schedule": {p: t.isoformat() for p, t in _slot_times(key).items()} if key else {}}
+
+
+def _calendar(state: dict, names: set[str], now: datetime, days: int = 7) -> list[dict]:
+    """The next ``days`` days of slots with the video booked in each (or None)."""
+    booked = {e["slot"]: n for n, e in state.items() if n in names and e.get("slot")}
+    start = now.astimezone(TZ).date()
+    out = []
+    for i in range(days):
+        d = start + timedelta(days=i)
+        slots = []
+        for n in (1, 2):
+            key = f"{d.isoformat()}/{n}"
+            slots.append({"key": key, "n": n, "time": _slot_times(key)["youtube"].isoformat(),
+                          "focus": SLOT_FOCUS[n], "video": booked.get(key)})
+        out.append({"date": d.isoformat(), "slots": slots})
+    return out
 
 
 def _trash(path: Path) -> None:
@@ -85,11 +161,16 @@ async def list_posts(svc: Services = Depends(get_services)) -> dict:
     videos = sorted((p for p in folder.iterdir() if p.is_file() and p.suffix.lower() in VIDEO_EXT
                      and not p.name.startswith(".")), key=lambda p: p.stat().st_mtime, reverse=True) \
         if folder.is_dir() else []
+    now = datetime.now(TZ)
+    if _assign_slots(state, videos, now):
+        _save(svc, state)
     return {
         "folder": str(folder),
+        "timezone": "GMT+7",
         "platforms": [{"id": k, "name": n, "url": u, "limit": lim}
                       for k, (n, u, lim) in PLATFORMS.items()],
         "videos": [_view(p, state.get(p.name, {})) for p in videos],
+        "calendar": _calendar(state, {p.name for p in videos}, now),
     }
 
 
@@ -102,7 +183,8 @@ async def post_file(name: str, svc: Services = Depends(get_services)) -> FileRes
 @router.post("/dashboard/posts/{name}", include_in_schema=False)
 def update_post(name: str, body: dict, svc: Services = Depends(get_services)) -> dict:
     """Set the caption, per-platform ``captions`` (merged in; an empty text drops that platform's
-    own caption), mark a platform posted (or not), or ``{"done": true}`` to trash it now.
+    own caption), the posting ``slot`` ("YYYY-MM-DD/1|2"; a video already there swaps into this
+    one's old slot), mark a platform posted (or not), or ``{"done": true}`` to trash it now.
 
     Marking the last platform posted moves the video to the Trash.
     """
@@ -120,6 +202,18 @@ def update_post(name: str, body: dict, svc: Services = Depends(get_services)) ->
                 own[platform] = text
             else:
                 own.pop(platform, None)
+    if slot := body.get("slot"):
+        try:
+            _slot_times(slot)
+        except (TypeError, AttributeError, ValueError):
+            raise InvalidRequest("slot must be 'YYYY-MM-DD/1' or 'YYYY-MM-DD/2'") from None
+        for other, e in state.items():
+            if other != name and e.get("slot") == slot and (svc.settings.post_dir / other).is_file():
+                if old := entry.get("slot"):
+                    e["slot"], e["slot_pinned"] = old, True
+                else:
+                    e.pop("slot", None)
+        entry["slot"], entry["slot_pinned"] = slot, True
     if platform := body.get("platform"):
         if platform not in PLATFORMS:
             raise InvalidRequest(f"unknown platform '{platform}'")

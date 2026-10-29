@@ -139,6 +139,27 @@
   .plat:hover { border-color: var(--accent); }
   .plat input { width: 22px; height: 22px; margin: 0; flex: none; cursor: pointer; accent-color: var(--ok); }
   .plat.done { border-color: var(--ok); background: var(--ok-bg); color: var(--ok); }
+  .plat small { display: block; font-size: 11px; font-weight: 400; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .plat.late:not(.done) small { color: var(--bad); font-weight: 600; }
+  .plat.done small { color: inherit; }
+  /* posting schedule: two slots a day, GMT+7 */
+  .sched { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 14px; }
+  .sday { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+  .sday h3 { margin: 0; font-size: 12px; font-weight: 600; color: var(--muted); }
+  .sday.today h3 { color: var(--accent); }
+  .sslot { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; font-size: 12px; min-width: 0;
+           background: var(--panel); text-align: left; font: inherit; font-size: 12px; color: var(--text); }
+  .sslot b { font-variant-numeric: tabular-nums; }
+  .sslot span { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); }
+  .sslot.booked { border-color: var(--accent); cursor: pointer; }
+  .sslot.booked span { color: var(--text); }
+  .sslot.late { border-color: var(--bad); }
+  .slot-head { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 10px; font-size: 13px; }
+  .slot-head select { font: inherit; font-size: 13px; font-weight: 600; color: var(--accent); background: var(--bg);
+                      border: 1px solid var(--line); border-radius: 6px; padding: 2px 4px; max-width: 100%; }
+  .slot-head .focus { color: var(--muted); font-size: 12px; }
+  .slot-head .late { color: var(--bad); font-weight: 600; font-size: 12px; }
+  .post.flash { border-color: var(--accent); }
   .linkish { border: 0; background: none; padding: 0; font-size: 12px; color: var(--muted); }
   .linkish:hover { color: var(--bad); }
 .acts { display: flex; gap: 10px; }
@@ -173,6 +194,7 @@
     .row { grid-template-columns: 48px 1fr; }
     .thumb { width: 48px; height: 48px; }
     .plats { grid-template-columns: repeat(2, 1fr); }
+    .sched { grid-template-columns: repeat(7, 132px); overflow-x: auto; max-width: calc(100vw - 32px); }
     .post { grid-template-columns: 64px 1fr; }
     .post video { width: 64px; }
     .side { grid-column: 2; flex-direction: row; justify-content: flex-start; gap: 8px; text-align: left; }
@@ -195,6 +217,10 @@
 <main id="app">
   <section data-section="post" hidden>
     <header><h1>Ready to post</h1></header>
+    <p class="hint">Two videos a day at peak hours (GMT+7): slot 1 at midday for bite-sized clips, slot 2 in the
+      evening for conversations, mistakes and quizzes. New videos take the next free slot; each platform tile shows
+      the time to schedule it there. Schedule 1-2 days ahead; pick another slot on a card to move it.</p>
+    <div class="sched" id="sched"></div>
     <p class="hint">Each platform has its own caption (tabs above the text; • = written for it, otherwise the
       “All” caption is used): pick the tab, “Copy” (YouTube: “Copy title” and “Copy description”), and “Show file”
       to drag the video in. Tick a platform after publishing; when all are ticked, the video moves to the Trash.</p>
@@ -559,6 +585,7 @@ function renderPosts() {
   postsSig = sig;
   $("navPost").textContent = posts.videos.length || "";
   $("navPost").classList.toggle("hot", posts.videos.length > 0);
+  renderSchedule();
   if (!posts.videos.length) { $("posts").innerHTML = `<div class="empty">Nothing waiting to be posted.</div>`; return; }
   $("posts").innerHTML = posts.videos.map((v) => {
     const n = Object.keys(v.posted).length;
@@ -571,6 +598,7 @@ function renderPosts() {
           <button class="linkish" data-reveal title="Show the video in Finder, to drag into the upload page">Show file</button>
           <button class="linkish" data-done title="Move to the Trash without posting everywhere">Delete</button>
         </div>
+        ${slotHead(v)}
         <div class="cap-tabs">${[["all", "All"], ...posts.platforms.map((p) => [p.id, p.name.split(" ")[0]])].map(([id, label]) =>
           `<button data-captab="${esc(id)}">${esc(label)}</button>`).join("")}</div>
         <textarea data-caption></textarea>
@@ -582,14 +610,63 @@ function renderPosts() {
           <button data-copycap title="Copy the caption">Copy caption</button>
         </div>` : ""}
         <div class="plats">${posts.platforms.map((p) => `
-          <label class="plat ${v.posted[p.id] ? "done" : ""}" title="Tick once posted to ${esc(p.name)}">
-            <input type="checkbox" data-posted="${esc(p.id)}" ${v.posted[p.id] ? "checked" : ""}> ${esc(p.name.split(" ")[0])}
+          <label class="plat ${v.posted[p.id] ? "done" : ""} ${late(v.schedule[p.id]) ? "late" : ""}"
+                 title="Schedule on ${esc(p.name)} for ${esc(whenLong(v.schedule[p.id]))}; tick once posted">
+            <input type="checkbox" data-posted="${esc(p.id)}" ${v.posted[p.id] ? "checked" : ""}>
+            <span>${esc(p.name.split(" ")[0])}<small>${esc(when(v.schedule[p.id]))}</small></span>
           </label>`).join("")}
         </div>
       </div>
     </div>`;
   }).join("");
   for (const card of $("posts").querySelectorAll(".post")) showCaption(card);
+}
+
+// Posting slots. Times come as ISO strings in GMT+7 ("2026-10-30T11:30:00+07:00"); they are shown as
+// written (GMT+7), whatever this device's own time zone.
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const dayName = (ymd) => DAYS[new Date(ymd + "T00:00:00Z").getUTCDay()];
+const dayLabel = (ymd) => `${dayName(ymd)} ${+ymd.slice(8, 10)} ${MONTHS[+ymd.slice(5, 7) - 1]}`;
+const late = (iso) => !!iso && Date.parse(iso) < Date.now();
+const todayGmt7 = () => new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);
+function when(iso) {
+  if (!iso) return "";
+  const d = iso.slice(0, 10), today = todayGmt7();
+  const tomorrow = new Date(Date.parse(today + "T00:00:00Z") + 86400e3).toISOString().slice(0, 10);
+  return `${d === today ? "Today" : d === tomorrow ? "Tomorrow" : dayName(d)} ${iso.slice(11, 16)}`;
+}
+const whenLong = (iso) => iso ? `${dayLabel(iso.slice(0, 10))} ${iso.slice(11, 16)} (GMT+7)` : "no slot";
+const slotLabel = (key) => { const [d, n] = key.split("/"); return `${dayLabel(d)} · slot ${n}`; };
+const SLOT_FOCUS = { 1: "Midday: bite-sized (stroke order, word of the day, a quick view)",
+                     2: "Evening: conversations, common mistakes, quizzes" };
+const firstLine = (v, p) => (captionFor(v, p) || "").split("\n")[0].trim();
+function renderSchedule() {
+  const today = todayGmt7();
+  $("sched").innerHTML = (posts.calendar || []).map((day) => `
+    <div class="sday ${day.date === today ? "today" : ""}"><h3>${esc(dayLabel(day.date))}</h3>
+      ${day.slots.map((s) => {
+        const v = s.video && posts.videos.find((x) => x.name === s.video);
+        const title = v ? firstLine(v, "youtube") || v.name : "free";
+        return `<button class="sslot ${v ? "booked" : ""} ${v && late(s.time) && !Object.keys(v.posted).length ? "late" : ""}"
+          ${v ? `data-goto="${esc(v.name)}"` : "disabled"} title="${esc(s.focus)}${v ? "\n" + esc(v.name) : ""}">
+          <b>${esc(s.time.slice(11, 16))}</b><span>${esc(title)}</span></button>`;
+      }).join("")}
+    </div>`).join("");
+}
+function slotHead(v) {
+  if (!v.slot) return "";
+  const keys = (posts.calendar || []).flatMap((d) => d.slots.map((s) => [s.key, s.video]));
+  if (!keys.some(([k]) => k === v.slot)) keys.unshift([v.slot, v.name]);
+  const yt = v.schedule.youtube, n = v.slot.split("/")[1];
+  return `<div class="slot-head">
+    <select data-slot title="Move this video to another slot (a video already there swaps with it)">
+      ${keys.map(([k, other]) => `<option value="${esc(k)}" ${k === v.slot ? "selected" : ""}>${esc(slotLabel(k))}${
+        other && other !== v.name ? " (swap)" : ""}</option>`).join("")}
+    </select>
+    ${late(yt) && !Object.keys(v.posted).length ? `<span class="late">Slot passed: post now or pick a later slot</span>` : ""}
+    <span class="focus">${esc(SLOT_FOCUS[n])}</span>
+  </div>`;
 }
 
 // Per-platform captions: captions[platform] when written for it, else the shared caption.
@@ -638,9 +715,10 @@ function countCaption(card) {
   const fmt = (n, lim) => `<b class="${n > lim ? "over" : ""}">${n}</b>/${lim}`;
   card.querySelector("[data-copytab=title]").hidden = tab !== "youtube";
   card.querySelector("[data-copytab=text]").textContent = tab === "youtube" ? "Copy description" : "Copy";
-  card.querySelector("[data-capcount]").innerHTML = !p ? `${[...text].length} characters`
+  const at = p && v.schedule[tab] ? ` · post ${esc(whenLong(v.schedule[tab]))}` : "";
+  card.querySelector("[data-capcount]").innerHTML = (!p ? `${[...text].length} characters`
     : tab === "youtube" ? `title ${fmt([...ytSplit(text)[0]].length, 100)} · description ${fmt([...ytSplit(text)[1]].length, p.limit)}`
-    : tab === "x" ? `${fmt(xLength(text), p.limit)} (X weighted)` : fmt([...text].length, p.limit);
+    : tab === "x" ? `${fmt(xLength(text), p.limit)} (X weighted)` : fmt([...text].length, p.limit)) + at;
 }
 // What clicking a platform copies: its caption, or YouTube's title (its first field).
 function copyText(card, tab, part = "text") {
@@ -769,11 +847,18 @@ $("posts").addEventListener("click", async (e) => {
 });
 $("posts").addEventListener("change", (e) => {
   const name = e.target.closest(".post")?.dataset.name; if (!name) return;
-  if (e.target.dataset.posted) updatePost(name, { platform: e.target.dataset.posted, posted: e.target.checked });
+  if (e.target.matches("[data-slot]")) updatePost(name, { slot: e.target.value });
+  else if (e.target.dataset.posted) updatePost(name, { platform: e.target.dataset.posted, posted: e.target.checked });
   else if (e.target.matches("[data-caption]")) {
     const tab = capTab.get(name) || "all";
     updatePost(name, tab === "all" ? { caption: e.target.value } : { captions: { [tab]: e.target.value } });
   }
+});
+$("sched").addEventListener("click", (e) => {
+  const name = e.target.closest("[data-goto]")?.dataset.goto; if (!name) return;
+  const card = [...$("posts").querySelectorAll(".post")].find((c) => c.dataset.name === name); if (!card) return;
+  card.scrollIntoView({ behavior: "smooth", block: "center" });
+  card.classList.add("flash"); setTimeout(() => card.classList.remove("flash"), 1500);
 });
 $("posts").addEventListener("input", (e) => {
   if (e.target.matches("[data-caption]")) { fitCaption(e.target); countCaption(e.target.closest(".post")); }
