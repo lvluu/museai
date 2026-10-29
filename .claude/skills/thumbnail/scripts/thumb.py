@@ -32,6 +32,7 @@ TITLE_FONT = ("/System/Library/Fonts/HelveticaNeue.ttc", 9)  # Condensed Black, 
 SUB_FONT = ("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 0)
 YELLOW, RED, WHITE, BLACK = (255, 214, 10), (232, 23, 58), (255, 255, 255), (0, 0, 0)
 SAFE = (80, 300, 960, 1560)  # 9:16 text box
+CENTRE = (1080 - SAFE[2], SAFE[2])  # the text block's x span: symmetric on the frame's centre line, clear of the buttons
 MAX_BYTES = 2_000_000  # YouTube mobile upload limit for video thumbnails
 
 
@@ -217,8 +218,8 @@ def vertical(frame, boxes, args, view=None):
         im.paste(window(frame, cy, 880), (0, 0))
         im.paste(window(view, 1060, 1040), (0, 880))
         ImageDraw.Draw(im).rectangle((0, 872, 1080, 888), fill=YELLOW)
-        blk = block(args, SAFE[2] - SAFE[0])
-        im.paste(blk, (SAFE[0], min(880 - blk.height // 3, SAFE[3] - blk.height)), blk)
+        blk = block(args, CENTRE[1] - CENTRE[0])
+        im.paste(blk, (CENTRE[0], min(880 - blk.height // 3, SAFE[3] - blk.height)), blk)
         badge(im, args.badge, SAFE[0], SAFE[1] - 20)
         return im
     im = grade(frame.resize((1080, 1920), Image.LANCZOS))
@@ -233,7 +234,7 @@ def vertical(frame, boxes, args, view=None):
     s = frame.width / 1080
     face_bottom = max(b[3] / s for b in boxes) if boxes else 1000
     face_top = min(b[1] / s for b in boxes) if boxes else 600
-    blk = block(args, SAFE[2] - SAFE[0])
+    blk = block(args, CENTRE[1] - CENTRE[0])
     below = SAFE[3] - max(face_bottom + 40, SAFE[1])
     if below >= blk.height:  # under the chins, bottom-anchored in the safe box
         y = SAFE[3] - blk.height
@@ -241,7 +242,7 @@ def vertical(frame, boxes, args, view=None):
     else:  # above the heads
         y = max(SAFE[1] + 110, int(face_top) - 40 - blk.height)
         shade(im, 0, y + blk.height + 200, 190, 0)
-    im.paste(blk, (SAFE[0], y), blk)
+    im.paste(blk, (CENTRE[0], y), blk)
     badge(im, args.badge, SAFE[0], SAFE[1] - 20)
     return im
 
