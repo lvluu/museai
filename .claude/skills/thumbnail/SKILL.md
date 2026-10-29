@@ -1,6 +1,6 @@
 ---
 name: thumbnail
-description: Make the thumbnails for a finished museai video - one 9:16 cover (YouTube Shorts, TikTok, Facebook / Instagram Reels) and one 16:9 thumbnail (YouTube video, Facebook feed) from the video's best frame, in a style per kind of video (chinese: faces + red-box title; travel: scenery + big place name), with a big readable hook title placed clear of faces and the platform UI - and hand them to deliver.sh, which puts them next to the video on the Desktop and the dashboard. Use after every video (muse-video, EVERYDAY CHINESE, scenic-drop-reel, zoominview, product-ad, teaching-video) before the final delivery, and for "thumbnail", "cover", "ảnh bìa", "ảnh thumbnail", "make a cover for this video".
+description: Make the thumbnails for a finished museai video - one 9:16 cover (YouTube Shorts, TikTok, Facebook / Instagram Reels) and one 16:9 thumbnail (YouTube video, Facebook feed) from the video's best frame, in a style per kind of video (chinese: faces + red-box title; travel: stakes/scale frame, red-ringed subject, shock hook + big place name), with a big readable hook title placed clear of faces and the platform UI - and hand them to deliver.sh, which puts them next to the video on the Desktop and the dashboard. Use after every video (muse-video, EVERYDAY CHINESE, scenic-drop-reel, zoominview, product-ad, teaching-video) before the final delivery, and for "thumbnail", "cover", "ảnh bìa", "ảnh thumbnail", "make a cover for this video".
 ---
 
 # thumbnail
@@ -37,6 +37,25 @@ symmetric, still clear of the button column); on 16:9 it is centred in the text 
 - One focal point, bright saturated colour, no clutter; the same layout every episode so a series is recognisable.
 - Never misleading: the picture is a real frame from the video.
 
+### Travel: make it a shock, not a postcard (user rule, 2026-10-29)
+A pretty landscape scrolls past; a cover that makes the viewer gasp or doubt gets the tap.
+- **Frame**: pick the moment with stakes or scale, not the widest calm shot: a person on the edge,
+  a tiny boat under a giant waterfall, a road clinging to a cliff, the drop below a ledge. A human or
+  boat in frame beats empty scenery (scale = shock). Use the picks sheet / a contact sheet, then `--at`.
+- **Point at it**: `--circle x,y[,r]` puts a red ring + arrow on that person/boat/edge, so the eye lands
+  there first. `--zoom 1.2-1.4 --focus x,y` crops in so the subject is big and the empty sky is gone
+  (coordinates are fractions of the frame; `--circle` is measured after the zoom). Keep the subject below
+  the text (y > 0.5) and above the bottom UI (y < 0.85).
+- **Hook** (red banner, 2-5 words + one emoji 😱 😳 🤯): a fact that sounds unreal, not a mood. Patterns:
+  danger/stakes ("604 m drop. No rails"), scale ("That boat is tiny"), a number ("One step from 700 m",
+  "250 m free fall"), disbelief ("Is this even real?"), secret ("Locals hide this beach"). True for the
+  frame shown and for the place - check the number. Never "beautiful", "amazing", "stunning", "paradise".
+- **Title**: the place name only, huge; the hook carries the emotion. The sub is the country + flag.
+- **Reaction covers** (`--split`, zoominview): the most shocked face of the video - mouth open, eyes wide,
+  hands on head (as Madeira) - not a calm profile; put the shock line in `--sub`.
+- Look at the 9:16 at phone size (360 px wide) before delivering: hook readable, ring on the subject,
+  subject not under the text.
+
 ## Styles
 One script, one style per kind of video. Each style is a file in `scripts/styles/`; the shared toolkit
 (frame grab, face and scenery scoring, grade, safe box, red-box title block, badge, flag emoji, picks
@@ -45,7 +64,7 @@ sheet, 2 MB JPEG writer) is `scripts/core.py`.
 | Style | For | Look |
 |---|---|---|
 | `chinese` | EVERYDAY CHINESE, teaching-video, product-ad, any video with people talking | best face frame, yellow hanzi hook, title white on a red box, sub line, episode badge |
-| `travel` | scenic-drop-reel, muse-video travel mode; `--split` for zoominview | most vivid, sharp, still frame of the raw shots full bleed, dark top band, yellow hook, big Futura place name, sub with flag |
+| `travel` | scenic-drop-reel, muse-video travel mode; `--split` for zoominview | stakes/scale frame full bleed, punchy grade + vignette, optional zoom and red ring + arrow on the subject, hook on a red banner, huge outlined Futura place name, sub with flag |
 
 ## Make them
 ```
@@ -71,8 +90,11 @@ text readable, frame not mid-blink or mid-transition. Re-run with `--at` from th
 
 **travel** (the raw shots in plan order, not the reel: its intro text, dips and transitions would be picked):
 - `--title` (required): the place name; uppercase Futura, two balanced lines when it is long.
-- `--hook`: 2-5 words above it in yellow, the caption's promise ("7 waterfalls. 1 fjord.").
+- `--hook`: 2-5 words above it, white on a tilted red banner, the shock line (see "Travel: make it a shock").
 - `--sub`: line under it, may end in a flag emoji ("Norway 🇳🇴").
+- `--zoom 1.3 --focus 0.45,0.4`: crop into the frame around x,y (fractions) so the subject is big.
+- `--circle 0.4,0.56,0.07`: red ring (radius as a fraction of the short side, default 0.12) + arrow on the
+  subject, coordinates in the zoomed frame.
 - `--at shot.mp4@2.5` (or seconds in the first video): use this frame. Without it the most vivid, sharp,
   still frame of all shots wins, 0.5 s clear of each shot's ends; the first shot (the hook) gets a bonus.
 - A 9:16 shot fills the 9:16 cover and sits sharp on the right of a blurred copy on 16:9; a 16:9 shot the
@@ -86,8 +108,9 @@ Per kind of video:
   smiling at each other or at the lens.
 - **teaching-video**: `chinese` on each format's video; `--zh` the pattern, `--title` the lesson in Vietnamese.
 - **product-ad**: `chinese --at` the hero product shot, `--title` the offer (3-4 words).
-- **scenic-drop-reel / muse-video travel**: `travel OUT s1.mp4 s2.mp4 ... --title "<PLACE>" --hook "<caption hook>"
-  --sub "<Country> <flag>"`.
+- **scenic-drop-reel / muse-video travel**: `travel OUT s1.mp4 s2.mp4 ... --title "<PLACE>" --hook "<shock fact> 😱"
+  --sub "<Country> <flag>" --at <stakes frame> --circle <subject>` (e.g. Trolltunga: `--hook "One step from 700 m 😱"
+  --zoom 1.3 --focus 0.45,0.4 --circle 0.40,0.56,0.07` on the frame with the hiker on the tongue).
 - **zoominview**: `travel OUT reel.mp4 --split --title "<PLACE>" --sub "<wow line in the caption language>"`.
 
 ## Add a style
@@ -105,5 +128,5 @@ Per kind of video:
 Write them into the work folder (e.g. `WORK/thumbs`), then pass `THUMB_DIR=WORK/thumbs` to
 `../muse-video/scripts/deliver.sh`. It copies them next to the video as
 `<video name> - thumbnail 9x16.jpg` / `16x9.jpg` before it trashes the work folder; the dashboard's
-"Ready to post" card shows both (click to download, drag into the upload page) and trashes them with
+"Ready to post" card shows both (click to view, drag into the upload page) and trashes them with
 the video once it is posted everywhere.
