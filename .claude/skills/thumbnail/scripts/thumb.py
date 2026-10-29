@@ -184,13 +184,15 @@ def block(args, width, scale=1.0):
     return out
 
 
-def badge(im, text, x, y, scale=1.0):
+def badge(im, text, cx, y, scale=1.0):
+    """Series tag, centred on column cx."""
     if not text:
         return
     f = font(TITLE_FONT, int(64 * scale))
     d = ImageDraw.Draw(im)
     x0, y0, x1, y1 = f.getbbox(text)
     p = int(18 * scale)
+    x = cx - (x1 - x0 + 2 * p) // 2
     d.rounded_rectangle((x, y, x + x1 - x0 + 2 * p, y + y1 - y0 + 2 * p), int(16 * scale), fill=YELLOW,
                         outline=BLACK, width=max(int(4 * scale), 2))
     d.text((x + p - x0, y + p - y0), text, font=f, fill=BLACK)
@@ -220,7 +222,7 @@ def vertical(frame, boxes, args, view=None):
         ImageDraw.Draw(im).rectangle((0, 872, 1080, 888), fill=YELLOW)
         blk = block(args, CENTRE[1] - CENTRE[0])
         im.paste(blk, (CENTRE[0], min(880 - blk.height // 3, SAFE[3] - blk.height)), blk)
-        badge(im, args.badge, SAFE[0], SAFE[1] - 20)
+        badge(im, args.badge, 540, SAFE[1] - 20)
         return im
     im = grade(frame.resize((1080, 1920), Image.LANCZOS))
     if args.cut:  # burned-in text below: replace it with a blurred mirror of the picture above it
@@ -243,7 +245,7 @@ def vertical(frame, boxes, args, view=None):
         y = max(SAFE[1] + 110, int(face_top) - 40 - blk.height)
         shade(im, 0, y + blk.height + 200, 190, 0)
     im.paste(blk, (CENTRE[0], y), blk)
-    badge(im, args.badge, SAFE[0], SAFE[1] - 20)
+    badge(im, args.badge, 540, SAFE[1] - 20)
     return im
 
 
@@ -277,7 +279,7 @@ def horizontal(frame, boxes, args, view=None):
     bg.paste(fg, (W - fw, 0), mask)
     blk = block(args, W - fw - 40, scale=1.0)
     bg.paste(blk, (60, max((H - blk.height) // 2 + 40, 150)), blk)
-    badge(bg, args.badge, 60, 50)
+    badge(bg, args.badge, 60 + blk.width // 2, 50)
     return bg
 
 
