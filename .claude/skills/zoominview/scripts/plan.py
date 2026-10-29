@@ -1,11 +1,11 @@
-"""Plan a zoominview reel: pick a reveal transition and a music style that fit the place, fill the prompts.
+"""Plan a zoominview reel: pick a hook (reaction), a reveal transition, a music style and a caption hook that fit the place, fill the prompts.
 
 Usage:
   python3 scripts/plan.py --place "Ponta de São Lourenço, Madeira" --setting coast --light sunset \
       --view "jagged red volcanic cliffs dropping into a deep blue Atlantic, white surf, green headlands ..." > plan.json
   python3 scripts/plan.py --list
-Options: --focus (what the end zooms into), --country (local music), --reveal ID / --music ID (force), --person "..." (default: a random traveller),
---seed N. Picks skip the last 3 reveals and music styles used (~/.config/zoominview/history.json).
+Options: --focus (what the end zooms into), --country (local music), --hook ID / --reveal ID / --music ID (force), --person "..." (default: the recurring character in styles.json, "random" for a random traveller),
+--seed N. Picks skip the last 3 hooks, reveals and music styles used (~/.config/zoominview/history.json).
 """
 import argparse
 import json
@@ -25,6 +25,12 @@ PEOPLE = [
     "a South Asian woman in her twenties with wavy black hair and a linen shirt",
     "a freckled young woman with red curly hair and a knitted sweater",
 ]
+
+
+# the attached photo only shows who she is; without this muse may open the clip on the photo itself
+FACE_REF = ("FACE REFERENCE: The attached photo shows the woman's real face and hair. It is NOT the first "
+            "frame and NOT the location: do not show this room or this pose. Render her with exactly this face, "
+            "eye colour, freckles, hairstyle and bangs in every frame, at the place below.\n\n")
 
 
 # muse put a second traveller in clip B for the whole reveal although the brief said "Nobody in frame"
@@ -51,6 +57,7 @@ def main():
                     help="the beautiful angle the end zooms into, e.g. \"the dark basalt sea stacks in the white surf\"")
     ap.add_argument("--reveal")
     ap.add_argument("--music")
+    ap.add_argument("--hook", help="the reaction (styles.json hooks), e.g. gasp, still-awe")
     ap.add_argument("--person")
     ap.add_argument("--seed", type=int)
     ap.add_argument("--list", action="store_true")
@@ -59,6 +66,8 @@ def main():
     if a.list:
         for r in styles["reveals"]:
             print(f"reveal {r['id']:14} {','.join(r['setting']):55} {r['name']}")
+        for h in styles["hooks"]:
+            print(f"hook   {h['id']:18} {','.join(h['setting']):51} {h['name']}")
         for m in styles["music"]:
             print(f"music  {m['id']:14} {','.join(m['setting']):55} {m['name']}")
         return
@@ -67,16 +76,22 @@ def main():
     if a.light not in styles["lights"]:
         ap.error(f"--light must be one of {', '.join(styles['lights'])}")
     rng = random.Random(a.seed)
-    hist = json.loads(HISTORY.read_text()) if HISTORY.exists() else {"reveals": [], "music": []}
+    hist = {"reveals": [], "music": [], "hooks": [], **(json.loads(HISTORY.read_text()) if HISTORY.exists() else {})}
 
     def choose(kind, pool, forced):
-        if forced:
-            return next((x for x in pool if x["id"] == forced), None) or sys.exit(f"no {kind} {forced!r}")
+        if forced:  # a named one is used even when it doesn't fit the setting, light or country
+            return next((x for x in styles[kind] if x["id"] == forced), None) or sys.exit(f"no {kind} {forced!r}")
         fresh = [x for x in pool if x["id"] not in hist[kind][-3:]] or pool
         return rng.choice(fresh)
 
     reveals = [r for r in styles["reveals"] if fits(r, "setting", a.setting)]
     reveal = choose("reveals", reveals, a.reveal)
+    character = None if a.person else styles.get("character")
+    if a.person == "random":
+        a.person = None
+    hooks = [h for h in styles["hooks"] if fits(h, "setting", a.setting) and fits(h, "light", a.light)
+             and h["id"] not in (character or {}).get("skip_hooks", [])]
+    hook = choose("hooks", hooks, a.hook)
     country = a.country.lower()
     local = [m for m in styles["music"] if country and country in m.get("country", [])
              and fits(m, "setting", a.setting)]
@@ -85,14 +100,18 @@ def main():
     music = choose("music", music_pool, a.music)
 
     light = styles["lights"][a.light]
-    fill = {"{place}": a.place, "{view}": a.view, "{person}": a.person or rng.choice(PEOPLE),
-            "{light}": light, "{focus}": a.focus, "{reveal_at}": f"{reveal['reveal_at']:g}"}
+    fill = {"{place}": a.place, "{view}": a.view, "{person}": character["text"] if character else a.person or rng.choice(PEOPLE),
+            "{light}": light, "{focus}": a.focus, "{hook}": hook["text"], "{reveal_at}": f"{reveal['reveal_at']:g}"}
     rules = (SKILL / "prompt/reveal.txt").read_text().replace("{LIGHT}", light[0].upper() + light[1:])
 
     def prompt(text):
+        text = text.replace("{zoom}", styles["zoom"])
         for k, v in fill.items():
             text = text.replace(k, v)
         return f"{text}\n\n{rules}"
+
+    name = a.place.split(",")[0].strip()
+    caption = rng.choice(styles["captions"].get(a.setting, []) + styles["captions"]["any"]).replace("{name}", name)
 
     reveal_time = reveal["a_seconds"] + reveal["reveal_at"]
     length = reveal["a_seconds"] + reveal["b_seconds"] + reveal.get("c_seconds", 0)
@@ -107,12 +126,16 @@ def main():
             "reveal": {"id": reveal["id"], "name": reveal["name"], "a_seconds": reveal["a_seconds"],
                        "b_seconds": reveal["b_seconds"], "c_seconds": reveal.get("c_seconds", 0),
                        "reveal_at": reveal["reveal_at"]},
-            "reveal_time": reveal_time, "length": length, "music": m,
-            "prompt_a": prompt(reveal["a"]), "prompt_b": prompt(NOBODY + reveal["b"])}
+            "hook": {"id": hook["id"], "name": hook["name"]},
+            "reveal_time": reveal_time, "length": length, "music": m, "caption_hook": caption,
+            "prompt_a": prompt((FACE_REF if character else "") + reveal["a"]), "prompt_b": prompt(NOBODY + reveal["b"])}
+    if character:
+        plan["person_image"] = str(SKILL / character["image"])
     if "c" in reveal:
         plan["prompt_c"] = prompt(NOBODY + reveal["c"])
     hist["reveals"] = (hist["reveals"] + [reveal["id"]])[-10:]
     hist["music"] = (hist["music"] + [music["id"]])[-10:]
+    hist["hooks"] = (hist["hooks"] + [hook["id"]])[-10:]
     HISTORY.parent.mkdir(parents=True, exist_ok=True)
     HISTORY.write_text(json.dumps(hist))
     print(json.dumps(plan, indent=1, ensure_ascii=False))
