@@ -2,19 +2,22 @@
 
 Pass the raw shots in plan order, not the finished reel (its intro text, dips to black and transitions
 would be picked). The most vivid, sharp, still frame wins; the first shot is the hook shot and gets a
-small bonus. The cover is the frame full bleed, graded a little punchier, with a dark band at the top
-behind a yellow hook line, the place name big in Futura (two balanced lines when long) and a sub line
-that may end in a flag emoji ("Norway 🇳🇴"). A frame of the other aspect sits sharp on a blurred
-copy of itself, the text beside or above it.
+small bonus. The cover is built to stop the scroll: the frame full bleed, punchy grade and vignette,
+optionally zoomed onto the subject (--zoom/--focus) with a red ring + arrow on it (--circle), a dark
+band at the top behind the hook as white on a red banner, the place name huge in Futura with a black
+outline (two balanced lines when long) and a sub line that may end in a flag emoji ("Norway 🇳🇴").
+A frame of the other aspect sits sharp on a blurred copy of itself, the text beside or above it.
 --split (zoominview): one reel with a person, the reaction on top and the view below, the title on the
 seam, as the old thumbnail did.
 """
+import math
 import sys
 
 from core import (
+    BLACK,
     CENTRE,
+    RED,
     SAFE,
-    YELLOW,
     cover,
     emoji,
     face_mesh,
@@ -48,6 +51,9 @@ def add_args(p):
     p.add_argument("--hook", default="", help="2-5 words above it, the caption's promise: \"7 waterfalls. 1 fjord.\"")
     p.add_argument("--sub", default="", help='line under it, may end in a flag: "Norway 🇳🇴"')
     p.add_argument("--at", default="", help="force the frame: shot.mp4@2.5, or seconds in the first video")
+    p.add_argument("--zoom", type=float, default=1.0, help="crop into the frame by this factor (1.2-1.6) for one focal point")
+    p.add_argument("--focus", default="0.5,0.5", help="x,y of the zoom centre, fractions of the frame (default 0.5,0.5)")
+    p.add_argument("--circle", default="", help="x,y[,r] of the subject in the (zoomed) frame, fractions: red ring + arrow on it")
     p.add_argument("--split", action="store_true", help="reaction + view (zoominview): face on top, the view below")
     p.add_argument("--view", type=float, help="time of the view frame for --split (default: best frame without faces)")
 
@@ -71,7 +77,7 @@ def fit(d, text, kind, start, maxw, spacing_ratio=0.0):
 def chars(d, xy, text, f, fill, spacing, stroke):
     x = xy[0]
     for c in text if spacing else [text]:
-        d.text((x, xy[1]), c, font=f, fill=fill, anchor="ls", stroke_width=stroke, stroke_fill=(0, 0, 0, 200))
+        d.text((x, xy[1]), c, font=f, fill=fill, anchor="ls", stroke_width=stroke, stroke_fill=(0, 0, 0, 230))
         x += d.textlength(c, font=f) + spacing
 
 
@@ -82,6 +88,19 @@ def line(img, cx, y, text, f, fill=(255, 255, 255), stroke=0, spacing=0):
     tw = d.textlength(words, font=f) + spacing * max(len(words) - 1, 0)
     em = emoji(emo, round(f.size * 0.8)) if emo else None
     x0 = cx - (tw + (em.width + f.size * 0.2 if em else 0)) / 2
+    if fill == "banner":  # white on a tilted red box: the "shock" label
+        pad = f.size * 0.35
+        x1 = x0 + tw + (em.width + f.size * 0.2 if em else 0)
+        box = (x0 - pad, y - f.size * 0.95, x1 + pad, y + f.size * 0.3)
+        lab = Image.new("RGBA", img.size)
+        ld = ImageDraw.Draw(lab)
+        ld.rounded_rectangle([v + 8 for v in box], f.size // 5, fill=(0, 0, 0, 150))
+        ld.rounded_rectangle(box, f.size // 5, fill=RED + (255,), outline=(255, 255, 255, 255), width=max(3, f.size // 22))
+        chars(ld, (x0, y), words, f, (255, 255, 255), spacing, 0)
+        if em:
+            lab.alpha_composite(em, (round(x0 + tw + f.size * 0.2), round(y - em.height)))
+        img.alpha_composite(lab.rotate(-2, center=(cx, y), resample=Image.BICUBIC))
+        return
     sh = Image.new("RGBA", img.size)
     chars(ImageDraw.Draw(sh), (x0 + 3, y + 4), words, f, (0, 0, 0, 150), spacing, stroke)
     img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(f.size / 10)))
@@ -95,8 +114,8 @@ def rows(args, w, base):
     d = ImageDraw.Draw(Image.new("RGB", (1, 1)))
     out = []
     if args.hook:
-        f, _ = fit(d, args.hook.upper(), "heavy", round(base * 0.075), w)
-        out.append((args.hook.upper(), f, 0, YELLOW, max(2, f.size // 18), f.size, f.size * 0.35))
+        f, _ = fit(d, args.hook.upper(), "heavy", round(base * 0.1), w * 0.92)
+        out.append((args.hook.upper(), f, 0, "banner", 0, f.size * 1.25, f.size * 0.6))
     title = args.title.upper()
     f, sp = fit(d, title, "futura", round(base * 0.22), w, 0.08)
     words = title.split()
@@ -106,7 +125,7 @@ def rows(args, w, base):
         lines = [" ".join(words[:cut]), " ".join(words[cut:])]
         f, sp = min((fit(d, r, "futura", round(base * 0.2), w, 0.08) for r in lines), key=lambda x: x[0].size)
     for t in lines:
-        out.append((t, f, sp, (255, 255, 255), max(2, f.size // 22), f.size * 0.85, f.size * 0.25))
+        out.append((t, f, sp, (255, 255, 255), max(4, f.size // 11), f.size * 0.85, f.size * 0.25))
     if args.sub:
         f, _ = fit(d, args.sub, "demi", round(base * 0.06), w * 0.8)
         out.append((args.sub, f, 0, (255, 255, 255), 0, f.size * 1.2, 0))
@@ -122,6 +141,55 @@ def text(img, box, args, middle=False):
         y += above
         line(img, (box[0] + box[2]) / 2, y, t, f, fill, stroke, sp)
         y += below
+
+
+# ---------- frame prep ----------
+def punch(im):
+    """grade() pushed further plus a vignette: one bright focal area, saturated, crisp"""
+    im = ImageEnhance.Color(grade(im)).enhance(1.2)
+    im = ImageEnhance.Contrast(im).enhance(1.1)
+    w, h = im.size
+    v = Image.radial_gradient("L").resize((w, h))  # 0 centre -> 255 corners
+    dark = Image.new("RGB", (w, h), BLACK)
+    return Image.composite(dark, im, v.point(lambda a: int(max(a - 120, 0) * 0.75)))
+
+
+def zoom(frame, args):
+    if args.zoom <= 1:
+        return frame
+    fx, fy = (float(v) for v in args.focus.split(","))
+    w, h = round(frame.width / args.zoom), round(frame.height / args.zoom)
+    x = min(max(round(fx * frame.width - w / 2), 0), frame.width - w)
+    y = min(max(round(fy * frame.height - h / 2), 0), frame.height - h)
+    return frame.crop((x, y, x + w, y + h)).resize(frame.size, Image.LANCZOS)
+
+
+def ring(frame, args):
+    """Red ring round the subject and a fat arrow pointing at it from above: where to look."""
+    if not args.circle:
+        return frame
+    v = [float(a) for a in args.circle.split(",")]
+    s = min(frame.size)
+    cx, cy, r = v[0] * frame.width, v[1] * frame.height, (v[2] if len(v) > 2 else 0.12) * s
+    lay = Image.new("RGBA", frame.size)
+    d = ImageDraw.Draw(lay)
+    wd = max(6, round(s * 0.014))
+    for off, col in ((wd // 2, (0, 0, 0, 140)), (0, RED + (255,))):
+        d.ellipse((cx - r + off, cy - r + off, cx + r + off, cy + r + off), outline=col, width=wd)
+    # arrow: from the side with more room, aimed at the ring's edge
+    side = -1 if cx > frame.width / 2 else 1
+    tip = (cx + side * r * 0.75, cy - r * 0.75)
+    tail = (tip[0] + side * s * 0.16, tip[1] - s * 0.16)
+    head = s * 0.05
+    a = math.atan2(tip[1] - tail[1], tip[0] - tail[0])
+    pts = [tip, (tip[0] - head * math.cos(a - 0.5), tip[1] - head * math.sin(a - 0.5)),
+           (tip[0] - head * math.cos(a + 0.5), tip[1] - head * math.sin(a + 0.5))]
+    for off, col in ((wd // 2, (0, 0, 0, 140)), (0, RED + (255,))):
+        d.line([(x + off, y + off) for x, y in (tail, tip)], fill=col, width=round(wd * 1.6))
+        d.polygon([(x + off, y + off) for x, y in pts], fill=col)
+    out = frame.convert("RGBA")
+    out.alpha_composite(lay)
+    return out.convert("RGB")
 
 
 # ---------- layout ----------
@@ -149,10 +217,10 @@ def backdrop(frame, w, h):
 def vertical(frame, args):
     tall = frame.height > frame.width
     if tall:
-        im = grade(cover(frame, 1080, 1920)).convert("RGBA")
+        im = punch(cover(frame, 1080, 1920)).convert("RGBA")
     else:  # 16:9 shot: sharp across the middle, the text above it
         im = backdrop(frame, 1080, 1920)
-        panel = grade(cover(frame, 1080, 608))
+        panel = punch(cover(frame, 1080, 608))
         im.paste(panel, (0, 1000))
     im.alpha_composite(band(1080, 1920, (0.42, 190), (0.18, 120)))
     text(im, (CENTRE[0], SAFE[1], CENTRE[1], SAFE[3]), args)
@@ -162,12 +230,12 @@ def vertical(frame, args):
 def landscape(frame, args):
     W, H = 1920, 1080
     if frame.width > frame.height:
-        im = grade(cover(frame, W, H)).convert("RGBA")
+        im = punch(cover(frame, W, H)).convert("RGBA")
         right = W
     else:  # 9:16 shot: sharp on the right, soft-edged, over a blurred copy
         im = backdrop(frame, W, H)
         pw = round(H * 9 / 16)
-        panel = grade(cover(frame, pw, H))
+        panel = punch(cover(frame, pw, H))
         mask = Image.new("L", panel.size, 255)
         for x in range(60):
             ImageDraw.Draw(mask).line((x, 0, x, H), fill=int(255 * x / 60))
@@ -235,5 +303,5 @@ def make(args):
         sheet = picks_sheet([(grab(args.videos[i], t), f"{name[i]}@{t:.2f} {sc:.1f}") for sc, (i, t) in picks])
         i, t = picks[0][1]
         clip = args.videos[i]
-    frame = to_pil(grab(clip, t))
+    frame = ring(zoom(to_pil(grab(clip, t)), args), args)
     return vertical(frame, args), landscape(frame, args), sheet, f"frame {clip}@{t:.2f}s ({frame.width}x{frame.height})"
