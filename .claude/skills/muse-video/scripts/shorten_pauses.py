@@ -5,7 +5,9 @@ EP08: four 1-2 s pauses between lines, shortened this way; on a locked camera th
 were invisible and no syllable moved. Run it on the stitched video, before dub.py and cues
 (it changes every time after the first cut). Speech spans come from gaps.py (audio energy).
 KEEP=12.5-17.0 (comma-separated a-b spans, seconds of the input): pauses inside are left alone, e.g. the
-review pauses of a vocabulary recap (EP30: those pauses are wanted, see REVIEW= in pace.py)."""
+review pauses of a vocabulary recap (EP30: those pauses are wanted, see REVIEW= in pace.py).
+SPANS_FROM=voc.mp4: read speech spans from another file of the same timeline, e.g. the demucs vocal stem
+(EP29: muse's music filled every pause, gaps.py on the mix found none to cut)."""
 import os
 import subprocess
 import sys
@@ -23,7 +25,7 @@ dur = float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=d
                            capture_output=True, text=True, check=True).stdout)
 fps = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=r_frame_rate",
                       "-of", "csv=p=0", video], capture_output=True, text=True, check=True).stdout.strip()
-spans = speech_spans(video)
+spans = speech_spans(os.environ.get("SPANS_FROM", video))
 pad = (keep + FADE) / 2  # silence left on each side of a cut; the xfade eats FADE of it
 segs, start = [], 0.0
 for (_, b), (a, _) in zip(spans, spans[1:], strict=False):
