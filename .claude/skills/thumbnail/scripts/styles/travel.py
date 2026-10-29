@@ -2,7 +2,7 @@
 
 Pass the raw shots in plan order, not the finished reel (its intro text, dips to black and transitions
 would be picked). The most vivid, sharp, still frame wins; the first shot is the hook shot and gets a
-small bonus. The cover is built to stop the scroll: the frame full bleed, punchy grade and vignette,
+small bonus. The cover is built to stop the scroll: the frame full bleed, bright natural grade (never dark: it tires the eye),
 optionally zoomed onto the subject (--zoom/--focus) with a red ring + arrow on it (--circle), a dark
 band at the top behind the hook as white on a red banner, the place name huge in Futura with a black
 outline (two balanced lines when long) and a sub line that may end in a flag emoji ("Norway 🇳🇴").
@@ -35,7 +35,7 @@ from core import (
     spread,
     to_pil,
 )
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont, ImageStat
 
 FONTS = {  # (file, face index)
     "futura": ("/System/Library/Fonts/Supplemental/Futura.ttc", 4),  # Condensed ExtraBold
@@ -145,13 +145,17 @@ def text(img, box, args, middle=False):
 
 # ---------- frame prep ----------
 def punch(im):
-    """grade() pushed further plus a vignette: one bright focal area, saturated, crisp"""
-    im = ImageEnhance.Color(grade(im)).enhance(1.2)
-    im = ImageEnhance.Contrast(im).enhance(1.1)
+    """grade() lifted a touch plus a faint vignette: bright, natural colour, easy on the eyes"""
+    im = grade(im)
+    mean = ImageStat.Stat(im.convert("L")).mean[0]
+    if mean < 125:  # a moody, dark frame: lift the shadows (gamma) towards a mid-bright mean
+        g = min(max(math.log(125 / 255) / math.log(max(mean, 1) / 255), 0.7), 1.0)
+        im = im.point(lambda v: round(255 * (v / 255) ** g))
+    im = ImageEnhance.Brightness(im).enhance(1.04)
     w, h = im.size
     v = Image.radial_gradient("L").resize((w, h))  # 0 centre -> 255 corners
     dark = Image.new("RGB", (w, h), BLACK)
-    return Image.composite(dark, im, v.point(lambda a: int(max(a - 120, 0) * 0.75)))
+    return Image.composite(dark, im, v.point(lambda a: int(max(a - 170, 0) * 0.35)))
 
 
 def zoom(frame, args):
@@ -211,7 +215,7 @@ def band(w, h, top, bottom):
 def backdrop(frame, w, h):
     """frame blurred and dimmed to fill w x h, for a frame of the other aspect"""
     bg = cover(frame, w, h).filter(ImageFilter.GaussianBlur(30))
-    return ImageEnhance.Brightness(bg).enhance(0.55).convert("RGBA")
+    return ImageEnhance.Brightness(bg).enhance(0.8).convert("RGBA")
 
 
 def vertical(frame, args):
@@ -222,7 +226,7 @@ def vertical(frame, args):
         im = backdrop(frame, 1080, 1920)
         panel = punch(cover(frame, 1080, 608))
         im.paste(panel, (0, 1000))
-    im.alpha_composite(band(1080, 1920, (0.42, 190), (0.18, 120)))
+    im.alpha_composite(band(1080, 1920, (0.38, 120), (0.15, 70)))
     text(im, (CENTRE[0], SAFE[1], CENTRE[1], SAFE[3]), args)
     return im.convert("RGB")
 
@@ -243,7 +247,7 @@ def landscape(frame, args):
         right = W - pw
     g = Image.linear_gradient("L").rotate(90, expand=True).resize((W, H))  # 255 left -> 0 right
     shadow = Image.new("RGBA", (W, H), (0, 0, 0, 255))
-    shadow.putalpha(g.point(lambda v: int(v * 0.6)))
+    shadow.putalpha(g.point(lambda v: int(v * 0.4)))
     im.alpha_composite(shadow)
     text(im, (80, 80, min(right - 60, 1180), H - 80), args, middle=True)
     return im.convert("RGB")
