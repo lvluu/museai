@@ -88,6 +88,10 @@ class _Tab:
     # Media srcs already returned from this tab: a new thread can still show the
     # previous thread's DOM, so a list index alone mistakes old media for new.
     media_srcs: set[str] = field(default_factory=set)
+    # A job holds the tab from `_tab()` until `_release()`; other jobs on the account get another tab.
+    busy: bool = False
+    # Cookies rotated while a job held the tab: close it once that job releases it.
+    stale: bool = False
 
 
 class BrowserDriver(MuseDriver):
@@ -100,7 +104,8 @@ class BrowserDriver(MuseDriver):
         self.settings = settings
         self._chromium: ChromiumProcess | None = None
         self._browser: CDPSession | None = None
-        self._tabs: dict[str, _Tab] = {}
+        # Up to `account_max_concurrency` tabs per account, each running its own muse thread.
+        self._tabs: dict[str, list[_Tab]] = defaultdict(list)
         # Per account, so opening one account's tab never blocks another account's job.
         self._tab_locks: dict[str, asyncio.Lock] = defaultdict(asyncio.Lock)
         self._browser_lock = asyncio.Lock()
@@ -146,7 +151,7 @@ class BrowserDriver(MuseDriver):
                 "browser CDP connection lost (chromium exit code %s); reconnecting",
                 proc.returncode if proc else None,
             )
-            tabs = list(self._tabs.values())
+            tabs = self._all_tabs()
             self._tabs.clear()
             for tab in tabs:
                 await tab.session.close()
@@ -164,7 +169,7 @@ class BrowserDriver(MuseDriver):
             log.info("browser driver reconnected")
 
     async def shutdown(self) -> None:
-        for tab in list(self._tabs.values()):
+        for tab in self._all_tabs():
             await self._close_tab(tab)
         if self._browser:
             await self._browser.close()
@@ -173,20 +178,38 @@ class BrowserDriver(MuseDriver):
 
     async def health(self) -> dict[str, Any]:
         ok = self._browser is not None and not self._browser.closed
-        return {"driver": self.name, "ok": ok, "tabs": len(self._tabs)}
+        return {"driver": self.name, "ok": ok, "tabs": len(self._all_tabs())}
 
     # ------------------------------------------------------------ tabs
+    def _all_tabs(self) -> list[_Tab]:
+        return [tab for tabs in self._tabs.values() for tab in tabs]
+
     async def _tab(self, account: Account) -> _Tab:
+        """Hold an idle tab of ``account``, opening one when all its tabs are busy.
+
+        The pool caps jobs per account at ``account_max_concurrency``, so this opens
+        at most that many tabs; each job renders in its own tab and muse thread.
+        """
         await self._ensure_browser()
         async with self._tab_locks[account.id]:
-            tab = self._tabs.get(account.id)
-            if tab and not tab.session.closed:
+            for tab in list(self._tabs[account.id]):
+                if tab.busy:
+                    continue
+                if tab.session.closed or tab.stale:
+                    await self._close_tab(tab)
+                    continue
+                tab.busy = True
                 return tab
-            if tab:
-                await self._close_tab(tab)
             tab = await self._open_tab(account)
-            self._tabs[account.id] = tab
+            tab.busy = True
+            self._tabs[account.id].append(tab)
+            log.info("%s now has %d tab(s)", account.id, len(self._tabs[account.id]))
             return tab
+
+    async def _release(self, tab: _Tab) -> None:
+        tab.busy = False
+        if tab.stale:
+            await self._close_tab(tab)
 
     async def _open_tab(self, account: Account) -> _Tab:
         if missing := muse.missing_session_cookies(account.cookies):
@@ -207,7 +230,9 @@ class BrowserDriver(MuseDriver):
         return _Tab(account.id, context_id, target_id, session)
 
     async def _close_tab(self, tab: _Tab) -> None:
-        self._tabs.pop(tab.account_id, None)
+        tabs = self._tabs.get(tab.account_id, [])
+        if tab in tabs:
+            tabs.remove(tab)
         await tab.session.close()
         if self._browser and not self._browser.closed:
             with contextlib.suppress(Exception):
@@ -395,6 +420,9 @@ class BrowserDriver(MuseDriver):
         except CDPError as exc:
             await self._close_tab(tab)
             raise UpstreamError(f"browser error: {exc}") from exc
+        except BaseException:
+            await self._release(tab)
+            raise
         return tab, base
 
     # ------------------------------------------------------------ chat
@@ -463,6 +491,7 @@ class BrowserDriver(MuseDriver):
             raise UpstreamError(f"browser error: {exc}") from exc
         except BaseException:
             self._forget(tab)
+            await self._release(tab)
             raise
 
     async def chat_stream(self, account: Account, req: ChatRequest) -> AsyncIterator[str]:
@@ -512,6 +541,7 @@ class BrowserDriver(MuseDriver):
             raise UpstreamError(f"browser error: {exc}") from exc
         finally:
             await self._finish_chat(tab, account, req, finished)
+            await self._release(tab)
 
     async def chat_complete(self, account: Account, req: ChatRequest) -> str:
         """Return the final assistant bubble instead of joining streamed snapshots.
@@ -557,6 +587,7 @@ class BrowserDriver(MuseDriver):
             raise UpstreamError(f"browser error: {exc}") from exc
         finally:
             await self._finish_chat(tab, account, req, finished)
+            await self._release(tab)
 
     async def _finish_chat(
         self, tab: _Tab, account: Account, req: ChatRequest, finished: bool
@@ -693,6 +724,8 @@ class BrowserDriver(MuseDriver):
         except CDPError as exc:
             await self._close_tab(tab)
             raise UpstreamError(f"browser error: {exc}") from exc
+        finally:
+            await self._release(tab)
 
     async def generate_image(self, account: Account, req: ImageRequest) -> list[MediaResult]:
         prompt = self._media_prompt(req.prompt, "image", req.size)
@@ -721,7 +754,10 @@ class BrowserDriver(MuseDriver):
     # ------------------------------------------------------------ session
     async def renew_session(self, account: Account) -> SessionInfo:
         info = await muse.renew_session(account.cookies)
-        # Force the tab to pick up rotated cookies on next use.
-        if tab := self._tabs.get(account.id):
-            await self._close_tab(tab)
+        # Force the tabs to pick up rotated cookies; a busy tab closes when its job ends.
+        for tab in list(self._tabs.get(account.id, [])):
+            if tab.busy:
+                tab.stale = True
+            else:
+                await self._close_tab(tab)
         return info

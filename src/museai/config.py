@@ -75,10 +75,10 @@ class Settings(BaseSettings):
     # --- account pool ---
     pool_strategy: PoolStrategyName = "affinity"
     pool_acquire_timeout: float = 60.0
-    # How long an image/video job waits for a free account (one job per account at a time).
+    # How long an image/video job waits for a free account (up to account_max_concurrency jobs per account).
     # 0 = queue until one is free.
     media_queue_timeout: float = 0.0
-    account_max_concurrency: int = 1
+    account_max_concurrency: int = 6
     account_cooldown: float = 120.0
     max_failover: int = 2
 

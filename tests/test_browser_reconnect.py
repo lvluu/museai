@@ -126,7 +126,7 @@ async def test_next_job_relaunches_chromium_after_it_exited(driver, account):
     assert driver._chromium.launches == 2
     assert len(_browsers()) == 2
     assert not tab.session.closed
-    assert driver._tabs[account.id] is tab
+    assert driver._tabs[account.id] == [tab]
 
 
 async def test_concurrent_jobs_reconnect_once(driver, account):
@@ -137,4 +137,36 @@ async def test_concurrent_jobs_reconnect_once(driver, account):
     await asyncio.gather(driver._tab(account), driver._tab(other))
 
     assert len(_browsers()) == 2  # startup + exactly one reconnect
-    assert set(driver._tabs) == {account.id, other.id}
+    assert {acc for acc, tabs in driver._tabs.items() if tabs} == {account.id, other.id}
+
+
+async def test_concurrent_jobs_on_one_account_get_their_own_tabs(driver, account):
+    tabs = await asyncio.gather(*(driver._tab(account) for _ in range(3)))
+
+    assert len({t.target_id for t in tabs}) == 3
+    assert len({t.context_id for t in tabs}) == 3
+    assert (await driver.health())["tabs"] == 3
+
+    await driver._release(tabs[1])
+    again = await driver._tab(account)
+
+    assert again is tabs[1]  # an idle tab is reused, not reopened
+    assert (await driver.health())["tabs"] == 3
+
+
+async def test_renew_closes_busy_tab_only_after_its_job(driver, account, monkeypatch):
+    async def renewed(cookies):
+        return None
+
+    monkeypatch.setattr(driver_mod.muse, "renew_session", renewed)
+    busy = await driver._tab(account)
+    idle = await driver._tab(account)
+    await driver._release(idle)
+
+    await driver.renew_session(account)
+
+    assert idle.session.closed  # idle tab picks up rotated cookies right away
+    assert not busy.session.closed  # the running render keeps its tab
+    await driver._release(busy)
+    assert busy.session.closed
+    assert (await driver.health())["tabs"] == 0
