@@ -7,8 +7,11 @@
 # the work folder (raw clips, takes, sheets, mouth strips, frame grabs, cues, words, prompts), the
 # ~/Movies/museai renders starting with prefix, and the server's identical copies in data/media/.
 # prefix defaults to the work folder's name (e.g. ep10). Deleted = moved to the Trash.
-# CAPTION="text" or CAPTION_FILE=caption.txt: the social-media caption (hook + hashtags), saved to the
-# dashboard's "Ready to post" queue (MUSEAI_BASE, default http://127.0.0.1:18610) for the video.
+# CAPTIONS_FILE=captions.json: one caption per platform ({"youtube": "title\n\ndescription", "tiktok": ...,
+# "facebook", "instagram", "x", "threads"}), written with the social-captions skill and checked by its
+# captions.py before anything is copied. CAPTION="text" / CAPTION_FILE=caption.txt: the shared caption, used
+# for a platform without its own (default: the TikTok one). Both are saved to the dashboard's "Ready to
+# post" queue (MUSEAI_BASE, default http://127.0.0.1:18610) for the video.
 set -euo pipefail
 final=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
 work=$(cd "$2" && pwd)
@@ -30,8 +33,14 @@ out="$dest/$(basename "$final")"
 # (EP20, 2026-10-28). NO_CAPTION=1 only for a video that will not be posted.
 caption=${CAPTION:-}
 [ -n "${CAPTION_FILE:-}" ] && caption=$(cat "$CAPTION_FILE")
-[ -n "$caption" ] || [ "${NO_CAPTION:-0}" = 1 ] ||
-  { echo "no caption: pass CAPTION_FILE=caption.txt (or NO_CAPTION=1 for a video that will not be posted)" >&2; exit 1; }
+captions=
+if [ -n "${CAPTIONS_FILE:-}" ]; then
+  python3 "$(dirname "$0")/../../social-captions/scripts/captions.py" check "$CAPTIONS_FILE" ||
+    { echo "captions break a platform rule: fix $CAPTIONS_FILE" >&2; exit 1; }
+  captions=$(cat "$CAPTIONS_FILE")
+fi
+[ -n "$caption$captions" ] || [ "${NO_CAPTION:-0}" = 1 ] ||
+  { echo "no caption: pass CAPTIONS_FILE=captions.json (social-captions skill; or NO_CAPTION=1 for a video that will not be posted)" >&2; exit 1; }
 # 4K only on request (UHD=1): a good 1080p render needs no upscale (user rule, 2026-10-27)
 if [ "${UHD:-0}" = 0 ]; then
   cp "$final" "$out"
@@ -43,11 +52,14 @@ else
 fi
 ffprobe -v error -show_entries format=duration -of csv=p=0 "$out" >/dev/null || { echo "copy unreadable: $out" >&2; exit 1; }
 echo "DELIVERED $out"
-if [ -n "$caption" ]; then
+if [ -n "$caption$captions" ]; then
   name=$(python3 -c 'import sys, urllib.parse; print(urllib.parse.quote(sys.argv[1]))' "$(basename "$out")")
-  CAPTION="$caption" python3 -c 'import json, os; print(json.dumps({"caption": os.environ["CAPTION"]}))' |
+  CAPTION="$caption" CAPTIONS="$captions" python3 -c '
+import json, os
+own = json.loads(os.environ["CAPTIONS"] or "{}")
+print(json.dumps({"caption": os.environ["CAPTION"] or own.get("tiktok", ""), "captions": own}))' |
     curl -sf -X POST "${MUSEAI_BASE:-http://127.0.0.1:18610}/dashboard/posts/$name" -H "Content-Type: application/json" --data-binary @- >/dev/null &&
-    echo "CAPTION saved for the posting queue" || echo "caption not saved (server down?), add it on the dashboard"
+    echo "CAPTIONS saved for the posting queue" || echo "captions not saved (server down?), add them on the dashboard"
 fi
 
 shopt -s nullglob

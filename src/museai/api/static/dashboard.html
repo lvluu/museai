@@ -125,6 +125,14 @@
   .post-name { font-weight: 600; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .post textarea { font: inherit; font-size: 13px; color: var(--text); background: var(--bg); width: 100%;
                    border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; resize: vertical; min-height: 56px; }
+  .cap-tabs { display: flex; flex-wrap: wrap; gap: 2px; }
+  .cap-tabs button { border: 0; background: none; padding: 2px 8px; border-radius: 6px; font-size: 12px; color: var(--muted); }
+  .cap-tabs button.on { background: var(--soft); color: var(--accent); }
+  .cap-tabs button.own::after { content: " •"; color: var(--ok); }
+  .cap-foot { display: flex; gap: 8px; align-items: center; font-size: 12px; color: var(--muted);
+              font-variant-numeric: tabular-nums; }
+  .cap-foot .over { color: var(--bad); font-weight: 600; }
+  .cap-foot span { flex: 1; }
   .plats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
   .plat { border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px; display: flex; flex-direction: column; gap: 4px; }
   .plat.done { border-color: var(--ok); background: var(--ok-bg); }
@@ -187,8 +195,9 @@
 <main id="app">
   <section data-section="post" hidden>
     <header><h1>Ready to post</h1></header>
-    <p class="hint">Click a platform: the caption is copied and the video is shown in Finder, so drag it into the
-      upload page that opens. Tick “posted” after publishing; when all platforms are ticked, the video moves to the Trash.</p>
+    <p class="hint">Each platform has its own caption (tabs above the text; • = written for it, otherwise the
+      “All” caption is used). Click a platform: its caption is copied (YouTube: the title, then use “Copy description”)
+      and the video is shown in Finder, so drag it into the upload page that opens. Tick “posted” after publishing; when all platforms are ticked, the video moves to the Trash.</p>
     <div class="notify" id="notify"></div>
     <div class="posts" id="posts"></div>
   </section>
@@ -561,7 +570,12 @@ function renderPosts() {
           ${pill(n ? ["p-run", `${n}/${posts.platforms.length} posted`] : ["p-idle", "Not posted"])}
           <button class="linkish" data-done title="Move to the Trash without posting everywhere">Delete</button>
         </div>
-        <textarea data-caption placeholder="Caption and hashtags (copied when you click a platform)">${esc(v.caption)}</textarea>
+        <div class="cap-tabs">${[["all", "All"], ...posts.platforms.map((p) => [p.id, p.name.split(" ")[0]])].map(([id, label]) =>
+          `<button data-captab="${esc(id)}">${esc(label)}</button>`).join("")}</div>
+        <textarea data-caption></textarea>
+        <div class="cap-foot"><span data-capcount></span>
+          <button class="linkish" data-copytab="title" hidden>Copy title</button>
+          <button class="linkish" data-copytab="text">Copy</button></div>
         ${canShareFiles ? `<div class="share-row">
           <button data-share title="Copy the caption, then share the video to TikTok, Instagram, YouTube, X, Threads or Photos">${shareFiles.has(v.name) ? "Share video" : "Get video"}</button>
           <button data-copycap title="Copy the caption">Copy caption</button>
@@ -575,6 +589,58 @@ function renderPosts() {
       </div>
     </div>`;
   }).join("");
+  for (const card of $("posts").querySelectorAll(".post")) showCaption(card);
+}
+
+// Per-platform captions: captions[platform] when written for it, else the shared caption.
+// YouTube's is "title\n\ndescription"; X counts emoji, CJK and Vietnamese letters as 2.
+const capTab = new Map();
+const video = (card) => posts.videos.find((v) => v.name === card.dataset.name);
+const captionFor = (v, p) => (p !== "all" && v.captions[p]) || v.caption;
+const ytSplit = (text) => { const [title, ...rest] = text.split("\n"); return [title.trim(), rest.join("\n").trim()]; };
+function xLength(text) {
+  const light = (c) => c <= 4351 || (c >= 8192 && c <= 8205) || (c >= 8208 && c <= 8223) || (c >= 8242 && c <= 8247);
+  let n = 0, prevEmoji = false;
+  for (const ch of text.normalize("NFC").replace(/https?:\/\/\S+/g, "x".repeat(23))) {
+    const c = ch.codePointAt(0);
+    const joiner = c === 0x200d || c === 0xfe0f || (c >= 0x1f3fb && c <= 0x1f3ff);
+    if (joiner && prevEmoji) continue;
+    n += light(c) ? 1 : 2; prevEmoji = c >= 0x1f000 || (c >= 0x2600 && c <= 0x27bf);
+  }
+  return n;
+}
+function showCaption(card) {
+  const v = video(card); if (!v) return;
+  const tab = capTab.get(v.name) || "all";
+  const ta = card.querySelector("[data-caption]");
+  for (const b of card.querySelectorAll("[data-captab]")) {
+    b.classList.toggle("on", b.dataset.captab === tab);
+    b.classList.toggle("own", b.dataset.captab !== "all" && !!v.captions[b.dataset.captab]);
+  }
+  ta.value = tab === "all" ? v.caption : (v.captions[tab] || "");
+  ta.placeholder = tab === "all" ? "Caption for every platform without its own (copied when you click a platform)"
+    : v.caption ? `Uses the “All” caption:\n${v.caption}` : "Caption for this platform";
+  countCaption(card);
+}
+function countCaption(card) {
+  const v = video(card), tab = capTab.get(v.name) || "all";
+  const text = card.querySelector("[data-caption]").value || (tab === "all" ? "" : v.caption);
+  const p = posts.platforms.find((x) => x.id === tab);
+  const fmt = (n, lim) => `<b class="${n > lim ? "over" : ""}">${n}</b>/${lim}`;
+  card.querySelector("[data-copytab=title]").hidden = tab !== "youtube";
+  card.querySelector("[data-copytab=text]").textContent = tab === "youtube" ? "Copy description" : "Copy";
+  card.querySelector("[data-capcount]").innerHTML = !p ? `${[...text].length} characters`
+    : tab === "youtube" ? `title ${fmt([...ytSplit(text)[0]].length, 100)} · description ${fmt([...ytSplit(text)[1]].length, p.limit)}`
+    : tab === "x" ? `${fmt(xLength(text), p.limit)} (X weighted)` : fmt([...text].length, p.limit);
+}
+// What clicking a platform copies: its caption, or YouTube's title (its first field).
+function copyText(card, tab, part = "text") {
+  const v = video(card), typed = card.querySelector("[data-caption]").value;
+  // the textarea may hold an edit not saved yet (saved on change)
+  const text = (tab === (capTab.get(v.name) || "all") && typed) || captionFor(v, tab);
+  if (tab !== "youtube") return text;
+  const [title, desc] = ytSplit(text);
+  return part === "title" ? title : desc;
 }
 
 // On the phone: share the file itself to the TikTok / Instagram / YouTube apps or Photos.
@@ -582,7 +648,7 @@ function renderPosts() {
 const canShareFiles = !!navigator.canShare?.({ files: [new File([""], "x.mp4", { type: "video/mp4" })] });
 const shareFiles = new Map();
 async function shareVideo(name, card, btn) {
-  const caption = card.querySelector("[data-caption]").value;
+  const caption = copyText(card, capTab.get(name) || "all");
   if (caption) navigator.clipboard?.writeText(caption).catch(() => {});
   const file = shareFiles.get(name);
   if (file) {
@@ -677,13 +743,23 @@ $("posts").addEventListener("click", async (e) => {
   if (open) {
     const p = posts.platforms.find((x) => x.id === open.dataset.open);
     window.open(p.url, "_blank", "noopener");
-    const caption = card.querySelector("[data-caption]").value;
+    const caption = copyText(card, p.id, "title");
     if (caption) navigator.clipboard?.writeText(caption).catch(() => {});
+    capTab.set(name, p.id); showCaption(card);
     api(postUrl(name, "/reveal"), "{}").catch(() => {});
     return;
   }
+  const tab = e.target.closest("[data-captab]");
+  if (tab) { capTab.set(name, tab.dataset.captab); showCaption(card); return; }
+  const copy = e.target.closest("[data-copytab]");
+  if (copy) {
+    const label = copy.textContent;
+    navigator.clipboard?.writeText(copyText(card, capTab.get(name) || "all", copy.dataset.copytab)).catch(() => {});
+    copy.textContent = "Copied"; setTimeout(() => { copy.textContent = label; }, 1200);
+    return;
+  }
   if (e.target.closest("[data-copycap]")) {
-    navigator.clipboard?.writeText(card.querySelector("[data-caption]").value).catch(() => {});
+    navigator.clipboard?.writeText(copyText(card, capTab.get(name) || "all")).catch(() => {});
     e.target.textContent = "Copied"; setTimeout(() => { e.target.textContent = "Copy caption"; }, 1200);
     return;
   }
@@ -694,7 +770,13 @@ $("posts").addEventListener("click", async (e) => {
 $("posts").addEventListener("change", (e) => {
   const name = e.target.closest(".post")?.dataset.name; if (!name) return;
   if (e.target.dataset.posted) updatePost(name, { platform: e.target.dataset.posted, posted: e.target.checked });
-  else if (e.target.matches("[data-caption]")) updatePost(name, { caption: e.target.value });
+  else if (e.target.matches("[data-caption]")) {
+    const tab = capTab.get(name) || "all";
+    updatePost(name, tab === "all" ? { caption: e.target.value } : { captions: { [tab]: e.target.value } });
+  }
+});
+$("posts").addEventListener("input", (e) => {
+  if (e.target.matches("[data-caption]")) countCaption(e.target.closest(".post"));
 });
 
 // Host CPU: overloaded = runnable work waits for a core, so renders and tabs slow down.

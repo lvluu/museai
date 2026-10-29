@@ -105,8 +105,9 @@ Commands assume the uv `--with` lists in each script's docstring.
    `speakers.py` with the command qa_lesson prints (all lines `W`, a solo to-camera shot) and a frame sheet at the
    card times: text inside the panel, never over the face or mouth.
 10. **Deliver**: preview both files from the work folder (`SendUserFile`, display render), with a
-    Vietnamese caption per file (hook line, what the viewer learns, 3-6 hashtags). Only after the user
-    accepts: `FINAL=1 CAPTION_FILE=caption.txt ../muse-video/scripts/deliver.sh 9x16/<topic>_vertical_9x16.mp4 work/<topic>/9x16 <topic>_vertical`
+    Vietnamese `captions.json` per file, one caption per platform (`../social-captions/SKILL.md`; hook,
+    what the viewer learns, the platform's CTA and hashtags; `captions.py check` PASS). Only after the user
+    accepts: `FINAL=1 CAPTIONS_FILE=captions.json ../muse-video/scripts/deliver.sh 9x16/<topic>_vertical_9x16.mp4 work/<topic>/9x16 <topic>_vertical`
     and the same for 16x9 (each deliver trashes its own format folder), then trash `work/<topic>/`
     (voice, still). The two exports are the only files left on the Desktop.
 

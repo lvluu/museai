@@ -1,7 +1,8 @@
 """Posting queue: finished videos in ``post_dir`` (the Desktop) waiting to go to social media.
 
 muse-video delivers each final video to the Desktop. The dashboard lists them with a caption
-and one button per platform that opens its upload page; the user marks each platform as
+per platform (``captions``, written by the social-captions skill; ``caption`` is the fallback for a
+platform without one) and one button per platform that opens its upload page; the user marks each platform as
 posted, and once every platform is done the video moves to the Trash.
 """
 
@@ -26,13 +27,16 @@ router = APIRouter(tags=["dashboard"], dependencies=[Depends(_local_or_admin)])
 
 # Upload pages. None of them takes a file in the link, so the dashboard also shows the file
 # in Finder to drag in. Facebook's reel composer can cross-post to a linked Instagram account.
+# The caption limit is the description's (YouTube's caption is "title\n\ndescription", title <= 100);
+# X counts weighted characters (emoji, CJK and Vietnamese letters count 2). The social-captions
+# skill's check_captions.py enforces the same limits before delivery.
 PLATFORMS = {
-    "youtube": ("YouTube Shorts", "https://www.youtube.com/upload"),
-    "tiktok": ("TikTok", "https://www.tiktok.com/tiktokstudio/upload"),
-    "facebook": ("Facebook Reels", "https://www.facebook.com/reels/create"),
-    "instagram": ("Instagram Reels", "https://www.instagram.com/"),
-    "x": ("X", "https://x.com/compose/post"),
-    "threads": ("Threads", "https://www.threads.com/"),
+    "youtube": ("YouTube Shorts", "https://www.youtube.com/upload", 5000),
+    "tiktok": ("TikTok", "https://www.tiktok.com/tiktokstudio/upload", 4000),
+    "facebook": ("Facebook Reels", "https://www.facebook.com/reels/create", 2200),
+    "instagram": ("Instagram Reels", "https://www.instagram.com/", 2200),
+    "x": ("X", "https://x.com/compose/post", 280),
+    "threads": ("Threads", "https://www.threads.com/", 500),
 }
 VIDEO_EXT = {".mp4", ".mov", ".m4v"}
 
@@ -61,7 +65,8 @@ def _video(svc: Services, name: str) -> Path:
 def _view(path: Path, entry: dict) -> dict:
     st = path.stat()
     return {"name": path.name, "size": st.st_size, "mtime": st.st_mtime,
-            "caption": entry.get("caption", ""), "posted": entry.get("posted", {})}
+            "caption": entry.get("caption", ""), "captions": entry.get("captions", {}),
+            "posted": entry.get("posted", {})}
 
 
 def _trash(path: Path) -> None:
@@ -82,7 +87,8 @@ async def list_posts(svc: Services = Depends(get_services)) -> dict:
         if folder.is_dir() else []
     return {
         "folder": str(folder),
-        "platforms": [{"id": k, "name": n, "url": u} for k, (n, u) in PLATFORMS.items()],
+        "platforms": [{"id": k, "name": n, "url": u, "limit": lim}
+                      for k, (n, u, lim) in PLATFORMS.items()],
         "videos": [_view(p, state.get(p.name, {})) for p in videos],
     }
 
@@ -95,7 +101,8 @@ async def post_file(name: str, svc: Services = Depends(get_services)) -> FileRes
 # Plain def (not async): trashing and Finder run subprocesses, so FastAPI runs these in a thread.
 @router.post("/dashboard/posts/{name}", include_in_schema=False)
 def update_post(name: str, body: dict, svc: Services = Depends(get_services)) -> dict:
-    """Set the caption, mark a platform posted (or not), or ``{"done": true}`` to trash it now.
+    """Set the caption, per-platform ``captions`` (merged in; an empty text drops that platform's
+    own caption), mark a platform posted (or not), or ``{"done": true}`` to trash it now.
 
     Marking the last platform posted moves the video to the Trash.
     """
@@ -104,6 +111,15 @@ def update_post(name: str, body: dict, svc: Services = Depends(get_services)) ->
     entry = state.setdefault(name, {})
     if "caption" in body:
         entry["caption"] = str(body["caption"] or "")[:5000]
+    if captions := body.get("captions"):
+        if not isinstance(captions, dict) or set(captions) - set(PLATFORMS):
+            raise InvalidRequest(f"captions must map platforms ({', '.join(PLATFORMS)}) to text")
+        own = entry.setdefault("captions", {})
+        for platform, text in captions.items():
+            if text := str(text or "")[:5200]:  # YouTube: title + blank line + description
+                own[platform] = text
+            else:
+                own.pop(platform, None)
     if platform := body.get("platform"):
         if platform not in PLATFORMS:
             raise InvalidRequest(f"unknown platform '{platform}'")

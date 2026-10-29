@@ -220,6 +220,16 @@ def test_posting_queue(client, admin, settings, monkeypatch):
 
     r = client.post("/dashboard/posts/ep1.mp4", headers=admin, json={"caption": "hi #fyp"}).json()
     assert r["video"]["caption"] == "hi #fyp"
+    r = client.post("/dashboard/posts/ep1.mp4", headers=admin,
+                    json={"captions": {"x": "short #a", "youtube": "Title\n\nDesc"}}).json()
+    assert r["video"]["captions"] == {"x": "short #a", "youtube": "Title\n\nDesc"}
+    assert r["video"]["caption"] == "hi #fyp"
+    r = client.post("/dashboard/posts/ep1.mp4", headers=admin, json={"captions": {"x": ""}}).json()
+    assert r["video"]["captions"] == {"youtube": "Title\n\nDesc"}
+    assert client.post("/dashboard/posts/ep1.mp4", headers=admin,
+                       json={"captions": {"myspace": "x"}}).status_code == 400
+    assert {p["id"]: p["limit"] for p in client.get("/dashboard/posts", headers=admin)
+            .json()["platforms"]}["x"] == 280
     for p in ("youtube", "tiktok", "facebook"):
         r = client.post("/dashboard/posts/ep1.mp4", headers=admin, json={"platform": p}).json()
         assert not r["trashed"]
