@@ -115,9 +115,9 @@ Commands assume the uv `--with` lists in each script's docstring.
 10. **Deliver**: preview both files from the work folder (`SendUserFile`, display render), with a
     Vietnamese `captions.json` per file, one caption per platform (`../social-captions/SKILL.md`; hook,
     what the viewer learns, the platform's CTA and hashtags; `captions.py check` PASS). Only after the user
-    accepts: `FINAL=1 CAPTIONS_FILE=captions.json ../muse-video/scripts/deliver.sh 9x16/<topic>_vertical_9x16.mp4 work/<topic>/9x16 <topic>_vertical`
+    accepts (thumbnails per format with `../thumbnail/SKILL.md`, into `work/<topic>/9x16/thumbs`): `FINAL=1 CAPTIONS_FILE=captions.json THUMB_DIR=work/<topic>/9x16/thumbs ../muse-video/scripts/deliver.sh 9x16/<topic>_vertical_9x16.mp4 work/<topic>/9x16 <topic>_vertical`
     and the same for 16x9 (each deliver trashes its own format folder), then trash `work/<topic>/`
-    (voice, still). The two exports are the only files left on the Desktop.
+    (voice, still). The two exports and their thumbnails are the only files left on the Desktop.
 
 ## Known limits (say them, don't hide them)
 - Same teacher, voice and lesson in both formats, but each format follows its own render's lips, so

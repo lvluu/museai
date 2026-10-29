@@ -7,6 +7,9 @@ posted, and once every platform is done the video moves to the Trash.
 
 A video missing a platform's caption gets one written in the background (services/captions.py).
 
+deliver.sh puts the thumbnails (thumbnail skill) next to the video as ``<stem> - thumbnail 9x16.jpg`` /
+``16x9``; the dashboard shows them to drag into the upload pages, and they go to the Trash with the video.
+
 Each video also gets a posting slot: two a day at the audience's peak hours (``SLOTS``), handed out in
 delivery order, with a time per platform (``OFFSETS``) to set in each platform's scheduler.
 """
@@ -49,6 +52,9 @@ PLATFORMS = {
     "threads": ("Threads", "https://www.threads.com/", 500),
 }
 VIDEO_EXT = {".mp4", ".mov", ".m4v"}
+# Thumbnail kinds and where each is uploaded (the thumbnail skill's research, 2026-10).
+THUMBS = {"9x16": "YouTube Shorts, TikTok, Facebook / Instagram Reels cover",
+          "16x9": "YouTube video, Facebook feed"}
 
 TZ = ZoneInfo("Asia/Ho_Chi_Minh")  # GMT+7: the viewers are in Vietnam
 # Two Shorts a day (user rule 2026-10-29), Monday first: (slot 1 midday, slot 2 evening) YouTube times.
@@ -104,6 +110,12 @@ def _video(svc: Services, name: str) -> Path:
     return path
 
 
+def _thumbs(path: Path) -> dict[str, Path]:
+    """The video's thumbnails on disk, by kind."""
+    found = {k: path.with_name(f"{path.stem} - thumbnail {k}.jpg") for k in THUMBS}
+    return {k: p for k, p in found.items() if p.is_file()}
+
+
 def _slot_times(key: str) -> dict[str, datetime]:
     """Posting time per platform for a slot key "YYYY-MM-DD/1|2"."""
     day, n = SLOT_KEY.match(key).groups()
@@ -149,6 +161,7 @@ def _view(path: Path, entry: dict, svc: Services) -> dict:
             "caption": entry.get("caption", ""), "captions": entry.get("captions", {}),
             "auto_captions": svc.captions.status(_key(path.name)),
             "posted": entry.get("posted", {}), "slot": key,
+            "thumbnails": [{"kind": k, "use": THUMBS[k]} for k in _thumbs(path)],
             "schedule": {p: t.isoformat() for p, t in _slot_times(key).items()} if key else {}}
 
 
@@ -220,6 +233,14 @@ async def post_file(name: str, svc: Services = Depends(get_services)) -> FileRes
     return FileResponse(_video(svc, name))
 
 
+@router.get("/dashboard/posts/{name}/thumbnail/{kind}", include_in_schema=False)
+async def post_thumbnail(name: str, kind: str, svc: Services = Depends(get_services)) -> FileResponse:
+    thumb = _thumbs(_video(svc, name)).get(kind)
+    if not thumb:
+        raise NotFound(f"no {kind} thumbnail for '{name}'")
+    return FileResponse(thumb, filename=thumb.name)
+
+
 # Plain def (not async): trashing and Finder run subprocesses, so FastAPI runs these in a thread.
 @router.post("/dashboard/posts/{name}", include_in_schema=False)
 def update_post(name: str, body: dict, svc: Services = Depends(get_services)) -> dict:
@@ -271,6 +292,8 @@ def _update(svc: Services, path: Path, body: dict) -> dict:
             posted.pop(platform, None)
     done = body.get("done") or set(entry.get("posted", {})) >= set(PLATFORMS)
     if done:
+        for thumb in _thumbs(path).values():
+            _trash(thumb)
         _trash(path)
         state.pop(name, None)
     _save(svc, state)

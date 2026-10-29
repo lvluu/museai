@@ -210,6 +210,7 @@ def test_posting_queue(client, admin, settings, monkeypatch):
     settings.post_dir.mkdir()
     (settings.post_dir / "ep1.mp4").write_bytes(b"video")
     (settings.post_dir / "notes.txt").write_text("not a video")
+    (settings.post_dir / "ep1 - thumbnail 9x16.jpg").write_bytes(b"jpg")
 
     d = client.get("/dashboard/posts", headers=admin).json()
     assert [v["name"] for v in d["videos"]] == ["ep1.mp4"]
@@ -218,6 +219,9 @@ def test_posting_queue(client, admin, settings, monkeypatch):
     }
     assert client.get("/dashboard/posts/ep1.mp4/file", headers=admin).content == b"video"
     assert client.get("/dashboard/posts/notes.txt/file", headers=admin).status_code == 404
+    assert [t["kind"] for t in d["videos"][0]["thumbnails"]] == ["9x16"]
+    assert client.get("/dashboard/posts/ep1.mp4/thumbnail/9x16", headers=admin).content == b"jpg"
+    assert client.get("/dashboard/posts/ep1.mp4/thumbnail/16x9", headers=admin).status_code == 404
 
     r = client.post("/dashboard/posts/ep1.mp4", headers=admin, json={"caption": "hi #fyp"}).json()
     assert r["video"]["caption"] == "hi #fyp"
@@ -242,7 +246,7 @@ def test_posting_queue(client, admin, settings, monkeypatch):
         assert not r["trashed"]
     for p in ("threads",):
         r = client.post("/dashboard/posts/ep1.mp4", headers=admin, json={"platform": p}).json()
-    assert r["trashed"] and trashed == ["ep1.mp4"]
+    assert r["trashed"] and trashed == ["ep1 - thumbnail 9x16.jpg", "ep1.mp4"]
     assert client.get("/dashboard/posts", headers=admin).json()["videos"] == []
 
 
