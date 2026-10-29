@@ -609,10 +609,9 @@
   },
   "character": {
     "id": "main",
-    "image": "~/.config/zoominview/character/face.jpg",
-    "text": "a young East Asian woman in her early twenties (the woman in the attached face photo, the same woman in every reel) with fair skin, a soft round face, dark brown eyes, shoulder-length layered dark brown-black hair with wispy see-through bangs, thin round silver wire-rim glasses, natural soft red lips and a light cream knit or cotton top suited to the weather,",
-    "skip_hooks": [
-      "glasses-off"
-    ]
+    "image": "assets/character/face.jpg",
+    "origin": "AI-generated original face (muse /v1/images/generations, text prompt only, 2026-10-29): fictional, no real person's likeness",
+    "text": "a young white European woman about 23 (the woman in the attached face photo, the same woman in every reel) with fair porcelain skin and a few faint freckles, a soft oval face, light hazel-green eyes, shoulder-length layered dark chestnut-brown hair with wispy see-through bangs, no glasses, natural soft rose lips and a cream knit sweater or light top suited to the weather,",
+    "skip_hooks": []
   }
 }

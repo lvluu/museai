@@ -28,10 +28,9 @@ PEOPLE = [
 
 
 # the attached photo only shows who she is; without this muse may open the clip on the photo itself
-FACE_REF = ("FACE REFERENCE: The attached photo shows the woman's real face, hair and glasses. It is NOT the first "
+FACE_REF = ("FACE REFERENCE: The attached photo shows the woman's real face and hair. It is NOT the first "
             "frame and NOT the location: do not show this room or this pose. Render her with exactly this face, "
-            "hairstyle, bangs and glasses, at the place below. She WEARS HER THIN ROUND SILVER WIRE-RIM GLASSES IN "
-            "EVERY FRAME: never takes them off, never without glasses.\n\n")
+            "eye colour, freckles, hairstyle and bangs in every frame, at the place below.\n\n")
 
 
 # muse put a second traveller in clip B for the whole reveal although the brief said "Nobody in frame"
@@ -131,7 +130,7 @@ def main():
             "reveal_time": reveal_time, "length": length, "music": m, "caption_hook": caption,
             "prompt_a": prompt((FACE_REF if character else "") + reveal["a"]), "prompt_b": prompt(NOBODY + reveal["b"])}
     if character:
-        plan["person_image"] = str(Path(character["image"]).expanduser())
+        plan["person_image"] = str(SKILL / character["image"])
     if "c" in reveal:
         plan["prompt_c"] = prompt(NOBODY + reveal["c"])
     hist["reveals"] = (hist["reveals"] + [reveal["id"]])[-10:]

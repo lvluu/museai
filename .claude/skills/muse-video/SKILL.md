@@ -42,6 +42,7 @@ Output in `~/Movies/museai/`. The video length comes from the prompt: always set
 ## Prompt (per video; the quality block is added for you)
 EVERYDAY CHINESE briefs: the user's format, the episode log and the rules for drafting the next episode are in `prompt/everyday-chinese.md`; add each new episode to its log. Follow its "Viral rules": the hook in the first 1-2 s is the everyday problem, never a greeting; the ending is a quiz that echoes the hook; the title and cover name the dilemma.
 Sections: CAST, SETTING, VOICE, CAMERA, SCRIPT.
+- **Recurring travel character**: a travel video with a person on screen uses the AI character of `../zoominview/SKILL.md` "The character" (`IMAGE=` her face photo + her fixed description), never a real person's photo.
 - **CAST**: age, ethnicity, hair, exact outfit colours, voice type per person. "Keep faces, hairstyles, outfits, props and voices identical for the whole video."
 - **SETTING**: one real, specific place with a few concrete objects that stay where they are.
 - **VOICE**: language + accent, e.g. "Natural Standard Mandarin (Putonghua), accurate tones, warm everyday intonation, about 4.5 syllables per second for every line." Optional "very quiet instrumental music far below the dialogue", or none.
