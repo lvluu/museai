@@ -84,20 +84,34 @@ Commands assume the uv `--with` lists in each script's docstring.
    work/<topic>/9x16 --format 9x16` and the same with `16x9`. Each clip <= 9 s of speech + pauses, cut at
    breath groups, with this format's FRAMING (9:16: teacher centred, lower 45 % still; 16:9: teacher in the
    left third, right 55 % empty wall) and `prompt/teacher.txt` (lips only on lines, closed in pauses,
-   locked camera, no text anywhere).
+   locked camera, no text anywhere). Each clip gets its own `duration` in `clips.json`, ~1 s longer than its
+   script (5-10 s): muse fills whatever length it renders with slow speech, so a 10 s render of a 5 s script
+   leaves the lips moving long after the dubbed voice (bi_so_sanh 2026-10-29). muse can still return 10 s;
+   step 6 catches that.
 5. **Render** each format as its own chain, the two chains in parallel (different first frames, so
    muse-video's "independent clips go out at once" applies):
-   `QUALITY=0 SIZE=9:16 DURATION=10 IMAGE=still/first_9x16.png OUT_NAME=clip01.mp4 ../muse-video/scripts/muse-video -f 9x16/clip01.txt 9x16/`
+   `QUALITY=0 SIZE=9:16 DURATION=<clip duration> IMAGE=still/first_9x16.png OUT_NAME=clip01.mp4 ../muse-video/scripts/muse-video -f 9x16/clip01.txt 9x16/`
    then every next clip with `CONTINUE_FROM=<previous clip>` instead of `IMAGE`. `QUALITY=0` because the
    prompt already carries the teacher style (muse-video's dialogue block would add captions rules).
    Check each clip before chaining (`../muse-video/scripts/check_clip.sh`, muse-video step 4): one
    person, no cut, no text, lips closed in SILENT spans. Re-render a failing clip once.
-6. **Join**: trim each clip ~0.4 s after its last syllable, `ease_seams.py`, `stitch.sh teacher.mp4 ...`
-   (muse-video steps 5-7).
+6. **Join** (bi_so_sanh 2026-10-29: seams jumped and lips ran past the voice when this was done by hand):
+   - `fit_clips.py 9x16 9x16/parts --format 9x16`: trims each clip 0.3 s after muse's last sound, speeds the
+     speech up toward its planned span (at most MAXF, 1.3 / 1.35 for 16x9), keeps the silent tail at 3x
+     speed instead of cutting it (a cut tail jumps at the seam), and scales every part to the format size
+     (muse returns some clips at 720p). It must print `RESULT ok`. `MISMATCH` means that clip's lips still
+     run > 15 % past its voice after MAXF, and the dub cannot fix that. Re-render the clip with shorter lines
+     or a shorter duration. Don't force it (`FORCE=1`) and hope.
+   - `ease_seams.py` on the parts, then `stitch.sh teacher.mp4 ...` (muse-video steps 5-7). `jumps.py
+     teacher.mp4` must find no jump. A jump at a seam means a part was cut, not eased.
+   - `color_match.py teacher.mp4 teacher_cm.mp4`: each `CONTINUE_FROM` clip comes back a little darker and
+     greener, and by clip 15 red sat ~30 % below clip 1. This fixes the grade back to the first 2 s,
+     smoothed over 3 s so blinks and gestures don't pump it. Dub `teacher_cm.mp4`, not `teacher.mp4`.
 7. **Dub**: `voice.py dub 9x16/teacher.mp4 voice/timeline.json 9x16/dubbed.mp4` -> also
    `9x16/dubbed.timeline.json`. Each breath group starts on muse's nearest lip onset; `LATE` lines mean the
    voice ran past the lips (re-render that clip, or force starts with `ONSETS=file.json`). muse's audio is
-   dropped.
+   dropped. Cut the dubbed video 1 s after the last voice item (and set the timeline's `total` to match).
+   The fitted video runs longer than the voice, and QA fails over 130 s or on the silent end.
 8. **Compose**: `compose.py lessons/<topic>.json 9x16/dubbed.mp4 9x16/dubbed.timeline.json
    9x16/<topic>_vertical_9x16.mp4 --format 9x16` (and `16x9` -> `<topic>_horizontal_16x9.mp4`). Cards per
    format (9:16 lower panel, 16:9 right panel), accent spans, wrong/right pills, Vietnamese line revealed
@@ -111,7 +125,10 @@ Commands assume the uv `--with` lists in each script's docstring.
    per phrase (MONOTONE), speaking rate, vi/zh voice match, Whisper hears the Vietnamese (>= 85 %), and
    muse-video `pron.py` hears every Mandarin syllable and tone. Then lip sync with muse-video
    `speakers.py` with the command qa_lesson prints (all lines `W`, a solo to-camera shot) and a frame sheet at the
-   card times: text inside the panel, never over the face or mouth.
+   card times: text inside the panel, never over the face or mouth. speakers.py is a gate, not a note. A line
+   with > 0.5 s of voice on closed lips (or lips moving in silence) gets its clip re-rendered, or its
+   onset forced with `ONSETS`, **before** the preview. bi_so_sanh 2026-10-29 shipped with 7 and 8 such
+   lines (0.5-1.2 s each), and the user saw the lip sync as broken.
 10. **Deliver**: preview both files from the work folder (`SendUserFile`, display render), with a
     Vietnamese `captions.json` per file, one caption per platform (`../social-captions/SKILL.md`; hook,
     what the viewer learns, the platform's CTA and hashtags; `captions.py check` PASS). Only after the user
@@ -124,6 +141,8 @@ Commands assume the uv `--with` lists in each script's docstring.
   phrase start times can differ by a few tenths of a second between the two files. Phrase audio is identical.
 - muse may drift the face or outfit across a 15-clip chain; the shared still keeps the start the same,
   check_clip catches drift, but a re-render is the only fix.
+- Lip sync is only as good as muse's own pacing. The dub moves each breath group to muse's lip onset but
+  cannot shorten muse's mouth movement. Step 4's per-clip duration and step 6's MISMATCH gate are the levers.
 - The synthetic breath is tunable (`BREATH=0`); judge it on headphones.
 - Rendering is 2 x ~15 clips; a lesson takes hours of account time. Render the 9:16 chain first if the user
   wants one format sooner.
@@ -134,6 +153,8 @@ Commands assume the uv `--with` lists in each script's docstring.
 - `scripts/lesson.py` - `check` content gate, `clips` per-format clip prompts
 - `scripts/voice.py` - `synth` voice track, `dub` onto a render
 - `scripts/still.sh` - shared teacher still + per-format first frames
+- `scripts/fit_clips.py` - fit rendered clips to the plan (trim, speed, 3x tails, scale), lip-sync MISMATCH gate
+- `scripts/color_match.py` - remove the slow colour drift across a `CONTINUE_FROM` chain
 - `scripts/compose.py` - per-format cards, countdown, SFX, music, final mix
 - `scripts/qa_lesson.py` - final quality gate per export
 

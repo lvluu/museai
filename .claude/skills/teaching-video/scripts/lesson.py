@@ -14,6 +14,7 @@ clips  splits the voiced timeline (voice.py synth) into ~10 s muse clips at phra
        writes one prompt per clip for one format, with the teacher block and that format's framing.
 """
 import json
+import math
 import re
 import sys
 import unicodedata
@@ -214,23 +215,27 @@ def clips(lesson, timeline, out, fmt, max_len=9.0):
                 lines.append(f"{r:4.1f}-{r + it['repeat']:4.1f} s  SILENT: lips closed, small nod and an inviting open palm, "
                              "letting the viewer repeat. She says nothing.")
         last = g[-1]["end"] + (g[-1].get("repeat") or 0) - t0
+        # muse fills the whole clip with slow speech whatever the script length, so a 10 s render of a 4.9 s script
+        # left the lips moving ~3 s past the dubbed voice (bi_so_sanh clip06, 2026-10-29): render each clip only
+        # ~1 s longer than its script
+        dur = min(10, max(5, math.ceil(last + 0.8)))
         first = ("FIRST FRAME: The attached image is the exact first frame (still.sh). Keep her face, hair, outfit, "
                  "framing, camera position, lighting and background exactly as in it.\n\n") if n == 1 else ""
-        prompt = (first + f"TEACHING CLIP - PART {n} of {len(groups)} ({lesson['grammar']}), 10 seconds\n\n"
+        prompt = (first + f"TEACHING CLIP - PART {n} of {len(groups)} ({lesson['grammar']}), {dur} seconds\n\n"
                   f"CAST: {lesson['teacher']['cast']} Keep her face, hairstyle, outfit and voice identical in every part.\n\n"
                   f"SETTING: {lesson['teacher']['set']}\n\n"
                   f"FRAMING: {framing}\n\n"
                   "SCRIPT (she is alone and speaks to the viewer through the lens; times are seconds into this clip):\n"
                   + "\n".join(lines)
-                  + f"\n{last:4.1f}-10.0 s  calm resting pose, mouth closed, soft smile, looking into the lens.\n\n"
+                  + f"\n{last:4.1f}-{dur:.1f} s  calm resting pose, mouth closed, soft smile, looking into the lens.\n\n"
                   + teacher)
         f = out / f"clip{n:02d}.txt"
         f.write_text(prompt)
         plan.append({"clip": n, "file": str(f), "items": [it["id"] for it in g], "start": round(t0, 2),
-                     "speech": round(last, 2)})
-        print(f"clip{n:02d}  {len(g)} items  speech+pauses {last:4.1f} s  (master {t0:6.2f}-{t0 + last:6.2f})")
+                     "speech": round(last, 2), "duration": dur})
+        print(f"clip{n:02d}  {len(g)} items  speech+pauses {last:4.1f} s  DURATION={dur}  (master {t0:6.2f}-{t0 + last:6.2f})")
     (out / "clips.json").write_text(json.dumps({"format": fmt, "size": size, "clips": plan}, indent=1))
-    print(f"{len(groups)} clips -> {out}/clips.json; render with SIZE={size} DURATION=10 QUALITY=0")
+    print(f"{len(groups)} clips -> {out}/clips.json; render with SIZE={size} DURATION=<clip's duration> QUALITY=0")
 
 
 if __name__ == "__main__":
