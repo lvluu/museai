@@ -1,0 +1,105 @@
+{
+  "_note": "Single source of truth for every recurring character. episode.py copies `identity`, `wardrobe` and `voice` verbatim into each shot prompt, so the text never drifts between shots. Edit here (and log the change in ledger.json) when the user corrects a character; never retype a character inline in an episode file. Faces are original designs: each face has 2-3 asymmetric marks so muse never settles on a famous face. `letter` is the speaker letter for dub.py (VOICE_<letter> = `tts`); `sex` maps cues to W/M for qa.py/speakers.py. Never use W or M as a letter.",
+  "NORA": {
+    "name": "Nora Kessler",
+    "age": 31,
+    "sex": "F",
+    "letter": "N",
+    "role": "Claims clerk, just hired at Keystone Mutual Insurance downtown; moved back to Larkmont from Philadelphia in September 1985 after her divorce, with her daughter Lucy, into her father's house.",
+    "personality": "Dry, quick, observant; jokes to hide nerves; proud, hates asking for help.",
+    "flaw": "Says yes to everything at work, then panics privately.",
+    "motivation": "Prove she can stand on her own in the town she left at eighteen.",
+    "identity": "Nora, a 31-year-old white American woman: oval face with a slightly long, straight nose, wide-set grey-green eyes, strong straight dark-brown eyebrows, a faint dusting of freckles across the nose and upper cheeks, a small dark beauty mark just above the RIGHT corner of her upper lip, full but not glossy lips, a narrow chin. Shoulder-length chestnut-brown hair with a soft 1985 body wave, side-parted on the left and feathered back at the temples. Natural light make-up only: mascara, a little rose blush, muted rose lipstick. Slim, 5 ft 7 in.",
+    "wardrobe": {
+      "work": "rust-orange wide-wale corduroy blazer with slightly padded shoulders over an oatmeal crew-neck sweater, mid-length brown plaid A-line wool skirt, opaque brown tights, low brown leather pumps, small gold hoop earrings, brown leather shoulder bag",
+      "home": "faded light-blue straight-leg jeans, oversized cream fisherman knit sweater, white canvas sneakers",
+      "coat": "knee-length olive-green wool duffle coat with toggle buttons"
+    },
+    "voice": "warm low alto, Mid-Atlantic American English with a light Philadelphia edge on 'water' and 'home', dry deadpan timing, quick but never rushed",
+    "tts": "en-US-AvaNeural"
+  },
+  "LUCY": {
+    "name": "Lucy Kessler",
+    "age": 9,
+    "sex": "F",
+    "letter": "L",
+    "role": "Nora's daughter, fourth grade at Larkmont Elementary; new kid in class.",
+    "personality": "Earnest, curious, collects facts and repeats them at the worst moment.",
+    "flaw": "Tells the truth too loudly.",
+    "motivation": "Make one real friend in the new school.",
+    "identity": "Lucy, a 9-year-old white American girl: round face, big warm brown eyes, auburn-red hair in two loose braids with a stubborn cowlick at the crown, a dense band of freckles across the nose, a visible gap where an upper-left front tooth is growing in, small pointed chin. Small for her age.",
+    "wardrobe": {
+      "school": "mustard-yellow hooded sweatshirt over a white turtleneck, navy corduroy pants, red canvas high-top sneakers, red plastic barrette, a blue nylon backpack",
+      "home": "pale pink flannel pajamas or a striped long-sleeve t-shirt and jeans"
+    },
+    "voice": "bright, clear child's voice, fast thinker but speaks at a normal pace, flat American vowels",
+    "tts": "en-US-AnaNeural"
+  },
+  "WALT": {
+    "name": "Walter 'Walt' Kessler",
+    "age": 63,
+    "sex": "M",
+    "letter": "T",
+    "role": "Nora's father; retired after 34 years at the Larkmont rail-car works; widower since 1982; repairs neighbours' radios and televisions at a basement workbench.",
+    "personality": "Patient, stubborn, wry; shows love by fixing things instead of talking about feelings.",
+    "flaw": "Refuses help, hides his worsening knee.",
+    "motivation": "Keep the house the way his late wife June left it, while making room for Nora and Lucy.",
+    "identity": "Walt, a 63-year-old white American man: long weathered face with deep laugh lines, a nose bent slightly to the left from an old break, thick white eyebrows, pale blue eyes under heavy lids, a thin pale scar across the left side of his chin, steel-grey hair combed straight back and thinning at the crown, large work-worn hands with a silver wedding band he still wears. Tall, a little stooped, favours his right knee.",
+    "wardrobe": {
+      "everyday": "green-and-black buffalo-check flannel shirt over a white undershirt, dark grey work trousers, brown suspenders, brown leather work boots, reading glasses in the shirt pocket",
+      "outdoor": "faded navy canvas work jacket with a corduroy collar, grey knit watch cap"
+    },
+    "voice": "gravelly baritone, slow and economical, central Pennsylvania English ('you'uns' only when teasing, 'redd up' for tidy up)",
+    "tts": "en-US-GuyNeural"
+  },
+  "DANNY": {
+    "name": "Danny Ruiz",
+    "age": 27,
+    "sex": "M",
+    "letter": "D",
+    "role": "Mechanic at Ruiz Service, his uncle Hector's two-bay gas station on Route 11; lives across Orchard Street from the Kesslers; takes night classes for an associate degree.",
+    "personality": "Easy-going, funny, generous with time; quietly ambitious.",
+    "flaw": "Jokes past anything serious; leaves things unfinished.",
+    "motivation": "Earn enough to open his own garage without disappointing his uncle.",
+    "identity": "Danny, a 27-year-old Puerto Rican-American man born in Pennsylvania: angular jaw with a cleft chin, deep-set dark-brown eyes with long lashes, a small crescent scar through the outer end of his LEFT eyebrow, a slightly crooked smile with a small gap between the two front teeth, light-brown skin, thick black wavy hair short at the sides and longer on top, clean-shaven with a faint shadow. Broad shoulders, 5 ft 10 in.",
+    "wardrobe": {
+      "work": "navy mechanic's work shirt with a white oval name patch reading nothing legible, matching navy work pants, black steel-toe boots, a red shop rag in the back pocket",
+      "off": "tan suede-collar denim trucker jacket, grey crew-neck sweatshirt, dark jeans, white leather sneakers"
+    },
+    "voice": "warm tenor, quick-witted, relaxed American English with a light Spanish lilt on names; switches to a few words of Spanish only with family",
+    "tts": "en-US-AndrewNeural"
+  },
+  "GRACE": {
+    "name": "Grace Whitfield",
+    "age": 46,
+    "sex": "F",
+    "letter": "G",
+    "role": "Office manager of the Larkmont branch of Keystone Mutual Insurance for eleven years; Nora's supervisor; directs the choir at Bethel AME church.",
+    "personality": "Precise, formal at work, privately very funny; notices everything.",
+    "flaw": "Trusts procedure more than people at first; slow to praise.",
+    "motivation": "Be promoted to regional manager, a job no woman at the company has held.",
+    "identity": "Grace, a 46-year-old Black American woman: heart-shaped face, high rounded cheekbones, dark-brown skin, warm dark eyes, a single deep dimple in her LEFT cheek only when she smiles, short close-cropped natural hair with distinct silver at both temples, small gold stud earrings, large thin gold-rimmed 1980s aviator-style eyeglasses. Medium height, upright posture.",
+    "wardrobe": {
+      "work": "plum-purple skirt suit with a softly padded-shoulder jacket, cream silk blouse with a soft pussy-bow tie, gold wristwatch on a thin leather strap, low black pumps",
+      "off": "camel wool overcoat, burgundy knit scarf"
+    },
+    "voice": "measured, rich mezzo, crisp consonants at work, a slower warmer rhythm when she relaxes",
+    "tts": "en-US-JennyNeural"
+  },
+  "EVELYN": {
+    "name": "Evelyn Sobczak",
+    "age": 58,
+    "sex": "F",
+    "letter": "E",
+    "role": "Owner of the Ridge Diner on Market Street since 1961; widow; knows every family in town.",
+    "personality": "Brisk, nosy, kind; feeds people when she cannot fix their problems.",
+    "flaw": "Repeats what she hears.",
+    "motivation": "Keep the diner open against the new highway fast-food places.",
+    "identity": "Evelyn, a 58-year-old Polish-American woman: broad face, rosy round cheeks, bright light-blue eyes with thin black winged eyeliner, a small upturned nose, platinum-blonde hair in a short set of firm curls, a thin gold chain with a small oval medal at the throat. Short and sturdy.",
+    "wardrobe": {
+      "work": "pale mint-green waitress dress with short sleeves and a white collar, white half apron, white nurse-style shoes, a pencil behind one ear, an order pad in the apron pocket"
+    },
+    "voice": "brisk, slightly raspy alto, fast clipped diner talk, says 'hon' to everyone",
+    "tts": "en-US-EmmaNeural"
+  }
+}

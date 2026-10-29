@@ -7,7 +7,8 @@ Every muse render picks its own voices, so a multi-clip video changes voice at e
 (EP08: the woman went 258 -> 183 -> 229 Hz across 4 clips, the clerk 101-142 Hz, with a
 different timbre and accent each time). Dubbing every line with the same voice fixes that.
   voices  VOICE_W (default zh-CN-XiaoxiaoNeural), VOICE_M (default zh-CN-YunjianNeural):
-          standard Putonghua. SPEAKERS has one letter per cue (W / M).
+          standard Putonghua. SPEAKERS has one letter per cue (W / M); any other letter X
+          uses VOICE_X (e.g. VOICE_N=en-US-AvaNeural).
   timing  each cue's speech span comes from the original audio (loud frames inside the cue).
           A line whose commas match the original's pauses (> 0.15 s) is synthesised per
           comma part and each part is placed on its own span; otherwise the whole line
@@ -45,6 +46,10 @@ cues = json.load(open(cues_path))
 if len(who) != len(cues):
     sys.exit(f"SPEAKERS has {len(who)} letters for {len(cues)} cues")
 voices = {"W": os.environ.get("VOICE_W", "zh-CN-XiaoxiaoNeural"), "M": os.environ.get("VOICE_M", "zh-CN-YunjianNeural")}
+# any other speaker letter X takes its voice from VOICE_X (American Everyday Stories: one letter per character)
+voices |= {k[6:]: v for k, v in os.environ.items() if k.startswith("VOICE_") and len(k) == 7}
+if missing := set(who) - set(voices):
+    sys.exit(f"no voice for speaker letter(s) {sorted(missing)}: set VOICE_<letter>")
 SR, HOP = 24000, 120  # 5 ms frames
 MAX_PCT = min(20, int(os.environ.get("MAX_PCT", 20)))  # faster sounds hurried and pitched; hard cap
 tmp = tempfile.mkdtemp()
