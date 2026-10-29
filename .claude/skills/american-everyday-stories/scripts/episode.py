@@ -273,6 +273,10 @@ def package(ep, cast, cues, tag):
     return "\n".join(L) + "\n"
 
 
+SIDES = ("LEFT and RIGHT always mean the person's own left and right, so a mark on their LEFT is on the "
+         "viewer's right when they face the camera.")
+
+
 def still(key, work, wardrobe=None):
     cast = load(SERIES / "cast.json")
     c = cast[key]
@@ -280,6 +284,7 @@ def still(key, work, wardrobe=None):
     prompt = (f"Photorealistic 35 mm film still, autumn 1985, small city in central Pennsylvania. "
               f"Waist-up three-quarter portrait of one person standing by a window in soft natural daylight, "
               f"looking just past the camera with a calm natural expression, mouth closed. {c['identity']} "
+              f"{SIDES} Looks exactly {c['age']} years old, no older: skin, hair and posture of that age. "
               f"Wearing: {c['wardrobe'][wk]}. An original face that does not resemble any actor, celebrity or "
               f"public figure; natural skin texture and pores, natural asymmetry, the described marks clearly "
               f"visible on the named side. Warm 1980s colour negative look, fine grain, lifted blacks, "

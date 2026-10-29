@@ -20,17 +20,24 @@ built from tend to land on famous 1980s faces; these rules steer away from that.
 6. Vary the cast: ages, builds, ethnicities and class plausible for the place and year, each an
    individual with their own job and wants, not a type.
 
-## Reference stills (make before Episode 1, reuse for every shot)
-For each character, generate a front portrait and a three-quarter waist-up still through museai:
+## Reference stills (made 2026-10-30, in `series/refs/`; reuse for every shot)
+`series/refs/<KEY>.png` (16:9 1920x1080 waist-up) and `<KEY>_face.png` (1024 square portrait) exist
+for all six characters. A new character or a changed face gets new ones:
 ```bash
-curl -s http://127.0.0.1:18610/v1/images/generations -H "Authorization: Bearer $(cat ~/Work/museai/data/api_key)" \
-  -H 'Content-Type: application/json' \
-  -d "$(python3 scripts/episode.py still NORA work)"   # prints the JSON body: identity + wardrobe + 1985 photo look
+scripts/refs.sh NORA ~/Movies/museai/aes-refs      # two candidates; run every key in parallel
 ```
-(never echo the key). Pick the take whose face is most distinctive and least like anyone famous,
-check the marks are on the named side, and save it as `series/refs/<KEY>.png` (16:9 waist-up) and
-`series/refs/<KEY>_face.png` (square portrait). When a still looks like a known person, change
-one mark or the face shape in cast.json and render again; do not just re-roll.
+Pick the take whose face is most distinctive and least like anyone famous, then check by eye:
+- **Age**: the image model ages people 10-20 years (first pass: Walt 63 looked 80, Grace 46 looked
+  60, Danny 27 looked 40). `still` already says "looks exactly N"; if a take is still older, remove
+  the ageing words from cast.json (weathered, deep lines, thinning, stooped, heavy lids, white
+  brows, "silver hair" that turns the whole head grey) and say what the age looks like instead.
+- **Sides**: LEFT/RIGHT mean the person's own side, the viewer's opposite. Muse still flips them
+  often. A face with one sided mark may be mirrored (`ffmpeg -vf hflip`, Danny); otherwise retake.
+- **Extra marks**: a mark repeated on both sides (Nora's beauty mark) is removed with a small
+  `delogo` on the wrong one.
+- Crop with the face a third from the top for the 16:9 still, and a square around the face.
+When a still looks like a known person, change one mark or the face shape in cast.json and render
+again; do not just re-roll.
 Every shot with a recurring character then renders with `IMAGE=` a first-frame still built from
 these refs (see SKILL.md "Shot stills"). Never pretend a reference exists: `episode.py build`
 names the missing refs.
