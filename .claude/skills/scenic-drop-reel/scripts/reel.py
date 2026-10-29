@@ -110,7 +110,7 @@ def main():
         inputs += ["-loop", "1", "-framerate", "30", "-t", f"{marks[i + 1] - marks[i]:.3f}", "-i", str(png)]
         chains.append(f"[{i}:v]format=yuv420p,setsar=1[v{i}]")
 
-    sat, con = 1 + 0.22 * a.grade, 1 + 0.06 * a.grade
+    sat, con = 1 + 0.12 * a.grade, 1 + 0.03 * a.grade  # gentle: strong grades tire the eye
     used = []
     for k, spec in enumerate(clips):
         path, _, start = spec.partition("@")

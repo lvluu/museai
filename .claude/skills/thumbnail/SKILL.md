@@ -53,6 +53,8 @@ A pretty landscape scrolls past; a cover that makes the viewer gasp or doubt get
 - **Title**: the place name only, huge; the hook carries the emotion. The sub is the country + flag.
 - **Reaction covers** (`--split`, zoominview): the most shocked face of the video - mouth open, eyes wide,
   hands on head (as Madeira) - not a calm profile; put the shock line in `--sub`.
+- **Colour**: bright and natural, never dark or crushed - a dim, heavy cover tires the eye (user, 2026-10-29).
+  The style lifts dark frames itself; still prefer a well-lit frame over a moody one.
 - Look at the 9:16 at phone size (360 px wide) before delivering: hook readable, ring on the subject,
   subject not under the text.
 
@@ -64,7 +66,7 @@ sheet, 2 MB JPEG writer) is `scripts/core.py`.
 | Style | For | Look |
 |---|---|---|
 | `chinese` | EVERYDAY CHINESE, teaching-video, product-ad, any video with people talking | best face frame, yellow hanzi hook, title white on a red box, sub line, episode badge |
-| `travel` | scenic-drop-reel, muse-video travel mode; `--split` for zoominview | stakes/scale frame full bleed, punchy grade + vignette, optional zoom and red ring + arrow on the subject, hook on a red banner, huge outlined Futura place name, sub with flag |
+| `travel` | scenic-drop-reel, muse-video travel mode; `--split` for zoominview | stakes/scale frame full bleed, bright natural grade (dark frames lifted), optional zoom and red ring + arrow on the subject, hook on a red banner, huge outlined Futura place name, sub with flag |
 
 ## Make them
 ```

@@ -41,15 +41,15 @@ FONTS = {  # (file, face index)
     "futura": ("/System/Library/Fonts/Supplemental/Futura.ttc", 4),
     "light": ("/System/Library/Fonts/HelveticaNeue.ttc", 7),
 }
-GRADES = {
-    "vivid": "eq=saturation=1.22:contrast=1.06,unsharp=5:5:0.6",
-    "clean": "eq=saturation=1.08:contrast=1.03,unsharp=5:5:0.4",
-    "warm-film": "colorbalance=rm=0.06:bm=-0.06:rh=0.04:bh=-0.05,eq=saturation=1.08:contrast=1.04,"
-                 "vignette=PI/5,noise=alls=5:allf=t",
-    "teal-orange": "colorbalance=rs=-0.06:bs=0.07:rh=0.07:bh=-0.07,eq=saturation=1.15:contrast=1.08,unsharp=5:5:0.5",
-    "pastel": "eq=saturation=0.88:brightness=0.04:contrast=0.92,colorbalance=rh=0.03:bh=0.03",
-    "moody": "eq=saturation=0.75:contrast=1.1:brightness=-0.03,colorbalance=bs=0.06:bm=0.03,vignette=PI/4",
-    "neon": "eq=saturation=1.3:contrast=1.1,colorbalance=bs=0.06:rh=0.05,unsharp=5:5:0.5",
+GRADES = {  # gentle on purpose: dark, crushed or over-saturated reels tire the eye (user, 2026-10-29)
+    "vivid": "eq=saturation=1.12:contrast=1.03:brightness=0.02,unsharp=5:5:0.5",
+    "clean": "eq=saturation=1.05:contrast=1.02:brightness=0.02,unsharp=5:5:0.4",
+    "warm-film": "colorbalance=rm=0.05:bm=-0.05:rh=0.03:bh=-0.04,eq=saturation=1.05:contrast=1.02:brightness=0.02,"
+                 "vignette=PI/8,noise=alls=4:allf=t",
+    "teal-orange": "colorbalance=rs=-0.04:bs=0.05:rh=0.05:bh=-0.05,eq=saturation=1.08:contrast=1.03,unsharp=5:5:0.4",
+    "pastel": "eq=saturation=0.92:brightness=0.04:contrast=0.95,colorbalance=rh=0.03:bh=0.03",
+    "moody": "eq=saturation=0.9:contrast=1.03,colorbalance=bs=0.04:bm=0.02,vignette=PI/7",
+    "neon": "eq=saturation=1.15:contrast=1.04,colorbalance=bs=0.04:rh=0.04,unsharp=5:5:0.4",
 }
 # transition -> (xfade name, duration s); whip/rise pick their direction from the outgoing move.
 # Svalbard reel (2026-10-28): 0.2-0.3 s whips/zooms read as the view snapping; the user wants calmer moves.
