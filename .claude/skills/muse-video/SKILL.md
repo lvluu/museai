@@ -1,6 +1,6 @@
 ---
 name: muse-video
-description: Generate videos with muse.ai through this repo's museai server that pass a quality gate - real-looking, fluid continuous motion (no jitter, frozen frames, stitched-clip jumps), natural everyday conversation (precise lip sync, only the speaker's mouth moves, one steady pace), clean sound, and big synced captions placed clear of faces and platform UI; plus a travel-documentary mode (real places, natural light, slow camera, instrumental music, no narration or text). Use for every video request through museai - "make a video with muse", "create video", "EVERYDAY CHINESE #NN", people talking, travel / destination / landscape videos, multi-scene or long videos, or adding subtitles to a muse video.
+description: Generate videos with muse.ai through this repo's museai server that pass a quality gate - real-looking, fluid continuous motion (no jitter, frozen frames, stitched-clip jumps), natural everyday conversation (precise lip sync, only the speaker's mouth moves, one steady pace), clean sound, and big synced captions placed clear of faces and platform UI; plus a travel-documentary mode (real places, natural light, slow camera, instrumental music, no narration or text). Use for every video request through museai - "make a video with muse", "create video", "EVERYDAY CHINESE #NN", people talking, travel / destination / landscape videos, multi-scene or long videos, or adding subtitles to a muse video. Also the shared base of the format skills (scenic-drop-reel, zoominview, product-ad, teaching-video): one brief shape (scripts/brief.py routes it to any of them), the music engine (scripts/music.py), shot-history, QA and delivery steps.
 ---
 
 # muse-video
@@ -121,8 +121,48 @@ When the user reports a problem (wrong word, miming listener, bad seam, caption,
    - one clip unusable: re-render only that clip with `CONTINUE_FROM` the clip before it. Keep the clips after it: trim the new clip's tail to a resting pose and smooth the join to the next clip with `ease_seams.py`; re-render a later clip only if `jumps.py` still fails at that seam.
 4. **Rebuild**: `stitch.sh` with the kept + fixed clips, burn captions, run `qa.py` and the frame check, then the preview again (`FINAL=1 deliver.sh` only once the user accepts) and clean up after the final one. Tell the user which part changed.
 
+## Format skills (one brief, shared pipeline)
+The format skills are templates on top of this skill. They take the same brief, share the steps below, and each keeps only what is specific to its format. Pick one per request:
+
+| format | use it when | instead of |
+|---|---|---|
+| `../scenic-drop-reel/` | any place request by default: beat-cut aerial montage, random template, sung AI track | zoominview when nobody should be on screen; travel when the user wants cuts, not one shot |
+| `../zoominview/` | the user wants a person's reaction, then the view ("zoominview", "reaction reveal") | scenic-drop-reel when the place deserves one emotional reveal instead of a montage |
+| travel (this skill, below) | one continuous documentary shot, a calm/locked view, 16:9 | the reels when the user asks for one shot or "documentary mode" |
+| `../product-ad/` | selling a real product from the seller's photos | never for places: muse may not redraw the product |
+| `../teaching-video/` | a ~2 min lesson with a teacher, exported 9:16 and 16:9 | EVERYDAY CHINESE dialogue episodes stay in this skill |
+
+**Brief** (`brief.json`, same shape for every format): `format`, `place` (or `subject`), `country`, `scope` (country region city place), `setting` (coast island mountain canyon lake city oldtown nature desert snow), `light` (sunset sunrise golden day blue-hour night), `view` (what is really there), `focus` (what the zoom lands on), `seconds`, `aspect`, `music` (style id or free text), `out` (work folder). `python3 scripts/brief.py brief.json [--format zoominview]` checks it for that format and prints the work folder, the final file name, the shot-history check and the plan command, so one request can go to any template. A `music` or `seconds` the format sets itself is reported in `notes`, not silently dropped.
+
+**File names**: every render and the final start with the format's prefix, `<prefix>-<slug>`: `reel-` (scenic-drop-reel), `zoom-` (zoominview), `travel-` (travel), `ad-` (product-ad), `lesson-` (teaching-video); EVERYDAY CHINESE keeps its Vietnamese title. The work folder is `~/Movies/museai/<prefix>-<slug>/`, compose to `<prefix>-<slug>.mp4` (never `reel.mp4`: deliver.sh keeps the name, and the dashboard (`posting.py` `TRAVEL_NAME`) picks the Travel channel from the `reel|zoom|travel|scenic|drop` prefix; `Kelingking Beach - zoominview.mp4` landed on the Chinese channel).
+
+**Shared steps for place videos** (scenic-drop-reel, zoominview, travel; each skill names only where it differs):
+1. **Earlier shots**: `python3 ../shot-history/scripts/shots.py check --place "<place>" --country <country>`. `ALREADY SHOT` → follow `../shot-history/SKILL.md` (new views, ask the user before rendering).
+2. **Brief the real place**: name the real landmarks, terrain, water and vegetation. muse paints green forests and meadows on any mountain or fjord (Svalbard reel, 2026-10-28: pine forest on the peaks and around the Seed Vault); for treeless places (Arctic, Iceland highlands, deserts) write into every brief "NO trees, NO forest, NO bushes, NO green meadows anywhere; only bare rock, scree, snow, ice and brownish tundra".
+3. **Render** independent clips at once, each in its own background call (see Server); clips that continue each other render in order.
+4. **Music** in parallel with the renders, from the shared engine (`scripts/music.py`, see "Music" below).
+5. **Check each clip**: `python3 scripts/qa.py clip.mp4 --travel 0 sheet.jpg`; judge `smooth` and the sheet (planned pans and zooms trip `motion` TIME-LAPSE: check frames instead). A clip with no audio track reports `sound`/`noise` as `skip no audio stream` (the reel's music replaces it).
+6. **Compose** with the format's `compose.py`, then the same qa run on the result and a contact sheet (`ffmpeg -i <final> -vf "fps=2,scale=180:-1,tile=8x4" -frames:v 1 sheet.png`).
+7. **Deliver** with `scripts/deliver.sh`: preview first, `FINAL=1` after the user accepts, thumbnails (`../thumbnail/SKILL.md`, `THUMB_DIR=`) and per-platform captions (`../social-captions/SKILL.md`, `CAPTIONS_FILE=`; the first line is a scroll-stopping hook, never the reel length or a format label). Record the delivered shots with `../shot-history/scripts/shots.py record` **before** `FINAL=1`: it trashes the work folder.
+
+## Music (shared engine)
+`scripts/music.py` makes the track for every format (scenic-drop-reel from its plan, zoominview through `scripts/music`, product-ad with `--style`); `scripts/ace_song.py` runs inside the ACE-Step venv for it. It writes `track.m4a` plus `track.beats.json` (beat grid, drop) that each `compose.py` cuts on.
+- **ace** (default when installed): ACE-Step sings the lyrics (Apache-2.0, ok for commercial posts). Install once (~8 GB, needs the user's OK):
+  ```bash
+  git clone --depth 1 https://github.com/ace-step/ACE-Step ~/.local/share/ace-step/repo
+  uv venv --python 3.11 ~/.local/share/ace-step/venv
+  uv pip install --python ~/.local/share/ace-step/venv/bin/python -e ~/.local/share/ace-step/repo
+  ```
+  Weights (~7.7 GB) download on first use - set `HF_HUB_DISABLE_XET=1` if the big files sit at 0 B (2026-10-28: Xet hung, plain HTTP took 6 min). A 40 s song renders in ~2 min on an M1 Pro (model load 23 s).
+- **ACE ignores the BPM tag** (asked 88, got 79; asked 100, played 131; asked 72, sang 92). music.py never time-stretches an ACE song: the phase-vocoder stretch (Kirkjufell reel, 134→108 BPM) made the singer sound pitched and robotic. The song keeps its own tempo (half/double-time nearest the asked BPM) and the beat file follows it, so plan in seconds and let compose snap to the real beats. MusicGen (instrumental) is still stretched to the BPM.
+- **Singer sounds human**: one natural lead singer in balance with the band (no duets, no negated words like "no autotune", which pulled the voice robotic), 100 steps at guidance 10 (15 gave a strained voice), loudnorm to -14 LUFS without a tanh drive (it made the voice harsh).
+- One ACE render per machine: `music.py` holds `~/.local/share/ace-step/render.lock` while ACE runs, so a second video (another session) waits instead of sharing the GPU (two at once: model load 40 → 285 s, 100+ s per step). Never `pkill` ACE: the process may belong to another session.
+- **musicgen** (fallback, instrumental): MusicGen medium, ~10 min per track on Apple silicon, first run ~8 GB. Weights CC-BY-NC 4.0: personal posts only - say so when the user wants to monetise.
+- `--raw x.raw.wav` re-shapes a saved render; `--seed` for another take. Check the spectrogram (`ffmpeg -i t.m4a -lavfi showspectrumpic=s=1200x300 s.png`) and listen to the cut before composing: only the ear can tell the hook is in it.
+- A reference reel's own audio stays out of the repo (audio is gitignored); a user-supplied track goes in with `--music file --bpm N --drop T` (scenic-drop-reel) or a file style (zoominview).
+
 ## Travel videos (`STYLE=travel`)
-Real destination, no dialogue, no captions. Rules 3-6 above don't apply; rules 1-2 do.
+Real destination, no dialogue, no captions. Brief, file name (`travel-<slug>`), shot history and delivery follow "Format skills" above. Rules 3-6 above don't apply; rules 1-2 do.
 **Default for every travel / place request (user rule, 2026-10-28): the drone reel in `../scenic-drop-reel/SKILL.md`** (aerial drone shots cut on the beat, random template), also when the request only names a place or attaches a photo of it ("generate for Svalbard"). Use the single-shot documentary below only when the user asks for one continuous shot, a calm/locked view or "documentary mode".
 1. **Prompt** sections: PLACE, TIME + WEATHER, SHOTS, MUSIC.
    - **PLACE**: real named location + the concrete landmarks/terrain actually there (e.g. "Ha Long Bay, Vietnam: limestone karsts rising from emerald water, wooden junk boats"). Never ask for things that are not there.

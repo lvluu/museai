@@ -1,11 +1,11 @@
 ---
 name: product-ad
-description: Make a short vertical marketing / advertising video (TikTok, Reels, Shorts, Facebook ads) that sells a real product from the seller's own photos - a scroll-stopping hook in the first 1.5 s, beat-cut product shots, muse-animated "hero" shots (light sweeping across the real product, slow push-in), big on-beat text cards in the buyer's language, a desire build (variety, personalisation, gift angle), a clear call to action, and a loop back to the first frame so viewers rewatch. Use for "marketing video", "ad video", "quảng cáo", "video bán hàng", "product video", "promo reel", "make people want to buy this", or any request to advertise a product from photos.
+description: Make a short vertical marketing / advertising video (TikTok, Reels, Shorts, Facebook ads) that sells a real product from the seller's own photos - a scroll-stopping hook in the first 1.5 s, beat-cut product shots, muse-animated "hero" shots (light sweeping across the real product, slow push-in), big on-beat text cards in the buyer's language, a desire build (variety, personalisation, gift angle), a clear call to action, and a loop back to the first frame so viewers rewatch. Use for "marketing video", "ad video", "quảng cáo", "video bán hàng", "product video", "promo reel", "make people want to buy this", or any request to advertise a product from photos. Never for places (use scenic-drop-reel or zoominview). Takes the shared brief (muse-video "Format skills", subject = the product); files are named ad-<slug>.
 ---
 
 # product-ad
 
-Paths are relative to this folder (`.claude/skills/product-ad/`). Server, retries and delivery come from `../muse-video/SKILL.md`; music from `../scenic-drop-reel/scripts/music.py`.
+Paths are relative to this folder (`.claude/skills/product-ad/`). Server, retries, the brief and delivery come from `../muse-video/SKILL.md` ("Format skills"); music from `../muse-video/scripts/music.py` ("Music": ACE ignores the BPM, so plan in seconds). Name everything `ad-<slug>`.
 
 ## Rule 1: the product on screen is the real product
 Buyers get what the photos show. Every frame showing the product comes from the seller's photo (ffmpeg motion) or a muse image-to-video of that photo whose product still matches it (same parts, colours, letters/logo). Never let muse invent the product from text, never show a hand or person holding a product muse redrew. Keep the seller's watermark.
@@ -33,7 +33,7 @@ Safe zone (TikTok / Reels / Shorts UI): text between y=280 and y=1500, x < 940. 
 1. **Read the photos**: list each photo, its product, colour, variant, personalised text, and where the product sits (crop centre `cx` for a vertical 9:16 strip; wide products such as bracelets use `"mode": "fit"`). Note anything the seller's text must not claim (price, material) unless the user gave it.
 2. **Music** (background, ~3-5 min):
    ```bash
-   uv run --no-project ../scenic-drop-reel/scripts/music.py \
+   uv run --no-project ../muse-video/scripts/music.py \
      --style "catchy cute K-pop bubblegum pop, bright ukulele strum, whistle melody hook, handclaps, finger snaps, bouncy bass, sweet female vocals, earworm chorus, TikTok viral song" \
      --lyrics "[chorus] la la la, your name on a string ..." --bpm 118 --intro-beats 0 --body-beats 40 --out WORK/track.m4a
    ```

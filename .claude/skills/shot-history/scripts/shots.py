@@ -3,7 +3,7 @@
 
   shots.py check  --place "Ilulissat" [--country Greenland]
   shots.py record --place "Ilulissat Icefjord" --country Greenland --skill scenic-drop-reel \
-                  --template winter-wonder --video ~/Desktop/reel.mp4 --shots shots.json
+                  --template winter-wonder --video ~/Desktop/reel-ilulissat.mp4 --shots shots.json
   shots.py list
 
 shots.json: [{"subject": "...", "move": "...", "light": "..."}, ...] in reel order.

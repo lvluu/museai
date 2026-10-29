@@ -1,6 +1,6 @@
 ---
 name: shot-history
-description: Remember every place shot rendered through museai (subject, camera move, light, template, video) and, when a place is requested again, tell the user what was already shot and propose different views so no reel repeats an earlier one. Use before planning any place/travel video (scenic-drop-reel, zoominview, muse-video travel mode), after delivering one, and for "what have we shot of X", "shot history", "avoid duplicate views".
+description: Remember every place shot rendered through museai (subject, camera move, light, template, video) and, when a place is requested again, tell the user what was already shot and propose different views so no reel repeats an earlier one. Use before planning any place/travel video (scenic-drop-reel, zoominview, muse-video travel mode; shared steps 1 and 7 of muse-video "Format skills"), after delivering one, and for "what have we shot of X", "shot history", "avoid duplicate views".
 ---
 
 # shot-history

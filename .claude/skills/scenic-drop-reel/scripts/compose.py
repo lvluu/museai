@@ -6,7 +6,7 @@ text overlays, grade, music.
 
 Usage:
   uv run --no-project --python 3.12 --with pillow --with fonttools python scripts/compose.py \
-      --template pin-flow-right --place "Amalfi Coast" --music track.m4a --out reel.mp4 \
+      --template pin-flow-right --place "Amalfi Coast" --music track.m4a --out reel-amalfi.mp4 \
       s1.mp4 s2.mp4@2.0 s3.mp4 ...
   [--flag 🇮🇹] [--labels "Positano|Ravello|..."] [--coords "40.63° N  14.48° E"] [--beats track.beats.json]
 

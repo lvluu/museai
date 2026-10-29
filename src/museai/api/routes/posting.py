@@ -70,7 +70,9 @@ CHANNELS = {
     "travel": ("Travel", {1: "Midday: a quick view",
                           2: "Evening: full reels and zoom-ins"}),
 }
-TRAVEL_NAME = re.compile(r"^(zoom|reel|scenic|drop|travel)[-_ ]", re.IGNORECASE)
+# The format skills name their files <prefix>-<slug> (muse-video SKILL.md "Format skills"); a renamed file
+# that still names its format ("Kelingking Beach - zoominview.mp4") is travel too.
+TRAVEL_NAME = re.compile(r"^(zoom|reel|scenic|drop|travel)[-_ ]|\b(zoominview|scenic-drop-reel)\b", re.IGNORECASE)
 # Minutes after the YouTube time per platform (midday, evening). TikTok, Reels, X and Threads hand a
 # post out within the hour, so they go closer to the peak than Shorts, which needs a head start.
 OFFSETS = {"youtube": (0, 0), "tiktok": (30, 60), "facebook": (30, 90), "instagram": (0, 60),
@@ -121,7 +123,7 @@ def _channel(name: str, entry: dict) -> str:
     """The video's channel: the one picked on its card, else guessed from the file name."""
     if entry.get("channel") in CHANNELS:
         return entry["channel"]
-    return "travel" if TRAVEL_NAME.match(name) else "chinese"
+    return "travel" if TRAVEL_NAME.search(name) else "chinese"
 
 
 def _thumbs(path: Path) -> dict[str, Path]:
