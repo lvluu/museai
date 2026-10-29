@@ -76,7 +76,10 @@ def main():
         return rng.choice(fresh)
 
     reveals = [r for r in styles["reveals"] if fits(r, "setting", a.setting)]
-    reveal = choose("reveals", reveals, a.reveal)
+    # the user wants the reference move every time (Kelingking, 2026-10-29: rotation picked whip-pan, whose
+    # B starts mid-blur, which muse cannot continue); other reveals only when named or swing-tilt doesn't fit
+    default = "swing-tilt" if any(r["id"] == "swing-tilt" for r in reveals) else None
+    reveal = choose("reveals", reveals, a.reveal or default)
     country = a.country.lower()
     local = [m for m in styles["music"] if country and country in m.get("country", [])
              and fits(m, "setting", a.setting)]

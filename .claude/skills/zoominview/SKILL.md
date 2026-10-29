@@ -24,7 +24,7 @@ Reference music: the reel uses "Runaway" (the user supplies the full song; play 
    python3 scripts/plan.py --place "Ponta de São Lourenço, Madeira, Portugal" --setting coast --light sunset \
      --country portugal --view "jagged red volcanic cliffs and sea stacks dropping into the deep blue Atlantic, white surf, green headlands to the horizon, sun low over the sea" > plan.json
    ```
-   It picks a reveal (`styles.json` `reveals`) and a music style (`music`) that fit the setting, light and country, skipping the last 3 of each used (`~/.config/zoominview/history.json`), and a random traveller (`--person` to set one). Use `--reveal` / `--music` only when the user names one; `--list` shows all.
+   It uses `swing-tilt` when the setting allows (else a fitting reveal from `styles.json` `reveals`) and picks a music style (`music`) that fit the setting, light and country, skipping the last 3 of each used (`~/.config/zoominview/history.json`), and a random traveller (`--person` to set one). Use `--reveal` / `--music` only when the user names one; `--list` shows all.
 2. **Render** (one background call; B starts from A's last frame, so they run in order):
    ```bash
    scripts/render plan.json ~/Movies/museai/zoom-<slug>
@@ -62,6 +62,7 @@ Ordinary traveller (not a model), real skin, wind in hair, silent gasp (no words
 - muse cannot continue a motion from one frame: B started from A's mid-turn frame swung back the other way twice (Madeira). A's transition now eases out and holds still on the view for its last 0.7 s, and B only pushes in from that still frame.
 - muse bowed the head / covered the face with "hand over the eyes": the prompts keep the head up and the eyes on the view.
 - muse put a second tourist in clip B: `plan.py` opens B with the NOBODY rule.
+- The reveal rotation picked `whip-pan` for Kelingking (2026-10-29): its B starts mid-blur, which muse cannot continue, and it skips the hold the user wants. `plan.py` now always uses `swing-tilt` when the setting allows; other reveals only with `--reveal`. With `swing-tilt`, muse's own B push-in already reaches ~1.5x, so compose with `--zoom 1`.
 
 ## Maintaining this skill
 Record lessons proven by a render here (prompt wording that held the transition, reveals muse cannot do, music styles that clashed), following `../muse-video/SKILL.md` "Maintaining this skill".
