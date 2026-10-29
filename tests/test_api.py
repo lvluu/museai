@@ -248,7 +248,15 @@ def test_posting_queue(client, admin, settings, monkeypatch):
     for p in ("threads",):
         r = client.post("/dashboard/posts/ep1.mp4", headers=admin, json={"platform": p}).json()
     assert r["trashed"] and trashed == ["ep1 - thumbnail 9x16.jpg", "ep1.mp4"]
-    assert client.get("/dashboard/posts", headers=admin).json()["videos"] == []
+    d = client.get("/dashboard/posts", headers=admin).json()
+    assert d["videos"] == []
+    # The posted video's slot stays booked: the next one takes the slot after it, not its slot again.
+    gone = [s for day in d["calendar"]["chinese"] for s in day["slots"] if s["gone"]]
+    assert [g["gone"] for g in gone] == [{"name": "ep1.mp4", "title": "Title"}]
+    (settings.post_dir / "ep2.mp4").write_bytes(b"video")
+    keys = [s["key"] for day in d["calendar"]["chinese"] for s in day["slots"] if day["date"] >= gone[0]["key"][:10]]
+    ep2 = client.get("/dashboard/posts", headers=admin).json()["videos"][0]
+    assert ep2["slot"] == keys[keys.index(gone[0]["key"]) + 1]
 
 
 def test_posting_slots(tmp_path):
@@ -292,6 +300,20 @@ def test_posting_slots(tmp_path):
     assert posting._assign_slots(state, [*videos, p], now)
     chinese = [e["slot"] for n, e in state.items() if posting._channel(n, e) == "chinese"]
     assert state["d.mp4"]["slot"] == "2026-10-31/1" and len(set(chinese)) == len(chinese)
+
+    # Posted / deleted videos keep their slot booked; their records go two weeks after the slot.
+    state["gone.mp4"] = {"slot": "2026-10-31/2", "channel": "chinese", "title": "t", "done": 1}
+    state["old.mp4"] = {"slot": "2026-10-01/1", "channel": "chinese", "title": "t", "done": 1}
+    (p := tmp_path / "e.mp4").write_bytes(b"v")
+    os.utime(p, (4000, 4000))
+    assert posting._forget_old(state, now) and "old.mp4" not in state
+    assert posting._assign_slots(state, [*videos, tmp_path / "d.mp4", p], now)
+    assert state["e.mp4"]["slot"] == "2026-11-01/1"
+    # The same name delivered again is a new video: the old record goes, its slot is free again.
+    (tmp_path / "gone.mp4").write_bytes(b"v")
+    os.utime(tmp_path / "gone.mp4", (5000, 5000))
+    assert posting._assign_slots(state, [*videos, tmp_path / "d.mp4", p, tmp_path / "gone.mp4"], now)
+    assert state["gone.mp4"]["slot"] == "2026-10-31/2" and "done" not in state["gone.mp4"]
 
 
 def test_posting_channel_from_file_name():
