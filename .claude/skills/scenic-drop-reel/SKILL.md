@@ -27,6 +27,7 @@ Paths are relative to this folder (`.claude/skills/scenic-drop-reel/`). Renderin
 4. Transitions follow the camera: a `whip` slides the way the outgoing shot moves, `rise` follows an upward move, `zoom` follows a push-in. Every cut or transition is centred on a beat.
 
 ## Steps
+0. **Earlier shots**: `python3 ../shot-history/scripts/shots.py check --place "Positano" --country Italy`. `ALREADY SHOT` → follow `../shot-history/SKILL.md` (new views, notify the user before rendering).
 1. **Pick**: `python3 scripts/pick.py --place "Positano" --scope place --setting coast --country italy > plan.json`
    - `--scope` = what the user named (country | region | city | place); `--setting` coast island mountain lake city oldtown nature desert snow; `--country` picks the local instruments for `local-flavour`; `--id` forces a template.
    - The plan lists per shot: beats, render `duration`, camera `move`, `light`, transition; plus `seconds`, `intro`, `text`, `music`, `fast`.
@@ -49,11 +50,11 @@ Paths are relative to this folder (`.claude/skills/scenic-drop-reel/`). Renderin
    ```bash
    uv run --no-project --python 3.12 --with pillow --with fonttools python scripts/compose.py \
      --plan plan.json --place "Positano" [--flag 🇮🇹] [--labels "A|B|…"] [--coords "40.63° N  14.48° E"] \
-     --music track.m4a --out reel.mp4 s1.mp4 s2.mp4@2.0 s3.mp4 …
+     --music track.m4a --out reel-<slug>.mp4 s1.mp4 s2.mp4@2.0 s3.mp4 …
    ```
    `--plan` cuts each shot on its planned beats (the template's pattern only when no plan is passed). `clip@2.0` forces a window start; default `@auto`. Warning `moves fast even at its calmest` → re-render slower. Prints cut times, transitions and the windows used. Without a beat file pass `--bpm` (and `--drop`).
 7. **Verify**: contact sheet (`ffmpeg -i reel.mp4 -vf "fps=2,scale=180:-1,tile=8x4" -frames:v 1 sheet.png`): intro text readable, every shot sunny/sharp/no muse text, transitions on beats, reel length ≈ music length.
-8. **Deliver** with `../muse-video/scripts/deliver.sh` (preview first, `FINAL=1` after the user accepts; one file on the Desktop). Always pass a posting caption with `CAPTION_FILE=caption.txt`: a scroll-stopping first line (curiosity, surprise or a bold claim: "This beach looks fake… but it's real", "Nobody told me Italy looked like this", "POV: you finally made it to …"; never the reel length or "X in N seconds", which reads like a label), one line naming the place and listing the places shown, a short call to action, then 3-6 hashtags. Without it, the reel lands on the dashboard's "Ready to post" queue with an empty caption (reel-it and reel-switzerland, 2026-10-28).
+8. **Deliver** with `../muse-video/scripts/deliver.sh` (preview first, `FINAL=1` after the user accepts; one file on the Desktop). Always pass a posting caption with `CAPTION_FILE=caption.txt`: a scroll-stopping first line (curiosity, surprise or a bold claim: "This beach looks fake… but it's real", "Nobody told me Italy looked like this", "POV: you finally made it to …"; never the reel length or "X in N seconds", which reads like a label), one line naming the place and listing the places shown, a short call to action, then 3-6 hashtags. Without it, the reel lands on the dashboard's "Ready to post" queue with an empty caption (reel-it and reel-switzerland, 2026-10-28). Compose to `reel-<slug>.mp4`, not `reel.mp4`: deliver.sh keeps the file name, and Ilulissat landed on the Desktop as a bare `reel.mp4` (2026-10-29). Before `FINAL=1` (it trashes the work folder), record the delivered shots with `../shot-history/scripts/shots.py record` so the next request for this place gets new views.
 
 ## Music engines
 - **ace** (default when installed): ACE-Step sings the template's lyrics (Apache-2.0, ok for commercial posts). Install once (~8 GB, needs the user's OK):
