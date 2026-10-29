@@ -8,6 +8,8 @@ Script rules: one intro line to camera, 9-10 dialogue lines alternating MAN/WOMA
 to camera; about 85-95 syllables in total (30-40 s at a natural pace); each line ≤ 14 syllables;
 pinyin with tone sandhi written as spoken (yí ge, yìqǐ, bú kèqi); Vietnamese natural and short.
 No payment, food handling or object exchange in the scene.
+Vocabulary recap (when the brief has one): each word is said at normal speed and followed by a
+one-second review pause with its card on screen (SKILL.md, Timing step 5); never three words in a row.
 
 Delivery title (user rule, 2026-10-27): the viewers are Vietnamese, so the final file and its posting
 caption use a Vietnamese title, `Tiếng Trung mỗi ngày NN - <topic in Vietnamese>` (EP16: Đi cắt tóc). The caption's first line is
@@ -26,6 +28,7 @@ The brief's own header line stays in English for muse.
 - EP19 Exchanging a shirt (clothing store service counter, shop assistant; first two-shot still had the man in profile -> clip A OFF GAZE; only a still asking for faces "turned only about 30 degrees toward each other, like a TV presenter pair" gave him a three-quarter face)
 - EP20 Changing plans on a rainy day (apartment lounge, rain at the window; man stayed in profile in all 4 clip-A takes)
 - EP21 Borrowing a phone charger (study lounge, both standing, no phone or cable on screen)
+- EP30 Asking a neighbour to keep the noise down (apartment hallway, man in his already-open doorway; recap words needed one-second review pauses)
 - EP22 Asking about a delayed order (restaurant, woman seated, waiter standing; muse put the woman near profile and the waiter turned to the lens in the ending in all 3 clip-D takes; the slow intro lips left a 2.4 s gap after the dubbed line -> dubbed the line in two comma parts and trimmed the intro's silent tail before the cut)
 - EP23 Asking someone to repeat (language-school lounge, both standing; muse drew the brief's title "EVERYDAY CHINESE #23" on screen in the intro, so prompts carry no title line)
 - EP24 Ordering coffee (cafe counter, barista; man in profile in all clip A-C takes; man turned to the lens in the ending in 2 of 2 clip-C takes; timed SCRIPT lines fixed a wrong-lip line)
