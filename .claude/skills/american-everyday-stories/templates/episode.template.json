@@ -1,0 +1,56 @@
+{
+  "_note": "Copy to WORK/episode.json and fill. A real episode has 16-28 shots of 3-10 s, 120-180 s in all. Characters only by cast.json key; wardrobe by its key there. Times in each shot are planned by episode.py at 145 wpm; never write them by hand.",
+  "episode": 1,
+  "title_vi": "Chiếc xe không chịu nổ máy",
+  "title_en": "The Car That Wouldn't Start",
+  "title_zh": "打不着火的车",
+  "premise": "On her first morning at a new job, Nora's car dies and the neighbour she has been avoiding offers a ride.",
+  "date": "1985-10-14",
+  "season": "autumn",
+  "location": "Larkmont, a small city in central Pennsylvania",
+  "situation": "car won't start on the first day of work",
+  "title_card": {"en": "Larkmont, Pennsylvania", "year": "October 1985", "zh": "宾夕法尼亚州 · 拉克蒙特"},
+  "beats": {
+    "opening": "A key turns, the engine coughs and dies; Nora in her work blazer stares at the dashboard clock: 8:12.",
+    "goal": "Be at Keystone Mutual by 8:30 on her first day.",
+    "obstacle": "The Corolla is dead and the only help is Danny, whose radio woke her at six.",
+    "turn": "Danny's pickup is slower and louder, but he knows the back way and Grace's habits.",
+    "ending": "Nora arrives at 8:41; Grace says nothing, then leaves a coffee on her desk."
+  },
+  "shots": [
+    {
+      "id": "S01",
+      "seconds": 6,
+      "place": "Orchard Street, a steep street of red-brick twin houses with white porches and maple trees in full orange",
+      "time": "8:10 a.m., low autumn sun from the left, light mist in the valley",
+      "framing": "wide establishing shot from the bottom of the street, eye level, the tan Corolla parked at the curb in the middle distance",
+      "cast": ["NORA"],
+      "wardrobe": {"NORA": "work"},
+      "action": "Nora hurries down the porch steps of number 412 with her shoulder bag and gets into the tan 1979 Corolla; a paperboy on a bicycle passes the other way.",
+      "camera": "locked off, no movement",
+      "ambience": "birds, a distant dog, a screen door clapping shut, leaves scraping on the pavement",
+      "continuity": "the Corolla faces downhill; the rust bubble on its rear left wheel arch is visible"
+    },
+    {
+      "id": "S02",
+      "seconds": 6,
+      "place": "inside the tan 1979 Toyota Corolla at the curb on Orchard Street",
+      "time": "8:11 a.m., soft sunlight through the windshield",
+      "framing": "medium shot through the windshield from the hood, Nora in the driver's seat, the street behind her through the rear window",
+      "cast": ["NORA"],
+      "wardrobe": {"NORA": "work"},
+      "action": "Nora turns the key twice; the engine coughs and dies; she rests her forehead on the steering wheel for one breath, then looks up.",
+      "camera": "locked off",
+      "ambience": "starter motor grinding, a cough of the engine, then silence and birds",
+      "lines": [
+        {"who": "NORA", "en": "No. No, no. Not today.", "zh": "不。不不不。别是今天。", "delivery": "quietly, through her teeth, not shouting"}
+      ],
+      "continuity": "her bag on the passenger seat, keys in the ignition"
+    }
+  ],
+  "continuity_update": {
+    "new_facts": ["Nora's Corolla has a weak starter (Walt suspects the solenoid)."],
+    "threads": ["Nora owes Danny a favour."]
+  },
+  "sound_notes": "Music bed: soft mid-80s instrumental (electric piano, chorus guitar, light drum machine), in under S01, ducked under every line. Hard cuts on action; the pickup's engine noise bridges S05-S06."
+}

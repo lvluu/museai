@@ -1,0 +1,6 @@
+{
+  "_note": "Episode ledger. episode.py check reads it (setting/situation variety, date order) and episode.py record appends to it after delivery. Corrections from the user go in `corrections` and apply to later episodes only; earlier entries are never rewritten.",
+  "series": "The Larkmont Years",
+  "corrections": [],
+  "episodes": []
+}
