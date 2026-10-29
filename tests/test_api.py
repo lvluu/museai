@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import time
+import unicodedata
 
 
 def test_health(client):
@@ -268,7 +269,7 @@ def test_posting_slots(tmp_path):
     assert [state[n]["slot"] for n in ("a.mp4", "b.mp4", "c.mp4")] == [
         "2026-10-29/2", "2026-10-30/1", "2026-10-30/2"]  # oldest delivery first
     assert not posting._assign_slots(state, videos, now)
-    cal = posting._calendar(state, {"a.mp4", "b.mp4", "c.mp4"}, now)
+    cal = posting._calendar(state, {n: n for n in ("a.mp4", "b.mp4", "c.mp4")}, now)
     assert len(cal) == 7 and cal[0]["slots"][1]["video"] == "a.mp4" and cal[0]["slots"][0]["video"] is None
 
 
@@ -316,3 +317,43 @@ def test_dashboard_cancel_and_retry(settings, auth, admin):
         # A second click while the retry renders joins it instead of rendering twice.
         assert c.post(url + "/retry", headers=admin).json()["id"] == again
         assert c.post("/dashboard/videos/nope/cancel", headers=admin).status_code == 404
+
+
+def test_auto_captions_fill_missing_platforms(client, admin, settings):
+    from museai.services import captions
+
+    svc = client.app.state.services
+    svc.captions.enabled = True
+    asked = []
+
+    async def write(path, caption, missing):
+        asked.append((path.name, caption, missing))
+        return {p: f"{p} text #tag" for p in missing}
+
+    svc.captions.write = write
+    settings.post_dir.mkdir()
+    name = unicodedata.normalize("NFD", "Tiếng 1.mp4")
+    (settings.post_dir / name).write_bytes(b"video")
+    # macOS lists the name decomposed; its state is keyed composed
+    client.post(f"/dashboard/posts/{name}", headers=admin, json={"captions": {"x": "mine"}})
+    client.get("/dashboard/posts", headers=admin)
+    for _ in range(50):
+        v = client.get("/dashboard/posts", headers=admin).json()["videos"][0]
+        if len(v["captions"]) == 6 and not v["auto_captions"]:
+            break
+        time.sleep(0.05)
+    assert v["captions"]["x"] == "mine"
+    assert v["captions"]["threads"] == "threads text #tag"
+    assert v["caption"] == "tiktok text #tag"
+    assert v["auto_captions"] is None
+    assert asked == [(name, "", [p for p in captions.PLATFORMS if p != "x"])]
+
+
+def test_auto_captions_parse_and_prompt():
+    from museai.services import captions
+
+    got = captions.parse('Sure!\n```json\n{"x": "hi", "tiktok": "", "myspace": "no"}\n```', ["x", "tiktok"])
+    assert got == {"x": "hi"}
+    assert captions.parse("no json here", ["x"]) == {}
+    text = captions.prompt("a.mp4", "", ["x"], "RULES", ["x: 300 characters, limit 280"])
+    assert "RULES" in text and "x: 300 characters" in text and "frames" in text

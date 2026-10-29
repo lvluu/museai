@@ -20,6 +20,7 @@ def settings(tmp_path) -> Settings:
         api_key=API_KEY,
         admin_key=ADMIN_KEY,
         driver="mock",
+        auto_captions=False,
     )
 
 
