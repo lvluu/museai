@@ -26,7 +26,8 @@ YouTube long-form, and one 16:9 image is cropped badly on every vertical platfor
 and the bottom 20 % (caption, username) on TikTok / Reels / Shorts. The 16:9 layout leaves the
 bottom-right corner free of text (YouTube's duration badge).
 
-**Alignment**: every line is centred. On 9:16 the block is centred on the frame's centre line (x120-960,
+**Alignment**: every line is centred, the series badge too (top of the safe box on 9:16, above the
+text column on 16:9). On 9:16 the block is centred on the frame's centre line (x120-960,
 symmetric, still clear of the button column); on 16:9 it is centred in the text column beside the faces
 (centring on the whole frame would cover them).
 
@@ -44,7 +45,7 @@ uv run --no-project --python 3.12 --with mediapipe==0.10.14 --with opencv-python
 - `--title` (required): 2-5 words in the viewer's language, uppercase, white on a red box.
 - `--zh`: the big hook phrase in the taught language (yellow, above the title), e.g. the ending question.
 - `--sub`: one small line under the title (a question or promise).
-- `--badge`: series tag top-left, e.g. `TẬP 33`.
+- `--badge`: series tag, centred at the top, e.g. `TẬP 33`.
 - `--at T`: use this frame; without it, frames sampled at 4 fps are scored (all faces, eyes open, not
   mid-word, smiling, toward the lens, sharp) and `<name>_picks.jpg` shows the 6 best with times.
 - `--skip 17.2-20.2,...`: never pick these spans (vocab cards, cuts, text cards).
