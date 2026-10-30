@@ -40,6 +40,11 @@ PLACE_REF = (
     "real place exactly as it is in the photo (its structure, shapes, proportions, colours and materials), "
     "seen from this shot's own camera position, with the light and people described below.\n\n"
 )
+# Zhangjiajie v2: she reads as filmed, not generated, when she is one visitor among real tourists
+REALISM = (
+    "REALISM: she is just one ordinary visitor among real Chinese tourists, small in frame, ordinary posture, "
+    "no posing, no model look, no glowing light on her; her clothes are slightly creased like real clothes."
+)
 PERSON = {
     "none": "Nobody is the subject of this shot: the traveller is not in it; at most a few distant passers-by, small and natural.",
     "back": "The traveller is seen from behind or three-quarter behind; her face is not the focus.",
@@ -102,6 +107,8 @@ def main():
             img = ""
         lines.append(f"PLACE: {story['where']}. {s['view']}.")
         lines.append(f"SHOT ({length:.1f} s used of this clip): {s['action'] or 'Pure scenery.'} {PERSON[person]}")
+        if person in ("back", "walk", "side"):
+            lines.append(REALISM)
         if person != "none":
             lines.append(f"TRAVELLER (the same woman in every shot): {char}")
         block = (china.replace("{SEASON}", story["season"]).replace("{LIGHT}", LIGHT[s.get("light", "day")])
