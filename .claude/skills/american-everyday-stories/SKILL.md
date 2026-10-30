@@ -13,6 +13,7 @@ This skill keeps only what is specific to the series.
 | file | what it holds |
 |---|---|
 | `series/bible.md` | default series: premise, world, places, vehicles, relationships, first ten episodes |
+| `series/storyline.md` | season arc: character arcs, planted threads and their payoffs, what each episode moves |
 | `series/cast.json` | every recurring character: identity (face), wardrobe sets, voice, TTS voice, speaker letter |
 | `series/ledger.json` | episode ledger + user corrections; `episode.py check` reads it, `record` appends |
 | `references/look.md` | colour, cutting, text and sound measured from the user's reference film |
@@ -21,11 +22,12 @@ This skill keeps only what is specific to the series.
 | `prompt/look.txt` | period look + filming + performance block, appended to every shot prompt |
 | `templates/episode.template.json` | episode file shape (two example shots) |
 | `scripts/episode.py` | `check` gates, `build` prompts/subtitles/package/render.sh, `still`, `record` |
-| `scripts/assemble.py` | `cut` shots → graded film + cut.json; `mix` music bed ducked under speech |
+| `scripts/audit.py` | per clip: planned words heard (re-render under 85 %), speech end → `trims.json` |
+| `scripts/assemble.py` | `cut` shots → graded film with dissolves + cut.json; `sync` the lip-sync gate; `mix` music bed |
 | `scripts/align.py` | Whisper (English) → words.json, cues aligned to the real speech |
 | `scripts/qa_episode.py` | the gate: format, sound, cuts, words, pace, smooth, voices, contact sheet |
 | `scripts/refs.sh` | character reference still candidates through museai |
-| `scripts/finish.py` | title card + EN/中文 subtitles burned in, final .srt/.vtt |
+| `scripts/finish.py` | series/episode title card, "next time" end card, EN/中文 subtitles burned in, final .srt/.vtt |
 
 ## Ground rules
 - **Fiction**: invented people, businesses and events in a plausible setting. Never call an episode a
@@ -39,7 +41,7 @@ This skill keeps only what is specific to the series.
   never "looks like". Each face carries one or two specific details on a named side; they come from cast.json verbatim.
 - **No pretending**: say a video, audio or subtitle file exists only when a tool made it. Missing
   reference stills or voices are named (`episode.py build` prints `MISSING REFS`), never assumed.
-- **Continuity is a file**: the bible, cast and ledger are the memory. Never claim to remember an
+- **Continuity is a file**: the bible, storyline, cast and ledger are the memory. Never claim to remember an
   episode that is not in the ledger; if one is missing, ask for its continuity summary.
 
 ## Commands
@@ -58,7 +60,9 @@ Work in `~/Movies/museai/aes-epNN/` (`WORK`). Copy `templates/episode.template.j
 `WORK/episode.json` and fill it.
 1. **Situation**: one ordinary, specific problem (a missed bus, a first day, a broken car, an awkward
    lunch, groceries, a family disagreement, a drive, a motel, a favour, an office mix-up). Different
-   from the last three ledger entries in situation and main places.
+   from the last three ledger entries in situation and main places. Take the episode's row in
+   `series/storyline.md`: pay off at least one planted thread and plant at least one new one
+   (both into `continuity_update`), and end on the row's hook into the next episode.
 2. **Beats** (`beats`, all required): `opening` hooks in the first 5-10 s with an action or a line that
    raises a question (never a greeting or exposition); `goal` immediate; `obstacle` small; `turn` a
    believable emotional shift; `ending` a resolution or quiet closing image, no forced cliffhanger.
@@ -78,11 +82,23 @@ Work in `~/Movies/museai/aes-epNN/` (`WORK`). Copy `templates/episode.template.j
    windshield; across a counter); never a speaker filmed from behind (muse moves the line to the
    visible mouth). Close-ups rare; slow motivated tracking only now and then. Keep screen direction:
    who sits left stays left; the car drives the same way across cuts; props stay put.
+   **Car scenes** (Ep 1: "inside the car is not like real life"): a classic hood-mounted two-shot,
+   written out in full in every car shot (`episode.py check` enforces the two key parts): the camera
+   low on the hood looking in through the windshield; foreground glass with faint reflections and the
+   chrome frame and pillars at the picture edges; the period dashboard across the bottom (gauge pod,
+   AM radio, a thin steering wheel on its column in front of the driver); a narrow cab, the two
+   shoulders about a foot apart under a low headliner; a small rear window just behind their necks.
+   Seats as **LEFT / RIGHT of the picture** (an American driver is on the RIGHT of the picture from
+   the hood); a person's own left/right in that framing mirrored the seating twice. One first-frame
+   still for all shots of the drive, so the cab never changes.
 6. **Fields per shot**: `place`, `time`, `framing`, `cast`, `wardrobe` (keys of cast.json), `action`,
    `camera`, `ambience`, `lines` (`who`, `en`, `zh`, optional `delivery`, `listener`), `props`,
    `continuity`. Period details named concretely (`references/period-1985.md`): the car model and
    colour, the phone, the register, the clothes. No readable brands, plates or headlines.
-7. **Check**: `python3 scripts/episode.py check WORK/episode.json` until no ERROR; read every WARN.
+7. **Faces stay clean**: no scar, mark through a brow or uneven teeth in an identity (muse draws a
+   squiggle on the face; `check` rejects it). Every CAMERA line ends "ONE CONTINUOUS TAKE" (added by
+   `build`): muse otherwise cuts or zooms inside a shot.
+8. **Check**: `python3 scripts/episode.py check WORK/episode.json` until no ERROR; read every WARN.
    Then the quality questions it cannot answer: is the small story complete and engaging, is each
    line something this person would say in 1985, is the Chinese accurate and natural, is this
    distinct from recent episodes?
@@ -115,22 +131,30 @@ file) and summarise; production notes stay out of the dialogue.
 2. **Check each clip** (`../muse-video/scripts/check_clip.sh clip.mp4`): wrong face, outfit or period
    detail, extra cut, a person speaking without lips, words not in the script, garbled text → re-render
    that shot once with `RETAKE=1` and the failing rule stated more strongly; after two failures use the
-   best take and name the problem. Pick each shot's best window into `WORK/trims.json`
-   (`{"S04": [0.3, 7.6]}`; trim only silence at the ends, never inside speech).
-3. `python3 scripts/assemble.py cut WORK WORK/episode.json WORK/film.mp4`: hard cuts, 1920x1080 24 fps,
-   the reference grade (`references/look.md`) on every shot alike, audio levelled not retimed.
+   best take and name the problem. Then
+   `uv run --no-project --python 3.12 --with faster-whisper --with soundfile python scripts/audit.py WORK`:
+   every BAD (a line cut short or garbled) is re-rendered; it writes `WORK/trims.json`, each dialogue
+   shot running to its last word + 0.7 s (never trim inside speech).
+3. `python3 scripts/assemble.py cut WORK WORK/episode.json WORK/film.mp4`: 1920x1080, frame-exact 24 fps,
+   each shot graded toward the reference look (`STRENGTH`, default 0.85) so shots match, 0.4 s
+   dissolves (`XF`), every shot's sound placed at its picture's exact film time. Then the **lip-sync
+   gate**: `uv run --no-project --python 3.12 --with numpy python scripts/assemble.py sync WORK WORK/film.mp4`
+   must print `SYNC PASS` (no shot more than 40 ms off). Never hand-edit the cut with chained
+   `acrossfade`/concat: each join loses ~50 ms and the voice runs ahead of the lips by mid-film (Ep 1 v3).
 4. Align: `uv run --no-project --python 3.12 --with faster-whisper python scripts/align.py WORK/film.mp4 WORK`.
    Fix any UNMATCHED / PARTIAL line (missing words → re-render that shot).
-5. **Dub** one fixed voice per character (cast.json `tts`, letters from line 1 of `speakers.txt`):
+5. **Dub** only when the user rejects muse's own voices: muse's voice is the one its lips were drawn
+   to, so it gives the best lip sync (Ep 1 kept it). Dub one fixed voice per character (cast.json `tts`, letters from line 1 of `speakers.txt`):
    `VOICE_N=en-US-AvaNeural VOICE_L=en-US-AnaNeural VOICE_T=en-US-GuyNeural VOICE_D=en-US-AndrewNeural VOICE_G=en-US-JennyNeural VOICE_E=en-US-EmmaNeural MUSIC=0 uv run --no-project --python 3.12 --with edge-tts --with librosa --with soundfile python ../muse-video/scripts/dub.py WORK/film.mp4 WORK/cues.json $(head -1 WORK/speakers.txt) WORK/dubbed.mp4`,
-   then run step 4 again on `WORK/dubbed.mp4` so `words.json` and `cues.json` follow the new voices
+   then run the `sync` gate and step 4 again on `WORK/dubbed.mp4` so `words.json` and `cues.json` follow the new voices
    (keep the first `cues.json` as `cues.lips.json`). Skip only
    if the user accepts muse's voices; qa's `voices` check decides. Locations with ambience: dub.py
    keeps no muse music (MUSIC=0); the ambience comes back with the bed below.
-6. **Music**: an original era-compatible instrumental bed (soft mid-80s: electric piano, chorus guitar,
+6. **Music**: a 3-4 s music hook before the first line, then an original era-compatible instrumental bed (soft mid-80s: electric piano, chorus guitar,
    warm synth pad, light drum machine, 80-96 BPM; folk/acoustic for a rural episode; nothing that
    imitates a known song). `uv run --no-project ../muse-video/scripts/music.py --engine musicgen --style "<style>" --bpm 88 --body-beats <beats for the film> --out WORK/music.m4a`
-   (MusicGen weights are CC-BY-NC: personal posts only; say so if the user monetises), or a
+   or ACE-Step (`../muse-video/scripts/ace_song.py`, instrumental tags, holding
+   `~/.local/share/ace-step/render.lock`; used for Ep 1, 1980s city pop) (MusicGen weights are CC-BY-NC: personal posts only; say so if the user monetises), or a
    user-supplied licensed track. `python3 scripts/assemble.py mix WORK/dubbed.mp4 WORK/music.m4a WORK/mixed.mp4`
    (bed at -20 dB, ducked under every line; no canned laughter, few effects).
 
@@ -139,7 +163,8 @@ file) and summarise; production notes stay out of the dialogue.
    same faces and marks on the named side, same wardrobe, period-correct objects, listeners' lips
    closed, no garbled text. Deliver nothing on FAIL unless the user accepts the named failure.
 2. `uv run --no-project --python 3.12 --with pillow python scripts/finish.py WORK/mixed.mp4 WORK WORK/aes-epNN-<slug>.mp4`
-   burns the title (`title.json`) and the EN/中文 subtitles and writes the matching .srt/.vtt (final,
+   burns the title (`title.json`: with `series`, `episode` and `next` it opens on "THE LARKMONT YEARS ·
+   EPISODE N" + the episode title and ends on a "Next time" card naming the next storyline title) and the EN/中文 subtitles and writes the matching .srt/.vtt (final,
    aligned). Grab frames at several cue times: no subtitle covers a face, mouth or key action; if one
    does, shorten that cue (split the line) and rerun.
 3. Preview (`SendUserFile`, render), then on the user's OK deliver with

@@ -1,6 +1,12 @@
 {
   "_note": "Episode ledger. episode.py check reads it (setting/situation variety, date order) and episode.py record appends to it after delivery. Corrections from the user go in `corrections` and apply to later episodes only; earlier entries are never rewritten.",
   "series": "The Larkmont Years",
-  "corrections": [],
+  "corrections": [
+    {
+      "date": "2026-10-30",
+      "who": "DANNY",
+      "change": "Removed the eyebrow scar and uneven teeth: muse drew the scar as a black squiggle and the user wants the leads attractive."
+    }
+  ],
   "episodes": []
 }
