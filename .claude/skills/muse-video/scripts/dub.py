@@ -2,13 +2,17 @@
   uv run --no-project --python 3.12 --with edge-tts --with librosa --with soundfile \\
       python scripts/dub.py video.mp4 cues.json WMWMWMWMWMWW dubbed.mp4
 
-Replaces the dialogue with one fixed neural voice per person, timed to the original lips.
+Replaces the dialogue with one fixed voice per person, timed to the original lips.
 Every muse render picks its own voices, so a multi-clip video changes voice at each seam
 (EP08: the woman went 258 -> 183 -> 229 Hz across 4 clips, the clerk 101-142 Hz, with a
 different timbre and accent each time). Dubbing every line with the same voice fixes that.
-  voices  VOICE_W (default zh-CN-XiaoxiaoNeural), VOICE_M (default zh-CN-YunjianNeural):
-          standard Putonghua. SPEAKERS has one letter per cue (W / M); any other letter X
-          uses VOICE_X (e.g. VOICE_N=en-US-AvaNeural).
+  voices  cloned from the voice bank by default (voicebank.py, F5-TTS in clone_tts.py): each
+          of W / M gets a natural muse voice, least recently used first, kept per output path so
+          a re-dub keeps it. The edge-tts pair on every episode sounded like AI and like the same
+          two people every day (user, 2026-10-29). VOICE_W / VOICE_M take a bank id (W-mid-01), a
+          glob (M-low-*) or an edge-tts name (zh-CN-XiaoxiaoNeural, has "Neural") to skip cloning.
+          SPEAKERS has one letter per cue; any other letter X needs VOICE_X, an edge-tts name or a
+          bank id (e.g. VOICE_N=en-US-AvaNeural).
   timing  each cue's speech span comes from the original audio (loud frames inside the cue).
           A line whose commas match the original's pauses (> 0.15 s) is synthesised per
           comma part and each part is placed on its own span; otherwise the whole line
@@ -41,15 +45,28 @@ import librosa
 import numpy as np
 import soundfile as sf
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import voicebank  # noqa: E402
+
 video, cues_path, who, out = sys.argv[1], sys.argv[2], sys.argv[3].upper(), sys.argv[4]
 cues = json.load(open(cues_path))
 if len(who) != len(cues):
     sys.exit(f"SPEAKERS has {len(who)} letters for {len(cues)} cues")
-voices = {"W": os.environ.get("VOICE_W", "zh-CN-XiaoxiaoNeural"), "M": os.environ.get("VOICE_M", "zh-CN-YunjianNeural")}
+asked = {w: os.environ[f"VOICE_{w}"] for w in set(who) if os.environ.get(f"VOICE_{w}")}
+voices = {w: v for w, v in asked.items() if "Neural" in v}
 # any other speaker letter X takes its voice from VOICE_X (American Everyday Stories: one letter per character)
-voices |= {k[6:]: v for k, v in os.environ.items() if k.startswith("VOICE_") and len(k) == 7}
-if missing := set(who) - set(voices):
+voices |= {w: voicebank.voice(v) for w, v in asked.items() if w not in "WM" and w not in voices}
+if missing := set(who) - set(voices) - {"W", "M"}:
     sys.exit(f"no voice for speaker letter(s) {sorted(missing)}: set VOICE_<letter>")
+banked = voicebank.pick(sorted(set(who) - set(voices)), out, asked)
+voices |= {w: voicebank.voice(i) for w, i in banked.items()}
+print("voices:", ", ".join(f"{w} {v if isinstance(v, str) else v['id']}" for w, v in sorted(voices.items())))
+clone = None
+if any(isinstance(v, dict) for v in voices.values()):
+    clone = subprocess.Popen(["uv", "run", "-q", "--no-project", "--python", "3.11", "--with", "f5-tts",
+                              "--with", "faster-whisper", "--with", "pypinyin", "python",
+                              os.path.join(os.path.dirname(os.path.abspath(__file__)), "clone_tts.py")],
+                             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
 SR, HOP = 24000, 120  # 5 ms frames
 MAX_PCT = min(20, int(os.environ.get("MAX_PCT", 20)))  # faster sounds hurried and pitched; hard cap
 tmp = tempfile.mkdtemp()
@@ -84,8 +101,20 @@ async def say(text, voice, path, pct):
 
 
 def tts(text, voice, n, pct=0):
-    asyncio.run(say(text, voice, f"{tmp}/{n}.mp3", pct))
-    y, _ = librosa.load(f"{tmp}/{n}.mp3", sr=SR)
+    if isinstance(voice, str):
+        asyncio.run(say(text, voice, f"{tmp}/{n}.mp3", pct))
+        path = f"{tmp}/{n}.mp3"
+    else:  # cloned: speed 1.2 says the line in 1/1.2 of the time, like edge-tts rate +20 %
+        path = f"{tmp}/{n}.wav"
+        clone.stdin.write(json.dumps({"ref": voice["ref"], "ref_text": voice["text"], "text": text, "out": path,
+                                      "speed": 1 + pct / 100}, ensure_ascii=False) + "\n")
+        clone.stdin.flush()
+        got = clone.stdout.readline()
+        if not got:
+            sys.exit("clone_tts.py stopped (run it by hand to see why)")
+        if not json.loads(got)["ok"]:
+            print(f"  CLONE MISHEARD {text}: heard {json.loads(got)['heard']} (VOICE_{voice['gender']}=<edge name>)")
+    y, _ = librosa.load(path, sr=SR)
     y, _ = librosa.effects.trim(y, top_db=35)
     return y
 
@@ -121,6 +150,8 @@ for i, (c, s) in enumerate(zip(cues, who, strict=True)):
         track[o : o + len(y)] += y * fade
         end = a + len(y) / SR
     voice_cues.append([round(spans[0][0], 2), round(end, 2), *c[2:]])
+if clone:
+    clone.stdin.close()
 track = track[: len(orig)] / max(1.0, np.abs(track).max() / 0.85)
 sf.write(f"{tmp}/dub.wav", track, SR)
 if os.environ.get("MUSIC", "1") == "0":

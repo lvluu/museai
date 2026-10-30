@@ -21,6 +21,7 @@ api_key
 *.webm
 *.mp3
 *.wav
+!.claude/skills/muse-video/voices/*.wav
 *.m4a
 *.log
 /ep*/
