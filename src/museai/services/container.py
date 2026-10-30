@@ -13,6 +13,9 @@ from ..drivers.base import MuseDriver
 from ..drivers.registry import create_driver
 from .captions import CaptionWriter
 from .gateway import Gateway
+from .oauth import OAuth
+from .publishers import Publisher
+from .publishers import build as build_publishers
 from .push import Push
 from .tasks import TaskManager
 
@@ -27,6 +30,8 @@ class Services:
     media: MediaStore
     push: Push
     captions: CaptionWriter
+    oauth: OAuth
+    publishers: dict[str, Publisher]
 
     @classmethod
     def build(cls, settings: Settings, driver: MuseDriver | None = None) -> Services:
@@ -54,4 +59,6 @@ class Services:
             media=MediaStore(settings.media_dir),
             push=Push(settings.data_dir, settings.post_dir),
             captions=CaptionWriter(gateway, settings.auto_captions),
+            oauth=OAuth(settings),
+            publishers=build_publishers(settings.autopost_mock, settings.data_dir),
         )

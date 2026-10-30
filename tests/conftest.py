@@ -21,6 +21,8 @@ def settings(tmp_path) -> Settings:
         admin_key=ADMIN_KEY,
         driver="mock",
         auto_captions=False,
+        autopost_enabled=False,  # tests run auto-post passes themselves
+        autopost_mock=True,
     )
 
 
