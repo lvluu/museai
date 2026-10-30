@@ -21,38 +21,38 @@
       "bars": 2,
       "person": "walk",
       "light": "day",
-      "view": "the grassy shore of Napa Lake, shallow clear water with reeds, the lake and hills stretching behind, a line of colourful prayer flags strung along the shore fluttering in the breeze",
+      "view": "the grassy shore of Napa Lake, shallow clear water with reeds, the lake and hills stretching behind, a line of colourful prayer flags strung along the shore stirring gently in a light breeze",
       "action": "She walks slowly along the shore from left to right, looking out over the water.",
-      "move": "Very slow, gimbal-smooth side tracking shot at her slow walking pace, keeping her medium-wide on the left third with the lake filling the frame.",
+      "move": "Camera locked on a tripod, perfectly still; she walks slowly into the frame and along the shore, medium-wide on the left third, the lake filling the frame.",
       "ambience": "breeze, footsteps on grass, water"
     },
     {
       "bars": 2,
       "person": "none",
       "light": "day",
-      "view": "the vast Napa grassland: golden-brown meadow reaching to the forested hills, a small herd of black and white yaks grazing far away, mountain ridges under a deep-blue sky",
+      "view": "the vast Napa grassland in calm, windless morning air: a flat meadow of short golden-brown turf grazed low by yaks, reaching to the forested hills, a small herd of black and white yaks grazing in the middle distance, mountain ridges under a clear blue sky",
       "action": "",
-      "move": "Locked-off tripod shot at eye level, the camera perfectly still; only the grass sways and the yaks graze. The nearest grass is a few metres away, no close foreground.",
-      "ambience": "wind over the grass, a distant yak bell"
+      "move": "Locked-off tripod shot from a slightly raised viewpoint looking out over the meadow, the camera perfectly still; the grass is short and still, only the yaks graze slowly. No tall grass, no close foreground: the bottom of the frame is short turf several metres away.",
+      "ambience": "soft breeze, a distant yak bell"
     },
     {
       "bars": 3,
       "person": "walk",
       "light": "day",
       "in": "dissolve",
-      "view": "the giant prayer-flag canopy on the Shangri-La plateau: thousands of strings of small colourful Tibetan prayer flags (blue, white, red, green, yellow) radiating from a tall golden central pole down to the ground all around, forming a huge cone-shaped canopy of flags against a blue sky with white clouds; a tiered mound of coloured cloth at the foot of the pole, gravel ground",
-      "action": "She walks slowly in under the canopy toward the central pole, then pauses and looks up at the thousands of fluttering flags, calm and moved. Seen from behind and slightly to the side, medium-wide, the flags filling the frame above her.",
-      "move": "Slow straight follow from behind at a steady distance, slightly low so the cone of flags rises above her; no pan.",
-      "ambience": "thousands of prayer flags flapping in the wind, breeze"
+      "view": "inside the giant prayer-flag canopy of Shangri-La on a flat gravel square: one tall slender wooden-brown pole in the middle, and from its top tens of thousands of small square prayer flags on strings fan out and down to the ground on every side, forming a huge round tent-like dome that encloses the whole square; seen from inside, the flags make perfect concentric rings around the pole top like the inside of a giant umbrella: mostly white and pale-blue flags with bright rings of red, yellow, green and blue; around the foot of the pole a neat tiered cone of layered flags, tier on tier (red at the bottom edge, then yellow, green, blue and white), tidy and symmetrical; soft bright daylight through the flags, a few visitors in Tibetan dress far away",
+      "action": "She walks slowly in from the edge across the open gravel toward the tiered cone at the foot of the pole, then pauses and looks up at the rings of flags, calm and moved. Seen from behind and slightly to the side, medium-wide, the dome of flags filling the frame above and around her.",
+      "move": "Camera locked on a tripod, slightly low, perfectly still; she walks into the frame and the dome of flags stays still above her. No follow, no pan.",
+      "ambience": "prayer flags rustling softly in a light breeze"
     },
     {
       "bars": 1,
       "person": "none",
       "light": "day",
-      "view": "close view looking up through layers of colourful prayer flags fluttering against a deep-blue sky with white clouds, the golden pole rising through them",
+      "view": "straight up at the sky from the ground directly beneath the top of the giant prayer-flag canopy: the pole runs from the bottom edge of the frame to the centre, and tens of thousands of small square flags spread out around its top in perfect circular concentric rings of red, yellow, green, blue and white, filling the whole frame like the inside of a huge round umbrella, symmetrical around the centre",
       "action": "",
-      "move": "Locked-off camera looking up; only the flags flutter in the wind.",
-      "ambience": "prayer flags snapping in the wind"
+      "move": "The camera points straight up at the zenith, locked and perfectly still, the pole top in the centre of the frame; only the flags stir gently. No tilt, no zoom.",
+      "ambience": "prayer flags rustling softly"
     },
     {
       "bars": 2,
@@ -70,7 +70,7 @@
       "light": "day",
       "view": "the wide stone visitor stairway leading up to the golden-roofed main assembly hall of Songzanlin Monastery, white and red walls on both sides",
       "action": "She walks calmly up the stone steps, then pauses and looks up at the golden roofs, admiring them. Seen from behind and slightly to the side.",
-      "move": "Slow follow from behind at a respectful distance, the monastery filling the upper frame.",
+      "move": "Camera locked on a tripod at the foot of the stairs, perfectly still; she walks slowly up the steps away from it, the monastery filling the upper frame.",
       "ambience": "footsteps on stone, breeze, faint chimes"
     },
     {
@@ -115,16 +115,16 @@
       "person": "none",
       "light": "sunset",
       "in": "dissolve",
-      "view": "elevated view from Guishan Park hill over the rooftops of Dukezong Ancient Town at sunset: dark wooden Tibetan roofs, the warm window lights and street lanterns starting to glow, the giant golden prayer wheel on the hill catching the last light, mountains under a pastel peach and pink sky",
-      "action": "",
-      "move": "Locked-off wide from the hilltop with a very slow straight push-in toward the town; no pan.",
-      "ambience": "evening breeze, distant town ambience"
+      "view": "the giant golden prayer wheel on Guishan Park hill above Dukezong Ancient Town in bright early dusk: an enormous gilded cylinder several storeys tall, its surface embossed with rows of seated Buddha figures and lotus patterns, a flared gilded crown on top, glowing warm gold under its floodlights against a soft blue-and-peach sky; a few visitors in warm coats walking slowly around its base pushing the wheel, which turns slowly",
+      "action": "The wheel turns slowly and steadily; visitors walk calmly around it.",
+      "move": "Locked-off camera from low at the foot of the wheel looking up at it, perfectly still; only the wheel turns and people walk.",
+      "ambience": "the wheel's low rumble, soft footsteps, evening breeze, a distant bell"
     },
     {
       "bars": 2,
       "person": "back",
       "light": "sunset",
-      "view": "Guishan Park hill above Dukezong at sunset, the old town's glowing rooftops spread below",
+      "view": "Guishan Park hill above Dukezong at sunset, beside the giant golden prayer wheel, the old town's glowing rooftops spread below",
       "action": "She stands at the railing seen from behind, nothing on her back (no backpack, no bag), looking out over the rooftops, the breeze moving her hair. Still and calm.",
       "move": "Very slow push-in from behind her over her shoulder toward the glowing town.",
       "ambience": "evening breeze, faint prayer flags flapping"

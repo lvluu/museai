@@ -6,12 +6,12 @@
     "wardrobe": "a muted red outdoor jacket over a cream knit sweater, dark trousers and comfortable walking shoes; the same clothes in every shot",
     "manner": "She is a real traveller, not a model: relaxed, unhurried natural walking, quiet curiosity, calm natural expression. No posing, no nodding, no waving, no talking, no gestures at the camera, mouth closed. Her hands are graceful: slender fingers, natural skin with real texture, neat clean natural nails, five fingers each, anatomically correct, relaxed natural poses."
   },
-  "grade": "eq=contrast=1.05:gamma=1.05,vibrance=intensity=0.18,colorbalance=rs=-0.02:bs=0.02:rh=0.03:bh=-0.02,unsharp=5:5:0.4",
+  "grade": "huesaturation=saturation=-0.25:colors=y+r,eq=gamma=1.07:saturation=0.95,colorbalance=bs=0.02:bh=0.02,curves=all='0/0.03 0.5/0.53 1/0.97',unsharp=5:5:0.3",
   "regions": {
     "plateau": {
       "fits": "Tibetan plateau and its edge: Shangri-La, Lijiang mountains, Tibet, western Sichuan (Daocheng Yading, Kangding), Qinghai, Gannan",
       "season_hint": "autumn: golden-brown grassland, deep-blue high-altitude sky, crisp sun, first snow on the far peaks",
-      "signature": "prayer flags everywhere: strings of colourful lungta flags on passes, shores and roofs, and the giant prayer-flag canopy (thousands of flag strings radiating from a tall golden central pole down to the ground in a huge cone); white stupas, golden-roofed monasteries, prayer wheels, yaks on golden grassland",
+      "signature": "prayer flags everywhere: strings of colourful lungta flags on passes, shores and roofs, and the giant prayer-flag canopy (tens of thousands of flags on strings from the top of one slender pole down to the ground all around, a huge round tent-like dome; from inside, perfect concentric rings like a giant umbrella, mostly white and pale blue with rings of red, yellow, green and blue; a neat tiered cone of layered flags around the pole's foot, never a messy heap of scarves); the giant golden prayer wheel on Guishan Park hill (Dukezong), several storeys tall, embossed with Buddhas, glowing gold at dusk; white stupas, golden-roofed monasteries, prayer wheels, yaks on golden grassland",
       "music": [
         {"id": "plateau-anthem", "track": "shangri-la-ref", "note": "user's reference song (123 BPM, cinematic strings, flute, steady pulse)"},
         {"id": "plateau-song", "bpm": 92, "tags": "cinematic Chinese pop, Tibetan dranyen lute, airy bamboo flute dizi, soaring strings, steady soft drum pulse, warm female lead vocal, uplifting, majestic", "lyrics": "[verse]\n风吹过高原的湖\n云在水里慢慢走\n[chorus]\n{place_zh}啊 {place_zh}\n心停在这里不回头\n{place_zh}啊 {place_zh}\n天空离我很近很近"},
