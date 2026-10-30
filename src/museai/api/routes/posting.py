@@ -169,10 +169,13 @@ def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
     changed."""
     entries = [(p.name, state.setdefault(_key(p.name), {})) for p in sorted(videos, key=lambda p: p.stat().st_mtime)]
     changed = False
-    for _, e in entries:
-        if e.pop("done", None):  # the same name delivered again: a new video, not the old record
-            e.pop("slot", None)
-            e.pop("slot_pinned", None)
+    for n, e in entries:
+        if e.get("done"):  # the same name delivered again: a new video; the old record moves aside, its
+            # slot staying booked by the video posted there
+            if e.get("slot"):
+                state.setdefault(f"(posted {_channel(n, e)} {e['slot']})", dict(e))
+            for k in ("done", "slot", "slot_pinned", "title"):
+                e.pop(k, None)
             changed = True
         auto = e.get("auto") if isinstance(e.get("auto"), dict) else {}
         planned = bool(auto) and not auto.get("off") and not auto.get("paused")  # auto-post keeps its slot
@@ -199,6 +202,19 @@ def _forget_old(state: dict, now: datetime, keep_days: int = 14) -> bool:
     for n in old:
         del state[n]
     return bool(old)
+
+
+def _forget_deleted(state: dict, present: set[str]) -> bool:
+    """Turn the entry of a video deleted by hand (its folder deleted once posted) into the record
+    ``_record`` keeps, so its slot stays booked until ``_forget_old`` drops it, and the same name
+    delivered again is a new video with a slot of its own."""
+    gone = [n for n, e in state.items() if not e.get("done") and n not in present]
+    for n in gone:
+        if state[n].get("slot"):
+            state[n] = _record(state[n], n)
+        else:  # never booked: nothing to keep
+            del state[n]
+    return bool(gone)
 
 
 def _record(entry: dict, name: str) -> dict:
@@ -360,6 +376,8 @@ def refresh(svc: Services, now: datetime, videos: list[Path] | None = None) -> t
     with _state_lock:
         state = _load(svc)
         changed = _forget_old(state, now) | autopost.plan(state, videos, rules)
+        if svc.settings.post_dir.is_dir():  # listed again under the lock: a video moving to its folder is not gone
+            changed |= _forget_deleted(state, {_key(p.name) for p in queued(svc)})
         changed |= _assign_slots(state, videos, now) | autopost.book_fixed(state, rules, now)
         if changed:
             _save(svc, state)

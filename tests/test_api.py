@@ -318,9 +318,21 @@ def test_posting_folders(client, admin, settings, monkeypatch):
     assert [n[:9] for n in folders()] == ["Travel 01", "Travel 02"]
 
     # A folder deleted by hand takes its video out of the queue; the next one renumbers to 01.
-    shutil.rmtree(root / folders()[0])
-    client.get("/dashboard/posts", headers=admin)
+    hue = folders()[0]
+    shutil.rmtree(root / hue)
+    d = client.get("/dashboard/posts", headers=admin).json()
     assert len(folders()) == 1 and folders()[0].startswith("Travel 01 ") and folders()[0].endswith("zoom-Hoi An")
+    # Its slot is kept as posted: the calendar shows it gone, and the same name delivered again is a new
+    # video that gets a slot of its own.
+    record = posting._load(client.app.state.services)["reel-Hue.mp4"]
+    assert record["done"] and record["channel"] == "travel"
+    gone = [s for day in d["calendar"]["travel"] for s in day["slots"] if s["gone"]]
+    assert [s["key"] for s in gone] == [record["slot"]]
+    deliver("reel-Hue")
+    d = client.get("/dashboard/posts", headers=admin).json()
+    assert next(v["slot"] for v in d["videos"] if v["name"] == "reel-Hue.mp4") not in (None, record["slot"])
+    shutil.rmtree(root / next(f for f in folders() if f.endswith("reel-Hue")))
+    client.get("/dashboard/posts", headers=admin)
     shutil.rmtree(root / folders()[0])
     d = client.get("/dashboard/posts", headers=admin).json()
     assert {v["name"] for v in d["videos"]} == {"fresh.mp4", "holiday.mp4"}
@@ -387,11 +399,13 @@ def test_posting_slots(tmp_path):
     assert posting._forget_old(state, now) and "old.mp4" not in state
     assert posting._assign_slots(state, [*videos, tmp_path / "d.mp4", p], now)
     assert state["e.mp4"]["slot"] == "2026-11-01/1"
-    # The same name delivered again is a new video: the old record goes, its slot is free again.
+    # The same name delivered again is a new video: the old record goes, but its slot stays booked by
+    # the video posted there, so the new one takes the next free slot.
     (tmp_path / "gone.mp4").write_bytes(b"v")
     os.utime(tmp_path / "gone.mp4", (5000, 5000))
     assert posting._assign_slots(state, [*videos, tmp_path / "d.mp4", p, tmp_path / "gone.mp4"], now)
-    assert state["gone.mp4"]["slot"] == "2026-10-31/2" and "done" not in state["gone.mp4"]
+    assert state["gone.mp4"]["slot"] == "2026-11-01/2" and "done" not in state["gone.mp4"]
+    assert state["(posted chinese 2026-10-31/2)"]["done"]  # kept for the next passes too
 
 
 def test_posting_channel_from_file_name():
