@@ -12,22 +12,22 @@
       "label": "hook",
       "person": "back",
       "light": "day",
-      "view": "Napa Lake (Napahai): a calm wide lake with the forested hills and distant mountain ridges mirrored perfectly in the water, golden-brown grassland along the shore, small white clouds reflected",
+      "view": "Napa Lake (Napahai): a calm wide lake with the forested hills and distant mountain ridges mirrored perfectly in the water, golden-brown grassland along the shore, small white clouds reflected, strings of colourful prayer flags fluttering on poles along the shore",
       "action": "She stands still at the water's edge seen from close behind her right shoulder, a light breeze lifting her braids and the white fur trim of her red robe, looking out over the lake.",
       "move": "Start close behind her shoulder, then glide very slowly backwards and up at one gentle constant speed to reveal the whole lake and its mirrored mountains; she stays in the lower third.",
       "ambience": "soft breeze, gentle lapping water"
     },
     {
-      "bars": 3,
+      "bars": 2,
       "person": "walk",
       "light": "day",
-      "view": "the grassy shore of Napa Lake, shallow clear water with reeds, the lake and hills stretching behind",
+      "view": "the grassy shore of Napa Lake, shallow clear water with reeds, the lake and hills stretching behind, a line of colourful prayer flags strung along the shore fluttering in the breeze",
       "action": "She walks slowly along the shore from left to right, looking out over the water.",
       "move": "Very slow, gimbal-smooth side tracking shot at her slow walking pace, keeping her medium-wide on the left third with the lake filling the frame.",
       "ambience": "breeze, footsteps on grass, water"
     },
     {
-      "bars": 3,
+      "bars": 2,
       "person": "none",
       "light": "day",
       "view": "the vast Napa grassland: golden-brown meadow reaching to the forested hills, a small herd of black and white yaks grazing far away, mountain ridges under a deep-blue sky",
@@ -36,16 +36,26 @@
       "ambience": "wind over the grass, a distant yak bell"
     },
     {
+      "bars": 3,
+      "person": "walk",
+      "light": "day",
+      "in": "dissolve",
+      "view": "the giant prayer-flag canopy on the Shangri-La plateau: thousands of strings of small colourful Tibetan prayer flags (blue, white, red, green, yellow) radiating from a tall golden central pole down to the ground all around, forming a huge cone-shaped canopy of flags against a blue sky with white clouds; a tiered mound of coloured cloth at the foot of the pole, gravel ground",
+      "action": "She walks slowly in under the canopy toward the central pole, then pauses and looks up at the thousands of fluttering flags, calm and moved. Seen from behind and slightly to the side, medium-wide, the flags filling the frame above her.",
+      "move": "Slow straight follow from behind at a steady distance, slightly low so the cone of flags rises above her; no pan.",
+      "ambience": "thousands of prayer flags flapping in the wind, breeze"
+    },
+    {
       "bars": 1,
       "person": "none",
       "light": "day",
-      "view": "close detail of wild golden meadow grass (thin wild grass stems and feathery seed heads, not wheat or barley) on the Napa grassland, the soft blurred lake and hills behind",
+      "view": "close view looking up through layers of colourful prayer flags fluttering against a deep-blue sky with white clouds, the golden pole rising through them",
       "action": "",
-      "move": "Locked, low camera at grass height; only the grass moves, swaying in waves in the wind.",
-      "ambience": "wind rustling through dry grass"
+      "move": "Locked-off camera looking up; only the flags flutter in the wind.",
+      "ambience": "prayer flags snapping in the wind"
     },
     {
-      "bars": 3,
+      "bars": 2,
       "person": "none",
       "light": "day",
       "in": "dissolve",
