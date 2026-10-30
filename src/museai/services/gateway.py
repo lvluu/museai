@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 from typing import TypeVar
@@ -33,18 +34,27 @@ class Gateway:
         # Image/video jobs run in the background, so they wait for the next free account
         # (one job per account) instead of failing after the chat acquire timeout.
         self.media_queue_timeout = media_queue_timeout
+        # What each account is doing right now (chat, image, video), for the dashboard cards:
+        # tasks only record videos, so an account busy with an image used to look idle.
+        self.jobs: dict[str, list[dict]] = {}
 
     @asynccontextmanager
     async def _lease(
         self, exclude: list[str], hint: str | None, timeout: float | None = None,
-        owner: str | None = None,
+        owner: str | None = None, kind: str = "chat", prompt: str = "",
     ) -> AsyncIterator[Lease]:
         if not self.driver.requires_account and not self.pool.all():
             yield Lease(_ANONYMOUS)
             return
         async with self.pool.lease(exclude=exclude, hint=hint, timeout=timeout,
                                    owner=owner) as lease:
-            yield lease
+            job = {"kind": kind, "prompt": prompt[:200], "since": time.time()}
+            jobs = self.jobs.setdefault(lease.account.id, [])
+            jobs.append(job)
+            try:
+                yield lease
+            finally:
+                jobs.remove(job)
 
     def _should_retry(self, exc: UpstreamError, attempt: int, tried: list[str]) -> bool:
         """Fail over only to an account not tried yet; with none left the caller gets
@@ -87,10 +97,12 @@ class Gateway:
         queue_timeout: float | None = None,
         on_account: Callable[[Account], None] | None = None,
         owner: str | None = None,
+        kind: str = "chat",
+        prompt: str = "",
     ) -> T:
         tried: list[str] = []
         for attempt in range(self.max_failover + 1):
-            async with self._lease(tried, hint, queue_timeout, owner) as lease:
+            async with self._lease(tried, hint, queue_timeout, owner, kind, prompt) as lease:
                 if on_account:
                     on_account(lease.account)
                 try:
@@ -105,7 +117,8 @@ class Gateway:
 
     async def generate_image(self, req: ImageRequest) -> list[MediaResult]:
         return await self._run(
-            lambda acc: self.driver.generate_image(acc, req), queue_timeout=self.media_queue_timeout
+            lambda acc: self.driver.generate_image(acc, req), queue_timeout=self.media_queue_timeout,
+            kind="image", prompt=req.prompt,
         )
 
     async def generate_video(
@@ -117,4 +130,6 @@ class Gateway:
             queue_timeout=self.media_queue_timeout,
             on_account=on_account,
             owner=owner,
+            kind="video",
+            prompt=req.prompt,
         )
