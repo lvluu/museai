@@ -15,9 +15,9 @@ on the card) and gets a posting slot in that channel: two a day at the audience'
 handed out in delivery order, with a time per platform (``OFFSETS``) to set in each platform's scheduler.
 
 With ``post_folders`` on, each delivered video (one with its 9x16 thumbnail, settled for ``SETTLE`` s)
-moves into a folder of its own, ``"01 · Fri 30-10 11h30 · Travel · <stem>"``: the video, its thumbnails
-and ``captions.txt`` (the caption and time per platform). Folders are numbered in posting order and
-renumbered as videos go; deleting a folder takes its video out of the queue. Only folders holding a
+moves into a folder of its own, ``"Travel 01 · Fri 30-10 11h30 · <stem>"``: the video, its thumbnails
+and ``captions.txt`` (the caption and time per platform). Each channel numbers its folders from 01 in
+posting order, renumbered as videos go; deleting a folder takes its video out of the queue. Only folders holding a
 ``FOLDER_MARK`` file are touched, and videos without a thumbnail stay where they are.
 """
 
@@ -284,13 +284,13 @@ def queued(svc: Services) -> list[Path]:
 
 
 def _folder_name(n: int, name: str, entry: dict) -> str:
-    """"01 · Fri 30-10 11h30 · Travel · <stem>": number, YouTube slot time, channel, file name (no
-    colon or dot, which Finder shows oddly or reads as an extension)."""
-    parts = [f"{n:02d}"]
+    """"Travel 01 · Fri 30-10 11h30 · <stem>": channel and its own number (so Finder groups each
+    channel), YouTube slot time, file name (no colon or dot, which Finder shows oddly or reads as an
+    extension)."""
+    parts = [f"{CHANNELS[_channel(name, entry)][0]} {n:02d}"]
     if key := entry.get("slot"):
         parts.append(_slot_times(key)["youtube"].strftime("%a %d-%m %Hh%M"))
-    parts += [CHANNELS[_channel(name, entry)][0], Path(name).stem[:100]]
-    return " · ".join(parts)
+    return " · ".join(parts + [Path(name).stem[:100]])
 
 
 def _captions_text(name: str, entry: dict) -> str:
@@ -317,9 +317,12 @@ def _organize(root: Path, videos: list[Path], state: dict, now: datetime) -> lis
             _trash(p.parent)
     out = {p: p for p in videos if p.parent == root or _key(p.name) not in again}
     ready = [p for p in out if p.parent != root] + arrived
-    ready.sort(key=lambda p: (state.get(_key(p.name), {}).get("slot") or "~",
-                              _channel(p.name, state.get(_key(p.name), {})), p.stat().st_mtime))
-    want = {p: root / _folder_name(i, p.name, state.get(_key(p.name), {})) for i, p in enumerate(ready, 1)}
+    ready.sort(key=lambda p: (state.get(_key(p.name), {}).get("slot") or "~", p.stat().st_mtime))
+    want, count = {}, {}  # each channel numbers its own videos from 01
+    for p in ready:
+        entry = state.get(_key(p.name), {})
+        n = count[_channel(p.name, entry)] = count.get(_channel(p.name, entry), 0) + 1
+        want[p] = root / _folder_name(n, p.name, entry)
     # Renumbering can swap two names: park the folders that move under hidden names first.
     parked = {}
     for p in ready:
