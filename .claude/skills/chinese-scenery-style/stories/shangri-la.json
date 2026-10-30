@@ -13,8 +13,8 @@
       "person": "back",
       "light": "day",
       "view": "Napa Lake (Napahai): a calm wide lake with the forested hills and distant mountain ridges mirrored perfectly in the water, golden-brown grassland along the shore, small white clouds reflected",
-      "action": "She stands still at the water's edge seen from close behind her right shoulder, a light breeze lifting her hair and the hem of her jacket, looking out over the lake.",
-      "move": "Start close behind her shoulder, then glide smoothly backwards and up at one gentle constant speed to reveal the whole lake and its mirrored mountains; she stays in the lower third.",
+      "action": "She stands still at the water's edge seen from close behind her right shoulder, a light breeze lifting her braids and the white fur trim of her red robe, looking out over the lake.",
+      "move": "Start close behind her shoulder, then glide very slowly backwards and up at one gentle constant speed to reveal the whole lake and its mirrored mountains; she stays in the lower third.",
       "ambience": "soft breeze, gentle lapping water"
     },
     {
@@ -23,7 +23,7 @@
       "light": "day",
       "view": "the grassy shore of Napa Lake, shallow clear water with reeds, the lake and hills stretching behind",
       "action": "She walks slowly along the shore from left to right, looking out over the water.",
-      "move": "Side tracking shot at walking pace, keeping her medium-wide on the left third with the lake filling the frame.",
+      "move": "Very slow, gimbal-smooth side tracking shot at her slow walking pace, keeping her medium-wide on the left third with the lake filling the frame.",
       "ambience": "breeze, footsteps on grass, water"
     },
     {
@@ -39,7 +39,7 @@
       "bars": 1,
       "person": "none",
       "light": "day",
-      "view": "close detail of tall golden grass stems and seed heads on the Napa grassland, the soft blurred lake and hills behind",
+      "view": "close detail of wild golden meadow grass (thin wild grass stems and feathery seed heads, not wheat or barley) on the Napa grassland, the soft blurred lake and hills behind",
       "action": "",
       "move": "Locked, low camera at grass height; only the grass moves, swaying in waves in the wind.",
       "ambience": "wind rustling through dry grass"
@@ -70,7 +70,7 @@
       "in": "dissolve",
       "view": "a cobbled street of Dukezong Ancient Town: two-storey traditional Tibetan wooden houses with dark timber facades, carved and painted window frames, prayer flags strung above, warm shop windows",
       "action": "She walks slowly along the cobbled street, glancing at the carved facades.",
-      "move": "Steady tracking shot moving backwards ahead of her at walking pace; she is medium-wide, the street and facades fill the frame.",
+      "move": "Very slow, gimbal-smooth tracking shot gliding backwards ahead of her at her slow walking pace; she is medium-wide, the street and facades fill the frame.",
       "ambience": "footsteps on cobbles, distant town murmur"
     },
     {
@@ -87,7 +87,7 @@
       "person": "hands",
       "light": "golden",
       "view": "a worn wooden table by the window of a small teahouse in Dukezong, a simple white porcelain tea cup on it",
-      "action": "Tight close-up on the table: her two hands (five fingers each, red jacket cuffs over cream knit) wrap around the warm tea cup; thin wisps of steam rise slowly from the tea and curl in the window light. The frame shows only the table, the cup, the steam and her hands and wrists: the top edge of the frame stays below her chest for the whole clip, her face, hair and shoulders never appear.",
+      "action": "Tight close-up on the table: her two hands (five fingers each, the colourful striped cuffs of her red robe folded back, white fur trim) wrap around the warm tea cup; thin wisps of steam rise slowly from the tea and curl in the window light. The frame shows only the table, the cup, the steam and her hands and wrists: the top edge of the frame stays below her chest for the whole clip, her face, hair and shoulders never appear.",
       "move": "Locked close-up, the camera does not move, tilt or pull back; only the steam and a slight shift of her fingers move.",
       "ambience": "soft cup on wood, distant street"
     },
@@ -103,9 +103,9 @@
     {
       "bars": 2,
       "person": "none",
-      "light": "dusk",
+      "light": "sunset",
       "in": "dissolve",
-      "view": "elevated view from Guishan Park hill over the rooftops of Dukezong Ancient Town at dusk: dark wooden Tibetan roofs, the warm window lights and street lanterns starting to glow, the giant golden prayer wheel on the hill catching the last light, mountains under a soft pink and blue sky",
+      "view": "elevated view from Guishan Park hill over the rooftops of Dukezong Ancient Town at sunset: dark wooden Tibetan roofs, the warm window lights and street lanterns starting to glow, the giant golden prayer wheel on the hill catching the last light, mountains under a pastel peach and pink sky",
       "action": "",
       "move": "Slow, level pan from left to right over the rooftops.",
       "ambience": "evening breeze, distant town ambience"
@@ -113,17 +113,17 @@
     {
       "bars": 2,
       "person": "back",
-      "light": "dusk",
-      "view": "Guishan Park hill above Dukezong at dusk, the old town's glowing rooftops spread below",
-      "action": "She stands at the railing seen from behind, looking out over the rooftops, the breeze moving her hair. Still and calm.",
+      "light": "sunset",
+      "view": "Guishan Park hill above Dukezong at sunset, the old town's glowing rooftops spread below",
+      "action": "She stands at the railing seen from behind, nothing on her back (no backpack, no bag), looking out over the rooftops, the breeze moving her hair. Still and calm.",
       "move": "Very slow push-in from behind her over her shoulder toward the glowing town.",
       "ambience": "evening breeze, faint prayer flags flapping"
     },
     {
       "bars": 0,
       "person": "none",
-      "light": "blue-hour",
-      "view": "the whole of Dukezong Ancient Town at blue hour seen from Guishan hill: hundreds of warm lights glowing in the wooden houses and streets, the illuminated golden prayer wheel in the foreground, dark mountains against a deep-blue sky",
+      "light": "dusk",
+      "view": "the whole of Dukezong Ancient Town in bright early dusk seen from Guishan hill: hundreds of warm lights glowing in the wooden houses and streets, the illuminated golden prayer wheel in the foreground, soft mountains against a luminous pastel pink and pale-blue sky",
       "action": "",
       "move": "Lingering wide shot with a very slow pull-back, almost still.",
       "ambience": "quiet night breeze, distant town"

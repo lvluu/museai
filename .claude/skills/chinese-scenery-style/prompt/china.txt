@@ -4,9 +4,11 @@ Cinematic, photorealistic travel footage of a real place in China, vertical 9:16
 
 REAL PLACE: the landmarks, architecture, terrain, water and vegetation named above, exactly as they really are. Chinese and Tibetan architecture keeps its real proportions, roof shapes, colours and carvings; no invented temples, pagodas, bridges, mountains or lakes, no duplicated buildings. Signs and banners stay blurred or turned away: no readable text anywhere. Religious places are filmed respectfully from visitor paths: no staged rituals, no monks or worshippers filmed up close.
 
-ONE SEASON, ONE DAY: {SEASON}. {LIGHT}. Natural colours, gentle contrast, no oversaturation, no HDR halos, no fantasy colours.
+ONE SEASON, ONE DAY: {SEASON}. {LIGHT}.
 
-CAMERA: {MOVE} One smooth, restrained move at one constant slow speed for the whole clip, level horizon, already moving in the first frame. No orbiting, no whip, no abrupt zoom, no shake, no drone dive, no sudden reframing.
+LOOK: bright, airy and harmonious: well-exposed with open, lifted shadows, soft clean highlights, fresh light natural colours that sit together gently, low contrast. Never dark, moody, heavy, crushed or underexposed. No oversaturation, no HDR halos, no fantasy colours.
+
+CAMERA: {MOVE} One smooth, restrained move at one constant very slow speed for the whole clip, as on a gimbal or slider: the frame drifts less than a tenth of its width per second, level horizon, already moving in the first frame, every frame sharp and clear. No handheld wobble, no shake, no bounce, no orbiting, no whip, no abrupt zoom, no drone dive, no sudden reframing, no speed change.
 
 MOTION: real-time footage, never a time-lapse and never a frozen photo: grass, water, prayer flags, steam and people move at their true speed, clouds stay where they are. Buildings, mountains and streets stay perfectly rigid.
 

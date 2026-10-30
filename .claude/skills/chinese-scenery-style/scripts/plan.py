@@ -22,22 +22,23 @@ SKILLS = HERE.parent
 LIGHT = {
     "day": "Clear bright daylight, sun high from the left, crisp shadows",
     "golden": "Warm late-afternoon golden light from the left, long soft shadows",
-    "dusk": "Dusk just after sunset: soft pink and blue sky, the last warm light on the high points, the first warm artificial lights glowing",
-    "blue-hour": "Blue hour: deep-blue sky, every window and lantern glowing warm amber, no harsh light",
+    "sunset": "Soft bright sunset: pastel peach and pink sky, warm low sun still lighting the whole scene, open bright shadows",
+    "dusk": "Bright early dusk just after sunset: luminous pastel pink and pale-blue sky, the scene still softly lit and clearly visible, the first warm lights glowing",
+    "blue-hour": "Early blue hour: luminous pale-blue sky, the scene still clearly visible, windows and lanterns glowing warm amber",
     "mist": "Soft misty morning, low sun from the left diffused through thin mist",
     "overcast": "Soft bright overcast, even light, no hard shadows",
 }
 FACE_REF = (
     "FACE REFERENCE: The attached photo shows the traveller's real face and hair. It is NOT the first "
     "frame and NOT the location: do not show its background or pose. Render her with exactly this face, "
-    "eye colour, freckles, hairstyle and bangs in every frame, at the place below.\n\n"
+    "eye colour, skin, hairstyle and bangs in every frame, at the place below.\n\n"
 )
 PERSON = {
     "none": "Nobody is the subject of this shot: the traveller is not in it; at most a few distant passers-by, small and natural.",
     "back": "The traveller is seen from behind or three-quarter behind; her face is not the focus.",
-    "walk": "The traveller walks naturally at normal speed, seen side-on or from behind, medium-wide, never a face close-up.",
+    "walk": "The traveller walks naturally and slowly, seen side-on or from behind, medium-wide, never a face close-up.",
     "side": "The traveller is seen side-on, medium-wide, calm natural expression, mouth closed.",
-    "hands": "Only the traveller's hands and sleeves are in frame: her red jacket cuffs over the cream knit sweater.",
+    "hands": "Only the traveller's hands and sleeves are in frame, in the outfit described below.",
 }
 
 
@@ -54,7 +55,6 @@ def main():
     a = ap.parse_args()
     story = json.loads(Path(a.story).read_text())
     styles = json.loads((HERE / "styles.json").read_text())
-    zoom = json.loads((SKILLS / "zoominview/styles.json").read_text())["character"]
     work = Path(a.work).expanduser().resolve()
     beats_file = work / "track.beats.json"
     bf = json.loads(beats_file.read_text())
@@ -62,9 +62,13 @@ def main():
     bar_times = [0.0] + beats[4::4]  # bar 0 starts at frame 0 (the swell already plays)
     china = (HERE / "prompt/china.txt").read_text()
     travel = travel_block()
-    # her own clothes line gives way to this style's wardrobe
-    char = re.sub(r"\s+and a [^,]*(sweater|top)[^,]*,?$", "", zoom["text"].strip()).rstrip(",") + ", wearing " + styles["character"]["wardrobe"] + ". " + styles["character"]["manner"]
-    face = str((SKILLS / "zoominview" / zoom["image"]).resolve())
+    # the style's traveller, dressed by the region (local costume), any field overridden by the story
+    t = {**styles["character"], **styles["regions"][story["region"]].get("traveller", {}), **story.get("traveller", {})}
+    char = f"{t['look']}, wearing {t['wardrobe']}. {t['manner']}"
+    face = Path(t["face"]).expanduser()
+    if not face.exists():
+        raise SystemExit(f"face photo missing: {face} (a sharp front photo of her face, see SKILL.md 'The traveller')")
+    face = str(face)
 
     shots, bar = [], 0
     for n, s in enumerate(story["shots"], 1):
