@@ -35,6 +35,11 @@ FACE_REF = (
     "never a different woman, as she looks in real life: clear even young skin with natural fine texture, no freckles or spots, no beauty filter or "
     "doll-like smoothing; naturally pretty and youthful, at the place below.\n\n"
 )
+PLACE_REF = (
+    "PLACE REFERENCE: The attached photo is a real photo of {what}. It is NOT the first frame: rebuild that "
+    "real place exactly as it is in the photo (its structure, shapes, proportions, colours and materials), "
+    "seen from this shot's own camera position, with the light and people described below.\n\n"
+)
 PERSON = {
     "none": "Nobody is the subject of this shot: the traveller is not in it; at most a few distant passers-by, small and natural.",
     "back": "The traveller is seen from behind or three-quarter behind; her face is not the focus.",
@@ -83,8 +88,18 @@ def main():
         length = end - start
         person = s.get("person", "none")
         lines = []
-        if person != "none":
+        ref = s.get("ref")  # a real photo of the landmark (out of git), attached instead of the face
+        if ref:
+            img = Path(ref["image"]).expanduser()
+            if not img.exists():
+                raise SystemExit(f"shot {n}: reference photo missing: {img}")
+            img = str(img)
+            lines.append(PLACE_REF.format(what=ref["what"]).strip())
+        elif person != "none":
+            img = face
             lines.append(FACE_REF.strip())
+        else:
+            img = ""
         lines.append(f"PLACE: {story['where']}. {s['view']}.")
         lines.append(f"SHOT ({length:.1f} s used of this clip): {s['action'] or 'Pure scenery.'} {PERSON[person]}")
         if person != "none":
@@ -96,7 +111,7 @@ def main():
         shots.append({
             "n": n, "label": s.get("label", ""), "start": round(start, 3), "end": round(end, 3),
             "length": round(length, 3), "in": s.get("in", "cut") if n > 1 else "open",
-            "person": person, "image": face if person != "none" else "",
+            "person": person, "image": img,
             # render long enough for a steady window after muse's 0.5 s settle-in, at most 10 s
             # (longer requests may come back as two self-joined clips)
             "render": min(10, max(6, math.ceil(length + 2))),

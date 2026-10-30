@@ -2,11 +2,11 @@
   "hook_text": "This is China.\nWelcome to {place}.",
   "character": {
     "face": "~/.local/share/museai/characters/china-girl/face.jpg",
-    "look": "a beautiful young Vietnamese girl of about twenty, slim and slender, a naturally pretty youthful face with a slim V-shaped jawline, defined cheekbones and a delicate chin, warm dark-brown eyes, clear even fair skin with no freckles or spots, long black hair with wispy bangs",
+    "look": "a beautiful young Vietnamese girl of about twenty, petite and very slim: narrow shoulders, thin arms, a small slim waist, a slender neck; a naturally pretty youthful small face with a slim V-shaped jawline, defined cheekbones and a delicate chin, warm dark-brown eyes, light natural makeup, clear even skin in her own natural warm Southeast-Asian tone (not porcelain white), no freckles or spots, long black hair with wispy bangs",
     "wardrobe": "a muted red outdoor jacket over a cream knit sweater, dark trousers and comfortable walking shoes; the same clothes in every shot",
     "manner": "She is a real traveller, not a model: relaxed, unhurried natural walking, quiet curiosity, calm natural expression. No posing, no nodding, no waving, no talking, no gestures at the camera, mouth closed. Her hands are graceful: slender fingers, natural skin with real texture, neat clean natural nails, five fingers each, anatomically correct, relaxed natural poses."
   },
-  "grade": "huesaturation=saturation=-0.25:colors=y+r,eq=gamma=1.07:saturation=0.95,colorbalance=bs=0.02:bh=0.02,curves=all='0/0.03 0.5/0.53 1/0.97',unsharp=5:5:0.3",
+  "grade": "huesaturation=saturation=-0.25:colors=y+r,eq=gamma=1.07:saturation=0.95,colorbalance=bs=0.02:bh=0.02,curves=all='0/0.03 0.5/0.53 1/0.97',noise=alls=4:allf=t",
   "regions": {
     "plateau": {
       "fits": "Tibetan plateau and its edge: Shangri-La, Lijiang mountains, Tibet, western Sichuan (Daocheng Yading, Kangding), Qinghai, Gannan",
@@ -17,7 +17,7 @@
         {"id": "plateau-song", "bpm": 92, "tags": "cinematic Chinese pop, Tibetan dranyen lute, airy bamboo flute dizi, soaring strings, steady soft drum pulse, warm female lead vocal, uplifting, majestic", "lyrics": "[verse]\n风吹过高原的湖\n云在水里慢慢走\n[chorus]\n{place_zh}啊 {place_zh}\n心停在这里不回头\n{place_zh}啊 {place_zh}\n天空离我很近很近"},
         {"id": "plateau-instrumental", "bpm": 84, "tags": "cinematic instrumental, delicate strings, airy flute, Tibetan singing bowl shimmer, subtle rhythmic pulse, majestic, peaceful awe"}
       ],
-      "traveller": {"wardrobe": "a traditional Tibetan outfit, the same in every shot: a long bright-red wool robe (chuba) belted at the waist and reaching her ankles, white fluffy fur trim on the collar and cuffs, very long sleeves with wide colourful woven-stripe cuffs (orange, purple, white), a cream patterned silk blouse underneath, black-and-turquoise beaded tassels hanging from the belt, a round all-white fluffy fur hat (white fur all over, never a red crown) with a red-beaded headband across her forehead, her long black hair in thin braids woven with red and turquoise threads"}
+      "traveller": {"wardrobe": "a traditional Tibetan outfit, the same in every shot: a long bright-red wool robe (chuba) that wraps her closely and is belted tightly at her small waist so her slim figure shows (never bulky or boxy) and reaching her ankles, white fluffy fur trim on the collar and cuffs, very long sleeves with wide colourful woven-stripe cuffs (orange, purple, white), a cream patterned silk blouse underneath, black-and-turquoise beaded tassels hanging from the belt, a round all-white fluffy fur hat (white fur all over, never a red crown) with a red-beaded headband across her forehead, her long black hair in thin braids woven with red and turquoise threads"}
     },
     "karst": {
       "fits": "karst peaks and rivers, misty mountains: Guilin, Yangshuo, Li River, Zhangjiajie, Huangshan, Wulong, Xiapu",

@@ -40,19 +40,27 @@
       "person": "walk",
       "light": "day",
       "in": "dissolve",
-      "view": "inside the giant prayer-flag canopy of Shangri-La on a flat gravel square: one tall slender wooden-brown pole in the middle, and from its top tens of thousands of small square prayer flags on strings fan out and down to the ground on every side, forming a huge round tent-like dome that encloses the whole square; seen from inside, the flags make perfect concentric rings around the pole top like the inside of a giant umbrella: mostly white and pale-blue flags with bright rings of red, yellow, green and blue; around the foot of the pole a neat tiered cone of layered flags, tier on tier (red at the bottom edge, then yellow, green, blue and white), tidy and symmetrical; soft bright daylight through the flags, a few visitors in Tibetan dress far away",
+      "view": "inside the giant prayer-flag canopy of Shangri-La on a flat light-grey gravel square in bright sun: one tall smooth copper-coloured pole in the middle; from its top thousands of strings run straight down and out to the ground on every side like the ribs of a huge round tent, each string hung with rows of small pennant-shaped flags, so the inside of the tent is a fine net of horizontal rings of little flags: mostly white and pale blue, with rings of red, green, yellow and blue, sky and white clouds showing through everywhere; around the foot of the pole a big neat stepped cone of layered cloth bands in red, green, yellow, blue and white, its lowest tier red; a few visitors in Tibetan robes far away",
       "action": "She walks slowly in from the edge across the open gravel toward the tiered cone at the foot of the pole, then pauses and looks up at the rings of flags, calm and moved. Seen from behind and slightly to the side, medium-wide, the dome of flags filling the frame above and around her.",
       "move": "Camera locked on a tripod, slightly low, perfectly still; she walks into the frame and the dome of flags stays still above her. No follow, no pan.",
-      "ambience": "prayer flags rustling softly in a light breeze"
+      "ambience": "prayer flags rustling softly in a light breeze",
+      "ref": {
+        "image": "~/.local/share/museai/places/shangri-la/canopy-girl.jpg",
+        "what": "the giant prayer-flag canopy of Shangri-La (the tent of flag strings, the copper pole and the stepped cone of cloth at its foot); the girl in it is the traveller herself, so her face in the photo is her real face (keep the costume described below, not the one in the photo)"
+      }
     },
     {
       "bars": 1,
       "person": "none",
       "light": "day",
-      "view": "straight up at the sky from the ground directly beneath the top of the giant prayer-flag canopy: the pole runs from the bottom edge of the frame to the centre, and tens of thousands of small square flags spread out around its top in perfect circular concentric rings of red, yellow, green, blue and white, filling the whole frame like the inside of a huge round umbrella, symmetrical around the centre",
+      "view": "looking up from inside the giant prayer-flag canopy at the top of the copper pole: thousands of small pennant flags on strings in concentric rings around the pole top (mostly white and pale blue with rings of red, yellow, green and blue), like the inside of a huge round tent, sky showing through",
       "action": "",
       "move": "The camera points straight up at the zenith, locked and perfectly still, the pole top in the centre of the frame; only the flags stir gently. No tilt, no zoom.",
-      "ambience": "prayer flags rustling softly"
+      "ambience": "prayer flags rustling softly",
+      "ref": {
+        "image": "~/.local/share/museai/places/shangri-la/canopy-inside.jpg",
+        "what": "the inside of the giant prayer-flag canopy of Shangri-La: concentric rings of small flags around the pole top and the stepped cone of cloth at the pole's foot"
+      }
     },
     {
       "bars": 2,
