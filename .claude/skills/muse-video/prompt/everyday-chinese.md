@@ -2,7 +2,7 @@
 
 The user writes each episode brief in this exact format (EP12, 2026-10-27). When asked for the next
 episode, copy it, bump the number, pick a topic not in the log below, and change only TITLE, CAST
-outfits/roles, the set line, SCRIPT and ENDING. Keep every other section word for word (the eye-line line in ACTING AND CAMERA was added after EP12, where the woman sat in profile looking past the man).
+outfits/roles (her dress: see "She looks gorgeous" below), the set line, SCRIPT and ENDING. Keep every other section word for word (the eye-line line in ACTING AND CAMERA was added after EP12, where the woman sat in profile looking past the man).
 
 Script rules: one intro line to camera, 9-10 dialogue lines alternating MAN/WOMAN, one ending question
 to camera; about 85-95 syllables in total (30-40 s at a natural pace); each line ≤ 14 syllables;
@@ -39,6 +39,23 @@ Viral rules (user rule 2026-10-29, from Chinese-learning Shorts that spread):
   same dilemma in Vietnamese above her head from frame 0, with the open loop "Cuối video có câu hỏi cho
   bạn!" (SKILL.md Timing step 5, Hook). When the brief fixes a weaker intro ("今天学怎么预约看牙"), keep
   its words and let the Vietnamese hook line carry the question.
+- **She looks gorgeous** (user rule 2026-10-30, after EP44's plain lavender blouse: "the girl wear beautiful
+  dress", "like a video in a party", so viewers keep watching): the woman always wears a beautiful,
+  eye-catching dress, never a plain blouse or cardigan, with styled hair (soft waves or an elegant
+  updo), natural glam makeup and delicate earrings. Name it fully in CAST: colour, fabric, cut, e.g.
+  "emerald satin midi dress with a wrap bodice", "blush-pink chiffon dress with fluttery sleeves",
+  "champagne sequined cocktail dress", "red qipao-style silk dress with a mandarin collar". Tasteful and
+  fitted, no deep neckline or very short hem. Pick a colour that stands out from the set and from the
+  man's clothes. The man is smart to match (blazer, suit, crisp shirt). On an everyday set (clinic,
+  shop) the dress is a day dress dressed up (satin, wrap, floral chiffon); intro framing from the knees
+  up shows it, the two-shot from the waist up.
+- **Party episodes** (about one in three): set the scene at an event where a gown fits: a birthday
+  party, wedding reception, rooftop cocktail evening, company year-end party (年会), Lunar New Year or
+  Mid-Autumn party, a gallery opening. The topic stays an everyday phrase people need there
+  (introducing yourself, complimenting an outfit, asking someone to dance, saying goodbye to the host,
+  asking where the restroom is). Set line: "a quiet corner of the party venue, warm string lights and
+  balloons softly blurred behind them, no other guests in frame"; no drinks or plates in hand (no
+  object handling, and only the cast in frame, as always).
 - **Captions show the tones**: three lines hanzi / pinyin / Vietnamese side by side; `burn_subs.py`
   colours each pinyin syllable by tone (1 red, 2 orange, 3 green, 4 blue, neutral white).
 - **The ending loops and asks**: the ENDING question is a mini quiz on the episode's key phrase (a
@@ -91,8 +108,8 @@ EVERYDAY CHINESE #NN — TITLE
 Create a 30–40s vertical 9:16 video, 1080×1920. Photorealistic adults, natural skin, <lighting for the set>.
 
 CAST AND SET
-Woman, 25, shoulder-length black hair, <top>, <trousers>. Pleasant female Mandarin voice.
-<Male role>, 27, short black hair, <shirt>, <apron/coat>. Warm male Mandarin voice.
+Woman, 25, long black hair in <soft waves / an elegant updo>, natural glam makeup, delicate earrings, <dress: colour, fabric, cut>. Pleasant female Mandarin voice.
+<Male role>, 27, short neat black hair, <blazer/suit/shirt matching the occasion>. Warm male Mandarin voice.
 Keep established faces and voices if references exist. Clothing stays consistent within this episode.
 Woman SCREEN LEFT, <role> SCREEN RIGHT behind counter. Quiet <place>. No moving background people. No food handling, payment or object exchanges.
 
