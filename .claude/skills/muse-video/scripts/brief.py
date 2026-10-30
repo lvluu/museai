@@ -33,6 +33,7 @@ FORMATS = {
     "zoominview": ("zoom", ("9:16",), True),
     "travel": ("travel", ("9:16", "16:9"), True),
     "scenery-director": ("scenic", ("9:16", "16:9"), True),
+    "chinese-scenery-style": ("scenic-china", ("9:16",), True),
     "product-ad": ("ad", ("9:16",), False),
     "teaching-video": ("lesson", ("9:16+16:9",), False),
 }
@@ -48,7 +49,9 @@ def cmd(*parts):
 
 
 def route(b):
-    fmt = b.get("format") or "scenic-drop-reel"
+    # every place in China gets the China travel-story style unless the brief names a format
+    china = (b.get("country") or "").strip().lower() in ("china", "prc", "中国")
+    fmt = b.get("format") or ("chinese-scenery-style" if china else "scenic-drop-reel")
     if fmt not in FORMATS:
         sys.exit(f"unknown format {fmt!r}; one of {', '.join(FORMATS)}")
     prefix, aspects, travel = FORMATS[fmt]
