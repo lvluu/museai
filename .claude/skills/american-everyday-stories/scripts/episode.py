@@ -281,14 +281,17 @@ def still(key, work, wardrobe=None):
     cast = load(SERIES / "cast.json")
     c = cast[key]
     wk = wardrobe or next(iter(c["wardrobe"]))
-    prompt = (f"Photorealistic 35 mm film still, autumn 1985, small city in central Pennsylvania. "
-              f"Waist-up three-quarter portrait of one person standing by a window in soft natural daylight, "
-              f"looking just past the camera with a calm natural expression, mouth closed. {c['identity']} "
-              f"{SIDES} Looks exactly {c['age']} years old, no older: skin, hair and posture of that age. "
-              f"Wearing: {c['wardrobe'][wk]}. An original face that does not resemble any actor, celebrity or "
-              f"public figure; natural skin texture and pores, natural asymmetry, the described marks clearly "
-              f"visible on the named side. Warm 1980s colour negative look, fine grain, lifted blacks, "
-              f"cream highlights. Plain softly blurred 1985 room behind. No text, no logos, no watermark.")
+    prompt = (f"Candid frame from a 1985 American feature film shot on 35 mm Kodak colour negative, autumn. "
+              f"Medium shot, waist up, of one young person {c.get('still', 'in a sunny 1985 room')}, caught "
+              f"mid-moment, glancing just past the camera with a relaxed natural expression, mouth closed, "
+              f"not posing. {c['identity']} {SIDES} Looks exactly {c['age']} years old, young and fresh: skin, "
+              f"hair and posture of that age. Wearing: {c['wardrobe'][wk]}. An original face that does not "
+              f"resemble any actor, celebrity or public figure. Real unretouched skin with pores, faint "
+              f"unevenness and peach fuzz, natural asymmetry, the described marks visible on the named side, "
+              f"once each. Saturated warm 1980s film colour: burnt orange, camel, cream and rust against teal "
+              f"and powder blue, golden daylight, soft lens with gentle halation, visible fine film grain, "
+              f"slightly soft focus overall. Not a digital photo: no HDR, no over-sharpening, no airbrushed or "
+              f"plastic skin, no glossy CGI look, no studio portrait lighting. No text, no logos, no watermark.")
     Path(work).mkdir(parents=True, exist_ok=True)
     print(json.dumps({"prompt": prompt, "n": 2, "size": "1920x1080", "response_format": "b64_json"}))
 
