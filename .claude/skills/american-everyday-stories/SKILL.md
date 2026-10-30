@@ -36,7 +36,7 @@ This skill keeps only what is specific to the series.
 - **Presentation**: photorealistic live action, 16:9 1920x1080, English speech only, subtitles English
   above Simplified Chinese. A 9:16 version only when asked (reframe each shot, captions re-laid).
 - **Faces**: attractive, specific, original (`references/faces.md`). Never name or describe a real actor,
-  never "looks like". Each face carries 2-3 marks on a named side; they come from cast.json verbatim.
+  never "looks like". Each face carries one or two specific details on a named side; they come from cast.json verbatim.
 - **No pretending**: say a video, audio or subtitle file exists only when a tool made it. Missing
   reference stills or voices are named (`episode.py build` prints `MISSING REFS`), never assumed.
 - **Continuity is a file**: the bible, cast and ledger are the memory. Never claim to remember an
@@ -70,7 +70,7 @@ Work in `~/Movies/museai/aes-epNN/` (`WORK`). Copy `templates/episode.template.j
    shot whose lines do not fit. Fix by cutting words or splitting the shot, never by faster speech.
 4. **Chinese**: natural Simplified Chinese with the same meaning, tone, humour and relationship
    (terms of address, 宝贝/亲爱的 only when the English is that warm); add nothing, no pinyin. Names:
-   诺拉, 露西, 沃尔特, 丹尼, 格蕾丝, 伊芙琳; the town 拉克蒙特. ≤ 36 characters per line.
+   诺拉, 露西, 汤米, 丹尼, 格蕾丝, 艾莉; surnames 凯斯勒, 鲁伊斯, 惠特菲尔德; the town 拉克蒙特. ≤ 36 characters per line.
 5. **Shots**: 16-28 shots of 3-10 s (one muse render each), one clear action or short exchange each.
    Rhythm from the reference: open on 1-2 wide establishing views with the title card, cut every
    5-7 s, a few unpeopled atmosphere shots (street, interior, detail insert) between scenes. Dialogue in
