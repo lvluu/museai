@@ -11,7 +11,9 @@ different timbre and accent each time). Dubbing every line with the same voice f
           a re-dub keeps it. The edge-tts pair on every episode sounded like AI and like the same
           two people every day (user, 2026-10-29). VOICE_W / VOICE_M take a bank id (W-mid-01) or a
           glob (M-low-*), never an edge-tts name: EP46 dubbed the man with zh-CN-YunxiNeural and the
-          user heard an AI voice, not a normal human one (2026-10-30).
+          user heard an AI voice, not a normal human one (2026-10-30). One exception: when no bank
+          woman's voice sounds beautiful and natural, VOICE_W=zh-CN-XiaoxiaoNeural, the woman's voice
+          of every episode before the bank (user, 2026-10-30).
           SPEAKERS has one letter per cue; any other letter X needs VOICE_X, an edge-tts name or a
           bank id (e.g. VOICE_N=en-US-AvaNeural).
   timing  each cue's speech span comes from the original audio (loud frames inside the cue).
@@ -56,8 +58,10 @@ cues = json.load(open(cues_path))
 if len(who) != len(cues):
     sys.exit(f"SPEAKERS has {len(who)} letters for {len(cues)} cues")
 asked = {w: os.environ[f"VOICE_{w}"] for w in set(who) if os.environ.get(f"VOICE_{w}")}
-if ai := sorted(w for w, v in asked.items() if w in "WM" and "Neural" in v):
-    sys.exit(f"VOICE_{ai[0]}={asked[ai[0]]}: W and M are always cloned bank voices, never edge-tts (AI-sounding, user 2026-10-30)")
+FALLBACK_W = "zh-CN-XiaoxiaoNeural"  # the woman's voice of every episode before the bank; the user's fallback
+if ai := sorted(w for w, v in asked.items() if w in "WM" and "Neural" in v and (w, v) != ("W", FALLBACK_W)):
+    sys.exit(f"VOICE_{ai[0]}={asked[ai[0]]}: W and M are cloned bank voices (only VOICE_W={FALLBACK_W} as fallback), "
+             "never another edge-tts voice (AI-sounding, user 2026-10-30)")
 voices = {w: v for w, v in asked.items() if "Neural" in v}
 # any other speaker letter X takes its voice from VOICE_X (American Everyday Stories: one letter per character)
 voices |= {w: voicebank.voice(v) for w, v in asked.items() if w not in "WM" and w not in voices}
