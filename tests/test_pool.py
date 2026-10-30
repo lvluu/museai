@@ -339,3 +339,23 @@ async def test_shutdown_marks_running_jobs_interrupted(tmp_path):
     await tasks.shutdown()
     # Clients retry "interrupted"; a "cancelled" job would be dropped on a restart.
     assert running.status == TaskStatus.FAILED and running.error["code"] == "interrupted"
+
+
+async def test_gateway_lists_image_jobs_per_account(tmp_path):
+    """An account busy with an image shows it: the dashboard used to call it Ready."""
+    from museai.drivers.base import ImageRequest
+    from museai.drivers.mock import MockDriver
+    from museai.services.gateway import Gateway
+
+    pool = await _pool(tmp_path, n=1)
+    gw = Gateway(pool, MockDriver(delay=0))
+    seen = []
+
+    async def generate_image(account, req):
+        seen.append(gw.jobs[account.id][:])
+        return []
+
+    gw.driver.generate_image = generate_image
+    await gw.generate_image(ImageRequest(prompt="a red bike", model="muse-image"))
+    assert [[(j["kind"], j["prompt"]) for j in jobs] for jobs in seen] == [[("image", "a red bike")]]
+    assert all(not jobs for jobs in gw.jobs.values())

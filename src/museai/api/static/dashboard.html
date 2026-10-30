@@ -368,7 +368,10 @@ function renderCards() {
   $("cards").innerHTML = accounts.map((acc) => {
     const list = tasks.filter((t) => t.account_id === acc.id);
     const running = list.find(isActive);
-    const state = accState(acc, !!running);
+    // Image and chat requests hold the account too but are not video tasks: without them a busy
+    // account showed Ready while videos queued.
+    const other = (acc.jobs || []).filter((j) => j.kind !== "video");
+    const state = accState(acc, !!running || other.length > 0);
     const today = list.filter((t) => t.created_at > day);
     const ok = list.filter((t) => t.status === "succeeded").length;
     const failed = list.filter((t) => t.status === "failed").length;
@@ -386,6 +389,7 @@ function renderCards() {
         ${pill(state)}
       </div>
       ${running ? `<div class="acc-now" title="${esc(running.request?.prompt)}">▶ ${esc(titleOf(running.request?.prompt))}</div>` : ""}
+      ${other.map((j) => `<div class="acc-now" title="${esc(j.prompt)}">${j.kind === "image" ? "🖼 Image" : "💬 Chat"}: ${esc(titleOf(j.prompt) || "…")}</div>`).join("")}
       <div class="acc-nums"><span><b>${today.length}</b> today</span><span><b>${ok}</b> done</span><span><b>${failed}</b> failed</span></div>
       ${left}
       ${bad ? `<div class="acc-fix">Log in to muse.ai as ${esc(acctName(acc.id))}, export the cookies, then upload them.</div>
@@ -510,7 +514,7 @@ function renderQueue() {
   const states = live.map(queueState);
   const count = (label) => states.filter((s) => s[1].startsWith(label)).length;
   const busy = new Set(live.map((t) => t.account_id));
-  const free = accounts.filter((a) => !busy.has(a.id) && accState(a, false)[1] === "Ready").length;
+  const free = accounts.filter((a) => !busy.has(a.id) && !(a.jobs || []).length && accState(a, false)[1] === "Ready").length;
   $("qStats").innerHTML = [
     [count("Waiting for a free"), "waiting for an account"],
     [new Set(live.map((t) => t.session)).size, "clients sending"],

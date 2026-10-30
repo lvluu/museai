@@ -188,7 +188,7 @@ async def dashboard_data(limit: int = 1000, svc: Services = Depends(get_services
     videos = [t for t in svc.tasks.list(limit) if t.kind == "video"]
     accounts = svc.pool.all()
     return {
-        "accounts": [a.public() for a in accounts],
+        "accounts": [{**a.public(), "jobs": svc.gateway.jobs.get(a.id, [])} for a in accounts],
         "usage": {a.id: usage_estimate(a, videos) for a in accounts},
         "videos": [t.model_dump(mode="json") for t in videos],
         "system": await asyncio.to_thread(cpu_load),
