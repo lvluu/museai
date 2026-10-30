@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     data_dir: Path = Path("data")
     # Finished videos waiting to be posted to social media (the dashboard's posting queue).
     post_dir: Path = Path.home() / "Desktop"
+    # Give each delivered video its own numbered folder there (video, thumbnails, captions.txt), in
+    # posting order, so one folder holds all a post needs and deleting it clears the post.
+    post_folders: bool = True
     # Push "ready to post" to phones that installed the dashboard and turned notifications on.
     push_enabled: bool = True
     # Write the per-platform captions a queued video is missing through muse chat.

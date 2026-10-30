@@ -259,6 +259,78 @@ def test_posting_queue(client, admin, settings, monkeypatch):
     assert ep2["slot"] == keys[keys.index(gone[0]["key"]) + 1]
 
 
+def test_posting_folders(client, admin, settings, monkeypatch):
+    import os
+    import shutil
+    import time
+
+    from museai.api.routes import posting
+
+    trashed = []
+    monkeypatch.setattr(posting, "_trash", lambda p: (trashed.append(p.name), shutil.rmtree(p) if p.is_dir() else p.unlink()))
+    root = settings.post_dir
+    root.mkdir()
+
+    def deliver(stem, age=60, thumb=True):
+        (root / f"{stem}.mp4").write_bytes(stem.encode())
+        if thumb:
+            (root / f"{stem} - thumbnail 9x16.jpg").write_bytes(b"jpg")
+        old = time.time() - age
+        os.utime(root / f"{stem}.mp4", (old, old))
+
+    deliver("zoom-Hoi An")
+    deliver("lesson-ni hao")
+    deliver("fresh", age=0)  # deliver.sh may still be copying it
+    deliver("holiday", thumb=False)  # the user's own clip: no thumbnail, never moved
+    (root / "lesson-ni hao - thumbnail 16x9.jpg").write_bytes(b"wide")
+
+    def folders():
+        return sorted(d.name for d in root.iterdir() if d.is_dir())
+
+    d = client.get("/dashboard/posts", headers=admin).json()
+    assert {v["name"] for v in d["videos"]} == {"zoom-Hoi An.mp4", "lesson-ni hao.mp4", "fresh.mp4", "holiday.mp4"}
+    names = folders()
+    assert [n[:5] for n in names] == ["01 · ", "02 · "]  # numbered in posting order
+    assert all(" · Travel · zoom-Hoi An" in n or " · Chinese · lesson-ni hao" in n for n in names)
+    assert ":" not in "".join(names)
+    lesson = next(root / n for n in names if "lesson" in n)
+    assert {p.name for p in lesson.iterdir()} == {
+        ".museai-post", "lesson-ni hao.mp4", "lesson-ni hao - thumbnail 9x16.jpg", "lesson-ni hao - thumbnail 16x9.jpg"}
+    assert (root / "fresh.mp4").is_file() and (root / "holiday.mp4").is_file()
+
+    # Everything still works on the moved video; captions land in captions.txt.
+    assert client.get("/dashboard/posts/lesson-ni hao.mp4/file", headers=admin).content == b"lesson-ni hao"
+    assert client.get("/dashboard/posts/lesson-ni hao.mp4/thumbnail/16x9", headers=admin).content == b"wide"
+    client.post("/dashboard/posts/lesson-ni hao.mp4", headers=admin,
+                json={"caption": "Ni hao #chinese", "captions": {"youtube": "Hello in Chinese"}})
+    client.get("/dashboard/posts", headers=admin)
+    caps = (lesson / "captions.txt").read_text()
+    assert "=== YouTube Shorts" in caps and "Hello in Chinese" in caps and "Ni hao #chinese" in caps
+
+    # Posted everywhere: the whole folder goes, the other renumbers to 01.
+    for p in posting.PLATFORMS:
+        r = client.post("/dashboard/posts/lesson-ni hao.mp4", headers=admin, json={"platform": p}).json()
+    assert r["trashed"] and trashed == [lesson.name]
+    client.get("/dashboard/posts", headers=admin)
+    assert [n[:3] for n in folders()] == ["01 "] and "zoom-Hoi An" in folders()[0]
+
+    # A folder deleted by hand takes its video out of the queue.
+    shutil.rmtree(root / folders()[0])
+    d = client.get("/dashboard/posts", headers=admin).json()
+    assert {v["name"] for v in d["videos"]} == {"fresh.mp4", "holiday.mp4"}
+
+    # Delivered again under the same name: the new video replaces the folder.
+    deliver("reel-Da Nang")
+    client.get("/dashboard/posts", headers=admin)
+    first = folders()
+    deliver("reel-Da Nang")
+    (root / "reel-Da Nang.mp4").write_bytes(b"v2")
+    os.utime(root / "reel-Da Nang.mp4", (time.time() - 60,) * 2)
+    client.get("/dashboard/posts", headers=admin)
+    assert first[0] in trashed and len(folders()) == 1
+    assert (root / folders()[0] / "reel-Da Nang.mp4").read_bytes() == b"v2"
+
+
 def test_posting_slots(tmp_path):
     import os
     from datetime import datetime
