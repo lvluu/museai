@@ -58,6 +58,18 @@ that upload stands and finishes it, instead of starting a second one.
 A video is picked up only 30 s after its file last changed, so a render still being written is
 never uploaded.
 
+## Going live: YouTube first
+
+YouTube Shorts goes live first; the other platforms follow once it runs cleanly. New rules start
+with YouTube Shorts only; tick more platforms on a rule when their accounts are connected.
+
+1. Set up the Google app ([YouTube](#youtube-google-cloud) below), restart the server.
+2. **Auto-post → Connected accounts → Connect** on each channel, sign in with that channel's
+   Google account.
+3. Add a rule per source you want posted (YouTube Shorts ticked, schedule = slot) and **Save rules**.
+4. Watch the first video post: its tile turns `posted` with a youtube.com/shorts link. Uploads stay
+   private until the API audit passes; send the audit once a few have gone through.
+
 ## Developer apps (one-time, by you)
 
 Each platform needs a developer app of your own. Put its id and secret in `.env`, restart the

@@ -1079,7 +1079,7 @@ $("apRules").addEventListener("click", (e) => {
 });
 $("apAddRule").addEventListener("click", () => {
   rulesDraft.push({ id: "rule" + (rulesDraft.length + 1), name: "", enabled: true, source: "", pattern: "", on_channel: "",
-                    channel: "", platforms: auto.platforms.map((p) => p.id), schedule: "slot", times: [], captions: {},
+                    channel: "", platforms: ["youtube"], schedule: "slot", times: [], captions: {},
                     thumbnail: "9x16", privacy: "public" });
   rulesDirty = true; renderRules();
 });
