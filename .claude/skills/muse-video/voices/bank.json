@@ -1,0 +1,83 @@
+[
+ {
+  "id": "W-mid-01",
+  "gender": "W",
+  "register": "mid",
+  "f0": 248,
+  "file": "W-mid-01.wav",
+  "text": "你好，我想办一张手机卡。比较多，有什么套餐？",
+  "source": "vid_870b46659b494ac5.mp4"
+ },
+ {
+  "id": "M-mid-01",
+  "gender": "M",
+  "register": "mid",
+  "f0": 117,
+  "file": "M-mid-01.wav",
+  "text": "好的，您想点哪道菜？我先跟厨房确认一下。",
+  "source": "vid_7b2d537505fb42f6.mp4"
+ },
+ {
+  "id": "M-mid-02",
+  "gender": "M",
+  "register": "mid",
+  "f0": 118,
+  "file": "M-mid-02.wav",
+  "text": "车没问题就退，六点前还车。",
+  "source": "vid_622e92136fe74e75.mp4"
+ },
+ {
+  "id": "W-high-01",
+  "gender": "W",
+  "register": "high",
+  "f0": 260,
+  "file": "W-high-01.wav",
+  "text": "想租自行车，怎么问？",
+  "source": "vid_684a53333cdf432c.mp4"
+ },
+ {
+  "id": "M-mid-03",
+  "gender": "M",
+  "register": "mid",
+  "f0": 112,
+  "file": "M-mid-03.wav",
+  "text": "请带上您的护照。",
+  "source": "vid_2b9313a7c69a47ce.mp4"
+ },
+ {
+  "id": "M-low-01",
+  "gender": "M",
+  "register": "low",
+  "f0": 106,
+  "file": "M-low-01.wav",
+  "text": "可以，您要存几个小时？",
+  "source": "vid_618199de77304bd0.mp4"
+ },
+ {
+  "id": "W-mid-02",
+  "gender": "W",
+  "register": "mid",
+  "f0": 205,
+  "file": "W-mid-02.wav",
+  "text": "好的，我租一个小时。",
+  "source": "vid_622e92136fe74e75.mp4"
+ },
+ {
+  "id": "W-high-02",
+  "gender": "W",
+  "register": "high",
+  "f0": 253,
+  "file": "W-high-02.wav",
+  "text": "今天我们去寄快递。",
+  "source": "vid_5edac3cbaab54e1e.mp4"
+ },
+ {
+  "id": "W-high-03",
+  "gender": "W",
+  "register": "high",
+  "f0": 257,
+  "file": "W-high-03.wav",
+  "text": "好，麻烦您了。",
+  "source": "vid_265fe737e2554563.mp4"
+ }
+]
