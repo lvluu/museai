@@ -68,6 +68,19 @@ sheet, 2 MB JPEG writer) is `scripts/core.py`.
 | `chinese` | EVERYDAY CHINESE, teaching-video, product-ad, any video with people talking | best face frame, yellow hanzi hook, title white on a red box, sub line, episode badge |
 | `travel` | scenic-drop-reel, muse-video travel mode; `--split` for zoominview | stakes/scale frame full bleed, bright natural grade (dark frames lifted), optional zoom and red ring + arrow on the subject, hook on a red banner, huge outlined Futura place name, sub with flag |
 
+## Rules every style keeps
+What makes a cover get tapped (YouTube / TikTok creator guidance, high-CTR channels): one sharp,
+expressive face or one clear subject, big; 3-5 words of high-contrast text; nothing busy; readable at
+phone-grid size. What makes it look cheap, and the scripts never do:
+- **No blur, no ghost copies.** A frame of the other aspect is cropped (travel) or set beside a solid
+  panel (`chinese` 16:9), never on a blurred, dimmed copy of itself.
+- **No text on a face.** Text sits in the free band above the heads or under the chins, at least 60 px
+  from every face box, shrunk (to 55 %) before it may touch one; when no band holds it, the picture goes
+  on top and the text on a solid panel below (9:16), or on the left panel (16:9).
+- **No dark wash over people.** Contrast comes from the red box, the outline and the drop shadow on the
+  text, not from darkening the picture under it.
+- Every face of the frame stays inside the 16:9 window; the window widens rather than crop a person.
+
 ## Make them
 ```
 uv run --no-project --python 3.12 --with mediapipe==0.10.14 --with opencv-python-headless==4.10.0.84 \
@@ -87,8 +100,9 @@ text readable, frame not mid-blink or mid-transition. Re-run with `--at` from th
 - `--at T`: use this frame; without it, frames sampled at 4 fps are scored (all faces, eyes open, not
   mid-word, smiling, toward the lens, sharp).
 - `--skip 17.2-20.2,...`: never pick these spans (vocab cards, cuts, text cards).
-- `--cut 0.6`: the video has burned-in captions from 60 % of the height down; that part is replaced by a
-  blurred mirror of the scene. Better: run on the cut **before** captions are burned in, then no `--cut`.
+- `--cut 0.6`: the video has burned-in captions from 60 % of the height down; the 9:16 then shows the
+  picture above them with the text on a solid panel below. Better: run on the cut **before** captions are
+  burned in, then no `--cut` and the picture stays full bleed.
 
 **travel** (the raw shots in plan order, not the reel: its intro text, dips and transitions would be picked):
 - `--title` (required): the place name; uppercase Futura, two balanced lines when it is long.
@@ -99,8 +113,8 @@ text readable, frame not mid-blink or mid-transition. Re-run with `--at` from th
   subject, coordinates in the zoomed frame.
 - `--at shot.mp4@2.5` (or seconds in the first video): use this frame. Without it the most vivid, sharp,
   still frame of all shots wins, 0.5 s clear of each shot's ends; the first shot (the hook) gets a bonus.
-- A 9:16 shot fills the 9:16 cover and sits sharp on the right of a blurred copy on 16:9; a 16:9 shot the
-  other way round.
+- A shot of the other aspect is cropped round the subject (the `--circle`, else the middle), full bleed
+  and sharp: 9:16 shot on 16:9, 16:9 shot on 9:16.
 - `--split [--view T]` (one video with a person): reaction on top, the view below, the title on the seam
   (white on red, as `chinese`); the view is the best frame without faces unless `--view` names one.
 

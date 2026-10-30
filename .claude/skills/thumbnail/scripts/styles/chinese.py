@@ -8,9 +8,12 @@ import sys
 
 from core import (
     CENTRE,
+    PANEL,
     SAFE,
+    YELLOW,
     badge,
     block,
+    block_fit,
     face_mesh,
     faces,
     grab,
@@ -18,10 +21,9 @@ from core import (
     horizontal,
     pick,
     picks_sheet,
-    shade,
     to_pil,
 )
-from PIL import Image, ImageEnhance, ImageFilter
+from PIL import Image, ImageDraw
 
 
 def add_args(p):
@@ -36,29 +38,37 @@ def add_args(p):
 
 
 def vertical(frame, boxes, args):
+    """Full bleed with the text in the free band above the heads or under the chins; when neither holds
+    it (or burned-in captions are cut off), the picture on top and the text on a solid panel below.
+    Nothing is blurred or darkened, no text within 60 px of a face."""
     im = grade(frame.resize((1080, 1920), Image.LANCZOS))
-    if args.cut:  # burned-in text below: replace it with a blurred mirror of the picture above it
-        c = int(args.cut * 1920)
-        fill = im.crop((0, 2 * c - 1920 if 2 * c > 1920 else 0, 1080, c)).transpose(Image.FLIP_TOP_BOTTOM)
-        fill = ImageEnhance.Brightness(fill.resize((1080, 1920 - c)).filter(ImageFilter.GaussianBlur(30))).enhance(0.6)
-        blur = im.filter(ImageFilter.GaussianBlur(30))
-        im.paste(fill, (0, c))
-        seam = Image.linear_gradient("L").resize((1080, 200))  # feather the cut over 200 px
-        im.paste(ImageEnhance.Brightness(blur.crop((0, c - 200, 1080, c))).enhance(0.8), (0, c - 200), seam)
     s = frame.width / 1080
-    face_bottom = max(b[3] / s for b in boxes) if boxes else 1000
     face_top = min(b[1] / s for b in boxes) if boxes else 600
-    blk = block(args, CENTRE[1] - CENTRE[0])
-    below = SAFE[3] - max(face_bottom + 40, SAFE[1])
-    if below >= blk.height:  # under the chins, bottom-anchored in the safe box
-        y = SAFE[3] - blk.height
-        shade(im, max(y - 260, 0), 1920, 0, 200)
-    else:  # above the heads
-        y = max(SAFE[1] + 110, int(face_top) - 40 - blk.height)
-        shade(im, 0, y + blk.height + 200, 190, 0)
-    im.paste(blk, (CENTRE[0], y), blk)
-    badge(im, args.badge, 540, SAFE[1] - 20)
-    return im
+    face_bottom = max(b[3] / s for b in boxes) if boxes else 1000
+    w = CENTRE[1] - CENTRE[0]
+    top = SAFE[1] + 110  # under the badge
+    if not args.cut:
+        bands = [(SAFE[3] - (face_bottom + 60), "below"), (face_top - 60 - top, "above")]
+        for room, where in sorted(bands, reverse=True):
+            blk = block_fit(args, w, room)
+            if blk:
+                y = SAFE[3] - blk.height if where == "below" else top
+                im.paste(blk, (CENTRE[0], int(y)), blk)
+                badge(im, args.badge, 540, SAFE[1] - 20)
+                return im
+    # panel: a window of the picture round the faces (above the burned-in captions), the text below it
+    floor = int(args.cut * 1920) if args.cut else 1920
+    blk = block_fit(args, w, SAFE[3] - 1000) or block(args, w, 0.55)
+    c = SAFE[3] - 60 - blk.height  # picture height
+    y0 = int(min(max(face_bottom + 200 - c, 0), floor - c))
+    pic = im.crop((0, y0, 1080, y0 + c))
+    out = Image.new("RGB", (1080, 1920), PANEL)
+    out.paste(pic, (0, 0))
+    ImageDraw.Draw(out).rectangle((0, c, 1080, c + 12), fill=YELLOW)
+    y = min(c + 12 + (1920 - c - 12 - blk.height) // 2, SAFE[3] - blk.height)  # mid-panel, clear of the feed UI
+    out.paste(blk, (CENTRE[0], y), blk)
+    badge(out, args.badge, 540, SAFE[1] - 20)
+    return out
 
 
 def make(args):

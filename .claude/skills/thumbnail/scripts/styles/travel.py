@@ -212,20 +212,14 @@ def band(w, h, top, bottom):
     return black
 
 
-def backdrop(frame, w, h):
-    """frame blurred and dimmed to fill w x h, for a frame of the other aspect"""
-    bg = cover(frame, w, h).filter(ImageFilter.GaussianBlur(30))
-    return ImageEnhance.Brightness(bg).enhance(0.8).convert("RGBA")
+def subject(args):
+    """x, y of what the cover is about (the ring, else the middle), fractions of the (zoomed) frame"""
+    return tuple(float(v) for v in args.circle.split(",")[:2]) if args.circle else (0.5, 0.5)
 
 
 def vertical(frame, args):
-    tall = frame.height > frame.width
-    if tall:
-        im = punch(cover(frame, 1080, 1920)).convert("RGBA")
-    else:  # 16:9 shot: sharp across the middle, the text above it
-        im = backdrop(frame, 1080, 1920)
-        panel = punch(cover(frame, 1080, 608))
-        im.paste(panel, (0, 1000))
+    # a frame of the other aspect is cropped round the subject, full bleed and sharp: never a blurred copy
+    im = punch(cover(frame, 1080, 1920, *subject(args))).convert("RGBA")
     im.alpha_composite(band(1080, 1920, (0.38, 120), (0.15, 70)))
     text(im, (CENTRE[0], SAFE[1], CENTRE[1], SAFE[3]), args)
     return im.convert("RGB")
@@ -233,23 +227,12 @@ def vertical(frame, args):
 
 def landscape(frame, args):
     W, H = 1920, 1080
-    if frame.width > frame.height:
-        im = punch(cover(frame, W, H)).convert("RGBA")
-        right = W
-    else:  # 9:16 shot: sharp on the right, soft-edged, over a blurred copy
-        im = backdrop(frame, W, H)
-        pw = round(H * 9 / 16)
-        panel = punch(cover(frame, pw, H))
-        mask = Image.new("L", panel.size, 255)
-        for x in range(60):
-            ImageDraw.Draw(mask).line((x, 0, x, H), fill=int(255 * x / 60))
-        im.paste(panel, (W - pw, 0), mask)
-        right = W - pw
+    im = punch(cover(frame, W, H, *subject(args))).convert("RGBA")
     g = Image.linear_gradient("L").rotate(90, expand=True).resize((W, H))  # 255 left -> 0 right
     shadow = Image.new("RGBA", (W, H), (0, 0, 0, 255))
     shadow.putalpha(g.point(lambda v: int(v * 0.4)))
     im.alpha_composite(shadow)
-    text(im, (80, 80, min(right - 60, 1180), H - 80), args, middle=True)
+    text(im, (80, 80, 1180, H - 80), args, middle=True)
     return im.convert("RGB")
 
 
