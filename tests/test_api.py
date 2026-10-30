@@ -279,6 +279,7 @@ def test_posting_folders(client, admin, settings, monkeypatch):
         os.utime(root / f"{stem}.mp4", (old, old))
 
     deliver("zoom-Hoi An")
+    deliver("reel-Hue", age=90)
     deliver("lesson-ni hao")
     deliver("fresh", age=0)  # deliver.sh may still be copying it
     deliver("holiday", thumb=False)  # the user's own clip: no thumbnail, never moved
@@ -288,10 +289,12 @@ def test_posting_folders(client, admin, settings, monkeypatch):
         return sorted(d.name for d in root.iterdir() if d.is_dir())
 
     d = client.get("/dashboard/posts", headers=admin).json()
-    assert {v["name"] for v in d["videos"]} == {"zoom-Hoi An.mp4", "lesson-ni hao.mp4", "fresh.mp4", "holiday.mp4"}
+    assert {v["name"] for v in d["videos"]} == {"zoom-Hoi An.mp4", "reel-Hue.mp4", "lesson-ni hao.mp4", "fresh.mp4",
+                                                 "holiday.mp4"}
     names = folders()
-    assert [n[:5] for n in names] == ["01 · ", "02 · "]  # numbered in posting order
-    assert all(" · Travel · zoom-Hoi An" in n or " · Chinese · lesson-ni hao" in n for n in names)
+    # Each channel numbers its own folders from 01, in posting order.
+    assert [n[:10] for n in names] == ["Chinese 01", "Travel 01 ", "Travel 02 "]
+    assert names[0].endswith(" · lesson-ni hao") and names[1].endswith(" · reel-Hue") and names[2].endswith(" · zoom-Hoi An")
     assert ":" not in "".join(names)
     lesson = next(root / n for n in names if "lesson" in n)
     assert {p.name for p in lesson.iterdir()} == {
@@ -312,9 +315,12 @@ def test_posting_folders(client, admin, settings, monkeypatch):
         r = client.post("/dashboard/posts/lesson-ni hao.mp4", headers=admin, json={"platform": p}).json()
     assert r["trashed"] and trashed == [lesson.name]
     client.get("/dashboard/posts", headers=admin)
-    assert [n[:3] for n in folders()] == ["01 "] and "zoom-Hoi An" in folders()[0]
+    assert [n[:9] for n in folders()] == ["Travel 01", "Travel 02"]
 
-    # A folder deleted by hand takes its video out of the queue.
+    # A folder deleted by hand takes its video out of the queue; the next one renumbers to 01.
+    shutil.rmtree(root / folders()[0])
+    client.get("/dashboard/posts", headers=admin)
+    assert len(folders()) == 1 and folders()[0].startswith("Travel 01 ") and folders()[0].endswith("zoom-Hoi An")
     shutil.rmtree(root / folders()[0])
     d = client.get("/dashboard/posts", headers=admin).json()
     assert {v["name"] for v in d["videos"]} == {"fresh.mp4", "holiday.mp4"}
