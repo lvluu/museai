@@ -39,5 +39,11 @@ Library: `~/.local/share/museai/music/chinese-scenery/` (outside the repo: audio
 6. **Compose**: `uv run --no-project scripts/compose.py ~/Movies/museai/scenic-china-<slug>/plan.json [--at N=S]` → `scenic-china-<slug>.mp4`, then `qa.py <final> --travel <cuts>` and a contact sheet (`ffmpeg -i <final> -vf "fps=1,scale=180:-1,tile=8x7" -frames:v 1 sheet.png`): frame 0 shows the view with the readable hook text, every cut on a downbeat, the last view lingers.
 7. **Deliver** (shared step 7): thumbnail (`../thumbnail/`, style `travel`, the hook shot or the final panorama, `--title "<PLACE>"`, `--sub "China 🇨🇳"`), captions (`../social-captions/`, first line a hook such as "This is China 🇨🇳 Welcome to Shangri-La"), shot-history record (`--skill chinese-scenery-style --template <region>`) before `FINAL=1`.
 
+## Lessons (Shangri-La, 2026-10-30)
+- `qa.py` `motion` TIME-LAPSE on tracking / pans / push-ins is the planned move: judge from the sheet. Clip `sound` FAIL does not matter (the song replaces it).
+- A `hands` shot drifts to her face (a duplicate of the window seat) unless the story locks it: "tight close-up, top edge of the frame stays below her chest, face, hair and shoulders never appear", move "locked, does not move, tilt or pull back".
+- `internal_error` / failed submit on a few shots of a parallel batch: re-run only those numbers; they pass on the second try.
+- muse adds a backpack and draws golden grass as barley; name "no backpack" / "wild meadow grass" in the story when it matters.
+
 ## Maintaining this skill
 Record lessons proven by a render here (prompt wording that held the jacket or a landmark, shots muse cannot do); add regions, music styles and tracks in `styles.json`, story patterns in `stories/`, never only in one video's prompts. Same PR flow as `../muse-video/SKILL.md` "Maintaining this skill".
