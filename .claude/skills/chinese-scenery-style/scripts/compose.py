@@ -9,7 +9,9 @@ Usage:
 
 Per shot: skips muse's 0.5 s settle-in (--at N=S forces shot N's window start), keeps the planned
 length, 1080x1920 at 24 fps. Joins: "cut" = hard cut on the downbeat, "dissolve" = 0.6 s dissolve
-centred on it (a new location or time passing). The hook text (plan "hook_text", two lines: a small
+centred on it (a new location or time passing). A "cut" is a 0.2 s soft cut, not a single frame: two
+moving shots joined frame to frame read as a jolt. The style's grade (styles.json "grade": lifted, light,
+gentle contrast) goes over the whole video. The hook text (plan "hook_text", two lines: a small
 line, then the big one) fades in at 0.15 s and out by 3.6 s, in the upper band clear of the subject
 and of TikTok/Reels UI. Audio: the cut song on top, the clips' own location sound under it
 (denoised, -15 dB) so breeze, water and footsteps blend in; -14 LUFS. The song already ends (real
@@ -26,7 +28,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 W, H, FPS = 1080, 1920, 24
 XF = 0.6
-CUT = 1 / FPS
+CUT = 0.2
 SETTLE = 0.5
 FONT_BIG = ("/System/Library/Fonts/Supplemental/Didot.ttc", 2)
 FONT_SMALL = ("/System/Library/Fonts/Supplemental/Didot.ttc", 1)
@@ -81,6 +83,7 @@ def main():
     plan_path = Path(a.plan).expanduser().resolve()
     work = plan_path.parent
     p = json.loads(plan_path.read_text())
+    grade = json.loads((Path(__file__).resolve().parent.parent / "styles.json").read_text()).get("grade", "null")
     music = Path(a.music) if a.music else work / "track.m4a"
     out = Path(a.out) if a.out else work / f"{p['name']}.mp4"
     forced = {int(k): float(v) for k, v in (x.split("=") for x in a.at)}
@@ -125,7 +128,7 @@ def main():
                   f"fade=t=out:st={TEXT_OUT - 0.6:.2f}:d=0.6:alpha=1,setpts=PTS-STARTPTS[txt]")
         vf.append(f"{chain}[txt]overlay=0:0:eof_action=pass[vt]")
         chain = "[vt]"
-    vf.append(f"{chain}trim=0:{total},setpts=PTS-STARTPTS,fade=t=out:st={total - 0.3:.2f}:d=0.3[vout]")
+    vf.append(f"{chain}trim=0:{total},setpts=PTS-STARTPTS,{grade},fade=t=out:st={total - 0.3:.2f}:d=0.3[vout]")
     af.append(f"{achain}afftdn=nr=40:nf=-40:tn=0,lowpass=f=9000,volume=-15dB,atrim=0:{total}[amb]")
     af.append(f"[{m}:a]aresample=48000,aformat=channel_layouts=stereo,atrim=0:{total},asetpts=PTS-STARTPTS,"
               f"afade=t=out:st={total - 0.3:.2f}:d=0.3[mus]")

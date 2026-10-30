@@ -12,40 +12,58 @@
       "label": "hook",
       "person": "back",
       "light": "day",
-      "view": "Napa Lake (Napahai): a calm wide lake with the forested hills and distant mountain ridges mirrored perfectly in the water, golden-brown grassland along the shore, small white clouds reflected",
-      "action": "She stands still at the water's edge seen from close behind her right shoulder, a light breeze lifting her hair and the hem of her jacket, looking out over the lake.",
-      "move": "Start close behind her shoulder, then glide smoothly backwards and up at one gentle constant speed to reveal the whole lake and its mirrored mountains; she stays in the lower third.",
+      "view": "Napa Lake (Napahai): a calm wide lake with the forested hills and distant mountain ridges mirrored perfectly in the water, golden-brown grassland along the shore, small white clouds reflected, strings of colourful prayer flags fluttering on poles along the shore",
+      "action": "She stands still at the water's edge seen from close behind her right shoulder, a light breeze lifting her braids and the white fur trim of her red robe, looking out over the lake.",
+      "move": "Start close behind her shoulder, then glide very slowly backwards and up at one gentle constant speed to reveal the whole lake and its mirrored mountains; she stays in the lower third.",
       "ambience": "soft breeze, gentle lapping water"
+    },
+    {
+      "bars": 2,
+      "person": "walk",
+      "light": "day",
+      "view": "the grassy shore of Napa Lake, shallow clear water with reeds, the lake and hills stretching behind, a line of colourful prayer flags strung along the shore stirring gently in a light breeze",
+      "action": "She walks slowly along the shore from left to right, looking out over the water.",
+      "move": "Camera locked on a tripod, perfectly still; she walks slowly into the frame and along the shore, medium-wide on the left third, the lake filling the frame.",
+      "ambience": "breeze, footsteps on grass, water"
+    },
+    {
+      "bars": 2,
+      "person": "none",
+      "light": "day",
+      "view": "the vast Napa grassland in calm, windless morning air: a flat meadow of short golden-brown turf grazed low by yaks, reaching to the forested hills, a small herd of black and white yaks grazing in the middle distance, mountain ridges under a clear blue sky",
+      "action": "",
+      "move": "Locked-off tripod shot from a slightly raised viewpoint looking out over the meadow, the camera perfectly still; the grass is short and still, only the yaks graze slowly. No tall grass, no close foreground: the bottom of the frame is short turf several metres away.",
+      "ambience": "soft breeze, a distant yak bell"
     },
     {
       "bars": 3,
       "person": "walk",
       "light": "day",
-      "view": "the grassy shore of Napa Lake, shallow clear water with reeds, the lake and hills stretching behind",
-      "action": "She walks slowly along the shore from left to right, looking out over the water.",
-      "move": "Side tracking shot at walking pace, keeping her medium-wide on the left third with the lake filling the frame.",
-      "ambience": "breeze, footsteps on grass, water"
-    },
-    {
-      "bars": 3,
-      "person": "none",
-      "light": "day",
-      "view": "the vast Napa grassland: golden-brown meadow reaching to the forested hills, a small herd of black and white yaks grazing far away, mountain ridges under a deep-blue sky",
-      "action": "",
-      "move": "Slow, steady pan from left to right across the grassland at eye level.",
-      "ambience": "wind over the grass, a distant yak bell"
+      "in": "dissolve",
+      "view": "inside the giant prayer-flag canopy of Shangri-La on a flat light-grey gravel square in bright sun: one tall smooth copper-coloured pole in the middle; from its top thousands of strings run straight down and out to the ground on every side like the ribs of a huge round tent, each string hung with rows of small pennant-shaped flags, so the inside of the tent is a fine net of horizontal rings of little flags: mostly white and pale blue, with rings of red, green, yellow and blue, sky and white clouds showing through everywhere; around the foot of the pole a big neat stepped cone of layered cloth bands in red, green, yellow, blue and white, its lowest tier red; a few visitors in Tibetan robes far away",
+      "action": "She walks slowly in from the edge across the open gravel toward the tiered cone at the foot of the pole, then pauses and looks up at the rings of flags, calm and moved. Seen from behind and slightly to the side, medium-wide, the dome of flags filling the frame above and around her.",
+      "move": "Camera locked on a tripod, slightly low, perfectly still; she walks into the frame and the dome of flags stays still above her. No follow, no pan.",
+      "ambience": "prayer flags rustling softly in a light breeze",
+      "ref": {
+        "image": "~/.local/share/museai/places/shangri-la/canopy-girl.jpg",
+        "what": "the giant prayer-flag canopy of Shangri-La (the tent of flag strings, the copper pole and the stepped cone of cloth at its foot); the girl in it is the traveller herself, so her face in the photo is her real face. Her clothes in the photo are NOT used: she wears the bright-red robe with red sleeves and the white fur hat described below"
+      }
     },
     {
       "bars": 1,
       "person": "none",
       "light": "day",
-      "view": "close detail of tall golden grass stems and seed heads on the Napa grassland, the soft blurred lake and hills behind",
+      "view": "looking up from inside the giant prayer-flag canopy at the top of the copper pole: thousands of small pennant flags on strings in concentric rings around the pole top (mostly white and pale blue with rings of red, yellow, green and blue), like the inside of a huge round tent, sky showing through",
       "action": "",
-      "move": "Locked, low camera at grass height; only the grass moves, swaying in waves in the wind.",
-      "ambience": "wind rustling through dry grass"
+      "move": "The camera points straight up at the zenith, locked and perfectly still, the pole top in the centre of the frame; only the flags stir gently. No tilt, no zoom.",
+      "ambience": "prayer flags rustling softly",
+      "ref": {
+        "image": "~/.local/share/museai/places/shangri-la/canopy-inside.jpg",
+        "what": "the inside of the giant prayer-flag canopy of Shangri-La: concentric rings of small flags around the pole top and the stepped cone of cloth at the pole's foot"
+      }
     },
     {
-      "bars": 3,
+      "bars": 2,
       "person": "none",
       "light": "day",
       "in": "dissolve",
@@ -60,7 +78,7 @@
       "light": "day",
       "view": "the wide stone visitor stairway leading up to the golden-roofed main assembly hall of Songzanlin Monastery, white and red walls on both sides",
       "action": "She walks calmly up the stone steps, then pauses and looks up at the golden roofs, admiring them. Seen from behind and slightly to the side.",
-      "move": "Slow follow from behind at a respectful distance, the monastery filling the upper frame.",
+      "move": "Camera locked on a tripod at the foot of the stairs, perfectly still; she walks slowly up the steps away from it, the monastery filling the upper frame.",
       "ambience": "footsteps on stone, breeze, faint chimes"
     },
     {
@@ -70,7 +88,7 @@
       "in": "dissolve",
       "view": "a cobbled street of Dukezong Ancient Town: two-storey traditional Tibetan wooden houses with dark timber facades, carved and painted window frames, prayer flags strung above, warm shop windows",
       "action": "She walks slowly along the cobbled street, glancing at the carved facades.",
-      "move": "Steady tracking shot moving backwards ahead of her at walking pace; she is medium-wide, the street and facades fill the frame.",
+      "move": "Very slow, gimbal-smooth tracking shot gliding backwards ahead of her at her slow walking pace; she is medium-wide, the street and facades fill the frame.",
       "ambience": "footsteps on cobbles, distant town murmur"
     },
     {
@@ -79,7 +97,7 @@
       "light": "day",
       "view": "close detail of an old carved and painted wooden door in Dukezong, warm light glowing from the shop window beside it",
       "action": "",
-      "move": "Very slow sideways glide past the carvings.",
+      "move": "Locked-off shot square to the door, a barely perceptible slow push-in; no sideways move.",
       "ambience": "quiet street ambience"
     },
     {
@@ -87,7 +105,7 @@
       "person": "hands",
       "light": "golden",
       "view": "a worn wooden table by the window of a small teahouse in Dukezong, a simple white porcelain tea cup on it",
-      "action": "Tight close-up on the table: her two hands (five fingers each, red jacket cuffs over cream knit) wrap around the warm tea cup; thin wisps of steam rise slowly from the tea and curl in the window light. The frame shows only the table, the cup, the steam and her hands and wrists: the top edge of the frame stays below her chest for the whole clip, her face, hair and shoulders never appear.",
+      "action": "Tight close-up on the table: her two hands (five fingers each, the colourful striped cuffs of her red robe folded back, white fur trim) wrap around the warm tea cup; thin wisps of steam rise slowly from the tea and curl in the window light. The frame shows only the table, the cup, the steam and her hands and wrists: the top edge of the frame stays below her chest for the whole clip, her face, hair and shoulders never appear.",
       "move": "Locked close-up, the camera does not move, tilt or pull back; only the steam and a slight shift of her fingers move.",
       "ambience": "soft cup on wood, distant street"
     },
@@ -103,30 +121,33 @@
     {
       "bars": 2,
       "person": "none",
-      "light": "dusk",
+      "light": "sunset",
       "in": "dissolve",
-      "view": "elevated view from Guishan Park hill over the rooftops of Dukezong Ancient Town at dusk: dark wooden Tibetan roofs, the warm window lights and street lanterns starting to glow, the giant golden prayer wheel on the hill catching the last light, mountains under a soft pink and blue sky",
-      "action": "",
-      "move": "Slow, level pan from left to right over the rooftops.",
-      "ambience": "evening breeze, distant town ambience"
+      "view": "the giant golden prayer wheel on Guishan Park hill above Dukezong Ancient Town in bright early dusk: an enormous gilded cylinder several storeys tall, its surface embossed with rows of seated Buddha figures and lotus patterns, a flared gilded crown on top, glowing warm gold under its floodlights against a soft blue-and-peach sky; a few visitors in warm coats walking slowly around its base pushing the wheel, which turns slowly",
+      "action": "The wheel turns slowly and steadily; visitors walk calmly around it.",
+      "move": "Locked-off camera from low at the foot of the wheel looking up at it, perfectly still; only the wheel turns and people walk.",
+      "ambience": "the wheel's low rumble, soft footsteps, evening breeze, a distant bell"
     },
     {
       "bars": 2,
       "person": "back",
-      "light": "dusk",
-      "view": "Guishan Park hill above Dukezong at dusk, the old town's glowing rooftops spread below",
-      "action": "She stands at the railing seen from behind, looking out over the rooftops, the breeze moving her hair. Still and calm.",
+      "light": "sunset",
+      "view": "Guishan Park hill above Dukezong at sunset, beside the giant golden prayer wheel, the old town's glowing rooftops spread below",
+      "action": "She stands at the railing seen from behind, nothing on her back (no backpack, no bag), looking out over the rooftops, the breeze moving her hair. Still and calm.",
       "move": "Very slow push-in from behind her over her shoulder toward the glowing town.",
       "ambience": "evening breeze, faint prayer flags flapping"
     },
     {
       "bars": 0,
       "person": "none",
-      "light": "blue-hour",
-      "view": "the whole of Dukezong Ancient Town at blue hour seen from Guishan hill: hundreds of warm lights glowing in the wooden houses and streets, the illuminated golden prayer wheel in the foreground, dark mountains against a deep-blue sky",
+      "light": "dusk",
+      "view": "the whole of Dukezong Ancient Town in bright early dusk seen from Guishan hill: hundreds of warm lights glowing in the wooden houses and streets, the illuminated golden prayer wheel in the foreground, soft mountains against a luminous pastel pink and pale-blue sky",
       "action": "",
       "move": "Lingering wide shot with a very slow pull-back, almost still.",
       "ambience": "quiet night breeze, distant town"
     }
-  ]
+  ],
+  "traveller": {
+    "face": "~/.local/share/museai/characters/china-girl/face-plateau.jpg"
+  }
 }
