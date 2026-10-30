@@ -21,6 +21,7 @@ TITLE_FONT = ("/System/Library/Fonts/HelveticaNeue.ttc", 9)  # Condensed Black, 
 SUB_FONT = ("/System/Library/Fonts/Supplemental/Arial Bold.ttf", 0)
 EMOJI_FONT = "/System/Library/Fonts/Apple Color Emoji.ttc"
 YELLOW, RED, WHITE, BLACK = (255, 214, 10), (232, 23, 58), (255, 255, 255), (0, 0, 0)
+PANEL = (18, 20, 28)  # text panel beside or under the picture: near-black, the red title and yellow hanzi pop on it
 SAFE = (80, 300, 960, 1560)  # 9:16 text box
 CENTRE = (1080 - SAFE[2], SAFE[2])  # the text block's x span: symmetric on the frame's centre line, clear of the buttons
 MAX_BYTES = 2_000_000  # YouTube mobile upload limit for video thumbnails
@@ -156,11 +157,12 @@ def grade(im):
     return im.filter(ImageFilter.UnsharpMask(radius=2, percent=60, threshold=2))
 
 
-def cover(im, w, h):
-    """Scale + centre-crop to fill w x h."""
+def cover(im, w, h, cx=0.5, cy=0.5):
+    """Scale + crop to fill w x h, the crop centred on (cx, cy) (fractions of im) as far as the edges allow."""
     s = max(w / im.width, h / im.height)
     im = im.resize((round(im.width * s), round(im.height * s)), Image.LANCZOS)
-    x, y = (im.width - w) // 2, (im.height - h) // 2
+    x = round(min(max(cx * im.width - w / 2, 0), im.width - w))
+    y = round(min(max(cy * im.height - h / 2, 0), im.height - h))
     return im.crop((x, y, x + w, y + h))
 
 
@@ -171,6 +173,15 @@ def shade(im, y0, y1, top_alpha, bottom_alpha):
         g.putpixel((0, y), int(top_alpha + (bottom_alpha - top_alpha) * y / max(y1 - y0 - 1, 1)))
     layer = Image.new("RGB", (im.width, y1 - y0), BLACK)
     im.paste(layer, (0, y0), g.resize((im.width, y1 - y0)))
+
+
+def block_fit(args, width, height):
+    """block() at the largest scale (1.0 down to 0.55) whose height fits, or None."""
+    for i in range(10):
+        blk = block(args, width, 1.0 - 0.05 * i)
+        if blk.height <= height:
+            return blk
+    return None
 
 
 def block(args, width, scale=1.0):
@@ -244,7 +255,8 @@ def split(frame, boxes, args, view):
 
 
 def horizontal(frame, boxes, args, view=None):
-    """16:9 (chinese and --split): the people sharp on the right over a blurred copy (or over the view), the text block on the left."""
+    """16:9 (chinese and --split): the people sharp on the right, the text block on the left on a solid panel
+    (or on the view, darkened toward the text). Nothing is blurred and no text touches a face."""
     W, H = 1920, 1080
     s = frame.width / 1080
     cy = (np.mean([(b[1] + b[3]) / 2 for b in boxes]) / s) if boxes else 700
@@ -254,25 +266,24 @@ def horizontal(frame, boxes, args, view=None):
         bg = bg.crop((0, top, W, top + H))
         g = Image.linear_gradient("L").rotate(90, expand=True).resize((W, H))  # 255 left -> 0 right
         bg.paste(Image.new("RGB", (W, H), BLACK), (0, 0), g.point(lambda v: int(v * 0.7)))
-    else:
-        bg = frame.resize((W, int(W * frame.height / frame.width)), Image.LANCZOS)
-        top = int(min(max(cy * W / 1080 - H / 2, 0), bg.height - H))
-        bg = bg.crop((0, top, W, top + H)).filter(ImageFilter.GaussianBlur(28))
-        bg = ImageEnhance.Brightness(bg).enhance(0.55)
-    # the people: a 1080x1215 window around the faces, sharp, on the right
+    else:  # a solid panel: never a blurred copy of the people behind the text
+        bg = Image.new("RGB", (W, H), PANEL)
+    # the people: a window around the faces, sharp, on the right, every face inside it
     cut = getattr(args, "cut", 0)
     limit = int(cut * 1920) if cut else 1920
-    win = min(950, limit)  # tight on the faces: big faces read at thumbnail size
-    y0 = int(min(max(cy - win * 0.45, 0), limit - win))
-    fw = min(int(1080 * H / win), 1100)
-    cx = (np.mean([(b[0] + b[2]) / 2 for b in boxes]) / s) if boxes else 540
+    fw = 1100
+    span = (max(b[2] for b in boxes) - min(b[0] for b in boxes)) / s + 240 if boxes else 0
+    win = min(max(950, span * H / fw), limit)  # tight on the faces: big faces read at thumbnail size
     ww = int(fw * win / H)
+    if ww > 1080:  # the faces are far apart: a wider window, less of the panel
+        ww, fw = 1080, int(1080 * H / win)
+    y0 = int(min(max(cy - win * 0.45, 0), limit - win))
+    cx = (np.mean([(b[0] + b[2]) / 2 for b in boxes]) / s) if boxes else 540
     x0 = int(min(max(cx - ww / 2, 0), 1080 - ww))
-    fg = grade(frame.resize((1080, 1920), Image.LANCZOS).crop((x0, y0, x0 + ww, y0 + win)).resize((fw, H), Image.LANCZOS))
-    mask = Image.new("L", fg.size, 255)
-    for x in range(120):  # soft left edge
-        ImageDraw.Draw(mask).line((x, 0, x, H), fill=int(255 * x / 120))
-    bg.paste(fg, (W - fw, 0), mask)
+    fg = grade(frame.resize((1080, 1920), Image.LANCZOS).crop((x0, y0, x0 + ww, y0 + int(win))).resize((fw, H), Image.LANCZOS))
+    bg.paste(fg, (W - fw, 0))
+    if view is None:
+        ImageDraw.Draw(bg).rectangle((W - fw - 12, 0, W - fw, H), fill=YELLOW)
     blk = block(args, W - fw - 40, scale=1.0)
     bg.paste(blk, (60, max((H - blk.height) // 2 + 40, 150)), blk)
     badge(bg, getattr(args, "badge", ""), 60 + blk.width // 2, 50)
