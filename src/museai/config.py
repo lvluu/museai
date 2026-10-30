@@ -46,6 +46,18 @@ class Settings(BaseSettings):
     push_enabled: bool = True
     # Write the per-platform captions a queued video is missing through muse chat.
     auto_captions: bool = True
+    # Post queued videos by the auto-post rules when their slot comes (dashboard "Auto-post").
+    autopost_enabled: bool = True
+    # Dry run: every platform posts through the mock driver (nothing leaves the machine).
+    autopost_mock: bool = False
+    autopost_interval: float = 60.0
+    # Developer apps the user creates for auto-posting (docs/auto-post.md). Never logged or shown.
+    google_client_id: str = ""
+    google_client_secret: str = ""
+    meta_app_id: str = ""
+    meta_app_secret: str = ""
+    tiktok_client_key: str = ""
+    tiktok_client_secret: str = ""
 
     # --- upstream driver ---
     driver: DriverName = "mock"

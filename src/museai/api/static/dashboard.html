@@ -188,6 +188,28 @@
   .notify button { font: inherit; }
   .share-row { display: flex; gap: 8px; margin: 0 0 8px; }
   .share-row button { flex: 1; padding: 8px 10px; font: inherit; font-weight: 600; }
+  /* auto-post */
+  .ap-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 16px; }
+  .ap-msg { padding: 8px 12px; border-radius: 8px; background: var(--soft); font-size: 13px; margin-bottom: 12px; }
+  .ap-msg:empty { display: none; }
+  .ap-grid { display: grid; gap: 8px; margin-bottom: 24px; }
+  .ap-card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;
+             display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
+  .ap-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; }
+  .ap-row > b { min-width: 90px; }
+  .ap-card select, .ap-card input[type=text], .ap-card input[type=datetime-local], .ap-card textarea {
+    font: inherit; font-size: 13px; color: var(--text); background: var(--bg); border: 1px solid var(--line);
+    border-radius: 6px; padding: 3px 6px; max-width: 100%; }
+  .ap-card textarea { width: 100%; min-height: 34px; resize: vertical; }
+  .ap-card label { display: inline-flex; align-items: center; gap: 4px; }
+  .ap-jobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 6px; }
+  .ap-job { border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; display: flex; flex-direction: column; gap: 4px; }
+  .ap-job.posted { border-color: var(--ok); background: var(--ok-bg); }
+  .ap-job.error, .ap-job.missed, .ap-job.needs_account { border-color: var(--bad); }
+  .ap-job .cap { color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ap-job .err { color: var(--bad); font-size: 12px; }
+  .ap-job a { color: var(--accent); font-size: 12px; overflow-wrap: anywhere; }
+  .ap-auto { font-size: 12px; color: var(--muted); }
   @media (max-width: 760px) {
     .shell { grid-template-columns: 1fr; }
     .nav { position: sticky; z-index: 2; height: auto; flex-direction: row; align-items: center; overflow-x: auto;
@@ -216,6 +238,7 @@
   <button data-view="post">Ready to post <span class="badge" id="navPost"></span></button>
   <button data-view="activity">Activity <span class="badge" id="navVid"></span></button>
   <button data-view="queue">Queue <span class="badge" id="navQueue"></span></button>
+  <button data-view="autopost">Auto-post <span class="badge" id="navAuto"></span></button>
   <div class="nav-foot">
     <span class="pill p-idle" id="cpu" title="Host CPU">CPU …</span>
     <label class="live"><input type="checkbox" id="auto" checked> live · <span id="updated">loading…</span></label>
@@ -249,6 +272,27 @@
     <div class="list qlist" id="qClients"></div>
     <h2>Recent events</h2>
     <div class="list qlist" id="qLog"></div>
+  </section>
+
+  <section data-section="autopost" hidden>
+    <header><h1>Auto-post</h1></header>
+    <div class="ap-msg" id="apMsg"></div>
+    <div class="ap-bar" id="apBar"></div>
+    <p class="hint">Rules pick, for each new video in “Ready to post”, the channel, platforms, time and caption; the
+      server then posts it through each platform's API at that time and ticks it on its card. Times are the card's
+      slot (per platform) unless a rule sets fixed times or you set one below. Times GMT+7.</p>
+    <h2>Plan</h2>
+    <div class="ap-grid" id="apPlan"></div>
+    <h2>Connected accounts</h2>
+    <p class="hint">Each channel posts from its own accounts. “Connect” opens the platform's sign-in on this machine;
+      tokens stay in the server's data folder. The developer apps and their review steps: docs/auto-post.md.</p>
+    <div class="ap-grid" id="apAccounts"></div>
+    <h2>Rules</h2>
+    <p class="hint">Tried top to bottom; the first enabled rule whose match fits a new video plans it. Empty match
+      fields match anything. Caption templates: <span id="apFields"></span>.</p>
+    <div class="ap-grid" id="apRules"></div>
+    <div class="ap-bar"><button id="apAddRule">Add rule</button><button id="apSaveRules">Save rules</button>
+      <span class="ap-auto" id="apRulesState"></span></div>
   </section>
 
   <section data-section="activity" hidden>
@@ -571,9 +615,10 @@ function render() {
 }
 
 // One section at a time, picked in the sidebar, so nothing needs scrolling past.
-const VIEWS = ["post", "activity", "queue"];
+const VIEWS = ["post", "activity", "queue", "autopost"];
 let view = "";
 function show(v) {
+  v = (v || "").split("&")[0];
   view = VIEWS.includes(v) ? v : ["accounts", "videos"].includes(v) ? "activity" : "post";
   for (const el of document.querySelectorAll("[data-section]")) el.hidden = el.dataset.section !== view;
   for (const b of document.querySelectorAll("[data-view]")) b.classList.toggle("on", b.dataset.view === view);
@@ -616,6 +661,8 @@ function renderPosts() {
           <button class="linkish" data-done title="Move to the Trash without posting everywhere">Delete</button>
         </div>
         ${slotHead(v)}
+        ${Object.keys(v.auto || {}).length ? `<div class="ap-auto">Auto-post: ${Object.entries(v.auto).map(([p, st]) =>
+          `${esc(p)} ${esc(st || "scheduled")}`).join(" · ")}</div>` : ""}
         ${(v.thumbnails || []).length ? `<div class="thumbs">${v.thumbnails.map((t) =>
           `<a href="${esc(postUrl(v.name, "/thumbnail/" + t.kind))}" target="_blank" rel="noopener" title="Open full size: ${esc(t.kind)}: ${esc(t.use)}">
              <img src="${esc(postUrl(v.name, "/thumbnail/" + t.kind))}" alt="${esc(t.kind)} thumbnail" loading="lazy"><small>${esc(t.kind)}</small></a>`).join("")}</div>` : ""}
@@ -907,6 +954,171 @@ $("posts").addEventListener("input", (e) => {
   if (e.target.matches("[data-caption]")) { fitCaption(e.target); countCaption(e.target.closest(".post")); }
 });
 
+// Auto-post: plan, connected accounts, rules.
+let auto = null, autoSig = "", rulesDirty = false, rulesDraft = [];
+const STATE_PILL = { posted: "p-ok", posting: "p-run", retry: "p-run", scheduled: "p-idle", waiting: "p-idle",
+                     error: "p-bad", missed: "p-bad", needs_account: "p-bad" };
+const platName = (id) => (auto?.platforms || []).find((p) => p.id === id)?.name || id;
+const chanName = (id) => (auto?.channels || []).find((c) => c.id === id)?.name || id;
+const toLocal = (iso) => iso ? iso.slice(0, 16) : "";
+async function loadAuto() {
+  try { auto = await api("/dashboard/autopost"); renderAuto(); } catch (e) { /* the videos list shows the error */ }
+}
+async function autoCall(path, body, method) {
+  try {
+    const headers = { "Content-Type": "application/json", ...(key ? { Authorization: "Bearer " + key } : {}) };
+    const r = await fetch(path, { method: method || "POST", headers, body: JSON.stringify(body) });
+    if (!r.ok) throw new Error((await r.json().catch(() => null))?.error?.message || r.status);
+    return await r.json();
+  } catch (err) { alert(err.message); return null; } finally { autoSig = ""; loadAuto(); }
+}
+function renderAuto() {
+  const busy = document.activeElement?.closest?.("#apPlan, #apAccounts");
+  const sig = JSON.stringify([auto.plan, auto.connections, auto.paused, auto.unplanned]);
+  const n = auto.plan.reduce((a, r) => a + r.jobs.filter((j) => ["error", "missed", "needs_account"].includes(j.state)).length, 0);
+  $("navAuto").textContent = auto.paused ? "paused" : n || "";
+  $("navAuto").classList.toggle("hot", n > 0);
+  const msg = new URLSearchParams(location.hash.split("&").slice(1).join("&")).get("msg");
+  if (msg) { $("apMsg").textContent = msg; history.replaceState(null, "", "#autopost"); }
+  $("apFields").textContent = auto.caption_fields;
+  if (!rulesDirty) { rulesDraft = structuredClone(auto.rules); renderRules(); }
+  if (sig === autoSig || busy) return;
+  autoSig = sig;
+  $("apBar").innerHTML = `${pill(auto.paused ? ["p-bad", "All paused"] : auto.enabled ? ["p-ok", "Auto-posting on"] : ["p-idle", "Off (MUSE2API_AUTOPOST_ENABLED)"])}
+    ${auto.mock ? pill(["p-run", "Dry run: mock driver, nothing leaves this machine"]) : ""}
+    <button data-pauseall="${auto.paused ? "0" : "1"}">${auto.paused ? "Resume all" : "Pause all"}</button>`;
+  const rules = auto.rules;
+  $("apPlan").innerHTML = (auto.plan.length ? auto.plan.map((r) => `
+    <div class="ap-card" data-video="${esc(r.name)}">
+      <div class="ap-row"><b>${esc(r.name)}</b>${pill(r.paused ? ["p-bad", "Paused"] : ["p-idle", chanName(r.channel)])}
+        <span class="ap-auto">rule: ${esc(r.rule_name || r.rule)}</span>
+        <button class="linkish" data-vpause="${r.paused ? "0" : "1"}">${r.paused ? "Resume" : "Pause"}</button>
+        <button class="linkish" data-voff title="Stop auto-posting this video; post it by hand">Post by hand</button></div>
+      <div class="ap-jobs">${r.jobs.map((j) => `
+        <div class="ap-job ${esc(j.state)}" data-platform="${esc(j.platform)}">
+          <div class="ap-row"><b>${esc(platName(j.platform))}</b>${pill([STATE_PILL[j.state] || "p-idle", j.state.replace("_", " ")])}</div>
+          ${j.state === "posted" ? (j.url ? `<a href="${esc(j.url)}" target="_blank" rel="noopener">${esc(j.url)}</a>` : "")
+            : `<label title="Post time (GMT+7)${j.override ? "; set here" : "; from the slot or rule"}">
+                 <input type="datetime-local" data-time value="${esc(toLocal(j.time))}">${j.override ? `<button class="linkish" data-reset title="Back to the slot time">↺</button>` : ""}</label>`}
+          <div class="cap" title="${esc(j.caption)}">${esc(j.caption.split("\n")[0] || "(no caption yet)")}</div>
+          ${j.error ? `<div class="err">${esc(j.error)}${j.attempts ? ` (try ${j.attempts})` : ""}</div>` : ""}
+          ${j.state !== "posted" ? `<button class="linkish" data-postnow>Post now</button>` : ""}
+        </div>`).join("")}</div>
+    </div>`).join("") : `<div class="empty">No video planned. New videos that match a rule show here.</div>`)
+    + (auto.unplanned.length ? `<div class="ap-card"><b>Not auto-posted</b>${auto.unplanned.map((n) => `
+      <div class="ap-row" data-video="${esc(n)}"><span>${esc(n)}</span>
+        <select data-planrule><option value="">Plan with rule…</option>${rules.map((x) =>
+          `<option value="${esc(x.id)}">${esc(x.name || x.id)}</option>`).join("")}</select></div>`).join("")}</div>` : "");
+  const conns = auto.connections;
+  $("apAccounts").innerHTML = auto.channels.map((c) => `
+    <div class="ap-card" data-chan="${esc(c.id)}"><b>${esc(c.name)}</b>
+      ${conns.providers.map((pr) => `<div class="ap-row"><b>${esc(pr.name)}</b>
+        ${pr.platforms.map((p) => {
+          const a = (conns.accounts[c.id] || {})[p];
+          if (!a) return `<span class="ap-auto">${esc(platName(p))}: not connected</span>`;
+          return `<span>${esc(platName(p))}: ${a.choices.length > 1 ? `<select data-choice="${esc(p)}">${a.choices.map((x) =>
+            `<option value="${esc(x.id)}" ${x.name === a.name ? "selected" : ""}>${esc(x.name)}</option>`).join("")}</select>` : esc(a.name)}
+            <button class="linkish" data-disconnect="${esc(p)}">disconnect</button></span>`;
+        }).join("")}
+        ${pr.configured ? `<a href="/dashboard/autopost/oauth/${esc(pr.id)}/start?channel=${encodeURIComponent(c.id)}"><button>Connect</button></a>`
+          : `<span class="ap-auto">set the ${esc(pr.id)} app id/secret in .env first</span>`}</div>`).join("")}
+    </div>`).join("") + `<p class="hint">Redirect URI to register in every developer app: <code>${esc(auto.redirect_uri)}</code></p>`;
+}
+function renderRules() {
+  const opts = (list, cur, empty) => `<option value="">${esc(empty)}</option>` + list.map((x) =>
+    `<option value="${esc(x.id)}" ${x.id === cur ? "selected" : ""}>${esc(x.name)}</option>`).join("");
+  $("apRules").innerHTML = rulesDraft.length ? rulesDraft.map((r, i) => `
+    <div class="ap-card" data-rule="${i}">
+      <div class="ap-row"><label><input type="checkbox" data-f="enabled" ${r.enabled ? "checked" : ""}> on</label>
+        <input type="text" data-f="name" value="${esc(r.name)}" placeholder="Rule name">
+        <input type="text" data-f="id" value="${esc(r.id)}" placeholder="id" size="10" title="Rule id (unique)">
+        <button class="linkish" data-move="-1">↑</button><button class="linkish" data-move="1">↓</button>
+        <button class="linkish" data-del>Delete</button></div>
+      <div class="ap-row"><b>Match</b>
+        <select data-f="source">${opts(auto.sources, r.source, "any source")}</select>
+        <input type="text" data-f="pattern" value="${esc(r.pattern)}" placeholder="file name glob, e.g. *Thuê*">
+        <select data-f="on_channel">${opts(auto.channels, r.on_channel, "any channel")}</select></div>
+      <div class="ap-row"><b>Post on</b>
+        <select data-f="channel">${opts(auto.channels, r.channel, "its channel")}</select>
+        ${auto.platforms.map((p) => `<label><input type="checkbox" data-plat="${esc(p.id)}" ${r.platforms.includes(p.id) ? "checked" : ""}>${esc(p.name)}</label>`).join("")}</div>
+      <div class="ap-row"><b>When</b>
+        <select data-f="schedule"><option value="slot" ${r.schedule === "slot" ? "selected" : ""}>next free slot (per platform times)</option>
+          <option value="fixed" ${r.schedule === "fixed" ? "selected" : ""}>fixed times</option></select>
+        <input type="text" data-f="times" value="${esc(r.times.join(", "))}" placeholder="09:00, 19:30" ${r.schedule === "fixed" ? "" : "hidden"}>
+        <select data-f="thumbnail">${["9x16", "16x9", "none"].map((t) => `<option ${t === r.thumbnail ? "selected" : ""}>${t}</option>`).join("")}</select>
+        <select data-f="privacy">${["public", "private"].map((t) => `<option ${t === r.privacy ? "selected" : ""}>${t}</option>`).join("")}</select></div>
+      ${auto.platforms.filter((p) => r.platforms.includes(p.id)).map((p) => `<div class="ap-row"><b>${esc(p.name)}</b>
+        <textarea data-cap="${esc(p.id)}" placeholder="{caption}">${esc(r.captions[p.id] || "")}</textarea></div>`).join("")}
+    </div>`).join("") : `<div class="empty">No rules: nothing is auto-posted.</div>`;
+  $("apRulesState").textContent = rulesDirty ? "unsaved changes" : "";
+}
+function readRule(card) {
+  const r = rulesDraft[+card.dataset.rule];
+  for (const el of card.querySelectorAll("[data-f]")) {
+    const f = el.dataset.f;
+    r[f] = el.type === "checkbox" ? el.checked : f === "times" ? el.value.split(/[\s,]+/).filter(Boolean) : el.value;
+  }
+  r.platforms = [...card.querySelectorAll("[data-plat]")].filter((c) => c.checked).map((c) => c.dataset.plat);
+  for (const t of card.querySelectorAll("[data-cap]")) r.captions[t.dataset.cap] = t.value;
+}
+$("apRules").addEventListener("change", (e) => {
+  const card = e.target.closest("[data-rule]"); if (!card) return;
+  readRule(card); rulesDirty = true;
+  if (e.target.matches("[data-plat], [data-f=schedule]")) renderRules(); else $("apRulesState").textContent = "unsaved changes";
+});
+$("apRules").addEventListener("click", (e) => {
+  const card = e.target.closest("[data-rule]"); if (!card) return;
+  const i = +card.dataset.rule;
+  if (e.target.closest("[data-del]")) rulesDraft.splice(i, 1);
+  else if (e.target.closest("[data-move]")) {
+    const j = i + +e.target.closest("[data-move]").dataset.move;
+    if (j < 0 || j >= rulesDraft.length) return;
+    [rulesDraft[i], rulesDraft[j]] = [rulesDraft[j], rulesDraft[i]];
+  } else return;
+  rulesDirty = true; renderRules();
+});
+$("apAddRule").addEventListener("click", () => {
+  rulesDraft.push({ id: "rule" + (rulesDraft.length + 1), name: "", enabled: true, source: "", pattern: "", on_channel: "",
+                    channel: "", platforms: ["youtube"], schedule: "slot", times: [], captions: {},
+                    thumbnail: "9x16", privacy: "public" });
+  rulesDirty = true; renderRules();
+});
+$("apSaveRules").addEventListener("click", async () => {
+  for (const card of $("apRules").querySelectorAll("[data-rule]")) readRule(card);
+  const r = await autoCall("/dashboard/autopost/rules", { rules: rulesDraft }, "PUT");
+  if (r) { rulesDirty = false; $("apRulesState").textContent = "saved"; }
+});
+$("apBar").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-pauseall]"); if (!b) return;
+  autoCall("/dashboard/autopost/pause", { paused: b.dataset.pauseall === "1" });
+});
+const planUrl = (name) => `/dashboard/autopost/plan/${encodeURIComponent(name)}`;
+$("apPlan").addEventListener("click", (e) => {
+  const name = e.target.closest("[data-video]")?.dataset.video; if (!name) return;
+  const platform = e.target.closest("[data-platform]")?.dataset.platform;
+  if (e.target.closest("[data-vpause]")) autoCall(planUrl(name), { paused: e.target.dataset.vpause === "1" });
+  else if (e.target.closest("[data-voff]") && confirm(`Stop auto-posting ${name}?`)) autoCall(planUrl(name), { off: true });
+  else if (e.target.closest("[data-postnow]") && confirm(`Post ${name} to ${platName(platform)} now?`)) autoCall(planUrl(name), { retry: platform });
+  else if (e.target.closest("[data-reset]")) { e.preventDefault(); autoCall(planUrl(name), { times: { [platform]: "" } }); }
+});
+$("apPlan").addEventListener("change", (e) => {
+  const name = e.target.closest("[data-video]")?.dataset.video; if (!name) return;
+  if (e.target.matches("[data-time]") && e.target.value) {
+    autoCall(planUrl(name), { times: { [e.target.closest("[data-platform]").dataset.platform]: e.target.value + ":00+07:00" } });
+  } else if (e.target.matches("[data-planrule]") && e.target.value) autoCall(planUrl(name), { rule: e.target.value });
+});
+$("apAccounts").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-disconnect]"); if (!b) return;
+  const ch = b.closest("[data-chan]").dataset.chan;
+  if (confirm(`Disconnect ${platName(b.dataset.disconnect)} from ${chanName(ch)}?`))
+    autoCall(`/dashboard/autopost/accounts/${encodeURIComponent(ch)}/${b.dataset.disconnect}`, { disconnect: true });
+});
+$("apAccounts").addEventListener("change", (e) => {
+  const s = e.target.closest("[data-choice]"); if (!s) return;
+  const ch = s.closest("[data-chan]").dataset.chan;
+  autoCall(`/dashboard/autopost/accounts/${encodeURIComponent(ch)}/${s.dataset.choice}`, { choice: s.value });
+});
+
 // Host CPU: overloaded = runnable work waits for a core, so renders and tabs slow down.
 const CPU_LEVEL = { ok: ["p-ok", ""], busy: ["p-run", "s-run"], overloaded: ["p-bad", "s-bad"] };
 function cpuText() {
@@ -944,6 +1156,7 @@ async function load() {
     render();
     renderCpu();
     loadPosts();
+    loadAuto();
   } catch (e) {
     $("updated").textContent = "error: " + e.message;
   }

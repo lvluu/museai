@@ -164,7 +164,9 @@ def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
             e.pop("slot", None)
             e.pop("slot_pinned", None)
             changed = True
-        if (key := e.get("slot")) and not e.get("posted") and not e.get("slot_pinned") \
+        auto = e.get("auto") if isinstance(e.get("auto"), dict) else {}
+        planned = bool(auto) and not auto.get("off") and not auto.get("paused")  # auto-post keeps its slot
+        if (key := e.get("slot")) and not e.get("posted") and not e.get("slot_pinned") and not planned \
                 and _slot_times(key)["youtube"] <= now:
             del e["slot"]
     # Slots of videos already posted or deleted stay booked, so a new video never refills them.
@@ -203,6 +205,7 @@ def _view(path: Path, entry: dict, svc: Services) -> dict:
             "auto_captions": svc.captions.status(_key(path.name)),
             "posted": entry.get("posted", {}), "slot": key, "channel": _channel(path.name, entry),
             "thumbnails": [{"kind": k, "use": THUMBS[k]} for k in _thumbs(path)],
+            "auto": {p: j.get("state", "") for p, j in (entry.get("auto") or {}).get("jobs", {}).items()},
             "schedule": {p: t.isoformat() for p, t in _slot_times(key).items()} if key else {}}
 
 
@@ -251,17 +254,36 @@ def _save_captions(svc: Services, key: str, captions: dict[str, str]) -> None:
         _save(svc, state)
 
 
+def queued(svc: Services) -> list[Path]:
+    """Videos in the posting folder, newest first."""
+    folder = svc.settings.post_dir
+    return sorted((p for p in folder.iterdir() if p.is_file() and p.suffix.lower() in VIDEO_EXT
+                   and not p.name.startswith(".")), key=lambda p: p.stat().st_mtime, reverse=True) \
+        if folder.is_dir() else []
+
+
+def refresh(svc: Services, now: datetime, videos: list[Path] | None = None) -> tuple[list[Path], dict]:
+    """Book slots for new videos and plan their auto-posting (routes/autopost.py); returns the queued
+    videos and the saved state."""
+    from . import autopost  # it builds on this module
+
+    videos = queued(svc) if videos is None else videos
+    rules = autopost.load_config(svc)["rules"]
+    with _state_lock:
+        state = _load(svc)
+        changed = _forget_old(state, now) | autopost.plan(state, videos, rules)
+        changed |= _assign_slots(state, videos, now) | autopost.book_fixed(state, rules, now)
+        if changed:
+            _save(svc, state)
+    return videos, state
+
+
 @router.get("/dashboard/posts", include_in_schema=False)
 async def list_posts(svc: Services = Depends(get_services)) -> dict:
     folder = svc.settings.post_dir
-    videos = sorted((p for p in folder.iterdir() if p.is_file() and p.suffix.lower() in VIDEO_EXT
-                     and not p.name.startswith(".")), key=lambda p: p.stat().st_mtime, reverse=True) \
-        if folder.is_dir() else []
+    videos = queued(svc)
     now = datetime.now(TZ)
-    with _state_lock:
-        state = _load(svc)
-        if _forget_old(state, now) | _assign_slots(state, videos, now):
-            _save(svc, state)
+    videos, state = refresh(svc, now, videos)
     for p in videos:
         svc.captions.schedule(_key(p.name), p, state.get(_key(p.name), {}),
                               lambda key, caps: _save_captions(svc, key, caps))

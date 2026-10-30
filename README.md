@@ -212,6 +212,12 @@ print(response.choices[0].message.content)
 
 ---
 
+## Auto-posting
+
+Finished videos can post themselves to TikTok, YouTube Shorts, Facebook Reels and Instagram Reels
+on a schedule, with rules and per-video overrides on `/dashboard` → Auto-post. Setup of the developer
+apps, scopes and audits: [docs/auto-post.md](docs/auto-post.md).
+
 ## Endpoints
 
 | Method | Route | Description |

@@ -25,7 +25,9 @@ museai/
 │   ├── services/
 │   │   ├── container.py       # Dependency container wiring
 │   │   ├── gateway.py         # Account lease, failover retry loop, streaming orchestration
-│   │   └── tasks.py           # Long-running async background tasks (video generation)
+│   │   ├── tasks.py           # Long-running async background tasks (video generation)
+│   │   ├── oauth.py           # OAuth connect + token refresh for auto-posting (docs/auto-post.md)
+│   │   └── publishers/        # Auto-post drivers: YouTube, TikTok, Facebook, Instagram, mock
 │   ├── accounts/
 │   │   ├── model.py           # Account dataclass, status lifecycle (active, cooling, disabled)
 │   │   ├── pool.py            # AccountPool: scheduling (lru, round_robin, affinity), concurrency
