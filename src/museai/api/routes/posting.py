@@ -13,12 +13,19 @@ deliver.sh puts the thumbnails (thumbnail skill) next to the video as ``<stem> -
 Each video belongs to a channel (``CHANNELS``: separate accounts, guessed from the file name, changeable
 on the card) and gets a posting slot in that channel: two a day at the audience's peak hours (``SLOTS``),
 handed out in delivery order, with a time per platform (``OFFSETS``) to set in each platform's scheduler.
+
+With ``post_folders`` on, each delivered video (one with its 9x16 thumbnail, settled for ``SETTLE`` s)
+moves into a folder of its own, ``"01 · Fri 30-10 11h30 · Travel · <stem>"``: the video, its thumbnails
+and ``captions.txt`` (the caption and time per platform). Folders are numbered in posting order and
+renumbered as videos go; deleting a folder takes its video out of the queue. Only folders holding a
+``FOLDER_MARK`` file are touched, and videos without a thumbnail stay where they are.
 """
 
 from __future__ import annotations
 
 import ipaddress
 import json
+import logging
 import re
 import shutil
 import subprocess
@@ -38,6 +45,7 @@ from ...services.container import Services
 from ..deps import get_services
 from .dashboard import _local_or_admin
 
+log = logging.getLogger(__name__)
 router = APIRouter(tags=["dashboard"], dependencies=[Depends(_local_or_admin)])
 
 # Upload pages. None of them takes a file in the link, so the dashboard also shows the file
@@ -79,6 +87,8 @@ TRAVEL_NAME = re.compile(r"^(zoom|reel|scenic|drop|travel)[-_ ]|\b(zoominview|sc
 OFFSETS = {"youtube": (0, 0), "tiktok": (30, 60), "facebook": (30, 90), "instagram": (0, 60),
            "x": (30, 120), "threads": (0, 90)}
 SLOT_KEY = re.compile(r"^(\d{4}-\d{2}-\d{2})/([12])$")
+FOLDER_MARK = ".museai-post"  # marks a folder this module made for one video
+SETTLE = 30  # seconds a video must sit unchanged before it moves (deliver.sh may still be copying it)
 # Requests (in threads) and the caption writer all read-modify-write posts.json.
 _state_lock = threading.Lock()
 
@@ -109,15 +119,15 @@ def _save(svc: Services, state: dict) -> None:
 
 
 def _exists(svc: Services, key: str) -> bool:
-    folder = svc.settings.post_dir
-    return any(_key(p.name) == key for p in folder.iterdir()) if folder.is_dir() else False
+    return any(_key(p.name) == key for p in queued(svc))
 
 
 def _video(svc: Services, name: str) -> Path:
-    path = svc.settings.post_dir / name
-    if Path(name).name != name or path.suffix.lower() not in VIDEO_EXT or not path.is_file():
-        raise NotFound(f"video '{name}' not found")
-    return path
+    if Path(name).name == name and Path(name).suffix.lower() in VIDEO_EXT:
+        for path in queued(svc):
+            if _key(path.name) == _key(name):
+                return path
+    raise NotFound(f"video '{name}' not found")
 
 
 def _channel(name: str, entry: dict) -> str:
@@ -238,7 +248,8 @@ def _trash(path: Path) -> None:
     else:
         bin_ = Path.home() / ".Trash"
         bin_.mkdir(exist_ok=True)
-        shutil.move(str(path), bin_ / f"{path.stem}-{int(time.time())}{path.suffix}")
+        name = f"{path.name}-{int(time.time())}" if path.is_dir() else f"{path.stem}-{int(time.time())}{path.suffix}"
+        shutil.move(str(path), bin_ / name)
 
 
 def _save_captions(svc: Services, key: str, captions: dict[str, str]) -> None:
@@ -254,12 +265,86 @@ def _save_captions(svc: Services, key: str, captions: dict[str, str]) -> None:
         _save(svc, state)
 
 
+def _is_video(p: Path) -> bool:
+    return p.is_file() and p.suffix.lower() in VIDEO_EXT and not p.name.startswith(".")
+
+
+def _folders(root: Path) -> list[Path]:
+    """The per-video folders this module made in ``root``."""
+    return [d for d in root.iterdir() if d.is_dir() and (d / FOLDER_MARK).is_file()]
+
+
 def queued(svc: Services) -> list[Path]:
-    """Videos in the posting folder, newest first."""
-    folder = svc.settings.post_dir
-    return sorted((p for p in folder.iterdir() if p.is_file() and p.suffix.lower() in VIDEO_EXT
-                   and not p.name.startswith(".")), key=lambda p: p.stat().st_mtime, reverse=True) \
-        if folder.is_dir() else []
+    """Videos in the posting folder and in its per-video folders, newest first."""
+    root = svc.settings.post_dir
+    if not root.is_dir():
+        return []
+    found = [p for p in root.iterdir() if _is_video(p)] + [p for d in _folders(root) for p in d.iterdir() if _is_video(p)]
+    return sorted(found, key=lambda p: p.stat().st_mtime, reverse=True)
+
+
+def _folder_name(n: int, name: str, entry: dict) -> str:
+    """"01 · Fri 30-10 11h30 · Travel · <stem>": number, YouTube slot time, channel, file name (no
+    colon or dot, which Finder shows oddly or reads as an extension)."""
+    parts = [f"{n:02d}"]
+    if key := entry.get("slot"):
+        parts.append(_slot_times(key)["youtube"].strftime("%a %d-%m %Hh%M"))
+    parts += [CHANNELS[_channel(name, entry)][0], Path(name).stem[:100]]
+    return " · ".join(parts)
+
+
+def _captions_text(name: str, entry: dict) -> str:
+    """captions.txt: per platform its posting time and caption, ready to paste."""
+    shared = entry.get("caption", "")
+    times = _slot_times(entry["slot"]) if entry.get("slot") else {}
+    blocks = []
+    for p, (label, _, _) in PLATFORMS.items():
+        text = entry.get("captions", {}).get(p) or shared
+        if text:
+            when = times[p].strftime("%a %d-%m %H:%M") if p in times else ""
+            blocks.append(f"=== {label}{'  ' + when if when else ''} ===\n{text.strip()}\n")
+    return "\n".join(blocks)
+
+
+def _organize(root: Path, videos: list[Path], state: dict, now: datetime) -> list[Path]:
+    """Move each ready video into its own folder, number the folders in posting order and refresh
+    their captions.txt; returns ``videos`` at their new paths."""
+    arrived = [p for p in videos if p.parent == root and p.with_name(f"{p.stem} - thumbnail 9x16.jpg").is_file()
+               and now.timestamp() - p.stat().st_mtime >= SETTLE]
+    again = {_key(p.name) for p in arrived}
+    for p in videos:
+        if p.parent != root and _key(p.name) in again:  # delivered again under the same name: the new one wins
+            _trash(p.parent)
+    out = {p: p for p in videos if p.parent == root or _key(p.name) not in again}
+    ready = [p for p in out if p.parent != root] + arrived
+    ready.sort(key=lambda p: (state.get(_key(p.name), {}).get("slot") or "~",
+                              _channel(p.name, state.get(_key(p.name), {})), p.stat().st_mtime))
+    want = {p: root / _folder_name(i, p.name, state.get(_key(p.name), {})) for i, p in enumerate(ready, 1)}
+    # Renumbering can swap two names: park the folders that move under hidden names first.
+    parked = {}
+    for p in ready:
+        if p.parent != root and p.parent != want[p]:
+            tmp = root / f".museai-renaming-{len(parked)}-{int(time.time())}"
+            p.parent.rename(tmp)
+            parked[p] = tmp / p.name
+    for p in ready:
+        folder = want[p]
+        if p in parked:
+            parked[p].parent.rename(folder)
+        elif p.parent == root:
+            folder.mkdir(exist_ok=True)
+            (folder / FOLDER_MARK).touch()
+            shutil.move(str(p), folder / p.name)
+        new = out[p] = folder / p.name
+        for kind in THUMBS:  # thumbnails delivered next to the video, also after it moved
+            thumb = root / f"{new.stem} - thumbnail {kind}.jpg"
+            if thumb.is_file():
+                thumb.replace(folder / thumb.name)
+        text = _captions_text(p.name, state.get(_key(p.name), {}))
+        caps = folder / "captions.txt"
+        if text and (not caps.is_file() or caps.read_text() != text):
+            caps.write_text(text)
+    return [out[p] for p in videos if p in out]
 
 
 def refresh(svc: Services, now: datetime, videos: list[Path] | None = None) -> tuple[list[Path], dict]:
@@ -275,6 +360,11 @@ def refresh(svc: Services, now: datetime, videos: list[Path] | None = None) -> t
         changed |= _assign_slots(state, videos, now) | autopost.book_fixed(state, rules, now)
         if changed:
             _save(svc, state)
+        if svc.settings.post_folders:
+            try:
+                videos = _organize(svc.settings.post_dir, videos, state, now)
+            except OSError as exc:  # a file in use or a name clash: the queue still lists, next pass retries
+                log.warning("posting folders: %s", exc)
     return videos, state
 
 
@@ -372,9 +462,12 @@ def _update(svc: Services, path: Path, body: dict) -> dict:
             posted.pop(platform, None)
     done = body.get("done") or set(entry.get("posted", {})) >= set(PLATFORMS)
     if done:
-        for thumb in _thumbs(path).values():
-            _trash(thumb)
-        _trash(path)
+        if (path.parent / FOLDER_MARK).is_file():
+            _trash(path.parent)
+        else:
+            for thumb in _thumbs(path).values():
+                _trash(thumb)
+            _trash(path)
         if entry.get("slot"):
             state[name] = _record(entry, name)  # keeps the slot booked: the next video takes the one after
         else:
