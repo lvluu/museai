@@ -32,15 +32,15 @@ FACE_REF = (
     "FACE REFERENCE: The attached photo shows the traveller's real face and hair. It is NOT the first "
     "frame and NOT the location: do not show its background or pose. Render her as exactly this person in "
     "every frame: the same face shape, eyes, nose, lips, skin tone, hairstyle and bangs, recognisably her, "
-    "never a different woman; at her most beautiful, fresh and youthful (soft even skin, bright eyes), at "
-    "the place below.\n\n"
+    "never a different woman, as she looks in real life: natural skin texture, no beauty filter or "
+    "doll-like smoothing; naturally pretty and youthful, at the place below.\n\n"
 )
 PERSON = {
     "none": "Nobody is the subject of this shot: the traveller is not in it; at most a few distant passers-by, small and natural.",
     "back": "The traveller is seen from behind or three-quarter behind; her face is not the focus.",
     "walk": "The traveller walks naturally and slowly, seen side-on or from behind, medium-wide, never a face close-up.",
     "side": "The traveller is seen side-on, medium-wide, calm natural expression, mouth closed.",
-    "hands": "Only the traveller's hands and sleeves are in frame, in the outfit described below: beautiful, graceful young hands, slender elegant fingers, smooth soft skin, neat natural nails, five fingers each, held gently and naturally.",
+    "hands": "Only the traveller's hands and sleeves are in frame, in the outfit described below: graceful real young hands, slender fingers, natural skin with real texture, neat natural nails, five fingers each, held gently and naturally.",
 }
 
 

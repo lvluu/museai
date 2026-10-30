@@ -2,11 +2,11 @@
   "hook_text": "This is China.\nWelcome to {place}.",
   "character": {
     "face": "~/.local/share/museai/characters/china-girl/face.jpg",
-    "look": "a beautiful young Vietnamese girl of about twenty, youthful fresh radiant face, soft round face, warm dark-brown eyes, long black hair with wispy bangs",
+    "look": "a beautiful young Vietnamese girl of about twenty, naturally pretty youthful face, soft round face, warm dark-brown eyes, long black hair with wispy bangs",
     "wardrobe": "a muted red outdoor jacket over a cream knit sweater, dark trousers and comfortable walking shoes; the same clothes in every shot",
-    "manner": "She is a real traveller, not a model: relaxed, unhurried natural walking, quiet curiosity, calm natural expression. No posing, no nodding, no waving, no talking, no gestures at the camera, mouth closed. Her hands are beautiful and graceful: slender elegant fingers, smooth soft skin, neat clean natural nails, five fingers each, anatomically correct, relaxed natural poses."
+    "manner": "She is a real traveller, not a model: relaxed, unhurried natural walking, quiet curiosity, calm natural expression. No posing, no nodding, no waving, no talking, no gestures at the camera, mouth closed. Her hands are graceful: slender fingers, natural skin with real texture, neat clean natural nails, five fingers each, anatomically correct, relaxed natural poses."
   },
-  "grade": "eq=brightness=0.035:contrast=0.94:gamma=1.07:saturation=0.98",
+  "grade": "eq=contrast=1.05:gamma=1.05,vibrance=intensity=0.18,colorbalance=rs=-0.02:bs=0.02:rh=0.03:bh=-0.02,unsharp=5:5:0.4",
   "regions": {
     "plateau": {
       "fits": "Tibetan plateau and its edge: Shangri-La, Lijiang mountains, Tibet, western Sichuan (Daocheng Yading, Kangding), Qinghai, Gannan",
