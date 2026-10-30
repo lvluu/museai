@@ -27,8 +27,8 @@ for all six characters. A new character or a changed face gets new ones:
 scripts/refs.sh NORA ~/Movies/museai/aes-refs      # two candidates; run every key in parallel
 ```
 Pick the take whose face is most distinctive and least like anyone famous, then check by eye:
-- **Age**: the image model ages people 10-20 years (first pass: Walt 63 looked 80, Grace 46 looked
-  60, Danny 27 looked 40). `still` already says "looks exactly N"; if a take is still older, remove
+- **Age**: the image model ages people 10-20 years (an earlier cast of 46-63-year-olds came out
+  60-80). `still` already says "looks exactly N"; if a take is still older, remove
   the ageing words from cast.json (weathered, deep lines, thinning, stooped, heavy lids, white
   brows, "silver hair" that turns the whole head grey) and say what the age looks like instead.
 - **Sides**: LEFT/RIGHT mean the person's own side, the viewer's opposite. Muse still flips them
@@ -36,6 +36,11 @@ Pick the take whose face is most distinctive and least like anyone famous, then 
 - **Extra marks**: a mark repeated on both sides (Nora's beauty mark) is removed with a small
   `delogo` on the wrong one.
 - Crop with the face a third from the top for the 16:9 still, and a square around the face.
+- **Not AI-looking**: the first cast (window portraits, many marks per face) read as glossy AI
+  faces. `still` now asks for a candid film frame in the character's own place (`still` in
+  cast.json), unretouched skin, soft lens and grain, and bans HDR/airbrushed/studio looks. Reject a
+  take with plastic skin, perfect symmetry or razor-sharp detail.
+- **Gender**: a short haircut on a girl reads as a boy; give girls long or tied-back hair.
 When a still looks like a known person, change one mark or the face shape in cast.json and render
 again; do not just re-roll.
 Every shot with a recurring character then renders with `IMAGE=` a first-frame still built from

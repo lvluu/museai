@@ -49,7 +49,7 @@ This skill keeps only what is specific to the series.
   only when the user asks for the video (or says "make the video").
 - **"Continue"**: next number after the ledger's last episode, a fresh situation from the plan or a new
   one, same facts. A situation, main place set or story shape used in the last three episodes is out.
-- **Corrections** ("Walt would never say that", "Nora's hair is shorter"): change cast.json / bible.md,
+- **Corrections** ("Tommy would never say that", "Nora's hair is shorter"): change cast.json / bible.md,
   add a line to `ledger.json` `corrections` with the date, apply from the next episode. Never rewrite
   earlier episodes silently.
 
