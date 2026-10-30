@@ -32,7 +32,7 @@ FACE_REF = (
     "FACE REFERENCE: The attached photo shows the traveller's real face and hair. It is NOT the first "
     "frame and NOT the location: do not show its background or pose. Render her as exactly this person in "
     "every frame: the same eyes, nose, lips, skin tone, hairstyle and bangs (face shape as described below), recognisably her, "
-    "never a different woman, as she looks in real life: natural skin texture, no beauty filter or "
+    "never a different woman, as she looks in real life: clear even young skin with natural fine texture, no freckles or spots, no beauty filter or "
     "doll-like smoothing; naturally pretty and youthful, at the place below.\n\n"
 )
 PERSON = {
