@@ -38,7 +38,7 @@ PERSON = {
     "back": "The traveller is seen from behind or three-quarter behind; her face is not the focus.",
     "walk": "The traveller walks naturally and slowly, seen side-on or from behind, medium-wide, never a face close-up.",
     "side": "The traveller is seen side-on, medium-wide, calm natural expression, mouth closed.",
-    "hands": "Only the traveller's hands and sleeves are in frame, in the outfit described below.",
+    "hands": "Only the traveller's hands and sleeves are in frame, in the outfit described below: beautiful, graceful young hands, slender elegant fingers, smooth soft skin, neat natural nails, five fingers each, held gently and naturally.",
 }
 
 
