@@ -1,0 +1,71 @@
+{
+  "hook_text": "This is China.\nWelcome to {place}.",
+  "character": {
+    "from": "../zoominview/styles.json character (the recurring traveller; face photo ../zoominview/assets/character/face.jpg)",
+    "wardrobe": "a muted red outdoor jacket over a cream knit sweater, dark trousers and comfortable walking shoes; the same clothes in every shot",
+    "manner": "She is a real traveller, not a model: relaxed natural walking at normal speed, quiet curiosity, calm natural expression. No posing, no nodding, no waving, no talking, no gestures at the camera, mouth closed. Hands are anatomically correct with five fingers."
+  },
+  "regions": {
+    "plateau": {
+      "fits": "Tibetan plateau and its edge: Shangri-La, Lijiang mountains, Tibet, western Sichuan (Daocheng Yading, Kangding), Qinghai, Gannan",
+      "season_hint": "autumn: golden-brown grassland, deep-blue high-altitude sky, crisp sun, first snow on the far peaks",
+      "music": [
+        {"id": "plateau-anthem", "track": "shangri-la-ref", "note": "user's reference song (123 BPM, cinematic strings, flute, steady pulse)"},
+        {"id": "plateau-song", "bpm": 92, "tags": "cinematic Chinese pop, Tibetan dranyen lute, airy bamboo flute dizi, soaring strings, steady soft drum pulse, warm female lead vocal, uplifting, majestic", "lyrics": "[verse]\n风吹过高原的湖\n云在水里慢慢走\n[chorus]\n{place_zh}啊 {place_zh}\n心停在这里不回头\n{place_zh}啊 {place_zh}\n天空离我很近很近"},
+        {"id": "plateau-instrumental", "bpm": 84, "tags": "cinematic instrumental, delicate strings, airy flute, Tibetan singing bowl shimmer, subtle rhythmic pulse, majestic, peaceful awe"}
+      ]
+    },
+    "karst": {
+      "fits": "karst peaks and rivers, misty mountains: Guilin, Yangshuo, Li River, Zhangjiajie, Huangshan, Wulong, Xiapu",
+      "season_hint": "late spring or early autumn: green peaks, soft mist in the valleys, clear river water",
+      "music": [
+        {"id": "karst-song", "bpm": 96, "tags": "Chinese gufeng pop, guzheng melody, dizi flute, soft strings, light percussion groove, gentle female lead vocal, dreamy, catchy", "lyrics": "[verse]\n山在水中画\n船在画里走\n[chorus]\n{place_zh}的风\n吹过我的心头\n{place_zh}的水\n映着天的温柔"},
+        {"id": "karst-instrumental", "bpm": 88, "tags": "cinematic instrumental, guzheng and dizi flute, soft strings, light hand percussion pulse, misty, serene, uplifting"}
+      ]
+    },
+    "water-town": {
+      "fits": "Jiangnan water towns and gardens: Suzhou, Hangzhou West Lake, Wuzhen, Zhouzhuang, Xitang, Hongcun",
+      "season_hint": "spring: willows fresh green, light haze, soft daylight on whitewashed walls and canals",
+      "music": [
+        {"id": "jiangnan-song", "bpm": 86, "tags": "Chinese ballad, pipa and guzheng, soft erhu, gentle piano, light brush drums, soft sweet female lead vocal, romantic, nostalgic, catchy chorus", "lyrics": "[verse]\n小桥流水人家\n烟雨落在青瓦\n[chorus]\n{place_zh}的雨\n轻轻落在心上\n走过{place_zh}\n梦也变得很长"},
+        {"id": "jiangnan-instrumental", "bpm": 80, "tags": "cinematic instrumental, pipa, guzheng, soft erhu, gentle strings, light rhythmic pulse, nostalgic, serene"}
+      ]
+    },
+    "imperial": {
+      "fits": "imperial and ancient capitals, walls and palaces: Beijing (Forbidden City, Great Wall), Xi'an, Luoyang, Nanjing, Pingyao, Datong",
+      "season_hint": "golden autumn: clear blue sky, ginkgo and maple leaves turning, warm low sun on red walls and golden roofs",
+      "music": [
+        {"id": "imperial-anthem", "bpm": 100, "tags": "epic Chinese orchestral pop, erhu lead, big taiko-style drums, brass swells, choir pads, powerful female lead vocal, heroic, majestic, catchy", "lyrics": "[verse]\n千年的城墙\n守着日出的光\n[chorus]\n这就是{place_zh}\n万里山河在我身旁\n这就是{place_zh}\n梦里的故乡"},
+        {"id": "imperial-instrumental", "bpm": 96, "tags": "epic cinematic orchestral instrumental, erhu and suona melody, big drums, strings, brass, majestic, triumphant"}
+      ]
+    },
+    "silk-road": {
+      "fits": "deserts, grasslands and the Silk Road: Xinjiang (Kashgar, Sayram Lake, Kanas, Ili), Dunhuang, Zhangye Danxia, Inner Mongolia",
+      "season_hint": "early autumn: dry clear air, long shadows, golden poplars, deep-blue sky",
+      "music": [
+        {"id": "silk-road-song", "bpm": 104, "tags": "Silk Road world pop, dutar and rawap plucks, handpan, frame drum groove, airy flute, warm female lead vocal, adventurous, catchy", "lyrics": "[verse]\n驼铃穿过沙丘\n风把故事带走\n[chorus]\n{place_zh}啊\n天地在我眼前打开\n{place_zh}啊\n我还会再回来"},
+        {"id": "silk-road-instrumental", "bpm": 98, "tags": "cinematic instrumental, dutar, rawap, handpan, frame drums, airy flute, vast, adventurous"}
+      ]
+    },
+    "south": {
+      "fits": "the subtropical south and minority villages: Xishuangbanna, Yuanyang rice terraces, Longji terraces, Guizhou Miao and Dong villages, Hainan, Fujian tulou",
+      "season_hint": "late spring: water-filled terraces, lush green, soft humid light",
+      "music": [
+        {"id": "south-song", "bpm": 98, "tags": "Chinese folk pop, hulusi gourd flute, lusheng, bamboo marimba, soft strings, light groove, bright female lead vocal, joyful, catchy", "lyrics": "[verse]\n梯田装满天空\n山歌飘在雾中\n[chorus]\n{place_zh}的山\n一层一层到天边\n{place_zh}的歌\n唱进我的心田"},
+        {"id": "south-instrumental", "bpm": 92, "tags": "cinematic instrumental, hulusi flute, bamboo marimba, soft strings, light hand drums, lush, joyful"}
+      ]
+    },
+    "city": {
+      "fits": "modern skylines and night cities: Shanghai, Chongqing, Shenzhen, Guangzhou, Hong Kong, Harbin ice festival",
+      "season_hint": "clear evening into blue hour: the skyline lights come on, reflections on the river",
+      "music": [
+        {"id": "city-song", "bpm": 112, "tags": "modern C-pop, electronic beat, guzheng hook riff, synth bass, strings, confident female lead vocal, energetic, catchy", "lyrics": "[verse]\n灯光点亮江面\n城市从不入眠\n[chorus]\n这就是{place_zh}\n闪耀在我眼前\n这就是{place_zh}\n今夜不说再见"},
+        {"id": "city-instrumental", "bpm": 110, "tags": "cinematic electronic instrumental, guzheng riff, pulsing synth bass, strings, energetic, modern"}
+      ]
+    }
+  },
+  "transitions": {
+    "cut": "hard cut on a beat, same location",
+    "dissolve": "0.6 s dissolve centred on a bar: a new location or time passing"
+  }
+}
