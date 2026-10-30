@@ -46,7 +46,7 @@
       "ambience": "prayer flags rustling softly in a light breeze",
       "ref": {
         "image": "~/.local/share/museai/places/shangri-la/canopy-girl.jpg",
-        "what": "the giant prayer-flag canopy of Shangri-La (the tent of flag strings, the copper pole and the stepped cone of cloth at its foot); the girl in it is the traveller herself, so her face in the photo is her real face (keep the costume described below, not the one in the photo)"
+        "what": "the giant prayer-flag canopy of Shangri-La (the tent of flag strings, the copper pole and the stepped cone of cloth at its foot); the girl in it is the traveller herself, so her face in the photo is her real face. Her clothes in the photo are NOT used: she wears the bright-red robe with red sleeves and the white fur hat described below"
       }
     },
     {
@@ -146,5 +146,8 @@
       "move": "Lingering wide shot with a very slow pull-back, almost still.",
       "ambience": "quiet night breeze, distant town"
     }
-  ]
+  ],
+  "traveller": {
+    "face": "~/.local/share/museai/characters/china-girl/face-plateau.jpg"
+  }
 }
