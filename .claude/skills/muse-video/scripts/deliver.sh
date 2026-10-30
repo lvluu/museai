@@ -12,8 +12,9 @@
 # captions.py before anything is copied. CAPTION="text" / CAPTION_FILE=caption.txt: the shared caption, used
 # for a platform without its own (default: the TikTok one). Both are saved to the dashboard's "Ready to
 # post" queue (MUSEAI_BASE, default http://127.0.0.1:18610) for the video.
-# THUMB_DIR=dir: the thumbnail skill's <name>_9x16.jpg + <name>_16x9.jpg, copied next to the video as
-# "<video> - thumbnail 9x16.jpg" / "16x9.jpg" (the dashboard shows them and trashes them with the video).
+# THUMB_DIR=dir: the thumbnail skill's <name>_9x16.jpg (+ <name>_16x9.jpg for a horizontal video), copied
+# next to the video as "<video> - thumbnail 9x16.jpg" / "16x9.jpg" (the dashboard shows them and trashes
+# them with the video). A vertical video needs no 16x9 one (user rule, 2026-10-30).
 set -euo pipefail
 final=$(cd "$(dirname "$1")" && pwd)/$(basename "$1")
 work=$(cd "$2" && pwd)
@@ -46,7 +47,10 @@ fi
 # Every posted video gets thumbnails (user rule, 2026-10-29); NO_THUMB=1 only for one that will not be posted.
 thumbs=()
 if [ -n "${THUMB_DIR:-}" ]; then
-  for k in 9x16 16x9; do
+  kinds=9x16
+  wh=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0:s=x "$final")
+  [ "${wh%x*}" -gt "${wh#*x}" ] && kinds="9x16 16x9"
+  for k in $kinds; do
     t=$(ls "$THUMB_DIR"/*_"$k".jpg 2>/dev/null | head -1)
     [ -n "$t" ] || { echo "no *_$k.jpg in $THUMB_DIR" >&2; exit 1; }
     thumbs+=("$k=$t")

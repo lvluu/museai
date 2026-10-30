@@ -5,7 +5,7 @@
 
 Writes, from one frame:
   <name>_9x16.jpg   1080x1920  TikTok cover, YouTube Shorts, Facebook / Instagram Reels
-  <name>_16x9.jpg   1920x1080  YouTube long-form, Facebook feed video
+  <name>_16x9.jpg   1920x1080  YouTube long-form, Facebook feed video (only with --wide: a horizontal video)
   <name>_picks.jpg  the 6 best-scoring frames (when the style picked one itself; choose another with --at)
 Each style is scripts/styles/<style>.py with add_args(parser) and make(args) -> (9x16 image,
 16x9 image, picks sheet or None, info line); the shared toolkit is scripts/core.py.
@@ -31,6 +31,8 @@ def main():
         p.add_argument("out_dir")
         p.add_argument("videos", nargs="+")
         p.add_argument("--name", default="", help="file prefix (default: the first video's name)")
+        p.add_argument("--wide", action="store_true",
+                       help="also write the 16x9 thumbnail (only for a horizontal final video)")
         mods[name].add_args(p)
     args = ap.parse_args()
     name = args.name or os.path.splitext(os.path.basename(args.videos[0]))[0]
@@ -39,9 +41,12 @@ def main():
     if sheet is not None:
         save(sheet, f"{args.out_dir}/{name}_picks.jpg")
     save(v, f"{args.out_dir}/{name}_9x16.jpg")
-    save(h, f"{args.out_dir}/{name}_16x9.jpg")
+    kinds = ["9x16"]
+    if args.wide:
+        save(h, f"{args.out_dir}/{name}_16x9.jpg")
+        kinds.append("16x9")
     print(info)
-    for k in ("9x16", "16x9"):
+    for k in kinds:
         p = f"{args.out_dir}/{name}_{k}.jpg"
         print(f"THUMB {p} {os.path.getsize(p) // 1024} KB")
 
