@@ -33,7 +33,8 @@
   "f0": 260,
   "file": "W-high-01.wav",
   "text": "想租自行车，怎么问？",
-  "source": "vid_684a53333cdf432c.mp4"
+  "source": "vid_684a53333cdf432c.mp4",
+  "banned": "user, 2026-10-30 (EP46): did not sound like a normal human voice"
  },
  {
   "id": "M-mid-03",
@@ -79,5 +80,50 @@
   "file": "W-high-03.wav",
   "text": "好，麻烦您了。",
   "source": "vid_265fe737e2554563.mp4"
+ },
+ {
+  "id": "W-mid-03",
+  "gender": "W",
+  "register": "mid",
+  "f0": 209,
+  "file": "W-mid-03.wav",
+  "text": "住酒店觉得冷，怎么说？",
+  "source": "vid_d0858f4a1e394559.mp4"
+ },
+ {
+  "id": "W-high-04",
+  "gender": "W",
+  "register": "high",
+  "f0": 283,
+  "file": "W-high-04.wav",
+  "text": "可以，需要带什么？",
+  "source": "vid_285e4115251e4bb5.mp4"
+ },
+ {
+  "id": "W-mid-04",
+  "gender": "W",
+  "register": "mid",
+  "f0": 231,
+  "file": "W-mid-04.wav",
+  "text": "三个小时，多少钱？",
+  "source": "vid_31fb5b1da0c84c23.mp4"
+ },
+ {
+  "id": "M-low-02",
+  "gender": "M",
+  "register": "low",
+  "f0": 98,
+  "file": "M-low-02.wav",
+  "text": "有，三点可以吗？",
+  "source": "vid_15e42eac90d84b75.mp4"
+ },
+ {
+  "id": "W-high-05",
+  "gender": "W",
+  "register": "high",
+  "f0": 280,
+  "file": "W-high-05.wav",
+  "text": "记住这三个词：",
+  "source": "vid_67987baae4a5407e.mp4"
  }
 ]

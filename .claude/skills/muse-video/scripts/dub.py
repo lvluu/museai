@@ -9,8 +9,9 @@ different timbre and accent each time). Dubbing every line with the same voice f
   voices  cloned from the voice bank by default (voicebank.py, F5-TTS in clone_tts.py): each
           of W / M gets a natural muse voice, least recently used first, kept per output path so
           a re-dub keeps it. The edge-tts pair on every episode sounded like AI and like the same
-          two people every day (user, 2026-10-29). VOICE_W / VOICE_M take a bank id (W-mid-01), a
-          glob (M-low-*) or an edge-tts name (zh-CN-XiaoxiaoNeural, has "Neural") to skip cloning.
+          two people every day (user, 2026-10-29). VOICE_W / VOICE_M take a bank id (W-mid-01) or a
+          glob (M-low-*), never an edge-tts name: EP46 dubbed the man with zh-CN-YunxiNeural and the
+          user heard an AI voice, not a normal human one (2026-10-30).
           SPEAKERS has one letter per cue; any other letter X needs VOICE_X, an edge-tts name or a
           bank id (e.g. VOICE_N=en-US-AvaNeural).
   timing  each cue's speech span comes from the original audio (loud frames inside the cue).
@@ -21,7 +22,9 @@ different timbre and accent each time). Dubbing every line with the same voice f
           Only when it would not fit there does the voice speak faster itself (edge-tts rate,
           up to MAX_PCT, default +20 %). Never time-stretched or slowed: EP08 v4/v5 used
           +40 % and a phase-vocoder stretch, and the user heard a pitched, unnatural voice.
-          OVERRUN marks a part that still runs into the next one. MAX_PCT can be lowered, never
+          Cloned voices speak at SPEED (default 0.8) of the reference's pace: at 1.0 F5 copied
+          muse's hurried delivery (EP46: 5.4-7.4 syl/s, the user heard an unnatural speed); 0.8
+          gave 4.4-5.1 syl/s. OVERRUN marks a part that still runs into the next one. MAX_PCT can be lowered, never
           raised above 20. The voice is never pitch-shifted, slowed or time-stretched (no
           librosa time_stretch / pitch_shift here): EP08 v4-v5 used them and sounded pitched.
   music   muse's music bed is kept: demucs (htdemucs, run in its own uv env on Python 3.11)
@@ -53,6 +56,8 @@ cues = json.load(open(cues_path))
 if len(who) != len(cues):
     sys.exit(f"SPEAKERS has {len(who)} letters for {len(cues)} cues")
 asked = {w: os.environ[f"VOICE_{w}"] for w in set(who) if os.environ.get(f"VOICE_{w}")}
+if ai := sorted(w for w, v in asked.items() if w in "WM" and "Neural" in v):
+    sys.exit(f"VOICE_{ai[0]}={asked[ai[0]]}: W and M are always cloned bank voices, never edge-tts (AI-sounding, user 2026-10-30)")
 voices = {w: v for w, v in asked.items() if "Neural" in v}
 # any other speaker letter X takes its voice from VOICE_X (American Everyday Stories: one letter per character)
 voices |= {w: voicebank.voice(v) for w, v in asked.items() if w not in "WM" and w not in voices}
@@ -68,6 +73,7 @@ if any(isinstance(v, dict) for v in voices.values()):
                               os.path.join(os.path.dirname(os.path.abspath(__file__)), "clone_tts.py")],
                              stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True)
 SR, HOP = 24000, 120  # 5 ms frames
+SPEED = float(os.environ.get("SPEED", 0.8))  # clone pace: F5 at 1.0 copies muse's hurried 5.4-7.4 syl/s (EP46)
 MAX_PCT = min(20, int(os.environ.get("MAX_PCT", 20)))  # faster sounds hurried and pitched; hard cap
 tmp = tempfile.mkdtemp()
 
@@ -107,7 +113,7 @@ def tts(text, voice, n, pct=0):
     else:  # cloned: speed 1.2 says the line in 1/1.2 of the time, like edge-tts rate +20 %
         path = f"{tmp}/{n}.wav"
         clone.stdin.write(json.dumps({"ref": voice["ref"], "ref_text": voice["text"], "text": text, "out": path,
-                                      "speed": 1 + pct / 100}, ensure_ascii=False) + "\n")
+                                      "speed": SPEED * (1 + pct / 100)}, ensure_ascii=False) + "\n")
         clone.stdin.flush()
         got = clone.stdout.readline()
         if not got:
