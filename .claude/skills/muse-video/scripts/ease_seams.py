@@ -24,6 +24,7 @@ import cv2
 import numpy as np
 
 EASE = float(os.environ.get("EASE", "1.5"))
+RESIDUAL_MAX = float(os.environ.get("RESIDUAL_MAX", "3.5"))
 
 
 def frames(path, size=None):
@@ -101,6 +102,9 @@ for cb, kb, ca, ka, what in events:
         fixed = diff(before, warp(after, w))
     print(f"{os.path.basename(clips[ca])} {what}: zoom {zoom:.3f} shift {w[0, 2]:+.0f},{w[1, 2]:+.0f}px  "
           f"diff {diff(before, after):.1f} -> {fixed:.1f}")
+    if fixed > RESIDUAL_MAX:  # EP44 A->B: 4.7 left after easing, the pose itself changed at the seam
+        print(f"  RESIDUAL {fixed:.1f}: pose differs, not only framing. Trim both sides to ~0.4 s after/before "
+              f"speech and join this seam with XFADE=0.12 XFADE_AT={ca} in stitch.sh")
 
 for clip, fr, p in zip(clips, data, plan, strict=True):
     h, w_ = fr[0].shape[:2]

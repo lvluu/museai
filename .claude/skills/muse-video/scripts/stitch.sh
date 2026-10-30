@@ -11,6 +11,9 @@
 # start slightly reframed, which jumps at the seam (EP08: YDIF 6.6 and 18.9 vs ~1). Only
 # when both sides of every seam are silent for XFADE s (trim to ~0.4 s after the last
 # syllable first), so no two mouths blend.
+# XFADE_AT=2,3: dissolve only those seams (1 = between clip 1 and 2), hard-join the rest; e.g. a
+# seam ease_seams.py left with a RESIDUAL pose change (EP44: XFADE=0.12 on the silent A->B seam)
+# while the intro cut stays a hard cut.
 set -euo pipefail
 out=$1; shift
 read -r W H < <(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=p=0 "$1" | tr , ' ')
@@ -31,9 +34,13 @@ done
 if [ -n "${XFADE:-}" ]; then
   v="[v0]" a="[a0]" t=${lens[0]}
   for ((i = 1; i < n; i++)); do
-    t=$(python3 -c "print($t-$XFADE)")
     chain=${chain//"[v$i];"/",fps=$fps,settb=1/24[v$i];"}
-    chain+="${v}[v$i]xfade=transition=fade:duration=$XFADE:offset=$t[xv$i];${a}[a$i]acrossfade=d=$XFADE[xa$i];"
+    if [ -n "${XFADE_AT:-}" ] && [[ ",$XFADE_AT," != *",$i,"* ]]; then
+      chain+="${v}${a}[v$i][a$i]concat=n=2:v=1:a=1[cv$i][xa$i];[cv$i]settb=1/24[xv$i];"
+    else
+      t=$(python3 -c "print($t-$XFADE)")
+      chain+="${v}[v$i]xfade=transition=fade:duration=$XFADE:offset=$t[xv$i];${a}[a$i]acrossfade=d=$XFADE[xa$i];"
+    fi
     v="[xv$i]" a="[xa$i]" t=$(python3 -c "print($t+${lens[$i]})")
   done
   chain=${chain//"[v0];"/",fps=$fps,settb=1/24[v0];"}
