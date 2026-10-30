@@ -30,8 +30,10 @@ LIGHT = {
 }
 FACE_REF = (
     "FACE REFERENCE: The attached photo shows the traveller's real face and hair. It is NOT the first "
-    "frame and NOT the location: do not show its background or pose. Render her with exactly this face, "
-    "eye colour, skin, hairstyle and bangs in every frame, at the place below.\n\n"
+    "frame and NOT the location: do not show its background or pose. Render her as exactly this person in "
+    "every frame: the same face shape, eyes, nose, lips, skin tone, hairstyle and bangs, recognisably her, "
+    "never a different woman; at her most beautiful, fresh and youthful (soft even skin, bright eyes), at "
+    "the place below.\n\n"
 )
 PERSON = {
     "none": "Nobody is the subject of this shot: the traveller is not in it; at most a few distant passers-by, small and natural.",
