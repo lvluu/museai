@@ -10,6 +10,8 @@ Ids read <gender>-<register>-<n>: W/M by pitch (female > 165 Hz) and register lo
 median pitch (W < 200 / > 250 Hz, M < 110 / > 140 Hz), so a brief can ask for a deep-voiced clerk
 (`VOICE_M=M-low-*`). muse's own voices sound human; the fixed edge-tts pair (Xiaoxiao + Yunjian) on
 every dubbed episode sounded like AI and the same two people every day (user, 2026-10-29).
+  banned   an entry with "banned": "<why>" stays in the bank (so harvest skips the same voice) but is
+           never picked or accepted (W-high-01: the user heard it as not a normal human voice, EP46).
   pick     one voice per letter for a video, least recently used first, never the same voice for
            two characters. The choice is kept per output path in ~/Movies/museai/voice-usage.json,
            so re-dubbing the same video keeps its voices.
@@ -53,6 +55,8 @@ def voice(vid):
     """The bank entry for an id; ref is an absolute path."""
     for v in load():
         if v["id"] == vid:
+            if v.get("banned"):
+                sys.exit(f"voice {vid} is banned: {v['banned']}")
             return {**v, "ref": os.path.join(BANK_DIR, v["file"])}
     sys.exit(f"voice {vid} is not in {BANK} (voicebank.py list)")
 
@@ -68,7 +72,7 @@ def pick(letters, key, wanted=None):
         w = wanted.get(who)
         if who in got and (not w or fnmatch.fnmatch(got[who], w)):
             continue
-        pool = [v["id"] for v in bank if v["gender"] == who and v["id"] not in got.values()
+        pool = [v["id"] for v in bank if v["gender"] == who and not v.get("banned") and v["id"] not in got.values()
                 and fnmatch.fnmatch(v["id"], w or "*")]
         if not pool:
             sys.exit(f"no voice in the bank for {who}{' ' + w if w else ''}: harvest some (voicebank.py harvest)")
@@ -217,7 +221,7 @@ if __name__ == "__main__":
         use = json.load(open(USAGE)) if os.path.exists(USAGE) else {"last": {}}
         for v in load():
             last = use["last"].get(v["id"])
-            print(f"{v['id']:10} {v['f0']:3} Hz  last used {time.strftime('%Y-%m-%d', time.localtime(last)) if last else 'never':10}  {v['text']}")
+            print(f"{v['id']:10} {v['f0']:3} Hz  last used {time.strftime('%Y-%m-%d', time.localtime(last)) if last else 'never':10}  {v['text']}{'  BANNED' if v.get('banned') else ''}")
     elif cmd == "pick":
         key = args[args.index("--for") + 1]
         print(json.dumps(pick([a for a in args[: args.index("--for")]], key)))
