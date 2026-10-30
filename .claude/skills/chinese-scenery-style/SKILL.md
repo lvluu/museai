@@ -41,7 +41,7 @@ Library: `~/.local/share/museai/music/chinese-scenery/` (outside the repo: audio
 
 ## Lessons (Shangri-La, 2026-10-30)
 - `qa.py` `motion` TIME-LAPSE on tracking / pans / push-ins is the planned move: judge from the sheet. Clip `sound` FAIL does not matter (the song replaces it).
-- A `hands` shot drifts to her face (a duplicate of the window seat) unless the story locks it: "tight close-up, top edge of the frame stays below her chest, face, hair and shoulders never appear", move "locked, does not move, tilt or pull back".
+- A `hands` shot holds the hands only ~1.5 s, then muse pulls back to her face at the window, even with "locked, top edge below her chest" in the story (two takes). Compose it with `--at N=0` (hands open the shot, the pull-back reads as a reveal) and give it 1-2 bars; for a longer pure detail, shoot the cup without her (`person` `none`).
 - `internal_error` / failed submit on a few shots of a parallel batch: re-run only those numbers; they pass on the second try.
 - muse adds a backpack and draws golden grass as barley; name "no backpack" / "wild meadow grass" in the story when it matters.
 
