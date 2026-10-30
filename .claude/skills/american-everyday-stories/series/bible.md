@@ -77,3 +77,6 @@ dialogue in stable two-shots and medium shots; interiors lit by windows and prac
 
 Unresolved threads to feed later seasons: Danny's garage plan; Grace's law school letter; Tommy's band;
 Lucy's friend Tasha; Nora and Danny.
+
+The season arc (character arcs, planted threads and payoffs, the hook each episode ends on) is in
+`storyline.md`.

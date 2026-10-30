@@ -55,6 +55,10 @@ def episode_cues(ep):
     return cues
 
 
+FACE_MARKS = re.compile(r"\bscar\b|uneven (front )?teeth|gap in (his|her) teeth|gapped teeth|crooked teeth", re.I)
+IN_CAR = re.compile(r"\b(inside|in) the (cab|car)\b|\b(cab|front seat|bench seat) of\b", re.I)
+
+
 def check(ep_path):
     ep, cast, ledger = load(ep_path), load(SERIES / "cast.json"), load(SERIES / "ledger.json")
     banned = {k: v for k, v in load(SKILL / "references/anachronisms.json").items() if not k.startswith("_")}
@@ -67,6 +71,17 @@ def check(ep_path):
     for b in ("opening", "goal", "obstacle", "turn", "ending"):
         if not ep.get("beats", {}).get(b):
             errs.append(f"beats.{b} empty: every episode needs opening, goal, obstacle, turn, ending")
+    for k, c in cast.items():
+        if not k.startswith("_") and (m := FACE_MARKS.search(c.get("identity", ""))):
+            errs.append(f"{k}: identity names a {m.group(0)!r}: muse draws it as a mark or crooked teeth "
+                        "(references/faces.md 2); use a mole, a dimple or a brow height")
+    for s in ep["shots"]:
+        if len(s.get("cast", [])) > 1 and IN_CAR.search(s.get("place", "")):
+            for need, why in (("of the picture", "say who sits on the LEFT / RIGHT of the picture (a person's own "
+                               "left/right mirrors the seating)"), ("dashboard", "name the dashboard and steering "
+                               "wheel between camera and people, or the cab floats like a bus")):
+                if need not in s.get("framing", ""):
+                    errs.append(f"{s.get('id')}: car two-shot framing must {why}; see SKILL.md 'Car scenes'")
     runtime = sum(s["seconds"] for s in ep["shots"])
     if not 120 <= runtime <= 180:
         errs.append(f"runtime {runtime:.0f} s outside 120-180 s")
@@ -186,7 +201,8 @@ def shot_prompt(ep, shot, cast, n):
     parts += [f"FRAMING: {shot['framing']}", f"ACTION: {shot['action']}"]
     if shot.get("props"):
         parts.append(f"PROPS AND SET: {shot['props']}")
-    parts += [f"CAMERA: {shot['camera']}", "DIALOGUE:", *dialogue_block(shot, cast),
+    parts += [f"CAMERA: {shot['camera']}. ONE CONTINUOUS TAKE: no cut, no zoom, no change of angle, the same framing "
+              "from first to last frame.", "DIALOGUE:", *dialogue_block(shot, cast),
               f"SOUND: {shot['ambience']}. No music in this shot; music is added in editing."]
     if shot.get("continuity"):
         parts.append(f"CONTINUITY: {shot['continuity']}")
@@ -235,7 +251,12 @@ def build(ep_path, work):
         vtt += [f"{srt_time(s, '.')} --> {srt_time(e + 0.4, '.')}", en, zh, ""]
     (work / "subs.provisional.srt").write_text("\n".join(srt))
     (work / "subs.provisional.vtt").write_text("\n".join(vtt))
-    (work / "title.json").write_text(json.dumps(ep["title_card"], ensure_ascii=False, indent=1))
+    series = (SERIES / "bible.md").read_text().splitlines()[0].split(":", 1)[-1].strip()
+    title = {**ep["title_card"], "series": f"{series} · Episode {ep['episode']}",
+             "episode": {"en": ep["title_en"], "zh": ep.get("title_zh", "")}}
+    if ep.get("next_title"):    # the storyline's next episode, teased on the end card
+        title["next"] = ep["next_title"]
+    (work / "title.json").write_text(json.dumps(title, ensure_ascii=False, indent=1))
     (work / "package.md").write_text(package(ep, cast, cues, tag))
     refs = SERIES / "refs"
     missing = sorted({k for s in ep["shots"] for k in s.get("cast", []) if not (refs / f"{k}.jpg").exists()})

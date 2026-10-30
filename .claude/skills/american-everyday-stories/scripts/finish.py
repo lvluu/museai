@@ -3,7 +3,13 @@
   uv run --no-project --python 3.12 --with pillow python scripts/finish.py film.mp4 WORK final.mp4
 
 WORK/title.json  {"en": "Larkmont, Pennsylvania", "year": "October 1985", "zh": "宾夕法尼亚州·拉克蒙特",
-                  "start": 0.8, "hold": 4.5}  (start/hold optional)
+                  "start": 0.8, "hold": 4.5,                       (start/hold optional)
+                  "series": "The Larkmont Years · Episode 1",      (optional: the series frame)
+                  "episode": {"en": "The Car That Wouldn't Start", "zh": "打不着火的车"},
+                  "next": {"en": "Lunch at the Ridge Diner", "zh": "山脊餐馆的午餐", "hold": 4.0}}
+  With "series"/"episode" the opening card names the series and the episode (the place and month
+  go small underneath); with "next" an end card over the last shot teases the next episode, so
+  every episode reads as one chapter of the series.
 WORK/cues.json   [[start, end, en, zh, KEY], ...] aligned to the speech (align.py)
 Also writes final.srt and final.vtt next to final.mp4 from the same cues.
 
@@ -64,11 +70,24 @@ def sub_png(en, zh, dest):
 
 
 def title_png(t, dest):
+    if t.get("episode"):
+        lines = [(font(SERIF, 40), t.get("series", "").upper()), (font(SERIF, 92), t["episode"]["en"]),
+                 (font(ZH, 54), t["episode"].get("zh", "")), (font(SERIF, 40), f"{t['en']} · {t.get('year', '')}")]
+    else:
+        lines = [(font(SERIF, 84), t["en"]), (font(SERIF, 76), t.get("year", "")), (font(ZH, 50), t.get("zh", ""))]
+    card_png([(f, x) for f, x in lines if x], dest, 0.40)
+
+
+def next_png(t, dest):
+    series = t.get("series", "").split(" · ")[0]
+    lines = [(font(SERIF, 40), f"NEXT TIME ON {series.upper()}" if series else "NEXT TIME"),
+             (font(SERIF, 72), t["next"]["en"]), (font(ZH, 50), t["next"].get("zh", ""))]
+    card_png([(f, x) for f, x in lines if x], dest, 0.36)
+
+
+def card_png(lines, dest, centre):
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    lines = [(font(SERIF, 84), t["en"]), (font(SERIF, 76), t.get("year", ""))]
-    if t.get("zh"):
-        lines.append((font(ZH, 50), t["zh"]))
-    y = H * 0.40 - sum(f.size * 1.2 for f, _ in lines) / 2
+    y = H * centre - sum(f.size * 1.2 for f, _ in lines) / 2
     shadow = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     ds, dt = ImageDraw.Draw(shadow), ImageDraw.Draw(img)
     for f, txt in lines:
@@ -95,7 +114,15 @@ def main():
     args = ["ffmpeg", "-v", "error", "-y", "-i", film, "-loop", "1", "-t", f"{t0 + hold + 1:.2f}", "-i", str(tmp / "title.png")]
     chain = [f"[1:v]format=rgba,fade=t=in:st={t0}:d=0.7:alpha=1,fade=t=out:st={t0 + hold - 0.8}:d=0.8:alpha=1[tt]",
              "[0:v][tt]overlay=0:0:eof_action=pass[v0]"]
-    prev, timed = "v0", []
+    prev, timed, k = "v0", [], 2
+    if title.get("next"):
+        nh = title["next"].get("hold", 4.0)
+        ns = dur - nh
+        next_png(title, tmp / "next.png")
+        args += ["-loop", "1", "-t", f"{dur:.2f}", "-i", str(tmp / "next.png")]
+        chain += [f"[2:v]format=rgba,fade=t=in:st={ns:.2f}:d=0.8:alpha=1[nt]",
+                  f"[v0][nt]overlay=0:0:enable='gte(t,{ns:.2f})'[vn]"]
+        prev, k = "vn", 3
     for i, (s, e, en, zh, *_) in enumerate(cues):
         nxt = cues[i + 1][0] - 0.05 if i + 1 < len(cues) else dur
         a, b = max(0.0, s - 0.1), min(nxt, e + 0.5)
@@ -103,7 +130,7 @@ def main():
         png = tmp / f"c{i:03}.png"
         sub_png(en, zh, png)
         args += ["-i", str(png)]
-        chain.append(f"[{prev}][{i + 2}:v]overlay=0:0:enable='between(t,{a:.2f},{b:.2f})'[v{i + 1}]")
+        chain.append(f"[{prev}][{i + k}:v]overlay=0:0:enable='between(t,{a:.2f},{b:.2f})'[v{i + 1}]")
         prev = f"v{i + 1}"
     args += ["-filter_complex", ";".join(chain), "-map", f"[{prev}]", "-map", "0:a", "-c:v", "libx264", "-crf", "17",
              "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart", out]
