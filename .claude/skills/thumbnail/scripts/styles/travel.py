@@ -6,8 +6,8 @@ small bonus. The cover is built to stop the scroll: the frame full bleed, bright
 optionally zoomed onto the subject (--zoom/--focus) with a red ring + arrow on it (--circle), a dark
 band behind the text: the hook huge in yellow on a tilted black plate (a label like "This is China" is
 refused), the place name in white Futura (two balanced lines when long) and a sub line that may end in a
-flag emoji ("Norway 🇳🇴"). The text never sits on a person: it drops to the bottom of the safe box when a
-person (back views too) is under the top, and warns when both are taken.
+flag emoji ("Norway 🇳🇴"). The text never sits on a person: it sits at the top of the safe box, the centre when
+a person (back views too) is under the top, never the bottom (platform UI), and warns when both are taken.
 A frame of the other aspect sits sharp on a blurred copy of itself, the text beside or above it.
 --split (zoominview): one reel with a person, the reaction on top and the view below, the title on the
 seam, as the old thumbnail did.
@@ -16,6 +16,8 @@ import math
 import re
 import sys
 
+import cv2
+import numpy as np
 from core import (
     BLACK,
     CENTRE,
@@ -146,12 +148,11 @@ def rows(args, w, base):
     return out
 
 
-def text(img, box, args, middle=False, bottom=False):
-    """Draw the stack into box (x0, y0, x1, y1): from its top, its bottom, or centred in it when middle."""
+def text(img, box, args, middle=False):
+    """Draw the stack into box (x0, y0, x1, y1): from its top, or centred in it when middle."""
     stack = rows(args, box[2] - box[0], 1080)
     h = sum(a + b for *_, a, b in stack)
-    free = max(box[3] - box[1] - h, 0)
-    y = box[1] + (free if bottom else free / 2 if middle else 0)
+    y = box[1] + (max(box[3] - box[1] - h, 0) / 2 if middle else 0)
     for t, f, sp, fill, stroke, above, below in stack:
         y += above
         line(img, (box[0] + box[2]) / 2, y, t, f, fill, stroke, sp)
@@ -160,8 +161,10 @@ def text(img, box, args, middle=False, bottom=False):
 
 # ---------- frame prep ----------
 def punch(im):
-    """grade() lifted a touch plus a faint vignette: bright, natural colour, easy on the eyes"""
-    im = grade(im)
+    """Local contrast (CLAHE) + grade(), shadows lifted, faint vignette: crisp and bright, never dark or hazy"""
+    lab = cv2.cvtColor(np.asarray(im.convert("RGB")), cv2.COLOR_RGB2LAB)
+    lab[..., 0] = cv2.createCLAHE(clipLimit=2.2, tileGridSize=(8, 8)).apply(lab[..., 0])
+    im = grade(Image.fromarray(cv2.cvtColor(lab, cv2.COLOR_LAB2RGB)))
     mean = ImageStat.Stat(im.convert("L")).mean[0]
     if mean < 125:  # a moody, dark frame: lift the shadows (gamma) towards a mid-bright mean
         g = min(max(math.log(125 / 255) / math.log(max(mean, 1) / 255), 0.7), 1.0)
@@ -212,38 +215,36 @@ def ring(frame, args):
 
 
 # ---------- layout ----------
-def band(w, h, top, bottom):
-    """Dark band behind the text at the top, a lighter one at the bottom so the cover reads on any feed."""
-    g = Image.new("L", (1, h))
-    for y in range(h):
-        a = 0
-        if y < h * top[0]:
-            a = top[1] * (1 - y / (h * top[0])) ** 1.4
-        elif y > h * (1 - bottom[0]):
-            a = bottom[1] * ((y - h * (1 - bottom[0])) / (h * bottom[0])) ** 1.6
-        g.putpixel((0, y), round(a))
-    black = Image.new("RGBA", (w, h), (0, 0, 0, 255))
-    black.putalpha(g.resize((w, h)))
-    return black
-
-
 def subject(args):
     """x, y of what the cover is about (the ring, else the middle), fractions of the (zoomed) frame"""
     return tuple(float(v) for v in args.circle.split(",")[:2]) if args.circle else (0.5, 0.5)
 
 
 def people(im):
-    """Mask (L, 255 = person) of everyone in the frame, back views included: face detection misses those."""
+    """Mask (L, 255 = person) of everyone in the frame, back views included: face detection misses those.
+    Blobs under 0.5 % of the frame are dropped: busy patterns (prayer flags) give small false hits."""
     import mediapipe as mp
-    import numpy as np
 
     with mp.solutions.selfie_segmentation.SelfieSegmentation(model_selection=1) as seg:
-        m = seg.process(np.asarray(im.convert("RGB"))).segmentation_mask
-    return Image.fromarray((m > 0.5).astype("uint8") * 255)
+        m = (seg.process(np.asarray(im.convert("RGB"))).segmentation_mask > 0.6).astype("uint8")
+    n, lab, stats, _ = cv2.connectedComponentsWithStats(m)
+    keep = [i for i in range(1, n) if stats[i, cv2.CC_STAT_AREA] >= 0.005 * m.size]
+    return Image.fromarray(np.isin(lab, keep).astype("uint8") * 255)
 
 
 def stack_height(args):
     return sum(a + b for *_, a, b in rows(args, CENTRE[1] - CENTRE[0], 1080))
+
+
+def shade(h, y0, y1, alpha=170, fade=260):
+    """Black behind rows y0..y1 of a 1080 x h cover, fading out over fade px on both sides."""
+    g = Image.new("L", (1, h))
+    for y in range(h):
+        d = max(y0 - y, y - y1, 0)
+        g.putpixel((0, y), round(alpha * max(1 - d / fade, 0) ** 1.4))
+    black = Image.new("RGBA", (1080, h), (0, 0, 0, 255))
+    black.putalpha(g.resize((1080, h)))
+    return black
 
 
 def vertical(frame, args):
@@ -254,13 +255,16 @@ def vertical(frame, args):
     def covered(y0):  # share of the text box that sits on a person
         return ImageStat.Stat(mask.crop((CENTRE[0], round(y0), CENTRE[1], round(y0 + h)))).mean[0] / 255
 
-    top, low = covered(SAFE[1]), covered(SAFE[3] - h)
-    bottom = top > 0.02 and low < top  # text never on a person: the bottom of the safe box when it is clearer
-    if min(top, low) > 0.02:
-        print(f"warning: the text covers a person ({min(top, low):.0%} of it): pick another frame or --zoom/--focus")
+    # the top of the safe box; the centre only when a person stands under the top and the centre is clearer
+    # (never the bottom: the platform's caption and buttons sit there)
+    y = SAFE[1]
+    if covered(y) > 0.02 and covered((1920 - h) / 2) < covered(y):
+        y = (1920 - h) / 2
+    if covered(y) > 0.02:
+        print(f"warning: the text covers a person ({covered(y):.0%} of it): pick another frame or --zoom/--focus")
     im = im.convert("RGBA")
-    im.alpha_composite(band(1080, 1920, (0.15, 70), (0.5, 200)) if bottom else band(1080, 1920, (0.45, 170), (0.15, 70)))
-    text(im, (CENTRE[0], SAFE[1], CENTRE[1], SAFE[3]), args, bottom=bottom)
+    im.alpha_composite(shade(1920, 0 if y == SAFE[1] else y, y + h))
+    text(im, (CENTRE[0], y, CENTRE[1], y + h), args)
     return im.convert("RGB")
 
 

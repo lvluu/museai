@@ -58,7 +58,7 @@ A pretty landscape scrolls past; a cover that makes the viewer gasp or doubt get
   prayer wheel with tiny people below was the fix; outlined text alone got lost on busy prayer flags, the
   solid plate fixed it and "Not Tibet?! 😳" over the flag spiral was the pick).
 - **People**: never text on a person. The style finds people (back views too) and moves the text to the
-  bottom of the safe box when the top is taken; a "text covers a person" warning means pick another frame.
+  centre when the top is taken (never the bottom: platform UI); a "text covers a person" warning means pick another frame.
 - **Title**: the place name only, huge; the hook carries the emotion. The sub is the country + flag.
 - **Reaction covers** (`--split`, zoominview): the most shocked face of the video - mouth open, eyes wide,
   hands on head (as Madeira) - not a calm profile; put the shock line in `--sub`.
