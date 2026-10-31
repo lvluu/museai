@@ -56,7 +56,7 @@ def hook_png(text, path):
     fs, fb = font(FONT_SMALL, 64), font(FONT_BIG, 104)
     while d.textlength(big, font=fb) > W * 0.86 and fb.size > 60:
         fb = font(FONT_BIG, fb.size - 4)
-    y = int(H * 0.17)
+    y = int(H * 0.085)  # above the head of a traveller facing the camera in the hook
     rows = []
     if small:
         rows.append((small, fs, y))
