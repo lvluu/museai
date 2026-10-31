@@ -48,10 +48,17 @@ A pretty landscape scrolls past; a cover that makes the viewer gasp or doubt get
   there first. `--zoom 1.2-1.4 --focus x,y` crops in so the subject is big and the empty sky is gone
   (coordinates are fractions of the frame; `--circle` is measured after the zoom). Keep the subject below
   the text (y > 0.5) and above the bottom UI (y < 0.85).
-- **Hook** (red banner, 2-5 words + one emoji 😱 😳 🤯): a fact that sounds unreal, not a mood. Patterns:
+- **Hook** (huge yellow on a tilted solid black plate, 2-5 words + one emoji 😱 😳 🤯; shorter = bigger letters): the loudest thing on the cover, read
+  in half a second at phone size; a fact that sounds unreal, not a mood or a label. Patterns:
   danger/stakes ("604 m drop. No rails"), scale ("That boat is tiny"), a number ("One step from 700 m",
   "250 m free fall"), disbelief ("Is this even real?"), secret ("Locals hide this beach"). True for the
-  frame shown and for the place - check the number. Never "beautiful", "amazing", "stunning", "paradise".
+  frame shown and for the place - check the number. Never "beautiful", "amazing", "stunning", "paradise",
+  "Welcome to …", "This is <country>": the script refuses those and a hook without an emoji (user, 2026-10-31:
+  Shangri-La's "THIS IS CHINA" over a back view was "not special"; "60 tons. It spins?! 🤯" over the giant
+  prayer wheel with tiny people below was the fix; outlined text alone got lost on busy prayer flags, the
+  solid plate fixed it and "Not Tibet?! 😳" over the flag spiral was the pick).
+- **People**: never text on a person. The style finds people (back views too) and moves the text to the
+  centre when the top is taken (never the bottom: platform UI); a "text covers a person" warning means pick another frame.
 - **Title**: the place name only, huge; the hook carries the emotion. The sub is the country + flag.
 - **Reaction covers** (`--split`, zoominview): the most shocked face of the video - mouth open, eyes wide,
   hands on head (as Madeira) - not a calm profile; put the shock line in `--sub`.
@@ -68,7 +75,7 @@ sheet, 2 MB JPEG writer) is `scripts/core.py`.
 | Style | For | Look |
 |---|---|---|
 | `chinese` | EVERYDAY CHINESE, teaching-video, product-ad, any video with people talking | best face frame, yellow hanzi hook, title white on a red box, sub line, episode badge |
-| `travel` | scenic-drop-reel, muse-video travel mode; `--split` for zoominview | stakes/scale frame full bleed, bright natural grade (dark frames lifted), optional zoom and red ring + arrow on the subject, hook on a red banner, huge outlined Futura place name, sub with flag |
+| `travel` | scenic-drop-reel, muse-video travel mode; `--split` for zoominview | stakes/scale frame full bleed, bright natural grade (dark frames lifted), optional zoom and red ring + arrow on the subject, huge yellow hook on a black plate (labels refused), Futura place name, text kept off people, sub with flag |
 
 ## Rules every style keeps
 What makes a cover get tapped (YouTube / TikTok creator guidance, high-CTR channels): one sharp,
@@ -108,7 +115,7 @@ text readable, frame not mid-blink or mid-transition. Re-run with `--at` from th
 
 **travel** (the raw shots in plan order, not the reel: its intro text, dips and transitions would be picked):
 - `--title` (required): the place name; uppercase Futura, two balanced lines when it is long.
-- `--hook`: 2-5 words above it, white on a tilted red banner, the shock line (see "Travel: make it a shock").
+- `--hook`: 2-5 words + one emoji, huge yellow on a black plate above the title, the shock line (see "Travel: make it a shock").
 - `--sub`: line under it, may end in a flag emoji ("Norway 🇳🇴").
 - `--zoom 1.3 --focus 0.45,0.4`: crop into the frame around x,y (fractions) so the subject is big.
 - `--circle 0.4,0.56,0.07`: red ring (radius as a fraction of the short side, default 0.12) + arrow on the
