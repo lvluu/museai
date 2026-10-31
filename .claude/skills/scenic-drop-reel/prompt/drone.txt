@@ -1,6 +1,6 @@
 AERIAL DRONE SHOT REQUIREMENTS
 
-One continuous aerial drone shot of a real place, no cuts, no transitions, no text. {LIGHT}, vivid but natural colours: saturated green meadows and forests, turquoise or deep blue water, white and red-roofed buildings. High contrast, sharp detail, postcard look.
+One continuous aerial drone shot of a real place, no cuts, no transitions, no text. {LIGHT}. BRIGHT, well-exposed footage, exposed the way a real DJI drone's auto exposure films a sunny day: the landscape brightly and clearly lit, open shadows full of detail, a light airy sky, true-to-life natural colours (fresh green forests and meadows, clear blue or turquoise water, real stone and roof colours). Never dark, underexposed, dim, moody or heavy; no crushed black shadows, no high contrast, no vignette, no oversaturation, no HDR halos, no glowing fantasy sunset colours.
 
 CAMERA: {PACE} The subject (the landmark named in the brief) stays large and exactly in the centre of the frame for the whole clip, with the horizon in the upper third. No shake, no wobble, no sudden turns, no zoom jumps, no fish-eye. Calm enough never to make a viewer dizzy: the horizon stays level, the camera never spins, rolls, swings or dives, and the ground never rushes past.
 
@@ -10,4 +10,4 @@ SOUND: none needed (the music is replaced in post).
 
 SCREEN: no watermarks, no subtitles, no captions, no logos, no text of any kind.
 
-Photorealistic drone footage, not a render, painting or cartoon.
+REAL FOOTAGE: genuine drone footage as a traveller posts it from their own DJI drone, with real everyday detail (roads, paths, a few tiny people and cars where they belong), never CGI, a render, AI art, a painting or an over-polished postcard.
