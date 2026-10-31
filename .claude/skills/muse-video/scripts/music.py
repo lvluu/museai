@@ -41,13 +41,26 @@ ACE_PY = Path(os.environ.get("ACE_STEP_HOME", Path.home() / ".local/share/ace-st
 CARD_INTROS = ("countdown", "black-title", "coords")
 
 
+def song_tempo(y, sr, bpm):
+    tempo, _ = librosa.beat.beat_track(y=y, sr=sr, start_bpm=bpm)
+    tempo = float(np.atleast_1d(tempo)[0])
+    if tempo <= 0:  # no pulse found (ACE ambient drone, Bran Castle episode): keep the template tempo
+        print(f"no beat detected in the raw track, keeping the template {bpm:.0f} BPM", file=sys.stderr)
+        return bpm
+    return min((tempo * k for k in (0.5, 1, 2)), key=lambda t: abs(t - bpm))  # half/double-time guesses
+
+
 def generate_ace(tags, lyrics, bpm, seconds, seed, wav):
     with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as f:
         f.write(lyrics or "[instrumental]")
     # duets and negated words ("no autotune") pull ACE toward the robotic, pitched voice the user rejected
     tags = re.sub(r"\b(male and female|female and male) vocals\b", "female vocals", tags)
-    tags = (f"{tags}, {bpm:.0f} bpm, one natural human lead singer, relaxed in-tune mid-range voice, "
-            "clear diction, warm dry vocal sitting in balance with the instruments, organic live studio mix")
+    # ACE reads "no autotune" as "autotune": drop negated phrases (Zhangjiajie reel, 2026-10-31, pitched voice)
+    tags = re.sub(r"(^|,)\s*(no|without|not|never)\b[^,]*", "", tags, flags=re.I).strip(" ,")
+    # the user wants the voice low and warm, never shrill (Zhangjiajie reel, 2026-10-31)
+    tags = (f"{tags}, {bpm:.0f} bpm, one natural human lead singer, relaxed in-tune voice in a low warm register, "
+            "clear diction, warm dry vocal sitting in balance with the instruments, mellow low and mid-range sound, "
+            "organic live studio mix")
     # one ACE render per machine: two at once share the GPU and both crawl (Svalbard + Vatnajokull reels,
     # 2026-10-28: model load 40 s -> 285 s, 1.5 s/step -> 100+ s/step); later ones wait here
     lock = ACE_PY.parent.parent.parent / "render.lock"
@@ -123,19 +136,28 @@ def main():
     if a.raw:
         y, sr = librosa.load(a.raw, sr=None, mono=True)
     elif engine == "ace":
-        y, sr = generate_ace(style, lyrics, bpm, max(seconds, 40), a.seed, raw)
+        # ACE ignores the BPM tag (asked 112: 120 and 134; asked 100: 94 and 128): re-render on the next seed
+        # until the song lands within 10 % of the asked tempo, keep the closest of 3
+        best = None
+        for seed in range(a.seed, a.seed + 3):
+            y, sr = generate_ace(style, lyrics, bpm, max(seconds, 40), seed, raw)
+            got = song_tempo(y, sr, bpm)
+            off = abs(got - bpm) / bpm
+            if best is None or off < best[0]:
+                best = (off, y, sr)
+                raw.with_suffix(".best.wav").write_bytes(raw.read_bytes())
+            if off <= 0.1:
+                break
+            print(f"seed {seed}: song at {got:.0f} BPM, asked {bpm:.0f}; trying the next seed", file=sys.stderr)
+        _, y, sr = best
+        raw.with_suffix(".best.wav").replace(raw)
     else:
         if engine == "musicgen" and lyrics and not a.engine:
             print("ACE-Step not installed: instrumental MusicGen track, lyrics skipped", file=sys.stderr)
         y, sr = generate(style, bpm, min(seconds, 30), a.model, a.seed)
         sf.write(raw, y, sr)
 
-    tempo, _ = librosa.beat.beat_track(y=y, sr=sr, start_bpm=bpm)
-    tempo = float(np.atleast_1d(tempo)[0])
-    if tempo <= 0:  # no pulse found (ACE ambient drone, Bran Castle episode): keep the template tempo
-        print(f"no beat detected in the raw track, keeping the template {bpm:.0f} BPM", file=sys.stderr)
-        tempo = bpm
-    tempo = min((tempo * k for k in (0.5, 1, 2)), key=lambda t: abs(t - bpm))  # half/double-time guesses
+    tempo = song_tempo(y, sr, bpm)
     if engine == "ace":
         # a phase-vocoder stretch makes the singer sound robotic and pitched (Kirkjufell reel,
         # 134→108 BPM); keep the song as sung and cut the reel on its own tempo instead
