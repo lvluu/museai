@@ -192,6 +192,25 @@ def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
         if not e.get("slot"):
             e["slot"] = next(free[_channel(n, e)])
             changed = True
+    return _episode_order(entries) or changed
+
+
+def _episode_order(entries: list[tuple[str, dict]]) -> bool:
+    """Episodes of one series post in number order: EP47 delivered before EP46 trades slots with it.
+    Videos posted on any platform, pinned by the user or planned for auto-posting keep their slot."""
+    series: dict[tuple[str, str], list[tuple[int, dict]]] = {}
+    for n, e in entries:
+        auto = e.get("auto") if isinstance(e.get("auto"), dict) else {}
+        if e.get("slot_pinned") or any((e.get("posted") or {}).values()) or (auto and not auto.get("off")):
+            continue
+        if m := re.match(r"(.*?\D)(\d+)(?!\d)", Path(n).stem):
+            series.setdefault((_channel(n, e), m[1].strip().lower()), []).append((int(m[2]), e))
+    changed = False
+    for eps in series.values():
+        slots = sorted(e["slot"] for _, e in eps)
+        for (_, e), slot in zip(sorted(eps, key=lambda ep: ep[0]), slots, strict=True):
+            changed |= e["slot"] != slot
+            e["slot"] = slot
     return changed
 
 
