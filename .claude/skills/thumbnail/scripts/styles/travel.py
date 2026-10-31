@@ -4,7 +4,7 @@ Pass the raw shots in plan order, not the finished reel (its intro text, dips to
 would be picked). The most vivid, sharp, still frame wins; the first shot is the hook shot and gets a
 small bonus. The cover is built to stop the scroll: the frame full bleed, bright natural grade (never dark: it tires the eye),
 optionally zoomed onto the subject (--zoom/--focus) with a red ring + arrow on it (--circle), a dark
-band behind the text: the hook huge in yellow with a thick black outline (a label like "This is China" is
+band behind the text: the hook huge in yellow on a tilted black plate (a label like "This is China" is
 refused), the place name in white Futura (two balanced lines when long) and a sub line that may end in a
 flag emoji ("Norway 🇳🇴"). The text never sits on a person: it drops to the bottom of the safe box when a
 person (back views too) is under the top, and warns when both are taken.
@@ -93,6 +93,17 @@ def line(img, cx, y, text, f, fill=(255, 255, 255), stroke=0, spacing=0):
     tw = d.textlength(words, font=f) + spacing * max(len(words) - 1, 0)
     em = emoji(emo, round(f.size * 0.8)) if emo else None
     x0 = cx - (tw + (em.width + f.size * 0.2 if em else 0)) / 2
+    if fill == "plate":  # yellow on a solid black plate, tilted: reads on any frame, however busy
+        pad = f.size * 0.25
+        x1 = x0 + tw + (em.width + f.size * 0.2 if em else 0)
+        lab = Image.new("RGBA", img.size)
+        ld = ImageDraw.Draw(lab)
+        ld.rounded_rectangle((x0 - pad, y - f.size * 0.84, x1 + pad, y + f.size * 0.16), f.size // 8, fill=(0, 0, 0, 240))
+        chars(ld, (x0, y), words, f, YELLOW, spacing, 0)
+        if em:
+            lab.alpha_composite(em, (round(x0 + tw + f.size * 0.2), round(y - em.height)))
+        img.alpha_composite(lab.rotate(3, center=(cx, y), resample=Image.BICUBIC))
+        return
     sh = Image.new("RGBA", img.size)
     chars(ImageDraw.Draw(sh), (x0 + 3, y + 4), words, f, (0, 0, 0, 150), spacing, stroke)
     img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(f.size / 10)))
@@ -105,12 +116,12 @@ def rows(args, w, base):
     """[(text, font, spacing, fill, stroke, space above the baseline, space below)] of hook, title, sub."""
     d = ImageDraw.Draw(Image.new("RGB", (1, 1)))
     out = []
-    if args.hook:  # the loudest line: huge yellow, thick black outline, two lines when long
+    if args.hook:  # the loudest line: huge yellow on black plates, two lines when long
         hook = args.hook.upper()
         f, _ = fit(d, hook, "futura", round(base * 0.17), w)
         lines = [hook]
         words = split_emoji(hook)[0].split()
-        if f.size < base * 0.13 and len(words) > 1:
+        if f.size < base * 0.13 and len(words) > 2:  # two words read bigger on one line
             def cost(k):  # balanced, after a full stop or ?! rather than mid-phrase, never "21 / M"
                 return (abs(len(" ".join(words[:k])) - len(" ".join(words[k:])))
                         - 6 * (words[k - 1][-1] in ".,?!") + 99 * words[k - 1].replace(",", "").isdigit())
@@ -118,7 +129,7 @@ def rows(args, w, base):
             lines = [" ".join(words[:cut]), hook[len(" ".join(words[:cut])):].strip()]
             f = min((fit(d, r, "futura", round(base * 0.17), w)[0] for r in lines), key=lambda x: x.size)
         for t in lines:
-            out.append((t, f, 0, YELLOW, max(6, f.size // 8), f.size * 0.9, f.size * 0.12))
+            out.append((t, f, 0, "plate", 0, f.size * 0.95, f.size * 0.2))
     title = args.title.upper()
     f, sp = fit(d, title, "futura", round(base * (0.15 if args.hook else 0.22)), w, 0.08)
     words = title.split()
@@ -248,7 +259,7 @@ def vertical(frame, args):
     if min(top, low) > 0.02:
         print(f"warning: the text covers a person ({min(top, low):.0%} of it): pick another frame or --zoom/--focus")
     im = im.convert("RGBA")
-    im.alpha_composite(band(1080, 1920, (0.15, 70), (0.42, 150)) if bottom else band(1080, 1920, (0.38, 120), (0.15, 70)))
+    im.alpha_composite(band(1080, 1920, (0.15, 70), (0.5, 200)) if bottom else band(1080, 1920, (0.45, 170), (0.15, 70)))
     text(im, (CENTRE[0], SAFE[1], CENTRE[1], SAFE[3]), args, bottom=bottom)
     return im.convert("RGB")
 
