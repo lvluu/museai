@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Usage: [REF=ref.wav REF_STRENGTH=0.3] music "<style from the idea's music field>" out.m4a [seconds=24] [seed=7]
+# REF: a recording whose feel (instrument, register, pace) to borrow; looped to the length here.
+# Instrumental healing track with ACE-Step (muse-video "Music"): no singer, soft dynamics, -18 LUFS.
+# Calls ace_song.py directly: music.py adds lead-singer tags and a phone-loud drive, wrong for this calm format.
+# Falls back to muse-video/scripts/music.py --engine musicgen when ACE-Step is not installed.
+set -euo pipefail
+SKILL_DIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+MV=${MUSE_VIDEO_SCRIPTS:-$SKILL_DIR/../muse-video/scripts}  # override when this checkout is behind main
+style=$1; out=$2; secs=${3:-24}; seed=${4:-7}
+ACE_PY=${ACE_STEP_HOME:-$HOME/.local/share/ace-step}/venv/bin/python
+# "solo piano" alone gave a melody-less drone (hv-0001); name the moving line and the soft felt sound
+tags="$style, soft gentle solo piano, felt piano, slow broken-chord arpeggios with a simple lullaby melody on top, sustain pedal, healing, peaceful, 70 bpm, soft dynamics, warm close-miked intimate room recording, instrumental, no drums, no vocals"
+raw="${out%.*}.raw.wav"
+if [[ -x $ACE_PY ]]; then
+  refargs=()
+  if [[ -n ${REF:-} ]]; then
+    # audio2audio output takes the reference's length: loop it with cross-fades to secs + 6
+    loop="${out%.*}.ref.wav"
+    python3 "$SKILL_DIR/scripts/loops.py" fit "$REF" "$loop" --secs $((secs + 6))
+    refargs=(--ref "$loop" --ref-strength "${REF_STRENGTH:-0.3}")
+  fi
+  # one ACE render per machine: same lock file as music.py (macOS has no flock(1), so fcntl in python)
+  python3 - "$(dirname "$(dirname "$(dirname "$ACE_PY")")")/render.lock" "$ACE_PY" "$SKILL_DIR/scripts/ace_piano.py" --tags "$tags" \
+    ${refargs[@]+"${refargs[@]}"} --duration "$((secs + 6))" --seed "$seed" --out "$raw" <<'PY'
+import fcntl, subprocess, sys
+with open(sys.argv[1], "w") as lf:
+    try:
+        fcntl.flock(lf, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        print("another ACE render is running on this machine; waiting for it", file=sys.stderr)
+        fcntl.flock(lf, fcntl.LOCK_EX)
+    sys.exit(subprocess.run(sys.argv[2:]).returncode)
+PY
+else
+  uv run --no-project "$MV/music.py" --engine musicgen --style "$tags" --bpm 70 --body-beats $((secs * 70 / 60)) --out "$raw.m4a"
+  ffmpeg -v error -y -i "$raw.m4a" "$raw"
+fi
+# start where the music's body begins (ACE often opens with a cold start and a quiet intro that
+# jumps +11 dB a few seconds in: hv-0001's music "kicked in" 0.9 s after the video, which felt
+# laggy); short fade in so the music is there from the first frame, fade out, one fixed gain
+start=$(python3 "$SKILL_DIR/scripts/lnorm.py" --body-start "$raw")
+python3 "$SKILL_DIR/scripts/lnorm.py" "$raw" "$out" -18 "lowpass=f=4500,lowpass=f=4500,atrim=start=$start:duration=$secs,asetpts=PTS-STARTPTS,afade=in:d=0.3,afade=out:st=$((secs - 3)):d=3"
+echo "$out"
