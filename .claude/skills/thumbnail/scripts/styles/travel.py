@@ -4,13 +4,16 @@ Pass the raw shots in plan order, not the finished reel (its intro text, dips to
 would be picked). The most vivid, sharp, still frame wins; the first shot is the hook shot and gets a
 small bonus. The cover is built to stop the scroll: the frame full bleed, bright natural grade (never dark: it tires the eye),
 optionally zoomed onto the subject (--zoom/--focus) with a red ring + arrow on it (--circle), a dark
-band at the top behind the hook as white on a red banner, the place name huge in Futura with a black
-outline (two balanced lines when long) and a sub line that may end in a flag emoji ("Norway 🇳🇴").
+band behind the text: the hook huge in yellow with a thick black outline (a label like "This is China" is
+refused), the place name in white Futura (two balanced lines when long) and a sub line that may end in a
+flag emoji ("Norway 🇳🇴"). The text never sits on a person: it drops to the bottom of the safe box when a
+person (back views too) is under the top, and warns when both are taken.
 A frame of the other aspect sits sharp on a blurred copy of itself, the text beside or above it.
 --split (zoominview): one reel with a person, the reaction on top and the view below, the title on the
 seam, as the old thumbnail did.
 """
 import math
+import re
 import sys
 
 from core import (
@@ -42,13 +45,15 @@ FONTS = {  # (file, face index)
     "heavy": ("/System/Library/Fonts/Avenir Next.ttc", 8),
     "demi": ("/System/Library/Fonts/Avenir Next.ttc", 2),
 }
+YELLOW = (255, 226, 0)
+DULL = re.compile(r"\b(beautiful|amazing|stunning|paradise|gorgeous|breathtaking|lovely|welcome to|this is \w+)\b", re.I)
 HOOK_BONUS = 1.15
 EDGE = 0.5  # s skipped at both ends of a shot (muse settles in / fades out there)
 
 
 def add_args(p):
     p.add_argument("--title", required=True, help="the place name, e.g. GEIRANGERFJORD")
-    p.add_argument("--hook", default="", help="2-5 words above it, the caption's promise: \"7 waterfalls. 1 fjord.\"")
+    p.add_argument("--hook", default="", help="2-5 words + one emoji, huge above it: a number, danger or disbelief, \"60 tons. It spins?! 🤯\"")
     p.add_argument("--sub", default="", help='line under it, may end in a flag: "Norway 🇳🇴"')
     p.add_argument("--at", default="", help="force the frame: shot.mp4@2.5, or seconds in the first video")
     p.add_argument("--zoom", type=float, default=1.0, help="crop into the frame by this factor (1.2-1.6) for one focal point")
@@ -88,19 +93,6 @@ def line(img, cx, y, text, f, fill=(255, 255, 255), stroke=0, spacing=0):
     tw = d.textlength(words, font=f) + spacing * max(len(words) - 1, 0)
     em = emoji(emo, round(f.size * 0.8)) if emo else None
     x0 = cx - (tw + (em.width + f.size * 0.2 if em else 0)) / 2
-    if fill == "banner":  # white on a tilted red box: the "shock" label
-        pad = f.size * 0.35
-        x1 = x0 + tw + (em.width + f.size * 0.2 if em else 0)
-        box = (x0 - pad, y - f.size * 0.95, x1 + pad, y + f.size * 0.3)
-        lab = Image.new("RGBA", img.size)
-        ld = ImageDraw.Draw(lab)
-        ld.rounded_rectangle([v + 8 for v in box], f.size // 5, fill=(0, 0, 0, 150))
-        ld.rounded_rectangle(box, f.size // 5, fill=RED + (255,), outline=(255, 255, 255, 255), width=max(3, f.size // 22))
-        chars(ld, (x0, y), words, f, (255, 255, 255), spacing, 0)
-        if em:
-            lab.alpha_composite(em, (round(x0 + tw + f.size * 0.2), round(y - em.height)))
-        img.alpha_composite(lab.rotate(-2, center=(cx, y), resample=Image.BICUBIC))
-        return
     sh = Image.new("RGBA", img.size)
     chars(ImageDraw.Draw(sh), (x0 + 3, y + 4), words, f, (0, 0, 0, 150), spacing, stroke)
     img.alpha_composite(sh.filter(ImageFilter.GaussianBlur(f.size / 10)))
@@ -113,11 +105,22 @@ def rows(args, w, base):
     """[(text, font, spacing, fill, stroke, space above the baseline, space below)] of hook, title, sub."""
     d = ImageDraw.Draw(Image.new("RGB", (1, 1)))
     out = []
-    if args.hook:
-        f, _ = fit(d, args.hook.upper(), "heavy", round(base * 0.1), w * 0.92)
-        out.append((args.hook.upper(), f, 0, "banner", 0, f.size * 1.25, f.size * 0.6))
+    if args.hook:  # the loudest line: huge yellow, thick black outline, two lines when long
+        hook = args.hook.upper()
+        f, _ = fit(d, hook, "futura", round(base * 0.17), w)
+        lines = [hook]
+        words = split_emoji(hook)[0].split()
+        if f.size < base * 0.13 and len(words) > 1:
+            def cost(k):  # balanced, after a full stop or ?! rather than mid-phrase, never "21 / M"
+                return (abs(len(" ".join(words[:k])) - len(" ".join(words[k:])))
+                        - 6 * (words[k - 1][-1] in ".,?!") + 99 * words[k - 1].replace(",", "").isdigit())
+            cut = min(range(1, len(words)), key=cost)
+            lines = [" ".join(words[:cut]), hook[len(" ".join(words[:cut])):].strip()]
+            f = min((fit(d, r, "futura", round(base * 0.17), w)[0] for r in lines), key=lambda x: x.size)
+        for t in lines:
+            out.append((t, f, 0, YELLOW, max(6, f.size // 8), f.size * 0.9, f.size * 0.12))
     title = args.title.upper()
-    f, sp = fit(d, title, "futura", round(base * 0.22), w, 0.08)
+    f, sp = fit(d, title, "futura", round(base * (0.15 if args.hook else 0.22)), w, 0.08)
     words = title.split()
     lines = [title]
     if f.size < base * 0.14 and len(words) > 1:  # two balanced lines read bigger than one long small one
@@ -132,11 +135,12 @@ def rows(args, w, base):
     return out
 
 
-def text(img, box, args, middle=False):
-    """Draw the stack into box (x0, y0, x1, y1): from its top, or centred in it when middle."""
+def text(img, box, args, middle=False, bottom=False):
+    """Draw the stack into box (x0, y0, x1, y1): from its top, its bottom, or centred in it when middle."""
     stack = rows(args, box[2] - box[0], 1080)
     h = sum(a + b for *_, a, b in stack)
-    y = box[1] + (max(box[3] - box[1] - h, 0) / 2 if middle else 0)
+    free = max(box[3] - box[1] - h, 0)
+    y = box[1] + (free if bottom else free / 2 if middle else 0)
     for t, f, sp, fill, stroke, above, below in stack:
         y += above
         line(img, (box[0] + box[2]) / 2, y, t, f, fill, stroke, sp)
@@ -217,11 +221,35 @@ def subject(args):
     return tuple(float(v) for v in args.circle.split(",")[:2]) if args.circle else (0.5, 0.5)
 
 
+def people(im):
+    """Mask (L, 255 = person) of everyone in the frame, back views included: face detection misses those."""
+    import mediapipe as mp
+    import numpy as np
+
+    with mp.solutions.selfie_segmentation.SelfieSegmentation(model_selection=1) as seg:
+        m = seg.process(np.asarray(im.convert("RGB"))).segmentation_mask
+    return Image.fromarray((m > 0.5).astype("uint8") * 255)
+
+
+def stack_height(args):
+    return sum(a + b for *_, a, b in rows(args, CENTRE[1] - CENTRE[0], 1080))
+
+
 def vertical(frame, args):
     # a frame of the other aspect is cropped round the subject, full bleed and sharp: never a blurred copy
-    im = punch(cover(frame, 1080, 1920, *subject(args))).convert("RGBA")
-    im.alpha_composite(band(1080, 1920, (0.38, 120), (0.15, 70)))
-    text(im, (CENTRE[0], SAFE[1], CENTRE[1], SAFE[3]), args)
+    im = punch(cover(frame, 1080, 1920, *subject(args)))
+    h, mask = stack_height(args), people(im)
+
+    def covered(y0):  # share of the text box that sits on a person
+        return ImageStat.Stat(mask.crop((CENTRE[0], round(y0), CENTRE[1], round(y0 + h)))).mean[0] / 255
+
+    top, low = covered(SAFE[1]), covered(SAFE[3] - h)
+    bottom = top > 0.02 and low < top  # text never on a person: the bottom of the safe box when it is clearer
+    if min(top, low) > 0.02:
+        print(f"warning: the text covers a person ({min(top, low):.0%} of it): pick another frame or --zoom/--focus")
+    im = im.convert("RGBA")
+    im.alpha_composite(band(1080, 1920, (0.15, 70), (0.42, 150)) if bottom else band(1080, 1920, (0.38, 120), (0.15, 70)))
+    text(im, (CENTRE[0], SAFE[1], CENTRE[1], SAFE[3]), args, bottom=bottom)
     return im.convert("RGB")
 
 
@@ -279,6 +307,9 @@ def reaction(args):
 
 
 def make(args):
+    if args.hook and (DULL.search(args.hook) or not split_emoji(args.hook)[1]):
+        sys.exit(f"--hook {args.hook!r} is a label, not a shock: a number, a danger, a disbelief + one emoji"
+                 " (\"21 m tall. It spins 🤯\", \"Not Tibet?! 😳\"); see SKILL.md \"Travel: make it a shock\"")
     if args.split:
         return reaction(args)
     sheet = None
