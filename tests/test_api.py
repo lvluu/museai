@@ -408,6 +408,34 @@ def test_posting_slots(tmp_path):
     assert state["(posted chinese 2026-10-31/2)"]["done"]  # kept for the next passes too
 
 
+def test_episodes_post_in_number_order(tmp_path):
+    import os
+    from datetime import datetime
+
+    from museai.api.routes import posting
+
+    now = datetime(2026, 10, 29, 12, 0, tzinfo=posting.TZ)
+    videos = []
+    names = ("Tiếng Trung mỗi ngày 47 - B.mp4", "nostalgia-1985.mp4", "Tiếng Trung mỗi ngày 46 - A.mp4")
+    for i, name in enumerate(names):
+        (p := tmp_path / name).write_bytes(b"v")
+        os.utime(p, (1000 + i, 1000 + i))
+        videos.append(p)
+    state = {}
+    assert posting._assign_slots(state, videos[:2], now)  # EP47 arrives first and books the first slot
+    assert posting._assign_slots(state, videos, now)  # then EP46: it takes EP47's slot, EP47 its
+    assert state["Tiếng Trung mỗi ngày 46 - A.mp4"]["slot"] == "2026-10-29/2"
+    assert state["nostalgia-1985.mp4"]["slot"] == "2026-10-30/1"  # another series keeps its slot
+    assert state["Tiếng Trung mỗi ngày 47 - B.mp4"]["slot"] == "2026-10-30/2"
+    assert not posting._assign_slots(state, videos, now)
+
+    # A slot the user picked stays.
+    state["Tiếng Trung mỗi ngày 47 - B.mp4"].update(slot="2026-10-29/2", slot_pinned=True)
+    state["Tiếng Trung mỗi ngày 46 - A.mp4"]["slot"] = "2026-10-30/2"
+    assert not posting._assign_slots(state, videos, now)
+    assert state["Tiếng Trung mỗi ngày 47 - B.mp4"]["slot"] == "2026-10-29/2"
+
+
 def test_posting_channel_from_file_name():
     from museai.api.routes import posting
 
