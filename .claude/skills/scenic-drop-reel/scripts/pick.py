@@ -26,6 +26,7 @@ import sys
 from pathlib import Path
 
 SKILL = Path(__file__).resolve().parent.parent
+GREEN_SETTINGS = ("mountain", "nature", "island", "lake")
 HISTORY = Path.home() / ".config/scenic-drop-reel/history.json"
 CARD_INTROS = ("countdown", "black-title", "coords")
 MAX_SHOTS = 12  # every shot is one muse render
@@ -152,9 +153,12 @@ def main():
     shots[0]["duration"] = max(6, min(10, math.ceil((rep + shots[0]["beats"]) * beat + intro_s + 2)))
     if "text" in intro:
         intro["text"] = intro["text"].replace("{place}", place).replace("{PLACE}", place.upper()).replace("{n}", str(n))
+    # warm/teal grades turn forests olive; green landscapes get the vivid grade (Zhangjiajie reel, 2026-10-31:
+    # "I need something greener that looks fantastic")
+    grade = "vivid" if a.setting in GREEN_SETTINGS and t["grade"] in ("warm-film", "teal-orange", "moody") else t["grade"]
     print(json.dumps({"template": t["id"], "name": t["name"], "vibe": t["vibe"], "place": place,
                       "seconds": round(intro_s + sum(x["beats"] for x in shots) * beat, 1),
-                      "intro": intro, "text": t["text"], "grade": t["grade"], "target": t["target"],
+                      "intro": intro, "text": t["text"], "grade": grade, "target": t["target"],
                       "ramp": t["ramp"], "fast": fast, "music": music, "shots": shots}, indent=1, ensure_ascii=False))
 
 
