@@ -132,6 +132,9 @@ def main():
 
     tempo, _ = librosa.beat.beat_track(y=y, sr=sr, start_bpm=bpm)
     tempo = float(np.atleast_1d(tempo)[0])
+    if tempo <= 0:  # no pulse found (ACE ambient drone, Bran Castle episode): keep the template tempo
+        print(f"no beat detected in the raw track, keeping the template {bpm:.0f} BPM", file=sys.stderr)
+        tempo = bpm
     tempo = min((tempo * k for k in (0.5, 1, 2)), key=lambda t: abs(t - bpm))  # half/double-time guesses
     if engine == "ace":
         # a phase-vocoder stretch makes the singer sound robotic and pitched (Kirkjufell reel,
@@ -143,6 +146,8 @@ def main():
         target = bpm
         y = librosa.effects.time_stretch(y, rate=bpm / tempo)
     _, beats = librosa.beat.beat_track(y=y, sr=sr, start_bpm=bpm, tightness=400, units="samples")
+    if len(beats) == 0:  # beatless track: candidate body starts on an even grid at the kept tempo
+        beats = np.arange(0, len(y), int(60 / bpm * sr))
 
     body_len = int((body_s + 0.3) * sr)
     intro_len = int(intro_s * sr)
