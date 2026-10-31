@@ -472,8 +472,8 @@
   },
   "lights": {
     "sunny": "Bright sunny summer day, deep blue sky with a few white clouds, crisp clear air",
-    "golden": "Golden hour, low warm sun, long soft shadows, glowing orange and pink sky",
-    "sunrise": "Early sunrise, soft pink and gold light, a little morning haze",
+    "golden": "Late afternoon with the sun still well above the horizon: warm golden light, the whole scene brightly lit, soft shadows with full detail, a light warm sky",
+    "sunrise": "Shortly after sunrise, the sun already up: soft bright pink-gold light on the landscape, a little morning haze, the scene well lit",
     "morning": "Fresh clear morning, soft bright light, pale blue sky",
     "bluehour": "Blue hour just after sunset, deep blue sky, warm city lights switching on, reflections",
     "night": "Night, city lights glowing, dark blue sky, illuminated landmarks",

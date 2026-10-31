@@ -23,6 +23,7 @@ closest to the template's target and most even (YDIF), skipping jumps; clip@seco
 import argparse
 import io
 import json
+import math
 import subprocess
 import sys
 import tempfile
@@ -41,11 +42,12 @@ FONTS = {  # (file, face index)
     "futura": ("/System/Library/Fonts/Supplemental/Futura.ttc", 4),
     "light": ("/System/Library/Fonts/HelveticaNeue.ttc", 7),
 }
+BRIGHT = 110  # minimum mean luma (0-255) of a shot before the grade; real sunny drone footage sits at 110-130
 GRADES = {  # gentle on purpose: dark, crushed or over-saturated reels tire the eye (user, 2026-10-29)
     "vivid": "eq=saturation=1.12:contrast=1.03:brightness=0.02,unsharp=5:5:0.5",
     "clean": "eq=saturation=1.05:contrast=1.02:brightness=0.02,unsharp=5:5:0.4",
     "warm-film": "colorbalance=rm=0.05:bm=-0.05:rh=0.03:bh=-0.04,eq=saturation=1.05:contrast=1.02:brightness=0.02,"
-                 "vignette=PI/8,noise=alls=4:allf=t",
+                 "noise=alls=4:allf=t",
     "teal-orange": "colorbalance=rs=-0.04:bs=0.05:rh=0.05:bh=-0.05,eq=saturation=1.08:contrast=1.03,unsharp=5:5:0.4",
     "pastel": "eq=saturation=0.92:brightness=0.04:contrast=0.95,colorbalance=rh=0.03:bh=0.03",
     "moody": "eq=saturation=0.9:contrast=1.03,colorbalance=bs=0.04:bm=0.02,vignette=PI/7",
@@ -80,6 +82,27 @@ def ydif(path, w=270):
     out = run(["ffmpeg", "-v", "error", "-i", path, "-vf",
                f"scale={w}:-2,signalstats,metadata=print:key=lavfi.signalstats.YDIF:file=-", "-an", "-f", "null", "-"])
     return [float(line.split("=")[1]) for line in out.splitlines() if "YDIF=" in line]
+
+
+def luma(path, w=270):
+    """Mean luma 0-255 of the clip (ffmpeg signalstats YAVG on 2 frames/s of a small copy)."""
+    out = run(["ffmpeg", "-v", "error", "-i", path, "-vf",
+               f"fps=2,scale={w}:-2,signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-", "-an", "-f", "null", "-"])
+    v = [float(line.split("=")[1]) for line in out.splitlines() if "YAVG=" in line]
+    return sum(v) / len(v)
+
+
+def lift(path, light):
+    """Gamma lift for a clip darker than BRIGHT (Zhangjiajie reel 2026-10-31: muse's golden-hour shots came back
+    at mean luma 65-78 and the user rejected the reel as too dark). Night and blue hour stay dark on purpose."""
+    if "night" in light.lower() or "blue hour" in light.lower():
+        return ""
+    m = luma(path)
+    if m >= BRIGHT:
+        return ""
+    g = min(1.8, math.log(m / 255) / math.log(BRIGHT / 255))
+    print(f"note: {path} is dark (mean luma {m:.0f} < {BRIGHT}): lifted with gamma {g:.2f}", file=sys.stderr)
+    return f"eq=gamma={g:.2f},"
 
 
 def pick_window(d, n, src_fps, target):
@@ -414,7 +437,7 @@ def main():
         inputs += ["-ss", f"{st:.3f}", "-i", path]
         src = _count(inputs)
         base = (f"scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},setpts=PTS-STARTPTS,fps={F:g},"
-                f"{grade},format=yuv420p,setsar=1")
+                f"{lift(path, plan['shots'][k]['light'] if plan else data['lights'].get(t.get('light'), ''))}{grade},format=yuv420p,setsar=1")
         if ramp:  # last `ramp` frames play 2.5x: the move accelerates into the cut
             keep = length - ramp
             chains.append(f"[{src}:v]{base},split[a{i}][b{i}];[a{i}]trim=end_frame={keep},setpts=PTS-STARTPTS[p{i}];"
