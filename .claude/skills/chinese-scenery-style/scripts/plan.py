@@ -50,6 +50,7 @@ PERSON = {
     "back": "The traveller is seen from behind or three-quarter behind; her face is not the focus.",
     "walk": "The traveller walks naturally and slowly, seen side-on or from behind, medium-wide, never a face close-up.",
     "side": "The traveller is seen side-on, medium-wide, calm natural expression, mouth closed.",
+    "front": "The traveller faces the camera, medium shot, her face clear and recognisable, a natural warm expression, mouth closed except for a smile.",
     "hands": "Only the traveller's hands and sleeves are in frame, in the outfit described below: graceful real young hands, slender fingers, natural skin with real texture, neat natural nails, five fingers each, held gently and naturally.",
 }
 
@@ -103,6 +104,10 @@ def main():
         elif person != "none":
             img = face
             lines.append(FACE_REF.strip())
+            if t.get("ref_keeps"):  # a rendered face crop also shows the costume to keep
+                lines.append(f"Also keep exactly as in the photo: {t['ref_keeps']}.")
+            if t.get("ref_note"):  # what the face photo shows but she must not wear
+                lines.append(t["ref_note"])
         else:
             img = ""
         lines.append(f"PLACE: {story['where']}. {s['view']}.")

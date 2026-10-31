@@ -8,48 +8,6 @@
   "season": "Early October on the Tibetan plateau: Napa Lake full after the summer rains, the wide grassland turning golden-brown, dark conifer forest on the surrounding hills, deep-blue high-altitude sky with a few small white clouds, crisp clear air",
   "shots": [
     {
-      "bars": 3,
-      "label": "hook",
-      "person": "back",
-      "light": "day",
-      "view": "Napa Lake (Napahai): a calm wide lake with the forested hills and distant mountain ridges mirrored perfectly in the water, golden-brown grassland along the shore, small white clouds reflected, strings of colourful prayer flags fluttering on poles along the shore",
-      "action": "She stands still at the water's edge seen from close behind her right shoulder, a light breeze lifting her braids and the white fur trim of her red robe, looking out over the lake.",
-      "move": "Start close behind her shoulder, then glide very slowly backwards and up at one gentle constant speed to reveal the whole lake and its mirrored mountains; she stays in the lower third.",
-      "ambience": "soft breeze, gentle lapping water"
-    },
-    {
-      "bars": 2,
-      "person": "walk",
-      "light": "day",
-      "view": "the grassy shore of Napa Lake, shallow clear water with reeds, the lake and hills stretching behind, a line of colourful prayer flags strung along the shore stirring gently in a light breeze",
-      "action": "She walks slowly along the shore from left to right, looking out over the water.",
-      "move": "Camera locked on a tripod, perfectly still; she walks slowly into the frame and along the shore, medium-wide on the left third, the lake filling the frame.",
-      "ambience": "breeze, footsteps on grass, water"
-    },
-    {
-      "bars": 2,
-      "person": "none",
-      "light": "day",
-      "view": "the vast Napa grassland in calm, windless morning air: a flat meadow of short golden-brown turf grazed low by yaks, reaching to the forested hills, a small herd of black and white yaks grazing in the middle distance, mountain ridges under a clear blue sky",
-      "action": "",
-      "move": "Locked-off tripod shot from a slightly raised viewpoint looking out over the meadow, the camera perfectly still; the grass is short and still, only the yaks graze slowly. No tall grass, no close foreground: the bottom of the frame is short turf several metres away.",
-      "ambience": "soft breeze, a distant yak bell"
-    },
-    {
-      "bars": 3,
-      "person": "walk",
-      "light": "day",
-      "in": "dissolve",
-      "view": "inside the giant prayer-flag canopy of Shangri-La on a flat light-grey gravel square in bright sun: one tall smooth copper-coloured pole in the middle; from its top thousands of strings run straight down and out to the ground on every side like the ribs of a huge round tent, each string hung with rows of small pennant-shaped flags, so the inside of the tent is a fine net of horizontal rings of little flags: mostly white and pale blue, with rings of red, green, yellow and blue, sky and white clouds showing through everywhere; around the foot of the pole a big neat stepped cone of layered cloth bands in red, green, yellow, blue and white, its lowest tier red; a few visitors in Tibetan robes far away",
-      "action": "She walks slowly in from the edge across the open gravel toward the tiered cone at the foot of the pole, then pauses and looks up at the rings of flags, calm and moved. Seen from behind and slightly to the side, medium-wide, the dome of flags filling the frame above and around her.",
-      "move": "Camera locked on a tripod, slightly low, perfectly still; she walks into the frame and the dome of flags stays still above her. No follow, no pan.",
-      "ambience": "prayer flags rustling softly in a light breeze",
-      "ref": {
-        "image": "~/.local/share/museai/places/shangri-la/canopy-girl.jpg",
-        "what": "the giant prayer-flag canopy of Shangri-La (the tent of flag strings, the copper pole and the stepped cone of cloth at its foot); the girl in it is the traveller herself, so her face in the photo is her real face. Her clothes in the photo are NOT used: she wears the bright-red robe with red sleeves and the white fur hat described below"
-      }
-    },
-    {
       "bars": 1,
       "person": "none",
       "light": "day",
@@ -59,7 +17,32 @@
       "ambience": "prayer flags rustling softly",
       "ref": {
         "image": "~/.local/share/museai/places/shangri-la/canopy-inside.jpg",
-        "what": "the inside of the giant prayer-flag canopy of Shangri-La: concentric rings of small flags around the pole top and the stepped cone of cloth at the pole's foot"
+        "what": "the inside of the giant prayer-flag canopy of Shangri-La: concentric rings of small flags around the pole top and the stepped cone of cloth at the pole's foot. Make the flags far more vivid and colourful than in the photo: bold saturated blue, white, red, green and yellow."
+      },
+      "in": null
+    },
+    {
+      "bars": 2,
+      "person": "walk",
+      "light": "day",
+      "view": "the wide stone visitor stairway leading up to the golden-roofed main assembly hall of Songzanlin Monastery, white and red walls on both sides",
+      "action": "She climbs the stone steps toward the golden-roofed hall with light, steady steps, her braids swaying, then pauses near the top and looks up at the golden roofs and the prayer flags, admiring them. Seen from behind and slightly to the side, never facing the camera.",
+      "move": "Smooth steady gimbal shot following a few steps behind her up the stairs at her pace, the golden hall rising ahead and filling the upper frame as she climbs.",
+      "ambience": "footsteps on stone, breeze, faint chimes",
+      "in": "cut"
+    },
+    {
+      "bars": 3,
+      "person": "walk",
+      "light": "day",
+      "in": "cut",
+      "view": "inside the giant prayer-flag canopy of Shangri-La on a flat light-grey gravel square in bright sun: one tall smooth copper-coloured pole in the middle; from its top thousands of strings run straight down and out to the ground on every side like the ribs of a huge round tent, each string hung with rows of small pennant-shaped flags, so the inside of the tent is a fine net of horizontal rings of little flags: mostly white and pale blue, with rings of red, green, yellow and blue, sky and white clouds showing through everywhere; around the foot of the pole a big neat stepped cone of layered cloth bands in red, green, yellow, blue and white, its lowest tier red; a few visitors in Tibetan robes far away",
+      "action": "She walks slowly in from the edge across the open gravel toward the tiered cone at the foot of the pole, then pauses and looks up at the rings of flags, calm and moved. Seen from behind and slightly to the side, medium-wide, the dome of flags filling the frame above and around her.",
+      "move": "Camera locked on a tripod, slightly low, perfectly still; she walks into the frame and the dome of flags stays still above her. No follow, no pan.",
+      "ambience": "prayer flags rustling softly in a light breeze",
+      "ref": {
+        "image": "~/.local/share/museai/places/shangri-la/canopy-girl.jpg",
+        "what": "the giant prayer-flag canopy of Shangri-La (the tent of flag strings, the copper pole and the stepped cone of cloth at its foot); the girl in it is the traveller herself, so her face in the photo is her real face. Her clothes in the photo are NOT used: she wears the crimson velvet robe, braids and no hat as described below Make the flags far more vivid and colourful than in the photo: bold saturated blue, white, red, green and yellow."
       }
     },
     {
@@ -74,18 +57,20 @@
     },
     {
       "bars": 2,
-      "person": "walk",
+      "label": "hook",
+      "person": "back",
       "light": "day",
-      "view": "the wide stone visitor stairway leading up to the golden-roofed main assembly hall of Songzanlin Monastery, white and red walls on both sides",
-      "action": "She walks calmly up the stone steps, then pauses and looks up at the golden roofs, admiring them. Seen from behind and slightly to the side.",
-      "move": "Camera locked on a tripod at the foot of the stairs, perfectly still; she walks slowly up the steps away from it, the monastery filling the upper frame.",
-      "ambience": "footsteps on stone, breeze, faint chimes"
+      "view": "Napa Lake (Napahai): a calm wide lake with the forested hills and distant mountain ridges mirrored perfectly in the water, golden-brown grassland along the shore, small white clouds reflected, strings of colourful prayer flags fluttering on poles along the shore",
+      "action": "She stands still at the water's edge seen from close behind her right shoulder, a light breeze lifting her braids and the white fur on her robe, looking out over the lake.",
+      "move": "Start close behind her shoulder, then glide very slowly backwards and up at one gentle constant speed to reveal the whole lake and its mirrored mountains; she stays in the lower third.",
+      "ambience": "soft breeze, gentle lapping water",
+      "in": "cut"
     },
     {
       "bars": 2,
       "person": "walk",
       "light": "day",
-      "in": "dissolve",
+      "in": "cut",
       "view": "a cobbled street of Dukezong Ancient Town: two-storey traditional Tibetan wooden houses with dark timber facades, carved and painted window frames, prayer flags strung above, warm shop windows",
       "action": "She walks slowly along the cobbled street, glancing at the carved facades.",
       "move": "Very slow, gimbal-smooth tracking shot gliding backwards ahead of her at her slow walking pace; she is medium-wide, the street and facades fill the frame.",
@@ -102,15 +87,6 @@
     },
     {
       "bars": 2,
-      "person": "hands",
-      "light": "golden",
-      "view": "a worn wooden table by the window of a small teahouse in Dukezong, a simple white porcelain tea cup on it",
-      "action": "Tight close-up on the table: her two hands (five fingers each, the colourful striped cuffs of her red robe folded back, white fur trim) wrap around the warm tea cup; thin wisps of steam rise slowly from the tea and curl in the window light. The frame shows only the table, the cup, the steam and her hands and wrists: the top edge of the frame stays below her chest for the whole clip, her face, hair and shoulders never appear.",
-      "move": "Locked close-up, the camera does not move, tilt or pull back; only the steam and a slight shift of her fingers move.",
-      "ambience": "soft cup on wood, distant street"
-    },
-    {
-      "bars": 1,
       "person": "side",
       "light": "golden",
       "view": "the window seat of a small wooden teahouse in Dukezong, the old cobbled street visible outside in warm late-afternoon light",
@@ -129,7 +105,7 @@
       "ambience": "the wheel's low rumble, soft footsteps, evening breeze, a distant bell"
     },
     {
-      "bars": 2,
+      "bars": 3,
       "person": "back",
       "light": "sunset",
       "view": "Guishan Park hill above Dukezong at sunset, beside the giant golden prayer wheel, the old town's glowing rooftops spread below",
@@ -148,6 +124,7 @@
     }
   ],
   "traveller": {
-    "face": "~/.local/share/museai/characters/china-girl/face-plateau.jpg"
+    "face": "~/.local/share/museai/characters/china-girl/face-open.jpg",
+    "ref_note": "Use only her face from the photo: she wears NO hat and NOT the clothes in the photo; her hair, clothes and jewellery are as described below."
   }
 }
