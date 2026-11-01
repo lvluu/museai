@@ -63,7 +63,14 @@ def text_png(line, path):
     for i, r in enumerate(rows):
         x = (W - d.textlength(r, font=font)) / 2
         yy = y + i * int(font.size * 1.3)
-        sd.text((x, yy + 2), r, font=font, fill=(40, 30, 50, 220))
+        sd.text(
+            (x, yy + 2),
+            r,
+            font=font,
+            fill=(40, 30, 50, 230),
+            stroke_width=4,
+            stroke_fill=(40, 30, 50, 230),
+        )
         d.text((x, yy), r, font=font, fill=(255, 252, 245, 255))
     Image.alpha_composite(shadow.filter(ImageFilter.GaussianBlur(7)), img).save(path)
 
