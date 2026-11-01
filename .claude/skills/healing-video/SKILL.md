@@ -32,7 +32,7 @@ python3 scripts/ideas.py list ; python3 scripts/ideas.py stats
 
 ## Steps
 1. **Pick**: `python3 scripts/ideas.py next --season now > idea.json` (or the user's idea / filters). Show the user the title, the shot list in one line each and the caption/lines; render after a yes (renders cost muse time). Human away → `webex ask`.
-2. **Write the shots**: each `shots[k]` of the idea is the brief of one shot. Make it concrete for that home and moment (real objects, which way the light falls, the one thing that moves) but keep the subject. Ode: shot k must SHOW phrase k (the curtain lifts on "lifts the curtains"). Rewrite ode phrases in fresh words when the same subject was used before (`ideas.py list`), keeping one sentence that runs over the shots.
+2. **Write the shots**: each `shots[k]` of the idea is the brief of one shot. Make it concrete for that home and moment (real objects, which way the light falls, the one thing that moves) but keep the subject. Every postcard idea in the bank opens "Through an open old window ...": replace that first shot with an opener from the rotation (see Looks). Ode: shot k must SHOW phrase k (the curtain lifts on "lifts the curtains"). Rewrite ode phrases in fresh words when the same subject was used before (`ideas.py list`), keeping one sentence that runs over the shots.
 3. **Render** every shot at once, each in its own background call (independent shots render in parallel on all free accounts):
    ```bash
    scripts/shot "<brief of shot 1>" ~/Movies/museai/healing-<slug>/s1.mp4
@@ -58,7 +58,13 @@ python3 scripts/ideas.py list ; python3 scripts/ideas.py stats
 
 ## Looks (reference 3, 2026-10-31)
 The user wants views "more beautiful and healing". Reference 3 is one handheld phone shot: a hand in a knit sleeve opens a white casement window onto a golden-hour garden, then wide sunlit hills with grazing animals. `prompt/healing.txt` LIGHT AND BEAUTY asks every shot for golden-hour or soft morning light, backlight through leaves, steam and petals, a clear sky, tidy corners with flowers. In briefs:
-- Open on the **window reveal**: "One continuous handheld phone shot from the girl's point of view: her hand in a cream knit sleeve slowly pushes open the casement window, and the view opens onto ...".
+- **Vary the opener and the style.** The window reveal ("her hand in a cream knit sleeve slowly pushes open the casement window, and the view opens onto ...") opened hv-0001, hv-0005 and the first cut of hv-0014, and the user asked for different styles, "not this open window anymore". Pick an opener that none of the last 3 videos used (look at the first brief of each in `~/.config/museai/healing-history.json`):
+  - a still room in sunlight (reference 4: the kitchen, then her at the sink);
+  - hands at work in close-up (pouring, kneading, picking);
+  - the animal asleep in a patch of sun;
+  - an outdoor wide view with a living motion (sea, terraces, laundry on a line, a path through the garden);
+  - a top-down table (ingredients, a basket of eggs, tea being poured).
+  Also rotate the look between golden hour (reference 3) and bright midday sun (reference 4), and between hard cuts and `--dissolve 0.5`.
 - Name the light in every brief ("late summer evening, golden hour", "warm beam of low sunlight across the worktop, dust motes").
 - Never write a camera move into a landscape or animal brief ("slow drift", "push forward"): muse overdoes it (20-30 % of the frame width per second). Write "The camera is held perfectly still, only the X moves." muse still drifts 5-10 %/s, which matches reference 3 (up to 12 %/s), so qa `motion` FAIL at that level is fine here.
 - 2 s per shot (`--shot 2.0`) for this calmer look.
@@ -90,3 +96,4 @@ The user's fourth reference (21.6 s, 9:16) is a bright modern home on a sunny mi
 - hv-0005 (2026-11-01): the user said the piano was "too high, too strong, not healing" and the flower shot "not natural, the video should be real". The raw ACE piano measured ~870 Hz spectral centroid against reference 3's 530 Hz. The fixes:
   - Softer tags plus the pitch-down and low-pass chain at -20 LUFS (step 4); measure the centroid before showing a mix.
   - The flower brief had asked the bouquet to stir; the re-render named only dust motes and the curtain as motion (see Looks).
+- hv-0014 (2026-11-01): the user asked for different healing styles and "not this open window anymore". The window-reveal shot was dropped from the cut, which now opens on the sunlit kitchen. Openers now rotate (see Looks).
