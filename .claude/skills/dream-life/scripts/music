@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+# Usage: music "<idea's music field>" out.m4a [seconds=32] [seed=7]
+# Instrumental dream track with ACE-Step, through healing-video's ace_piano.py (generic tags -> wav)
+# and lnorm.py (starts at the track's body, two-pass level). Warm vintage top end like the
+# references (they roll off above ~5 kHz), -16 LUFS before the mix.
+set -euo pipefail
+SKILL_DIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+HV=${HEALING_SCRIPTS:-$SKILL_DIR/../healing-video/scripts}
+MV=${MUSE_VIDEO_SCRIPTS:-$SKILL_DIR/../muse-video/scripts}
+style=$1; out=$2; secs=${3:-32}; seed=${4:-7}
+ACE_PY=${ACE_STEP_HOME:-$HOME/.local/share/ace-step}/venv/bin/python
+tags="$style, clear memorable melody, magical, enchanted, sparkling celesta and glockenspiel shimmer, twinkling chimes, soft harp glissandos, dreamy, whimsical, nostalgic, gentle dynamics, warm vintage recording, instrumental, no vocals"
+raw="${out%.*}.raw.wav"
+if [[ -x $ACE_PY ]]; then
+  # one ACE render per machine: same lock file as music.py (macOS has no flock(1), so fcntl in python)
+  python3 - "$(dirname "$(dirname "$(dirname "$ACE_PY")")")/render.lock" "$ACE_PY" "$HV/ace_piano.py" --tags "$tags" \
+    --duration "$((secs + 6))" --seed "$seed" --out "$raw" <<'PY'
+import fcntl, subprocess, sys
+with open(sys.argv[1], "w") as lf:
+    try:
+        fcntl.flock(lf, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        print("another ACE render is running on this machine; waiting for it", file=sys.stderr)
+        fcntl.flock(lf, fcntl.LOCK_EX)
+    sys.exit(subprocess.run(sys.argv[2:]).returncode)
+PY
+else
+  uv run --no-project "$MV/music.py" --engine musicgen --style "$tags" --bpm 76 --body-beats $((secs * 76 / 60)) --out "$raw.m4a"
+  ffmpeg -v error -y -i "$raw.m4a" "$raw"
+fi
+start=$(python3 "$HV/lnorm.py" --body-start "$raw")
+python3 "$HV/lnorm.py" "$raw" "$out" -16 "lowpass=f=6000,atrim=start=$start:duration=$secs,asetpts=PTS-STARTPTS,afade=in:d=0.3,afade=out:st=$((secs - 3)):d=3"
+echo "$out"

@@ -1,0 +1,54 @@
+---
+name: dream-life
+description: Make a short vertical "dream life" video through museai - an impossible, gentle life filmed as if it were ordinary (picking the moon off a ladder, baking clouds, washing rainbows, riding a giant fluffy snail, a star shop at night, a snowy storybook town), in the user's reference looks - Pastel Americana (1950s Kodachrome candy-pastel suburb, giant plush animals), Lavender Fairytale (flower gowns, dandelion trees, lily lakes), Dream Workshop (1970s cream-and-amber star shop), Storybook Ink, Golden Nocturne oil painting, Cosy Anime and Porcelain Fantasy. 6 calm ~5 s shots with soft dissolves, a whimsical vintage instrumental track, an optional "pov:" hook. Picks from a 1000-idea bank (74 themes x 7 looks x 8 moments) and keeps a history so no video repeats. Use for "dream life video", "dreamy video", "surreal pastel video", "pov: your job is ...", "video like the moon/cloud/giant animal ones", "whimsical fantasy reel", or "next dream video".
+---
+
+# dream-life
+
+Paths are relative to this folder (`.claude/skills/dream-life/`). Server, retries, QA and delivery come from `../muse-video/SKILL.md` (Server, "Format skills" shared steps 3-7). Name everything `dream-<slug>`; the work folder is `~/Movies/museai/dream-<slug>/`.
+
+## What the references do (measured 2026-10-31, 4 reels + a 12-post grid)
+| | measured |
+|---|---|
+| format | 9:16, 25-48 s, 6-10 shots, one shot every 4.3-5 s, soft cuts/dissolves, -14 LUFS, no on-screen text |
+| idea | ONE impossible thing per shot, done calmly as an everyday chore: a giraffe hands over the moon, stars sprout in pots, a rainbow dries on a clothesline, a cloud is spun like candy floss, the moon is a pancake. Magic is soft and tactile (fur, cotton, glass), never CGI-flashy |
+| story | `day` = one person, one dream job, morning → night (db40 moon/star/rainbow chores, c54a star shop → cloud candy → sunset bubble → moon pancake, 2008 flower-gown garden); `friends` = one person, one motif per shot (289a giant plush fish, snail, cat, giraffe, swan, whale); `postcard` = a living painting of a dream place, no lead (grid: snowy ink town, oil-paint Christmas market, aerial snowy village, Westminster watercolour) |
+| frame | centred, symmetric, storybook tidy; subject in the middle third, sky above |
+| colour | pastel, low contrast, warm film grain; palettes per look in `looks.json` |
+| sound | 289a: muffled, rolled-off highs, steady pulse (vintage 1950s ballad on vinyl); 2008: melodic waltz, music-box/strings lines; no voice |
+
+## Files
+- `looks.json`: the 7 looks - `style` (appended to every shot), `palette`, `grade` (ffmpeg, compose), `music` (ACE tags), `cast` (fixed characters, the same person in every shot of a video). Change a look here, never in one video's prompt.
+- `prompt/dream.txt`: rules every shot gets (one gentle impossible act, centred frame, slow camera, no text, no music, five-finger hands, no doubled creatures).
+- `scripts/themes.py`: 74 themes (42 day jobs, 15 friends motifs, 17 postcard places), each 8-10 beats. `scripts/gen_ideas.py` crosses them with looks and moments into `ideas.json` / `ideas.md` (1000 ideas, deterministic). To grow: append themes (8+ beats, `{who}` = the character) at the END of `THEMES`, rerun.
+- `scripts/ideas.py`: pick / check / record against `~/.config/museai/dream-history.json`.
+
+## Steps
+1. **Pick**: `python3 scripts/ideas.py next > idea.json` (filters: `--look pastel`, `--format friends`, `--theme moon`, `--moment night`, `--n 5` to offer a choice; `search "cloud"` to browse). `next` skips used ideas, themes from the last 12 videos, and the last video's look (a feed that alternates looks, like the grid). Show the user title, look, hook and the 6 shots one line each; render after a yes (renders cost muse time). Human away → `webex ask`. A user's own idea → `check --theme <slug> --look <look> --moment "<moment>"`, write 6 beats in the same shape, record with `record custom`.
+2. **Write the shots**: `shots[k]` is the brief of shot k (character + action + moment). Sharpen each for the look: name the one thing that moves, the light, what's behind the subject (pink clapboard house, lily lake, star cabinet). Keep the character text word-for-word in every shot so muse draws the same person. Muse drops a mild impossible detail and renders the real-world version (dl-0002: "kitten-sized bees" → a swarm of normal bees, "glowing honey" → plain amber honey): state the magic loudly and concretely - its size against a known thing ("ONE bee as big as a house cat, only this one in the frame"), its light and what it lights ("glows like a lamp, lighting her face from below"), sparkles rising. Never add a fast camera move.
+3. **Render** every shot at once, each in its own background call:
+   ```bash
+   scripts/shot <look> "<brief of shot 1>" ~/Movies/museai/dream-<slug>/s1.mp4
+   ```
+   6 s per shot, 9:16. For a stronger character match render shot 1 first and pass its best frame as `IMAGE=s1.png` to the rest.
+4. **Music** (one ACE render at a time, ~5 min each; render 2 seeds, keep the one with a clear moving melody in its spectrogram):
+   ```bash
+   for s in 7 29; do scripts/music "$(jq -r .music idea.json)" ~/Movies/museai/dream-<slug>/m$s.m4a 30 $s; done
+   ffmpeg -i m7.m4a -lavfi "showspectrumpic=s=600x150:legend=0:fscale=log:stop=8000" m7.png
+   ```
+   Never lift the reference reels' audio (someone else's track → claim/mute). To ride a trending sound, post with the platform's "use audio" instead.
+5. **Check each clip**: contact sheet (`ffmpeg -i s1.mp4 -vf "fps=2,scale=180:-1,tile=6x2" -frames:v 1 s1.jpg`) and `python3 ../muse-video/scripts/qa.py s1.mp4 --travel 0 s1sheet.jpg`. Reject: text/logos, a face staring into the lens, warped hands, doubled or melted creatures, a character that changed clothes or hair, the magic object popping in or out, time-lapse sky. Re-render a rejected shot with a sharper brief. Pick each clip's calmest 4.6 s (`clip@start`).
+6. **Compose**:
+   ```bash
+   python3 scripts/compose.py --idea idea.json --music m7.m4a --out dream-<slug>.mp4 s1.mp4 s2.mp4@1.2 ... [--text hook|alt|none]
+   ```
+   6 shots x 4.6 s with 0.5 s dissolves (~25 s), look grade + light grain, the hook in a small white italic serif in the upper band for the first 3.5 s (clear of faces and app UI; `--text none` for the pure reference look), clip ambience at 0.25 under the music, -14 LUFS. Then qa + sheet on the result (shared step 6).
+7. **Deliver**: cover with `python3 ../healing-video/scripts/cover.py --at s<best>.mp4@2.0 --title "<hook>" --sub "<look name>" --out thumbs/dream-<slug>_9x16.jpg` (the softest, most colourful frame). Captions via `../social-captions` (`captions.py check` must PASS; YouTube ends with `#Shorts`): open with the hook, ask a soft question ("which job would you take?"), tags like #dreamcore #pastelaesthetic #surreal #aiart #cottagecore. Then shared step 7 (`FINAL=1 THUMB_DIR=thumbs CAPTIONS_FILE=captions.json ../muse-video/scripts/deliver.sh dream-<slug>.mp4 <work dir> dream-<slug>`, preview first). **Record before `FINAL=1`** (it trashes the work folder):
+   ```bash
+   python3 scripts/ideas.py record dl-0042 --video ~/Desktop/dream-<slug>.mp4 [--shots shots.json]
+   ```
+
+## Growing the account
+- Series beat one-offs: post 3-5 of one format in a row ("pov: your job is ..." day jobs), then rotate. `next --format day --n 5` plans a week.
+- One look per series keeps the grid coherent like the reference grid; `next --look pastel` pins it.
+- The hook is a pov or a wish ("pov: your job is picking the moon"), never a title card; the first shot is the most surprising beat (move it first in step 2 if needed).
