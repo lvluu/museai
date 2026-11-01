@@ -11,8 +11,9 @@ one entry per DELIVERED video (idea id or custom idea, title, theme, look, momen
   python3 scripts/ideas.py record custom --title "..." --theme my-slug --look pastel --moment "golden hour" --video ...
   python3 scripts/ideas.py list [--last 20] ; python3 scripts/ideas.py stats
 
-next: the first unused ideas (bank order) whose theme was not used in the last 12 videos and whose look
-differs from the last video's (a feed alternates looks), unless --look pins it. --moment night|day
+next: the first unused ideas (bank order) whose theme was not used in the last 12 videos, in the
+account's feed looks (FEED_LOOKS: the photoreal film looks, user rule 2026-11-01), alternating
+between them; --look pins one, --look any opens all 7. --moment night|day
 filters by time of day. check exits 1 DUPLICATE (same theme + look + moment, or the same idea) or
 2 SIMILAR (theme in the last 12 videos).
 """
@@ -27,6 +28,9 @@ SKILL = Path(__file__).resolve().parent.parent
 BANK = SKILL / "ideas.json"
 HIST = Path.home() / ".config/museai/dream-history.json"
 NIGHT = {"blue hour", "starry night", "snowy night"}
+# the account's look: photoreal film, a young-woman lead (dl-0001, dl-0002). The illustrated looks
+# (ink, nocturne, anime, porcelain) and workshop only when the user asks for them.
+FEED_LOOKS = {"pastel", "lavender"}
 
 
 def load(path, default):
@@ -82,7 +86,9 @@ def main():
     if a.cmd == "next":
         out = []
         for i in bank:
-            if a.look and i["look"] != a.look:
+            if a.look and a.look != "any" and i["look"] != a.look:
+                continue
+            if not a.look and i["look"] not in FEED_LOOKS:
                 continue
             if a.format and i["format"] != a.format:
                 continue
