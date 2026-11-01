@@ -11,6 +11,7 @@
       "#7FA35B lawn green",
       "#8FB8E0 cornflower sky"
     ],
+    "accent": "#FFB8D2",
     "grade": "eq=saturation=1.08:gamma=1.03,colorbalance=rs=0.03:bs=0.02:rh=0.02",
     "music": "dreamy 1950s doo-wop ballad, instrumental, soft vibraphone melody, warm upright bass, brushed snare, celesta sparkles, vintage vinyl warmth, slow 6/8 sway, 72 bpm",
     "cast": [
@@ -32,6 +33,7 @@
       "#A9C5A0 sage",
       "#9DB8DC periwinkle sky"
     ],
+    "accent": "#E2C6FF",
     "grade": "eq=saturation=0.98:gamma=1.05:brightness=0.02,colorbalance=rs=0.02:bs=0.05:bm=0.02,gblur=sigma=0.4",
     "music": "romantic dreamy waltz, instrumental, music box melody, harp arpeggios, soft legato strings, celesta, gentle 3/4 time, 84 bpm",
     "cast": [
@@ -52,6 +54,7 @@
       "#1F2E4D night navy",
       "#F7E9A8 star gold"
     ],
+    "accent": "#FFD36E",
     "grade": "eq=saturation=1.02:gamma=1.0,colorbalance=rs=0.04:gs=0.01:bh=-0.03,noise=alls=6:allf=t",
     "music": "whimsical vintage fairytale orchestra, instrumental, pizzicato strings, glockenspiel and celesta melody, warm clarinet, soft waltz, magical workshop, 96 bpm",
     "cast": [
@@ -73,6 +76,7 @@
       "#F7B267 window amber",
       "#FFFFFF snow"
     ],
+    "accent": "#FFC94D",
     "grade": "eq=saturation=1.05:contrast=1.03",
     "music": "cosy storybook winter tune, instrumental, music box and celesta melody, pizzicato strings, soft sleigh bells, warm bassoon, 80 bpm",
     "cast": [
@@ -92,6 +96,7 @@
       "#7E9AB2 snow blue",
       "#9E2B25 berry red"
     ],
+    "accent": "#FFCF5A",
     "grade": "eq=saturation=1.04:contrast=1.04:gamma=0.98,colorbalance=rh=0.03:bs=0.03",
     "music": "nostalgic winter nocturne, instrumental, gentle solo piano melody over soft warm strings, distant celesta, airy choir pad, 66 bpm",
     "cast": [
@@ -111,6 +116,7 @@
       "#F2D7A6 lamp cream",
       "#2E3A59 night indigo"
     ],
+    "accent": "#FFE066",
     "grade": "eq=saturation=1.06",
     "music": "nostalgic Japanese animated film score, instrumental, gentle solo piano melody, warm strings, soft wooden flute, summer breeze, 76 bpm",
     "cast": [
@@ -131,6 +137,7 @@
       "#C9A9C7 mauve",
       "#8FA9C9 mist blue"
     ],
+    "accent": "#FFD3A6",
     "grade": "eq=saturation=1.03:gamma=1.02",
     "music": "enchanted lullaby, instrumental, music box melody, harp, celesta, soft strings and airy choir, 70 bpm",
     "cast": [
