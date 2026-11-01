@@ -1,14 +1,15 @@
-"""Assemble a dream-life reel: 6 calm shots joined by soft dissolves, the look's grade, an optional
-hook line, the dream track over the clips' own soft ambience.
+"""Assemble a dream-life reel: 6 calm shots joined by soft dissolves, the look's grade, the dream
+track over the clips' own soft ambience.
 
 Usage:
   python3 scripts/compose.py --idea idea.json --music track.m4a --out dream-<slug>.mp4 s1.mp4 s2.mp4@1.5 ...
-  [--shot 4.6] [--xfade 0.5] [--text hook|alt|none|"custom line"] [--text-secs 3.5] [--ambience 0.25]
+  [--shot 4.6] [--xfade 0.5] [--text none|hook|alt|"custom line"] [--text-secs 3.5] [--ambience 0.25]
 
 Measured on the references (720x1280, 25-48 s, -14 LUFS): one shot every 4.3-5 s, 6-10 shots, soft
 cuts, no on-screen text, music carries the reel. clip@start picks where the window starts (default
-0.8 s: muse's first second often settles). The hook (small white serif, upper band, clear of the
-subject and of TikTok/Reels UI) shows for the first --text-secs only, then the picture stays clean.
+0.8 s: muse's first second often settles). No text on the video (user rule 2026-11-01): the hook
+goes on the thumbnail and in the captions. --text hook draws it for the first --text-secs only if
+the user asks for it on a video.
 """
 
 import argparse
@@ -30,7 +31,7 @@ ap.add_argument("--music", required=True)
 ap.add_argument("--out", required=True)
 ap.add_argument("--shot", type=float, default=4.6, help="seconds each shot is on screen")
 ap.add_argument("--xfade", type=float, default=0.5, help="dissolve between shots (0 = hard cut)")
-ap.add_argument("--text", default="hook", help="hook | alt | none | a custom line")
+ap.add_argument("--text", default="none", help="none | hook | alt | a custom line")
 ap.add_argument("--text-secs", type=float, default=3.5)
 ap.add_argument("--ambience", type=float, default=0.25, help="clip ambience level under the music")
 ap.add_argument("--size", default="1080x1920")

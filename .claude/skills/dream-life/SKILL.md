@@ -1,6 +1,6 @@
 ---
 name: dream-life
-description: Make a short vertical "dream life" video through museai - an impossible, gentle life filmed as if it were ordinary (picking the moon off a ladder, baking clouds, washing rainbows, riding a giant fluffy snail, a star shop at night, a snowy storybook town), in the user's reference looks - Pastel Americana (1950s Kodachrome candy-pastel suburb, giant plush animals), Lavender Fairytale (flower gowns, dandelion trees, lily lakes), Dream Workshop (1970s cream-and-amber star shop), Storybook Ink, Golden Nocturne oil painting, Cosy Anime and Porcelain Fantasy. 6 calm ~5 s shots with soft dissolves, a whimsical vintage instrumental track, an optional "pov:" hook. Picks from a 1000-idea bank (74 themes x 7 looks x 8 moments) and keeps a history so no video repeats. Use for "dream life video", "dreamy video", "surreal pastel video", "pov: your job is ...", "video like the moon/cloud/giant animal ones", "whimsical fantasy reel", or "next dream video".
+description: Make a short vertical "dream life" video through museai - an impossible, gentle life filmed as if it were ordinary (picking the moon off a ladder, baking clouds, washing rainbows, riding a giant fluffy snail, a star shop at night, a snowy storybook town), in the user's reference looks - Pastel Americana (1950s Kodachrome candy-pastel suburb, giant plush animals), Lavender Fairytale (flower gowns, dandelion trees, lily lakes), Dream Workshop (1970s cream-and-amber star shop), Storybook Ink, Golden Nocturne oil painting, Cosy Anime and Porcelain Fantasy. 6 calm ~5 s shots with soft dissolves, a whimsical vintage instrumental track, no text on the video (the "pov:" hook goes on the thumbnail and captions). Picks from a 1000-idea bank (74 themes x 7 looks x 8 moments) and keeps a history so no video repeats. Use for "dream life video", "dreamy video", "surreal pastel video", "pov: your job is ...", "video like the moon/cloud/giant animal ones", "whimsical fantasy reel", or "next dream video".
 ---
 
 # dream-life
@@ -40,9 +40,9 @@ Paths are relative to this folder (`.claude/skills/dream-life/`). Server, retrie
 5. **Check each clip**: contact sheet (`ffmpeg -i s1.mp4 -vf "fps=2,scale=180:-1,tile=6x2" -frames:v 1 s1.jpg`) and `python3 ../muse-video/scripts/qa.py s1.mp4 --travel 0 s1sheet.jpg`. Reject: text/logos, a face staring into the lens, warped hands, doubled or melted creatures, a character that changed clothes or hair, the magic object popping in or out, time-lapse sky. Re-render a rejected shot with a sharper brief. Pick each clip's calmest 4.6 s (`clip@start`).
 6. **Compose**:
    ```bash
-   python3 scripts/compose.py --idea idea.json --music m7.m4a --out dream-<slug>.mp4 s1.mp4 s2.mp4@1.2 ... [--text hook|alt|none]
+   python3 scripts/compose.py --idea idea.json --music m7.m4a --out dream-<slug>.mp4 s1.mp4 s2.mp4@1.2 ...
    ```
-   6 shots x 4.6 s with 0.5 s dissolves (~25 s), look grade + light grain, the hook in a small white italic serif in the upper band for the first 3.5 s (clear of faces and app UI; `--text none` for the pure reference look), clip ambience at 0.25 under the music, -14 LUFS. Then qa + sheet on the result (shared step 6).
+   6 shots x 4.6 s with 0.5 s dissolves (~25 s), look grade + light grain, no text on the video (user rule 2026-11-01: the hook lives on the thumbnail and in the captions; `--text hook` only when the user asks for it on a video), clip ambience at 0.25 under the music, -14 LUFS. Then qa + sheet on the result (shared step 6).
 7. **Deliver**: cover with `python3 ../healing-video/scripts/cover.py --at s<best>.mp4@2.0 --title "<hook>" --sub "<look name>" --out thumbs/dream-<slug>_9x16.jpg` (the softest, most colourful frame). Captions via `../social-captions` (`captions.py check` must PASS; YouTube ends with `#Shorts`): open with the hook, ask a soft question ("which job would you take?"), tags like #dreamcore #pastelaesthetic #surreal #aiart #cottagecore. Then shared step 7 (`FINAL=1 THUMB_DIR=thumbs CAPTIONS_FILE=captions.json ../muse-video/scripts/deliver.sh dream-<slug>.mp4 <work dir> dream-<slug>`, preview first). **Record before `FINAL=1`** (it trashes the work folder):
    ```bash
    python3 scripts/ideas.py record dl-0042 --video ~/Desktop/dream-<slug>.mp4 [--shots shots.json]
@@ -51,4 +51,4 @@ Paths are relative to this folder (`.claude/skills/dream-life/`). Server, retrie
 ## Growing the account
 - Series beat one-offs: post 3-5 of one format in a row ("pov: your job is ..." day jobs), then rotate. `next --format day --n 5` plans a week.
 - One look per series keeps the grid coherent like the reference grid; `next --look pastel` pins it.
-- The hook is a pov or a wish ("pov: your job is picking the moon"), never a title card; the first shot is the most surprising beat (move it first in step 2 if needed).
+- The hook is a pov or a wish ("pov: your job is picking the moon"), never a title card; it goes on the thumbnail and opens every caption, never on the video; the first shot is the most surprising beat (move it first in step 2 if needed).
