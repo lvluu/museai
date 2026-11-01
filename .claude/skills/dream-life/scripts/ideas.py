@@ -7,7 +7,7 @@ one entry per DELIVERED video (idea id or custom idea, title, theme, look, momen
   python3 scripts/ideas.py show dl-0042
   python3 scripts/ideas.py search "moon"                 # ideas whose title/theme/hook match
   python3 scripts/ideas.py check --theme moon-picker --look pastel --moment "starry night"
-  python3 scripts/ideas.py record dl-0042 --video ~/Desktop/dream-x.mp4 [--shots shots.json]
+  python3 scripts/ideas.py record dl-0042 --video ~/Desktop/dream-x.mp4 [--shots shots.json] [--music m.json]
   python3 scripts/ideas.py record custom --title "..." --theme my-slug --look pastel --moment "golden hour" --video ...
   python3 scripts/ideas.py list [--last 20] ; python3 scripts/ideas.py stats
 
@@ -74,6 +74,7 @@ def main():
             p.add_argument("id", help="dl-NNNN or 'custom'")
             p.add_argument("--video", required=True)
             p.add_argument("--shots", help="JSON list of the shot briefs actually used")
+            p.add_argument("--music", help="the track's .json from scripts/music (flavour, seed)")
         for f in ("title", "theme", "look", "moment"):
             p.add_argument(f"--{f}")
     sub.add_parser("list").add_argument("--last", type=int, default=20)
@@ -130,6 +131,8 @@ def main():
             e = {k: i[k] for k in ("id", "title", "theme", "look", "moment")}
         if a.shots:
             e["shots"] = json.loads(Path(a.shots).read_text())
+        if a.music:
+            e["music"] = json.loads(Path(a.music).read_text())
         e.update(video=a.video, date=datetime.date.today().isoformat())
         HIST.parent.mkdir(parents=True, exist_ok=True)
         HIST.write_text(json.dumps(hist + [e], indent=1, ensure_ascii=False) + "\n")

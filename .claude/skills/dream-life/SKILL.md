@@ -31,11 +31,12 @@ Paths are relative to this folder (`.claude/skills/dream-life/`). Server, retrie
    scripts/shot <look> "<brief of shot 1>" ~/Movies/museai/dream-<slug>/s1.mp4
    ```
    6 s per shot, 9:16. For a stronger character match render shot 1 first and pass its best frame as `IMAGE=s1.png` to the rest.
-4. **Music** (one ACE render at a time, ~5 min each; render 2 seeds, keep the one with a clear moving melody in its spectrogram):
+4. **Music**: every video sounds different (user rule 2026-11-01). `scripts/music` picks a style from its 10 `FLAVOURS` (doo-wop, swing, bossa nova, musette, ukulele, minuet, lullaby, lo-fi, fairytale orchestra, cafe jazz) that none of the last 4 videos used, with a random seed, and writes `m_<flavour>.json` beside the track. Render two different flavours that suit the look (one ACE render at a time, ~5 min each) and keep the one with the clearer moving melody in its spectrogram:
    ```bash
-   for s in 7 29; do scripts/music "$(jq -r .music idea.json)" ~/Movies/museai/dream-<slug>/m$s.m4a 30 $s; done
-   ffmpeg -i m7.m4a -lavfi "showspectrumpic=s=600x150:legend=0:fscale=log:stop=8000" m7.png
+   for f in swing bossa; do scripts/music "$(jq -r .music idea.json)" ~/Movies/museai/dream-<slug>/m_$f.m4a 30 "" $f; done
+   ffmpeg -i m_swing.m4a -lavfi "showspectrumpic=s=600x150:legend=0:fscale=log:stop=8000" m_swing.png
    ```
+   (`""` = random seed, `auto` = an unused flavour, `look` = the look's own `music` tags.) Record it: `ideas.py record ... --music m_<flavour>.json`.
    Never lift the reference reels' audio (someone else's track → claim/mute). To ride a trending sound, post with the platform's "use audio" instead.
 5. **Check each clip**: contact sheet (`ffmpeg -i s1.mp4 -vf "fps=2,scale=180:-1,tile=6x2" -frames:v 1 s1.jpg`) and `python3 ../muse-video/scripts/qa.py s1.mp4 --travel 0 s1sheet.jpg`. Reject: text/logos, a face staring into the lens, warped hands, doubled or melted creatures, a character that changed clothes or hair, the magic object popping in or out, time-lapse sky. Re-render a rejected shot with a sharper brief. Pick each clip's calmest 4.6 s (`clip@start`).
 6. **Compose**:
@@ -45,7 +46,7 @@ Paths are relative to this folder (`.claude/skills/dream-life/`). Server, retrie
    6 shots x 4.6 s with 0.5 s dissolves (~25 s), look grade + light grain, no text on the video (user rule 2026-11-01: the hook lives on the thumbnail and in the captions; `--text hook` only when the user asks for it on a video), clip ambience at 0.25 under the music, -14 LUFS. Then qa + sheet on the result (shared step 6).
 7. **Deliver**: cover with `python3 scripts/cover.py --idea idea.json --at s<k>.mp4@2.0 --hook "<3-6 word hook, *accent word*>" --place top|bottom --out thumbs/dream-<slug>_9x16.jpg --grid grid.jpg`. Pick the frame with the lead's face (or the magic object) big, bright and colourful; `--place` puts the text where it does not cover the face. Look at the cover AND `grid.jpg` (the 3:4 crop the profile grid shows) before delivery: hook readable at grid size, face clear. Captions via `../social-captions` (`captions.py check` must PASS; YouTube ends with `#Shorts`): open with the hook, ask a soft question ("which job would you take?"), then plain keywords people search ("dreamy snowy town", "storybook winter"): Instagram search matches caption words, not cover text. 3-5 hashtags only (Instagram caps posts at 5 since 2025-12), e.g. #dreamcore #pastelaesthetic #surreal #aiart #cottagecore. Then shared step 7 (`FINAL=1 THUMB_DIR=thumbs CAPTIONS_FILE=captions.json ../muse-video/scripts/deliver.sh dream-<slug>.mp4 <work dir> dream-<slug>`, preview first). **Record before `FINAL=1`** (it trashes the work folder):
    ```bash
-   python3 scripts/ideas.py record dl-0042 --video ~/Desktop/dream-<slug>.mp4 [--shots shots.json]
+   python3 scripts/ideas.py record dl-0042 --video ~/Desktop/dream-<slug>.mp4 --shots shots.json --music m_<flavour>.json
    ```
 
 ## Growing the account
