@@ -121,10 +121,10 @@ def say(who, b):
 
 def script(e):
     """(speaker, block) in spoken order; clip A ends on the misreading, clip B fixes it"""
-    p, l = "PARTNER", "LINH"
-    a = ([(p, e["setup"]), (l, e["line"]), (p, e["react"])] if e["speaker"] == "linh"
-         else [(p, e["line"]), (l, e["react"])])
-    b = [(p, e["explain"]), (l, e["replay"])]
+    p, w = "PARTNER", "LINH"
+    a = ([(p, e["setup"]), (w, e["line"]), (p, e["react"])] if e["speaker"] == "linh"
+         else [(p, e["line"]), (w, e["react"])])
+    b = [(p, e["explain"]), (w, e["replay"])]
     return a, b
 
 
