@@ -13,9 +13,9 @@ the clip the window starts (default 1.0 s: muse's first second often settles). H
 references; the last shot fades out 0.5 s so the loop back to shot 1 is soft.
 """
 import argparse
+import json
 import math
 import re
-import json
 import subprocess
 import tempfile
 from pathlib import Path
