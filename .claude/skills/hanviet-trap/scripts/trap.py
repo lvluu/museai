@@ -153,7 +153,7 @@ def brief(e, out):
         "VOICE AND LIP SYNC\n"
         "Natural Standard Mandarin (Putonghua), accurate tones, normal conversational speed throughout. "
         "Speak ONLY the Chinese dialogue; never read pinyin, Vietnamese or instructions. Replies follow within "
-        "0.15-0.3 s. Strict speaker assignment: only the speaker's mouth moves; the listener's mouth stays "
+        "0.15-0.3 s. Each line is spoken exactly once, as written: nobody adds, repeats or rephrases a line, and after the last line both hold a silent smile until the end. Strict speaker assignment: only the speaker's mouth moves; the listener's mouth stays "
         "relaxed and closed.\n\n"
         "ACTING AND CAMERA\n"
         "Locked medium two-shot, both framed from the waist up with headroom (head tops below 25 % of the frame). "
