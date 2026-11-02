@@ -76,8 +76,9 @@ The user: "the video look AI". hv-0017 (Tyrol dumplings, rainy afternoon) had ev
 - Few things per frame: the hands, the work, two or three objects. No vase, candle and lamp together; no flowers unless the shot is about them.
 - Handmade food is uneven ("lumpy, slightly different sizes"); never "a row of" anything.
 - Animals in bright daylight only (sun patch, garden): in dim light muse melts the fur.
-- Prefer daylight looks (bright midday, overcast, morning window light) over dusk interiors; rain shots stay grey-blue and dim, not orange.
-- `compose.py` grades phone-real: saturation 0.82, slightly cool, fine moving grain (hides muse's plastic smoothness).
+- **Bright and lively, not dim.** The muted grey-rain redo of hv-0017 was "too dark, too tired and boring". Every video is a sunny day: sun streaming into a white, airy room, blue sky outside (reference 4). A rainy or winter idea becomes "sun breaking through after the rain" or "bright snowy morning", never a dim interior. `compose.py` lifts any clip darker than mean luma 135 (gamma up to 1.6), but render bright; a lift can't fix a murky shot.
+- **Something is happening in every shot**: her hands work (kneading, pouring, picking, wiping), she walks through the sun, an animal plays or eats, laundry flaps, water splashes. A static plate or empty window is at most one shot per video. Music for sunny videos: `MOOD=sunny`; cuts `--shot 2.0`.
+- `compose.py` grade: natural saturation, a touch warm, fine moving grain (hides muse's plastic smoothness), auto exposure lift.
 - Write "Static locked-off shot" for a still camera. "Phone on a tripod" put a phone on a tripod into 2 of 6 hv-0017 shots; `shot` refuses it.
 - Judge the contact sheet before compose: any shot that looks like a render (glow, halos, clutter, clones, warped hands) is re-rendered, not kept.
 

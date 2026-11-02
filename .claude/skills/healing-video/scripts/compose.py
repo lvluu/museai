@@ -13,6 +13,8 @@ the clip the window starts (default 1.0 s: muse's first second often settles). H
 references; the last shot fades out 0.5 s so the loop back to shot 1 is soft.
 """
 import argparse
+import math
+import re
 import json
 import subprocess
 import tempfile
@@ -70,6 +72,16 @@ def has_audio(clip):
     return bool(r.stdout.strip())
 
 
+def exposure_lift(path, start):
+    """Gamma that brings a dark clip's mean luma up to ~135 (bright, airy like reference 4); 1.0 if bright."""
+    out = subprocess.run(["ffmpeg", "-hide_banner", "-ss", start or "1.0", "-t", "2", "-i", path, "-vf",
+                          "fps=2,signalstats,metadata=print:key=lavfi.signalstats.YAVG", "-f", "null", "-"],
+                         capture_output=True, text=True).stderr
+    vals = [float(v) for v in re.findall(r"YAVG=([\d.]+)", out)]
+    y = sum(vals) / len(vals) if vals else 135
+    return 1.0 if y >= 135 else min(1.6, math.log(max(y, 20) / 255) / math.log(135 / 255))  # eq gamma > 1 brightens
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("clips", nargs="+", help="shot.mp4 or shot.mp4@start_seconds, in shot order")
@@ -105,6 +117,7 @@ def main():
     else:
         texts = [a.text or idea["caption"]] * n
 
+    lift = [exposure_lift(*c.partition("@")[::2]) for c in a.clips]
     args, vf, af = ["ffmpeg", "-v", "error", "-y"], [], []
     for c in a.clips:
         path, _, start = c.partition("@")
@@ -130,10 +143,10 @@ def main():
         else:
             pngs.append(None)
     for i in range(n):
-        # phone-real grade: muted saturation, no warm push, fine moving grain hides muse's plastic smoothness
-        # (hv-0017 looked AI: orange HDR glow, waxy surfaces)
+        # bright, fresh phone grade: natural colour, a touch of warmth, fine moving grain hides muse's plastic
+        # smoothness (hv-0017: orange HDR glow looked AI; the muted cool redo was "too dark, tired, boring")
         v = (f"[{i}:v]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},fps={fps},setsar=1,"
-             f"eq=contrast=0.97:saturation=0.82,colorbalance=rm=-0.02:bm=0.01,noise=alls=5:allf=t,"
+             f"eq=contrast=1.0:saturation=1.0:gamma={lift[i]:.2f},colorbalance=rm=0.01:bm=-0.01,noise=alls=3:allf=t,"
              f"trim=duration={shot + a.dissolve:.3f},setpts=PTS-STARTPTS[v{i}]")
         vf.append(v)
         if pngs[i] is not None:
