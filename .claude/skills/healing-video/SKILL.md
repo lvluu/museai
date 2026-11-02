@@ -7,6 +7,8 @@ description: Make a short vertical "healing" slow-living video through museai - 
 
 Paths are relative to this folder (`.claude/skills/healing-video/`). Server, retries, QA and delivery come from `../muse-video/SKILL.md` (Server, "Format skills" shared steps 3-7). Name everything `healing-<slug>`; the work folder is `~/Movies/museai/healing-<slug>/`.
 
+The videos post on their own account (Healing tab in the dashboard): set it up with `references/account-kit.md` (names, bios, warm-up, posting times, connecting auto-post).
+
 ## The two concepts (measured on the user's reference reels, both 9:16, ~9.8 s)
 | | postcard (reference 1) | ode (reference 2) |
 |---|---|---|
