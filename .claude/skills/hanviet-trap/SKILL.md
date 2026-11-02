@@ -47,12 +47,12 @@ Only words a Vietnamese learner really misreads go in. 便宜 was dropped: nobod
    - `plan.json`: hook, tags, stamp, truth, poll, teaser, cues, YouTube title and final file name.
 3. **Still**: one two-shot still (Linh SCREEN LEFT, partner right, three-quarter faces, heads below 20 %,
    since the hook and the truth card sit in the top band), following muse-video "Faces toward the camera
-   need a first frame". Linh and Hạo are the EVERYDAY CHINESE EP46 couple (raw render `vid_2132c395`),
-   and the user wants those faces, not new ones (2026-11-02: "use the character which used for creating
-   daily episode video"). `/v1/images/generations` takes no reference image, so a generated still gets
-   new faces. Use a real EP46 frame as the still: `refs/linh-hao.jpg` (`plan.ref`) for clips A and B,
-   with the set in the briefs set to that frame's party corner (ep 01, 2026-11-02). For C, crop Linh from
-   it (`crop((0,161,560,1157))`, resized to 1080x1920). Render clips A and B
+   need a first frame". Linh and Hạo are the EVERYDAY CHINESE EP49 couple in everyday clothes, and the
+   user wants those faces, not new ones (2026-11-02: "use the character which used for creating daily
+   episode video"), and not the EP46 party look ("normal character, not birthday theme please").
+   `/v1/images/generations` takes no reference image, so a generated still gets new faces. Use the real
+   EP49 frames as stills, scaled to 1080x1920: `refs/linh-hao.jpg` (`plan.ref`, hallway two-shot) for
+   clips A and B, `refs/linh-solo.jpg` (`plan.ref_solo`, Linh alone, frontal) for C. Render clips A and B
    with `IMAGE=` that still, then `CONTINUE_FROM`. Render C as its own clip: a centred still of Linh,
    head top below 20 %, joined with a hard cut (muse-video "Intro shot + cut", `planned_cuts=1`).
 4. **Render, check, stitch, dub**: muse-video steps 1-8.
@@ -95,7 +95,7 @@ It draws five key frames with the real overlay code, on the still or on a placeh
   - setup (only when speaker is `linh`), line, react, explain, replay, quiz;
   - hook (≤ 8 words, shows the word), cast, set, note, py_ok.
 - `history.json`: shipped episodes (created by `done`).
-- `refs/linh-hao.jpg`, `refs/linh-hao-2.jpg`: the pair's face reference (EP46 frames, no text).
+- `refs/linh-hao.jpg`, `refs/linh-solo.jpg`: the pair's face reference (EP49 hallway frames, no text).
 - `scripts/trap.py`: list / next / check / brief / done. `LINH` + `DRESSES` and `HAO` + `FITS` keep the
   faces the same and rotate the clothes.
 - `scripts/fx.py`: apply (tags, stamp freeze + SFX, truth, poll, teaser) / board.

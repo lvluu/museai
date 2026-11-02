@@ -28,21 +28,22 @@ BLOCKS = ("setup", "line", "react", "explain", "replay", "quiz")
 KINDS = {"meaning", "tone", "rude"}
 HOOK_WORDS = 8  # muse-video hook rule
 
-# the recurring pair is the EVERYDAY CHINESE EP46 couple (refs/linh-hao.jpg, raw render vid_2132c395):
-# same faces and voices every episode; Linh's dress and Hạo's outfit change per episode
+# the recurring pair is the EVERYDAY CHINESE EP49 couple in everyday clothes (refs/linh-hao.jpg two-shot,
+# refs/linh-solo.jpg Linh alone, same hallway). Not the EP46 party couple: user, 2026-11-02, "normal
+# character, not birthday theme please". Same faces and voices every episode.
 REFS = HERE / "refs"
 LINH = ("Linh, Vietnamese woman, 21, very beautiful in a natural, fresh way: delicate youthful oval face, bright "
-        "clear eyes, light natural makeup with rosy lips, long silky black hair in soft loose waves with a small "
-        "sparkly star hair clip, small drop earrings")
-HAO = ("Hạo, Chinese man, 24, very handsome like a young actor, short stylish black hair swept up, clean-shaven, "
+        "clear eyes, light natural makeup with rosy lips, long silky black hair in soft waves, small pearl "
+        "earrings")
+HAO = ("Hạo, Chinese man, 24, handsome, friendly, ordinary everyday look, short neat black hair, clean-shaven, "
        "camera-shy, never looks into the lens")
-DRESSES = ["a short white sparkly puff-sleeve dress", "an emerald satin slip dress with a cream cardigan",
+DRESSES = ["a soft peach silk blouse with a bow at the neck and cream wide-leg trousers", "an emerald satin slip dress with a cream cardigan",
            "a pastel-pink tweed mini dress", "a sky-blue flowy midi dress with puff sleeves",
            "a black velvet dress with a white collar", "a lilac chiffon wrap dress",
            "a red qipao-inspired modern mini dress", "a butter-yellow knit dress"]
-REF_SET = ("a night party corner with pink, lilac and gold balloons, warm string-light bokeh and softly "
-           "drifting confetti, exactly as in the first frame")
-FITS = ["a tailored light-grey blazer over a black crew-neck T-shirt", "a navy bomber jacket over a white T-shirt",
+REF_SET = ("a bright, plain apartment hallway with white walls, a light wooden door and a small potted plant, "
+           "soft natural daylight, exactly as in the first frame")
+FITS = ["a navy crew-neck sweater over a white T-shirt", "a navy bomber jacket over a white T-shirt",
         "a camel overcoat over a black turtleneck", "a crisp white shirt with rolled sleeves",
         "a charcoal knit sweater over a collared shirt", "a black leather jacket over a grey T-shirt",
         "a beige trench coat over a white shirt", "a dark-green bomber jacket over a black T-shirt"]
@@ -132,7 +133,7 @@ def brief(e, out):
     n = len(shipped) + 1
     later = [x for x in bank() if x["id"] not in {h["id"] for h in shipped} and x["id"] != e["id"]]
     hao = e["cast"] == "hao"
-    # The image API takes no reference image, so Hạo episodes start from the EP46 frame itself:
+    # The image API takes no reference image, so Hạo episodes start from the EP49 frame itself:
     # its clothes and set, not the rotation.
     dress = DRESSES[0] if hao else DRESSES[(n - 1) % len(DRESSES)]
     set_ = REF_SET if hao else e["set"]
@@ -180,7 +181,7 @@ def brief(e, out):
         "hook": e["hook"],
         "tags": [{"name": "Linh", "flag": "VN", "role": "du học sinh Việt"},
                  {"name": e["partner"].split(" (")[0], "flag": "CN", "role": "bạn Trung Quốc" if hao else "người bản xứ"}],
-        "ref": str(REFS / "linh-hao.jpg"),
+        "ref": str(REFS / "linh-hao.jpg"), "ref_solo": str(REFS / "linh-solo.jpg"),
         "stamp": {"zh": e["zh"], "py": e["py"], "hv": e["hv"], "assumed": e["assumed"]},
         "truth": {"zh": e["zh"], "py": e["py"], "real": e["real"],
                   "instead": e["say_instead"], "assumed": e["assumed"].split(",")[0]},

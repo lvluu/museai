@@ -73,7 +73,11 @@ def wrap(f, words, width):
         else:
             lines.append(cur)
             cur = w
-    return lines + [cur]
+    lines.append(cur)
+    if len(lines) == 2:  # balance two lines: no lone "gì?" on the second one
+        i = min(range(1, len(words)), key=lambda i: max(f.getlength(" ".join(p)) for p in (words[:i], words[i:])))
+        lines = [" ".join(words[:i]), " ".join(words[i:])]
+    return lines
 
 
 def layout(y1, sub):
