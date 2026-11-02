@@ -130,9 +130,10 @@ def main():
         else:
             pngs.append(None)
     for i in range(n):
-        # soft, muted grade: a little less contrast and saturation, faint warmth (both references)
+        # phone-real grade: muted saturation, no warm push, fine moving grain hides muse's plastic smoothness
+        # (hv-0017 looked AI: orange HDR glow, waxy surfaces)
         v = (f"[{i}:v]scale={w}:{h}:force_original_aspect_ratio=increase,crop={w}:{h},fps={fps},setsar=1,"
-             f"eq=contrast=0.96:saturation=0.92:brightness=0.01,colorbalance=rm=0.02:bm=-0.02,"
+             f"eq=contrast=0.97:saturation=0.82,colorbalance=rm=-0.02:bm=0.01,noise=alls=5:allf=t,"
              f"trim=duration={shot + a.dissolve:.3f},setpts=PTS-STARTPTS[v{i}]")
         vf.append(v)
         if pngs[i] is not None:
