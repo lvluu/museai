@@ -68,7 +68,7 @@ The user wants views "more beautiful and healing". Reference 3 is one handheld p
 - Name the light in every brief ("late summer evening, golden hour", "warm beam of low sunlight across the worktop, dust motes").
 - Never write a camera move into a landscape or animal brief ("slow drift", "push forward"): muse overdoes it (20-30 % of the frame width per second). Write "The camera is held perfectly still, only the X moves." muse still drifts 5-10 %/s, which matches reference 3 (up to 12 %/s), so qa `motion` FAIL at that level is fine here.
 - 2 s per shot (`--shot 2.0`) for this calmer look.
-- Name only things that really move by themselves as the motion: steam, a flame, dust in a sunbeam, a curtain, leaves outside, water, an animal. Never ask flowers in a vase, tableware or furniture to move: muse animates them anyway (hv-0005: the bouquet flew into the vase). Write "the flowers and the furniture stay exactly where they are; only the dust motes and the curtain move" and "camera on a tripod".
+- Name only things that really move by themselves as the motion: steam, a flame, dust in a sunbeam, a curtain, leaves outside, water, an animal. Never ask flowers in a vase, tableware or furniture to move: muse animates them anyway (hv-0005: the bouquet flew into the vase). Write "the flowers and the furniture stay exactly where they are; only the dust motes and the curtain move" (never "tripod" or "phone on": muse draws the tripod and phone into the shot, hv-0017).
 
 ## Real look (hv-0017, 2026-11-02)
 The user: "the video look AI". hv-0017 (Tyrol dumplings, rainy afternoon) had every AI tell: saturated orange HDR glow, a candle, a lamp and dahlias in every frame, a wall of flowers outside each window, five identical dumplings in a row, the dog's fur a waxy blob in the dim light, and a slow push-in on 2 shots that were meant to hold still. Real footage is plainer than muse's idea of "cosy". Rules:
@@ -78,6 +78,7 @@ The user: "the video look AI". hv-0017 (Tyrol dumplings, rainy afternoon) had ev
 - Animals in bright daylight only (sun patch, garden): in dim light muse melts the fur.
 - Prefer daylight looks (bright midday, overcast, morning window light) over dusk interiors; rain shots stay grey-blue and dim, not orange.
 - `compose.py` grades phone-real: saturation 0.82, slightly cool, fine moving grain (hides muse's plastic smoothness).
+- Write "Static locked-off shot" for a still camera. "Phone on a tripod" put a phone on a tripod into 2 of 6 hv-0017 shots; `shot` refuses it.
 - Judge the contact sheet before compose: any shot that looks like a render (glow, halos, clutter, clones, warped hands) is re-rendered, not kept.
 
 ## Sunny kitchen (reference 4, 2026-11-01)

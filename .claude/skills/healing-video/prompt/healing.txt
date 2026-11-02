@@ -6,7 +6,7 @@ REAL, NOT AI: it must look filmed, not generated. Plain rooms with only a few th
 
 LIGHT: the real light of this place and hour - soft daylight from a window, bright midday sun, or low evening sun, exactly as it falls. On a rainy day the room is dim, grey-blue and quiet, and that is fine.
 
-CAMERA: a phone resting on a tripod or on the table, completely still, level horizon. No push-in, no drift, no zoom, no pan; the framing in the last frame is the same as in the first. Natural phone depth of field: close details a little soft in the background, nothing artificially blurred.
+CAMERA: a static locked-off shot, completely still, level horizon. No camera, phone, tripod or filming gear anywhere in the frame. No push-in, no drift, no zoom, no pan; the framing in the last frame is the same as in the first. Natural phone depth of field: close details a little soft in the background, nothing artificially blurred.
 
 LIFE IN THE FRAME (real-time, never a time-lapse): something always moves gently and naturally - leaves and petals stirring in a light breeze, steam rising from a teacup or pot, curtains breathing, raindrops running down glass, a river flowing, birds hopping. Buildings, furniture, tableware and window frames stay perfectly rigid and sharp; nothing warps, melts, shimmers or morphs. Objects stay where they are; nothing appears or disappears. Cut flowers in a vase, bowls, jars and cups never move by themselves: no flowers flying, growing or arranging themselves.
 
