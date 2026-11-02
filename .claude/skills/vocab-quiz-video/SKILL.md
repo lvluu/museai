@@ -42,24 +42,25 @@ Why it is built this way (tested on muse.ai, 2026-11-02): one AI clip is ~10 s a
 1. **Pick the episode.** Language, level, topic, next level and topic. Check `series.md`: the teaser must name an episode that will really be made. If the language has no file in `languages/`, create one from `_new-language.md` first (see "New language").
 2. **Fill the prompt:**
    ```bash
-   python3 scripts/fill_prompt.py --lang german --level A1 --topic Travel --next-level A1 --next-topic Food > /tmp/prompt.txt
+   python3 scripts/fill_prompt.py --lang german --level A1 --topic Travel --next-level A1 --next-topic Food > /tmp/vocab-german-a1-travel.prompt.txt
    ```
-   It fails if any placeholder is left unfilled.
-3. **Send it in a new muse.ai side chat and wait** (Chromium must be running with remote debugging on; never quit Chromium):
+   It fails if any placeholder is left unfilled. Name the prompt file after the episode (`/tmp/vocab-<language>-<level>-<topic>.prompt.txt`, same slug as `REC` and `OUT`), so videos made at the same time never share a file.
+3. **Gate the prompt (always).** Run the `video-prompt-reviewer` skill (it runs in a subagent) with args `gate mode for vocab-quiz-video: /tmp/vocab-german-a1-travel.prompt.txt`. Send only a `READY` prompt (>= 90/100, no blockers). If `BLOCKED`, fix the episode values, language file or template, fill again and re-score; after 2 failed rounds ask the user.
+4. **Send it in a new muse.ai side chat and wait** (Chromium must be running with remote debugging on; never quit Chromium):
    ```bash
-   PROMPT_FILE=/tmp/prompt.txt OUT=videos/german-a1-travel.mp4 REC=german-a1-travel \
+   PROMPT_FILE=/tmp/vocab-german-a1-travel.prompt.txt OUT=videos/german-a1-travel.mp4 REC=german-a1-travel \
      timeout 2100 browser-harness < scripts/muse_run.py
    ```
    Run it in the background; a build takes 10-15 min. It prints the chat URL first and muse's final reply at the end, and saves the MP4.
-4. **Check the video:**
+5. **Check the video:**
    ```bash
    bash scripts/check_video.sh videos/german-a1-travel.mp4 de
    ```
    Then look at the frame sheet it prints. Pass = 1080x1920, ~46.5 s, 3 ticks per word 1 s apart, speech-to-text matches each answer twice, progress and answers right in the frames, no AI-made text.
-5. **Report** to the user: file path, chat URL, the 6 words, every check result, and what still needs their ears/eyes (`series.md` → "By you").
-6. **Update `series.md`** (episode row + status) and, if something new was learned about the language, the language file's "Lessons".
+6. **Report** to the user: file path, chat URL, the gate verdict and score, the 6 words, every check result, and what still needs their ears/eyes (`series.md` → "By you").
+7. **Update `series.md`** (episode row + status) and, if something new was learned about the language, the language file's "Lessons".
 
-If a check fails, re-render once in a **new** chat with the failing rule repeated more strongly in the prompt; after 2 failed renders deliver the best one and name the failure.
+If a check fails, re-render once in a **new** chat with the failing rule repeated more strongly in the prompt (gate the changed prompt again); after 2 failed renders deliver the best one and name the failure.
 
 ## New language
 

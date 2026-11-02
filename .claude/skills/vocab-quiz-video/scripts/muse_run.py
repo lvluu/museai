@@ -1,5 +1,5 @@
 # browser-harness script (helpers are pre-imported). Run:
-#   PROMPT_FILE=/tmp/prompt.txt OUT=videos/x.mp4 [REC=name] timeout 2100 browser-harness < scripts/muse_run.py
+#   PROMPT_FILE=/tmp/vocab-x.prompt.txt OUT=videos/x.mp4 [REC=name] timeout 2100 browser-harness < scripts/muse_run.py
 # Opens a new muse.ai side chat, sends the prompt as one message, waits for the final video, downloads it.
 # ruff: noqa: F821 - browser-harness pre-imports its helpers (js, cdp, page_info, ...) before exec.
 import base64

@@ -1,7 +1,7 @@
 Make one finished vertical video for TikTok and YouTube Shorts: a {LANGUAGE} vocabulary quiz. Level: {LEVEL}. Topic: {TOPIC}. Do everything in this one request and send me the final MP4 file at the end. Do not ask me questions; make sensible choices.
 
 WORDS
-Pick 6 {LANGUAGE} nouns on the topic {TOPIC} that appear in {WORD_LIST} for level {LEVEL}. Use no word from outside that list. For each word prepare: the English word, {ANSWER_FORM}, and {PRONUNCIATION}. Double-check every spelling{GRAMMAR_CHECK}. Avoid words whose {LANGUAGE} form has a common second meaning that the scene does not make clear.{WORD_NOTES}
+Pick 6 {LANGUAGE} nouns on the topic {TOPIC} that appear in {WORD_LIST} for level {LEVEL}. Use no word from outside that list. Use the singular form. Each English word must have only one common {LANGUAGE} answer, so the viewer can guess it: skip an English word with two common {LANGUAGE} translations. For each word prepare: the English word, {ANSWER_FORM}, and {PRONUNCIATION}. Double-check every spelling{GRAMMAR_CHECK}. Avoid words whose {LANGUAGE} form has a common second meaning that the scene does not make clear.{WORD_NOTES}
 
 SCENE CLIPS (6 AI clips, one per word)
 Generate 6 AI video clips, vertical 9:16, 1080x1920, about 10 seconds each. Each clip is a beautiful, real-looking scene from {COUNTRY} that matches its word and shows the word's object clearly (example: {SCENE_EXAMPLE}). Use {COUNTRY}'s landscapes, landmarks, buildings, streets, food. Slow, smooth camera, natural light. No people talking. NO text, letters, signs with readable words, or subtitles inside the clips.
@@ -9,7 +9,7 @@ Generate 6 AI video clips, vertical 9:16, 1080x1920, about 10 seconds each. Each
 BUILD THE FINAL VIDEO WITH FFMPEG (all text added by ffmpeg, never by the AI model)
 Output: 1080x1920, 30 fps, H.264 + AAC, one MP4. {FONT_RULE}
 
-Text style (sizes for 1080x1920): one dark rounded card, about 84 % of the width, about 80 % opacity, 48 px padding, centered horizontally, its center at about 40 % of the height. English word 76 px bold, {LANGUAGE} answer 80 px bold ({ANSWER_STYLE}), pronunciation line 36 px, level/topic label 32 px. White text with a dark shadow. {TEXT_LAYOUT} Keep all text away from the top 8 %, the bottom 25 % and the right 12 % (platform buttons).
+Text style (sizes for 1080x1920): one dark rounded card, about 84 % of the width, about 80 % opacity, 48 px padding, centered horizontally, its center at about 40 % of the height. English word 76 px bold, {LANGUAGE} answer 80 px bold ({ANSWER_STYLE}), pronunciation line 36 px, level/topic label 32 px. White text with a dark shadow. If an answer or pronunciation line is too wide for the card, make its font smaller until it fits on one line; never wrap or cut it. {TEXT_LAYOUT} Keep all text away from the top 8 %, the bottom 25 % and the right 12 % (platform buttons).
 
 1. Hook, 1.5 s: the first frame of clip 1, darkened. Small label "{LANGUAGE_UPPER} · {LEVEL} · {TOPIC}" (32 px) above big text "Can you get 6/6 in {LANGUAGE}?" (76 px bold).
 
