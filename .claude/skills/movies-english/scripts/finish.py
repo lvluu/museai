@@ -67,12 +67,21 @@ def trims(work, sc):
         heard = " ".join(w.word.strip() for w in ws)
         want = words_of(sh["line"]["en"])
         got = words_of(heard)
-        match = sum(1 for w in want if w in got) / max(1, len(want))
+        match = sum(1 for w in want if any(g == w or g.endswith(w) for g in got)) / max(1, len(want))
         if not ws or match < 0.7:
             bad.append(sh["id"])
             print(f"MISHEARD {sh['id']}: want {sh['line']['en']!r} heard {heard!r}")
+        # muse sometimes says the line twice: keep only up to the word that completes it the first time
+        last, i = len(ws) - 1, 0
+        for j, w in enumerate(ws):
+            g = words_of(w.word)
+            if i < len(want) and g and (g[0] == want[i] or g[0].endswith(want[i])):
+                i += 1
+                if i == len(want):
+                    last = j
+                    break
         s = max(0.0, (ws[0].start if ws else 0.6) - 0.35)
-        e = min(d, (ws[-1].end if ws else sh["sec"]) + 0.6)
+        e = min(d, (ws[last].end if ws else sh["sec"]) + 0.6)
         out[sh["id"]] = [round(s, 3), round(e, 3), round((ws[0].start if ws else 0.6) - s, 3)]
         print(f"{sh['id']} {match:.0%} heard {heard!r} keep {s:.2f}-{e:.2f}")
     (work / "trims.json").write_text(json.dumps(out, indent=1))
