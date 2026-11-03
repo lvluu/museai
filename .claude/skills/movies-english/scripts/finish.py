@@ -42,7 +42,7 @@ def dur(p):
 
 
 def words_of(s):
-    return re.findall(r"[a-z']+", s.lower())
+    return re.findall(r"[a-z]+", s.lower().replace("'", "").replace("’", ""))
 
 
 def trims(work, sc):
