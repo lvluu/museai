@@ -32,6 +32,12 @@ YELLOW, WHITE = (255, 214, 64), (255, 255, 255)
 HANDLE = os.environ.get("HANDLE", "Movies English")
 
 
+# 1990s print look of the reference reels: lifted milky blacks, soft highlights, warm cast, fine grain.
+# References measure mean Y 81-115 with blacks near 38; raw muse renders sit darker and more contrasty.
+GRADE = os.environ.get("GRADE", "curves=all='0/0.1 0.5/0.55 1/0.96',"
+                       "colorbalance=rs=0.03:bs=-0.04:rm=0.02:bm=-0.02,eq=saturation=0.95,noise=alls=5:allf=t")
+
+
 def run(a, **kw):
     return subprocess.run(a, check=True, **kw)
 
@@ -83,7 +89,7 @@ def cut(work, sc, tr):
         seg = work / "seg" / f"{sh['id']}.mp4"
         seg.parent.mkdir(exist_ok=True)
         run(["ffmpeg", "-v", "error", "-y", "-ss", f"{s}", "-i", str(clip), "-frames:v", str(n),
-             "-vf", f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS},setsar=1",
+             "-vf", f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS},setsar=1,{GRADE}",
              "-af", f"aresample=48000,apad,atrim=0:{length:.4f}", "-ar", "48000", "-ac", "2",
              "-c:v", "libx264", "-crf", "15", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
              str(seg)])
