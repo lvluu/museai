@@ -57,7 +57,7 @@ start=$(python3 "$SKILL_DIR/scripts/lnorm.py" --body-start "$raw")
 # soft: ACE plays brighter than the references (spectral centroid ~870 Hz vs 530): drop it ~3 semitones,
 # which also slows it 16 %, cut above 2.2 kHz, -20 LUFS (hv-0005: "too high, too strong"); sunny: no pitch drop
 python3 "$SKILL_DIR/scripts/lnorm.py" "$raw" "$out" "$lufs" "$tone,atrim=start=$start:duration=$secs,asetpts=PTS-STARTPTS,afade=in:d=0.5,afade=out:st=$((secs-4)):d=4"
-# Refuse takes that are busy (> 2.5 onsets/s), bright (centroid > 650 Hz) or swell (> 6 dB): calm.py.
+# Refuse takes that are busy (> 2.5 onsets/s), bright (centroid > 780 Hz) or swell (> 6 dB): calm.py.
 # BUSY_OK=1 keeps one anyway; otherwise render the next seed.
 if [[ -x $ACE_PY && -z ${BUSY_OK:-} ]]; then
   "$ACE_PY" -W ignore "$SKILL_DIR/scripts/calm.py" "$out" || exit 3
