@@ -12,7 +12,7 @@ import librosa
 import numpy as np
 
 MAX_ONSETS = 2.5  # notes per second: held notes, not running arpeggios
-MAX_CENTROID = 650  # Hz, median: warm and low, not a bright singing piano
+MAX_CENTROID = 780  # Hz median: calm felt-piano take 763, dramatic ones 860-1020
 MAX_SWELL = 6.0  # dB, loudest 3 s over the median 3 s: no crescendo or dramatic build
 
 y, sr = librosa.load(sys.argv[1], sr=22050, mono=True)

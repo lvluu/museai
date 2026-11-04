@@ -39,7 +39,7 @@ python3 scripts/ideas.py list ; python3 scripts/ideas.py stats
    ../muse-video/scripts/render-queue ~/Movies/museai/healing-<slug>/jobs.txt
    ```
    6 s per shot (`DURATION=`), 9:16. `prompt/healing.txt` asks for ambience only (no music), the girl's fixed look (long chestnut hair, cream knit cardigan, linen apron, never facing the camera) and real gentle motion.
-4. **Music**: soft, gentle solo piano from ACE-Step that makes the viewer feel peaceful inside: a slow simple melody of long held notes over soft open chords, the same quiet level all the way through, never dramatic (no crescendo, no build, no bright running arpeggios), nothing above ~4 kHz. Render 2-3 seeds; `scripts/music` keeps only a take that passes `scripts/calm.py` (at most 2.5 onsets/s, centroid median at most 650 Hz, loudest 3 s at most 6 dB over the median) and exits 3 otherwise: render the next seed. Never deliver a take that failed it.
+4. **Music**: soft, gentle solo piano from ACE-Step that makes the viewer feel peaceful inside: a slow simple melody of long held notes over soft open chords, the same quiet level all the way through, never dramatic (no crescendo, no build, no bright running arpeggios), nothing above ~4 kHz. Render 2-3 seeds; `scripts/music` keeps only a take that passes `scripts/calm.py` (at most 2.5 onsets/s, centroid median at most 780 Hz, loudest 3 s at most 6 dB over the median) and exits 3 otherwise: render the next seed. Never deliver a take that failed it.
    ```bash
    n=<idea number>; for k in 1 2 3; do scripts/music "<season> piano lullaby, tender" ~/Movies/museai/healing-<slug>/p$k.m4a 24 $((n * 10 + k)); done   # ~5 min each, one at a time
    ffmpeg -i p37.m4a -lavfi "showspectrumpic=s=600x150:legend=0:fscale=log:stop=8000" p37.png
