@@ -1,6 +1,6 @@
 ---
 name: movies-english
-description: Make "Movies English" reels - 15-30 s vertical AI rom-com short movies that look exactly like the user's three reference reels (bright soft late-1990s rom-com picture, very young fresh-faced cast Viv & Jamie, Sienna & Theo, Maya & Lucas, quick reaction cuts and physical comedy, a twist ending, small white English subtitles), with only a short "new words" card (English + Vietnamese) at the end. No lesson framing. Holds a library of 1000 ready scripts, the cast bible, the build/render/finish pipeline through museai/muse-video, and the social growth plan. Use for "movies english", "english through movies", "learn English reel", "make video ME-0042", "next movies english video", "rom-com English lesson", or videos in the style of the user's EmmaRobins / Aspen ski / Christmas pyjama reference reels.
+description: Make "Movies English" reels - 15-30 s vertical AI rom-com short movies that look exactly like the user's three reference reels (bright soft late-1990s rom-com picture, very young fresh-faced cast Viv & Jamie, Sienna & Theo, Maya & Lucas, quick reaction cuts and physical comedy, a twist ending with a meaning of its own, small white English subtitles). A story, never a lesson: no card unless the script lists `words`. Holds a library of 1000 ready scripts, the cast bible, the build/render/finish pipeline through museai/muse-video, and the social growth plan. Use for "movies english", "english through movies", "learn English reel", "make video ME-0042", "next movies english video", "rom-com English lesson", or videos in the style of the user's EmmaRobins / Aspen ski / Christmas pyjama reference reels.
 ---
 
 # Movies English
@@ -37,7 +37,7 @@ only what is specific to the format.
 4. `uv run --no-project --python 3.12 --with faster-whisper --with 'av<14' --with pillow python scripts/finish.py $WORK $WORK/final.mp4`
    (optional `HANDLE="@yourpage"` watermark; no music unless asked). `MISHEARD` → re-render that shot.
 5. Put frames next to the references: same brightness and softness, faces as young and natural,
-   subtitle small and white at ~74 %, the new-words card with correct Vietnamese diacritics. Preview with `SendUserFile` (render).
+   subtitle small and white at ~74 %, no card unless `words` is set (then correct Vietnamese diacritics). Preview with `SendUserFile` (render).
 6. On the user's OK: captions per platform (`../social-captions/`, Vietnamese, `cta_vi` as the
    question), thumbnails (`../thumbnail/`), `FINAL=1 ../muse-video/scripts/deliver.sh`, add the id to
    `posted.json`.
@@ -57,7 +57,7 @@ When the user asks for the exact reference people, use frames of that reel inste
 Follow `references/script-format.md` and the rhythm in `references/reference-study.md`; new ids continue
 after the last batch; `python3 scripts/check.py` must pass (no phrase reused). Keep the comedy visual and
 the words few: mix 1.5-2.5 s reaction cuts (`ecu`/`close`) with 4-7 s physical-comedy takes, extras in
-the world, and 3 `words` for the end card.
+the world. Story first: the payoff means something about the two people; `words` only if a card is wanted.
 
 ## Maintaining this skill
 Same flow as muse-video "Maintaining this skill". Encode a lesson from a render or a user correction
