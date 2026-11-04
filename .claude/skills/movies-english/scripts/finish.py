@@ -39,10 +39,11 @@ CARD = 3.5
 # top end, a little less saturation, warm mids, a light screen-blended halation, a touch of blur to take
 # the AI micro-sharpness off skin, fine grain. References: mean RGB 88-130/72-109/65-96, shadows ~20/15/10,
 # mids R-B 25-42, warm skin, real blacks (a lifted black reads milky and fake). RGB before the blend: a screen blend on YUV planes shifts colour to magenta.
-GRADE = os.environ.get("GRADE", "format=gbrp,curves=all='0/0.03 0.15/0.13 0.5/0.49 0.8/0.82 1/0.95',"
-                       "eq=saturation=0.92,colorbalance=rs=0.015:bs=-0.015:rm=0.05:bm=-0.06:rh=0.02:gh=-0.015:bh=-0.05,"
-                       "split[a][b];[b]gblur=sigma=24[g];[a][g]blend=all_mode=screen:all_opacity=0.06,"
-                       "gblur=sigma=0.6,noise=alls=4:allf=t,format=yuv420p")
+# measured against the bakery reel (reference-study.md): a slight lift and a soft haze; no warm colour balance,
+# which pushed the picture orange and over-saturated (mean 114/94/78 vs the reel's 130/108/96)
+GRADE = os.environ.get("GRADE", "split[a][b];[b]gblur=sigma=24[g];[a][g]blend=all_mode=screen:all_opacity=0.08,"
+                       "format=gbrp,curves=all='0/0.02 0.5/0.53 1/0.97',format=yuv420p,"
+                       "gblur=sigma=0.6,noise=alls=4:allf=t")
 
 
 def run(a, **kw):

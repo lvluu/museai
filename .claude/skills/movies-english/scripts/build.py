@@ -23,8 +23,8 @@ LOOK = (SKILL / "prompt/look.txt").read_text().strip()
 FRAMING = {
     "ecu": "Extreme close-up: the face fills the frame, eyes and mouth large and centred, front view",
     "wide": "Wide shot, the whole scene and the people full-length, the place clearly established",
-    "medium": "Medium shot from the waist up, the speaker large in the upper half of the frame",
-    "close": "Close-up from the chest up, the face large in the upper half of the frame, both eyes and the whole mouth clearly visible, front three-quarter view, never profile",
+    "medium": "Medium shot from the waist up, the person alone in the frame, the face in the upper half, front three-quarter view, eyes on the other person who stands just outside the frame beside the camera",
+    "close": "Close-up from the chest up, the person alone in the frame, the face large in the upper half, both eyes and the whole mouth clearly visible, front three-quarter view, never profile, eyes on the other person who stands just outside the frame beside the camera",
     "ots": "Over-the-shoulder shot: the second person's shoulder, hair and cheek soft and out of focus in the near foreground at one side, the first person facing the camera in three-quarter view from the chest up, sharp, looking at the second person's eyes",
     "two-shot": "Medium two-shot from the waist up, both bodies facing the camera squarely, each turning only the head partway toward the other, both faces in front three-quarter view, both mouths visible",
 }
@@ -69,17 +69,17 @@ def still_prompt(shot, sc):
     pose = shot.get("still_pose") or (
         f"{names[0]} listens to {names[1]}, eyes on {names[1]}'s face, a quiet, thoughtful look, mouth closed."
         if shot["framing"] == "ots" else
-        f"{' and '.join(names)} in a quiet moment, a natural resting face, mouth closed, eyes just off camera."
+        f"{' and '.join(names)} at ease, a natural relaxed face with the hint of a smile, mouth closed, eyes on the other person just outside the frame beside the camera."
         if shot["framing"] in ("close", "medium") else shot["action"])
-    return (f"A frame grab from a 1999 Hollywood drama, shot on 35 mm film with an 85 mm lens wide open, "
+    return (f"A frame grab from a 1999 Hollywood romantic comedy, shot on 35 mm film with an 85 mm lens, "
             f"slightly soft like a DVD frame. Vertical 9:16. {FRAMING[shot['framing']]}. "
             f"Place: {sc['setting']}. The moment: {pose} Caught mid-moment, real and candid, not posing; a speaker's "
             f"mouth closed. {people} LEFT and RIGHT mean the person's own side. Original faces that resemble no actor, "
-            f"celebrity or public figure. The background is completely out of focus, melted into soft creamy blur with "
-            f"glowing window light; only the faces are in focus. Soft focus, Pro-Mist diffusion glow, natural film grain, "
-            f"warm soft daylight from the front, low contrast, gently muted warm pastel colour. Real young actors on a "
-            f"real film set, real skin, not a render. Never cold, grey, blue or teal, never saturated, HDR or "
-            f"razor-sharp, no CGI look. No text, no logos, no watermark.")
+            f"celebrity or public figure. The face is in focus; the background is softly out of focus. Bright, soft, "
+            f"airy picture: soft diffused daylight, low contrast, natural clean colour gently muted, whites clean white "
+            f"or cream, skin natural and matte, fine film grain. Real young actors on a real film set, real skin, not a "
+            f"render. Never an orange or amber cast, never cold, grey or teal, never saturated, HDR or razor-sharp, no "
+            f"CGI look. No text, no logos, no watermark.")
 
 
 def shot_prompt(shot, sc):
