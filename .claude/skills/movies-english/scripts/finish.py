@@ -13,7 +13,7 @@ WORK holds script.json (build.py) and clips/<id>-<shot>.mp4 (render.sh). Steps:
    length, then joined with hard cuts (concat demuxer), so lips never drift at a join.
 3. Overlays (Pillow PNGs, ffmpeg overlay with enable windows), all as in references/reference-study.md:
    each spoken line as a small white English subtitle centred at ~74 %, an optional handle watermark
-   (HANDLE="@page"), then a 3.5 s "new words" card (script `words`, else its phrase) over a blurred
+   (HANDLE="@page"), and, only when the script lists `words`, a 3.5 s "new words" card over a blurred
    freeze of the last frame. Nothing else: no hook, no translation line, no highlight.
 Optional MUSIC=file.m4a lays a bed at MUSIC_DB (default -26 dB) under the reel.
 Writes WORK/trims.json, WORK/cues.json ([start, end, en] in reel time) and OUT."""
@@ -195,18 +195,26 @@ def finish(work, out):
     ov.mkdir(exist_ok=True)
     last = ov / "last.png"
     run(["ffmpeg", "-v", "error", "-y", "-sseof", "-0.05", "-i", str(film), "-frames:v", "1", "-update", "1", str(last)])
-    words_png(last, sc.get("words") or [sc["phrase"]], ov / "card.png")
     for i, c in enumerate(cues):
         subtitle_png(c[2], ov / f"sub{i}.png")
-    end = total + CARD
-    inputs = ["-i", str(film), "-loop", "1", "-t", f"{CARD}", "-i", str(ov / "card.png")]
-    fc = [f"[1:v]fps={FPS},format=yuv420p,setsar=1[card]", "[0:v][card]concat=n=2:v=1:a=0[v0]"]
-    cur, k = "v0", 2
+    # the "new words" card exists only when the script lists `words`; a story reel ends on its last frame
+    if sc.get("words"):
+        words_png(last, sc["words"], ov / "card.png")
+        end = total + CARD
+        inputs = ["-i", str(film), "-loop", "1", "-t", f"{CARD}", "-i", str(ov / "card.png")]
+        fc = [f"[1:v]fps={FPS},format=yuv420p,setsar=1[card]", "[0:v][card]concat=n=2:v=1:a=0[v0]"]
+        k = 2
+    else:
+        end = total
+        inputs = ["-i", str(film)]
+        fc = ["[0:v]null[v0]"]
+        k = 1
+    cur = "v0"
     if HANDLE:
         handle_png(ov / "handle.png")
         inputs += ["-i", str(ov / "handle.png")]
-        fc.append(f"[v0][2:v]overlay=enable='lt(t,{total:.3f})'[vh]")
-        cur, k = "vh", 3
+        fc.append(f"[v0][{k}:v]overlay=enable='lt(t,{total:.3f})'[vh]")
+        cur, k = "vh", k + 1
     for i, (s, e, _) in enumerate(cues):
         inputs += ["-i", str(ov / f"sub{i}.png")]
         nxt = cues[i + 1][0] if i + 1 < len(cues) else total
