@@ -38,11 +38,13 @@ def main(files):
             if sid in ids:
                 e("duplicate id")
             ids.add(sid)
-            ph = s["phrase"]["en"].lower().strip()
+            # `phrase` and `words` are optional: a story reel has no lesson and no end card
+            ph = (s.get("phrase") or {}).get("en", "").lower().strip()
             if ph in phrases:
                 e(f"phrase {ph!r} also in {phrases[ph]}")
-            phrases[ph] = sid
-            for k in ("title_en", "title_vi", "genre", "level", "cast", "setting", "phrase", "shots", "twist"):
+            if ph:
+                phrases[ph] = sid
+            for k in ("title_en", "cast", "setting", "shots", "twist"):
                 if k not in s:
                     e(f"missing {k}")
             for k in s["cast"]:
@@ -75,7 +77,7 @@ def main(files):
                         e(f"{x['id']} speaker {ln['who']} not in shot cast")
                     if x.get("framing") == "wide":
                         e(f"{x['id']} line in a wide shot")
-            if not any(has_phrase(ln["en"], ph) for ln in lines):
+            if ph and not any(has_phrase(ln["en"], ph) for ln in lines):
                 e(f"phrase {ph!r} not spoken")
     for m in errs:
         print("ERROR", m)
