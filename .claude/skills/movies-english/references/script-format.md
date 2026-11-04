@@ -43,7 +43,7 @@ learning element is the end card, which lists the script's `words` (else its `ph
 - 4-12 shots, `sec` 0.5-9 each (mix 1.5-2.5 s reactions with 4-7 s takes), 14-32 s total; 2-6 spoken lines, each ≤ 8 words, one line per shot, one speaker per shot.
 - The key phrase (`phrase.en`, any inflection) appears in one spoken line, word for word.
 - A speaker is never filmed from behind; a line shot is `ots`, `two-shot`, `close`, `medium` or `ecu` with the speaker's face visible.
-- Cover a conversation like a drama: mostly `ots` (cast[0] faces the camera, cast[1] is the soft shoulder in front) and `two-shot`, so both people share the screen; a single close-up only for one beat that needs it. Payoffs are small and human (a look, a held smile at the door), never a prop gag or a big laugh.
+- Cover a conversation like the reference reels: each line is a single `close` or `medium` of the speaker alone, eyes on the other person just outside the frame beside the camera; a `wide` shows both people and the place when something physical happens; `two-shot` only for a physical beat with both in frame. `ots` exists but reads cramped and unnatural: avoid it. Payoffs are small and visual (a dollar on the counter, a lipstick kiss on a napkin, a look back at the door).
 - Line 1 within the first 5 s; the hook is a situation, never a greeting or a lesson.
 - The last shot is the payoff: a twist, a callback to the phrase, or a romantic beat. No moral, no teacher voice.
 - Every shot is one simple filmable action in one place; physical comedy is simple (a splash, a slip, a door, a reveal).
