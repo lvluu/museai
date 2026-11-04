@@ -42,7 +42,8 @@ CARD = 3.5
 # measured against the bakery reel (reference-study.md): a slight lift and a soft haze; no warm colour balance,
 # which pushed the picture orange and over-saturated (mean 114/94/78 vs the reel's 130/108/96)
 GRADE = os.environ.get("GRADE", "split[a][b];[b]gblur=sigma=24[g];[a][g]blend=all_mode=screen:all_opacity=0.08,"
-                       "format=gbrp,curves=all='0/0.02 0.5/0.53 1/0.97',format=yuv420p,"
+                       "format=gbrp,curves=all='0/0.02 0.5/0.53 1/0.97',colorbalance=rm=0.025:bm=-0.03:rh=0.01:bh=-0.01,"
+                       "format=yuv420p,eq=saturation=1.15,"
                        "gblur=sigma=0.6,noise=alls=4:allf=t")
 
 
