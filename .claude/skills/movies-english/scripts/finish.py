@@ -59,11 +59,13 @@ CARD = 3.5
 # Vintage, all static so nothing dances (grain and a luma blur were rejected, Rounds 3d-3h): colour softened in
 # the chroma planes only (film dye bleed, the luma and the eyes stay sharp), a warm halation glow from the
 # highlights (screen, planar gbrp: in yuv420p a screen blend tints magenta), a warm print tint in the highs and
-# a soft vignette. Round 3k.
+# a soft vignette (Round 3k); stronger glow + dye bleed and faded film blacks (y 22-251), less blue in the
+# lifted shadows to keep shGB in band (Round 3l).
 HALO = "if(gt(val,140),(val-140)*2.2,0)"
-VINTAGE = ("format=yuv444p,gblur=sigma=1.6:planes=6,format=gbrp,split[a][b];"
+VINTAGE = ("format=yuv444p,gblur=sigma=2.4:planes=6,format=gbrp,split[a][b];"
            f"[b]lutrgb=r='{HALO}':g='{HALO}':b='{HALO}',gblur=sigma=40,colorchannelmixer=rr=1:gg=0.55:bb=0.3[g];"
-           "[a][g]blend=all_mode=screen:all_opacity=0.3,colorbalance=rh=0.015:gh=0.005:bh=-0.02,"
+           "[a][g]blend=all_mode=screen:all_opacity=0.45,colorbalance=rh=0.03:gh=0.012:bh=-0.04,format=yuv444p,"
+           "lutyuv=y='22+val*0.9',format=gbrp,colorbalance=bs=-0.012,"
            "vignette=angle=0.3,format=yuv420p")
 REEL_Y = "if(lt(val,122),val,if(lt(val,158),122+(val-122)*0.47,if(lt(val,204),139+(val-158)*0.6,167+(val-204)*0.6)))"
 PRESETS = {

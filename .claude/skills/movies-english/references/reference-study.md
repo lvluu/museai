@@ -327,3 +327,15 @@ Read in the page of the THAT WAS HIM reel (no download): 1080x1920, 30 fps, 26.8
 - a warm print tint in the highlights and a soft vignette (angle 0.3; 0.45 dropped Lp95 to 58 and Lp50 to 35, out of the reel bands; 0.3 measures Lp95 62, Lp50 39, skin L 48).
 
 It sits at the end of `GRADE=reel`, so `reel_measure.py` still checks the result against the reel.
+
+## Round 3l: more vintage
+
+User asked for more vintage after v10. Tested on the nine clips (reel_measure, step 2):
+
+- A: glow opacity 0.3 → 0.45, chroma soften sigma 1.6 → 2.4, warmer highlight tint (rh 0.03, bh -0.04). All bands ok.
+- B: A plus faded film blacks, `lutyuv y = 22 + 0.9·val` (blacks lift to 22, whites stop at 251). Reads most like a
+  print. shGB went 1.02, just off the band: lifted blacks now carry the blue of the mids.
+- B + `colorbalance gs=-0.02:bs=0.01` pushed shGB to 1.38: shGB follows the shadow blue, not the green.
+- B + `colorbalance bs=-0.012`: Lp95 65, Lp50 44, skin L 48 / a 18.3 / b 19.8, bgRB 1.38, shGB 0.93. All in band. Kept.
+
+Still no grain and no luma blur (rejected in Rounds 3d-3h).
