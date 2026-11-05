@@ -1,0 +1,18 @@
+{
+ "key": "SIENNA",
+ "version": 1,
+ "name": "Sienna Hart",
+ "age": 20,
+ "sex": "F",
+ "origin": "American",
+ "build": "5 ft 6 in",
+ "identity": "a 20-year-old American woman with a slim oval face: sun-kissed golden skin with warm peach cheeks and a few faint freckles across the nose, pale ice-blue eyes, thick light-brown brows, a small upturned nose, full lips with a glossy rosy-pink lip gloss. Thick honey-brown hair with golden highlights in a bouncy 1990s half-up blowout with soft face-framing pieces. Chunky gold hoop earrings. Light makeup: mascara, a little soft brown liner, soft blush.",
+ "voice": "bright, quick, warm American English with a light Colorado openness, expressive",
+ "base_wardrobe": "a plain soft-white cotton crew-neck T-shirt with soft natural creases",
+ "used_by": [
+  "movies-english"
+ ],
+ "views": {
+  "hero": "hero.jpg"
+ }
+}

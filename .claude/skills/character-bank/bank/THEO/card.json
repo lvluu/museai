@@ -1,0 +1,18 @@
+{
+ "key": "THEO",
+ "version": 1,
+ "name": "Theo Ashford",
+ "age": 22,
+ "sex": "M",
+ "origin": "American",
+ "build": "athletic, 6 ft 1 in",
+ "identity": "a 22-year-old American man with a square jaw: deep golden-tan skin, bright blue eyes, straight brows, a straight nose, thick light-brown hair swept back and a little tousled, clean-shaven, a single dimple in his RIGHT cheek when he smiles.",
+ "voice": "calm, low, dry American English, gentle humour, slow and steady",
+ "base_wardrobe": "a plain heather-grey cotton crew-neck T-shirt with soft natural creases",
+ "used_by": [
+  "movies-english"
+ ],
+ "views": {
+  "hero": "hero.jpg"
+ }
+}

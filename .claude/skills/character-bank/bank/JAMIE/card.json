@@ -1,0 +1,18 @@
+{
+ "key": "JAMIE",
+ "version": 1,
+ "name": "Jamie Calloway",
+ "age": 22,
+ "sex": "M",
+ "origin": "Italian-American",
+ "build": "lean and broad-shouldered, 6 ft",
+ "identity": "a 22-year-old Italian-American man with a boyish face: warm golden-tan skin, warm hazel-green eyes, thick dark brows, a straight nose, thick dark-brown wavy hair falling messily over his forehead, clean-shaven with a faint shadow of stubble on the jaw, a big crooked grin that lifts higher on his RIGHT side and crinkles his eyes.",
+ "voice": "warm baritone, relaxed New York American English, teasing, never loud",
+ "base_wardrobe": "a plain heather-grey cotton crew-neck T-shirt with soft natural creases",
+ "used_by": [
+  "movies-english"
+ ],
+ "views": {
+  "hero": "hero.jpg"
+ }
+}

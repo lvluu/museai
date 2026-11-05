@@ -1,0 +1,18 @@
+{
+ "key": "LUCAS",
+ "version": 1,
+ "name": "Lucas Moreau",
+ "age": 23,
+ "sex": "M",
+ "origin": "French-American",
+ "build": "tall and muscular, 6 ft 2 in",
+ "identity": "a 23-year-old French-American man with a youthful face and a soft square jaw: deep golden-tan skin, deep-set dark-brown eyes under strong straight brows, a straight nose, short thick dark-brown hair, clean-shaven with a faint shadow of stubble, a broad warm smile.",
+ "voice": "deep, calm, low American English with a faint French softness, very few words, deadpan",
+ "base_wardrobe": "a plain heather-grey cotton crew-neck T-shirt with soft natural creases",
+ "used_by": [
+  "movies-english"
+ ],
+ "views": {
+  "hero": "hero.jpg"
+ }
+}
