@@ -1,0 +1,529 @@
+[
+ {
+  "id": "ME-X001",
+  "title_en": "Wrong House",
+  "title_vi": "Nhầm nhà",
+  "genre": "romcom",
+  "level": "A2",
+  "cast": [
+   "VIV",
+   "JAMIE"
+  ],
+  "wardrobe": {
+   "VIV": "christmas",
+   "JAMIE": "cozy"
+  },
+  "setting": "a grand entrance hall at Christmas, gold-panelled double doors, a staircase wrapped in garland with red ribbons, a huge tree with warm white lights, stacks of wrapped gifts, marble floor, chandeliers and tree lights the only light, snow falling outside the open door",
+  "phrase": {
+   "en": "the wrong house",
+   "vi": "nhầm nhà",
+   "type": "expression",
+   "explain_vi": "Đến sai địa chỉ, sai nhà.",
+   "example_en": "Sorry, I think I have the wrong house.",
+   "example_vi": "Xin lỗi, hình như tôi nhầm nhà rồi."
+  },
+  "hook_vi": "Mang quà Giáng sinh đến nhầm nhà 🎄",
+  "shots": [
+   {
+    "id": "S1",
+    "sec": 2.5,
+    "framing": "wide",
+    "cast": [
+     "VIV"
+    ],
+    "action": "Viv pushes through the gold double doors with a tall stack of wrapped gifts in her gloved arms, snow on her fur collar; a kid in a red jumper runs across the hall behind her.",
+    "line": null
+   },
+   {
+    "id": "S2",
+    "sec": 1.5,
+    "framing": "insert",
+    "cast": [
+     "VIV"
+    ],
+    "action": "Her gloved hands set the gifts on a side table; a golden retriever puppy's nose pokes over the edge of the table and sniffs the top box.",
+    "line": null
+   },
+   {
+    "id": "S3",
+    "sec": 2.5,
+    "framing": "medium",
+    "cast": [
+     "JAMIE"
+    ],
+    "action": "Jamie comes down the garland-wrapped staircase in a cream cable-knit sweater with the puppy under one arm, grinning.",
+    "line": {
+     "who": "JAMIE",
+     "en": "You brought gifts. For me?",
+     "vi": "Em mang quà à? Cho anh hả?"
+    }
+   },
+   {
+    "id": "S4",
+    "sec": 2.5,
+    "framing": "close",
+    "cast": [
+     "VIV"
+    ],
+    "action": "Viv's slow look up the staircase, then down at the gifts, eyes narrowing.",
+    "line": {
+     "who": "VIV",
+     "en": "Is this the Hartley house?",
+     "vi": "Đây là nhà Hartley phải không?"
+    }
+   },
+   {
+    "id": "S5",
+    "sec": 2,
+    "framing": "close",
+    "cast": [
+     "JAMIE"
+    ],
+    "action": "Jamie shakes his head slowly while the puppy licks his chin.",
+    "line": {
+     "who": "JAMIE",
+     "en": "Next door. Same gate.",
+     "vi": "Nhà bên cạnh. Chung cổng thôi."
+    }
+   },
+   {
+    "id": "S6",
+    "sec": 1.5,
+    "framing": "insert",
+    "cast": [
+     "VIV"
+    ],
+    "action": "Viv's red nail taps the gift tag that reads 'To Mrs Hartley'.",
+    "line": null
+   },
+   {
+    "id": "S7",
+    "sec": 2.5,
+    "framing": "close",
+    "cast": [
+     "VIV"
+    ],
+    "action": "Viv lifts her chin, recovers, a smirk starting.",
+    "line": {
+     "who": "VIV",
+     "en": "Then I have the wrong house.",
+     "vi": "Vậy là em nhầm nhà rồi."
+    }
+   },
+   {
+    "id": "S8",
+    "sec": 2.5,
+    "framing": "medium",
+    "cast": [
+     "VIV",
+     "JAMIE"
+    ],
+    "action": "Jamie holds the puppy out to her; she takes it despite herself, the puppy wriggling against her fur collar.",
+    "line": {
+     "who": "JAMIE",
+     "en": "Wrong house. Right dog.",
+     "vi": "Nhầm nhà. Nhưng đúng chó."
+    }
+   },
+   {
+    "id": "S9",
+    "sec": 2,
+    "framing": "ecu",
+    "cast": [
+     "VIV"
+    ],
+    "action": "Viv's face against the puppy's, trying not to smile, the dimple winning.",
+    "line": null
+   }
+  ],
+  "twist": "She came to the wrong house and leaves holding the right dog.",
+  "cta_vi": "Bạn sẽ ở lại hay đi sang nhà bên? Comment bằng tiếng Anh nhé 👇"
+ },
+ {
+  "id": "ME-X002",
+  "title_en": "Hi, Again",
+  "title_vi": "Chào, lại gặp",
+  "genre": "romcom",
+  "level": "A2",
+  "cast": [
+   "SIENNA",
+   "THEO"
+  ],
+  "wardrobe": {
+   "SIENNA": "christmas",
+   "THEO": "christmas"
+  },
+  "setting": "a vintage carousel at night in a Christmas market, white horses with gold poles, warm fairy lights behind, snow falling, black night sky, the carousel bulbs the only light",
+  "phrase": {
+   "en": "it's been ages",
+   "vi": "lâu lắm rồi",
+   "type": "idiom",
+   "explain_vi": "'Lâu lắm rồi (mới gặp / mới làm gì)'. Nói khi gặp lại ai đó sau một thời gian dài.",
+   "example_en": "It's been ages! How are you?",
+   "example_vi": "Lâu lắm rồi! Dạo này sao?"
+  },
+  "hook_vi": "Gặp lại người cũ ở vòng quay ngựa gỗ 🎠",
+  "shots": [
+   {
+    "id": "S1",
+    "sec": 2.5,
+    "framing": "wide",
+    "cast": [
+     "SIENNA"
+    ],
+    "action": "Sienna steps onto the carousel in her shearling-collared coat, snow in her hair, and looks back over her shoulder at someone off frame.",
+    "line": null
+   },
+   {
+    "id": "S2",
+    "sec": 2.5,
+    "framing": "close",
+    "cast": [
+     "THEO"
+    ],
+    "action": "Theo stops dead beside a white horse in his shearling jacket, lips parted, snow on his lashes.",
+    "line": {
+     "who": "THEO",
+     "en": "It's been ages.",
+     "vi": "Lâu lắm rồi."
+    }
+   },
+   {
+    "id": "S3",
+    "sec": 2.5,
+    "framing": "close",
+    "cast": [
+     "SIENNA"
+    ],
+    "action": "Sienna in profile looks down, smiling, then up at him.",
+    "line": {
+     "who": "SIENNA",
+     "en": "Two years. Three days.",
+     "vi": "Hai năm. Ba ngày."
+    }
+   },
+   {
+    "id": "S4",
+    "sec": 1.5,
+    "framing": "insert",
+    "cast": [
+     "THEO",
+     "SIENNA"
+    ],
+    "action": "His gloved hand closes on the gold pole just above her bare hand.",
+    "line": null
+   },
+   {
+    "id": "S5",
+    "sec": 3,
+    "framing": "two-shot",
+    "cast": [
+     "SIENNA",
+     "THEO"
+    ],
+    "action": "Both on white horses side by side as the carousel starts to turn; she laughs holding the pole, her hair lifting, the fairy lights wheeling behind.",
+    "line": null
+   },
+   {
+    "id": "S6",
+    "sec": 2.5,
+    "framing": "close",
+    "cast": [
+     "THEO"
+    ],
+    "action": "Theo bows his head, smiling at the horse's painted mane.",
+    "line": {
+     "who": "THEO",
+     "en": "You counted the days?",
+     "vi": "Em đếm từng ngày à?"
+    }
+   },
+   {
+    "id": "S7",
+    "sec": 2.5,
+    "framing": "close",
+    "cast": [
+     "SIENNA"
+    ],
+    "action": "Sienna, chin up, eyes on him, a slow smile.",
+    "line": {
+     "who": "SIENNA",
+     "en": "No. I counted the horses.",
+     "vi": "Không. Em đếm ngựa thôi."
+    }
+   },
+   {
+    "id": "S8",
+    "sec": 2,
+    "framing": "ecu",
+    "cast": [
+     "THEO"
+    ],
+    "action": "Theo's smirk straight to camera as the carousel lights streak behind him.",
+    "line": null
+   }
+  ],
+  "twist": "She says she didn't count the days; the exact number says otherwise.",
+  "cta_vi": "Bạn sẽ nói gì khi gặp lại người cũ? Comment bằng tiếng Anh nhé 👇"
+ },
+ {
+  "id": "ME-X003",
+  "title_en": "That Was Him",
+  "title_vi": "Là anh ấy đó",
+  "genre": "romcom",
+  "level": "A2",
+  "cast": [
+   "MAYA",
+   "LUCAS"
+  ],
+  "wardrobe": {
+   "MAYA": "christmas",
+   "LUCAS": "party"
+  },
+  "setting": "decorated shop fronts on a snowy street at night, a gift-stacked window, a snow-covered tree with gold ornaments, giant gold bells with a red velvet ribbon, the shop windows the only light, snow falling",
+  "hook_vi": "Nhận ra anh ấy chậm mất một nhịp 🔔",
+  "shots": [
+   {
+    "id": "S1",
+    "sec": 2.5,
+    "framing": "medium",
+    "cast": [
+     "MAYA"
+    ],
+    "action": "Maya walks past the gift-stacked shop window in her shearling-collared coat, handbag on her wrist, big hair catching the snow.",
+    "line": null
+   },
+   {
+    "id": "S2",
+    "sec": 3,
+    "framing": "close",
+    "cast": [
+     "MAYA"
+    ],
+    "action": "Maya stops, closes her eyes and tips her head back, breathing in the snow, held.",
+    "line": null
+   },
+   {
+    "id": "S3",
+    "sec": 2.5,
+    "framing": "close",
+    "cast": [
+     "LUCAS"
+    ],
+    "action": "Lucas in an ivory dinner jacket sips cocoa from a red paper cup, eyes on her over the rim.",
+    "line": {
+     "who": "LUCAS",
+     "en": "You're going to freeze.",
+     "vi": "Em sắp đóng băng rồi đấy."
+    }
+   },
+   {
+    "id": "S4",
+    "sec": 2.5,
+    "framing": "close",
+    "cast": [
+     "MAYA"
+    ],
+    "action": "Maya opens one eye at him, unbothered.",
+    "line": {
+     "who": "MAYA",
+     "en": "Shearling. I'm fine.",
+     "vi": "Áo lông đây. Em ổn."
+    }
+   },
+   {
+    "id": "S5",
+    "sec": 1.5,
+    "framing": "insert",
+    "cast": [],
+    "action": "Giant gold jingle bells with a red velvet ribbon swing in the shop window.",
+    "line": null
+   },
+   {
+    "id": "S6",
+    "sec": 2.5,
+    "framing": "close",
+    "cast": [
+     "LUCAS"
+    ],
+    "action": "Lucas looks back over his shoulder as he walks on, a slow smirk.",
+    "line": null
+   },
+   {
+    "id": "S7",
+    "sec": 2.5,
+    "framing": "close",
+    "cast": [
+     "MAYA"
+    ],
+    "action": "Maya gasps, both hands up to her chest, hoops swinging.",
+    "line": {
+     "who": "MAYA",
+     "en": "Wait. That was him.",
+     "vi": "Khoan. Là anh ấy đó."
+    }
+   },
+   {
+    "id": "S8",
+    "sec": 2.5,
+    "framing": "medium",
+    "cast": [
+     "LUCAS"
+    ],
+    "action": "Lucas, already walking away, raises the red cup without turning round.",
+    "line": {
+     "who": "LUCAS",
+     "en": "Still is.",
+     "vi": "Vẫn là anh đây."
+    }
+   },
+   {
+    "id": "S9",
+    "sec": 2,
+    "framing": "ecu",
+    "cast": [
+     "MAYA"
+    ],
+    "action": "Maya's slow smile straight to camera, eyes bright, snow on her lashes.",
+    "line": null
+   }
+  ],
+  "twist": "She brushes off a stranger and realises a beat late who he was; he knew all along.",
+  "cta_vi": "Bạn có chạy theo không? Comment bằng tiếng Anh nhé 👇"
+ },
+ {
+  "id": "ME-X004",
+  "title_en": "The Dog Ate It",
+  "title_vi": "Chó ăn mất rồi",
+  "genre": "romcom",
+  "level": "A2",
+  "cast": [
+   "SIENNA",
+   "THEO"
+  ],
+  "wardrobe": {
+   "SIENNA": "lodge",
+   "THEO": "cozy"
+  },
+  "setting": "an alpine lodge living room at Christmas, a stone fireplace, a tree in warm lights, a buffalo-plaid blanket on the sofa, snow at the dark window, the fire and tree lights the only light",
+  "phrase": {
+   "en": "the dog ate it",
+   "vi": "chó ăn mất rồi",
+   "type": "expression",
+   "explain_vi": "Lời biện hộ kinh điển (như 'chó ăn mất bài tập'), ai cũng biết là bịa.",
+   "example_en": "Where's my sandwich? - The dog ate it.",
+   "example_vi": "Bánh mì của tôi đâu? - Chó ăn mất rồi."
+  },
+  "hook_vi": "Ai ăn hết bánh gừng? 🍪",
+  "shots": [
+   {
+    "id": "S1",
+    "sec": 2.5,
+    "framing": "wide",
+    "cast": [
+     "SIENNA"
+    ],
+    "action": "Sienna carries a tray of gingerbread men across the firelit room; a golden retriever pads after the tray, nose up.",
+    "line": null
+   },
+   {
+    "id": "S2",
+    "sec": 1.5,
+    "framing": "insert",
+    "cast": [
+     "SIENNA"
+    ],
+    "action": "The tray lands on the low table; a golden nose pushes in and one gingerbread man vanishes.",
+    "line": null
+   },
+   {
+    "id": "S3",
+    "sec": 2.5,
+    "framing": "close",
+    "cast": [
+     "THEO"
+    ],
+    "action": "Theo on the sofa in his cream turtleneck freezes mid-chew, cheeks full.",
+    "line": {
+     "who": "THEO",
+     "en": "I didn't touch them.",
+     "vi": "Anh không đụng vào đâu."
+    }
+   },
+   {
+    "id": "S4",
+    "sec": 2.5,
+    "framing": "close",
+    "cast": [
+     "SIENNA"
+    ],
+    "action": "Sienna, arms folded, one brow up.",
+    "line": {
+     "who": "SIENNA",
+     "en": "Then who ate six?",
+     "vi": "Vậy ai ăn sáu cái?"
+    }
+   },
+   {
+    "id": "S5",
+    "sec": 2.5,
+    "framing": "medium",
+    "cast": [
+     "THEO"
+    ],
+    "action": "Theo points at the dog; the dog yawns with crumbs on its nose.",
+    "line": null
+   },
+   {
+    "id": "S6",
+    "sec": 2.5,
+    "framing": "close",
+    "cast": [
+     "THEO"
+    ],
+    "action": "Theo, dead straight face.",
+    "line": {
+     "who": "THEO",
+     "en": "The dog ate it. Honest.",
+     "vi": "Chó ăn mất rồi. Thật đấy."
+    }
+   },
+   {
+    "id": "S7",
+    "sec": 1.5,
+    "framing": "insert",
+    "cast": [
+     "THEO"
+    ],
+    "action": "Theo's hand slides a gingerbread man under the plaid cushion.",
+    "line": null
+   },
+   {
+    "id": "S8",
+    "sec": 2.5,
+    "framing": "close",
+    "cast": [
+     "SIENNA"
+    ],
+    "action": "Sienna crouches to the dog, sweet voice, eyes flicking up to Theo.",
+    "line": {
+     "who": "SIENNA",
+     "en": "Good boy. Not you.",
+     "vi": "Ngoan lắm. Không phải anh."
+    }
+   },
+   {
+    "id": "S9",
+    "sec": 2,
+    "framing": "ecu",
+    "cast": [
+     "THEO"
+    ],
+    "action": "Theo chews slowly, eyes closed, caught, crumbs on his sweater.",
+    "line": null
+   }
+  ],
+  "twist": "He blames the dog; the dog gets the praise and he gets the crumbs.",
+  "cta_vi": "Bạn tin anh ấy không? Comment bằng tiếng Anh nhé 👇"
+ }
+]

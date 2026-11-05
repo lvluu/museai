@@ -36,20 +36,24 @@ CARD = 3.5
 
 
 # Grade presets (GRADE=film|airy, or a raw ffmpeg chain). Measured targets: references/reference-study.md.
-# film (default): the memoriescore.studio look, measured over ten reels: mean RGB ~97/73/65 (day scenes
-#   ~108/85/74, night ~88/65/60), a quarter of the pixels under 40 (real deep blacks), under 5 % above 200
-#   (no clipped whites), saturation ~0.43: warm golden skin, amber lamps, rich clean colour, a light
-#   halation glow, fine grain. A muse clip comes out at ~121/101/90, sat 0.30, so: an S-curve that sinks
-#   the mids and keeps the blacks black, a small warm balance (more red, less blue, through all tones),
-#   saturation x1.25, a 4 % screen halation, grain. Measured on ME-0002: day medium 115/94/80 sat 0.46,
-#   night wide 88/69/64 sat 0.49.
+# film (default): the memoriescore.studio look, measured on its close-ups (reference-study.md Round 3):
+#   skin mean ~113, skin p10 ~88 / p90 ~135 (a soft low-contrast face, no hot highlight, no dark cheek),
+#   skin saturation ~0.36 (muted warmth, never orange), room behind the face p50 ~16, no clipped whites,
+#   a light halation glow, a slightly soft picture, fine grain. A muse clip comes out with skin p10 ~80 /
+#   p90 ~175 and sat ~0.36, so: a curve that rolls the highlights off hard (1 -> 0.80) and sinks the upper
+#   mids while keeping the shadows, a peach balance (see below), saturation x0.95 (x1.3 pushed the skin to
+#   0.54 = the orange AI look), a 12 % screen halation, a touch of blur, grain. Measured on ME-0002 S1/S8
+#   after the grade, skin mask fixed on the raw frame: mean 112-113, p10 78-82, p90 139-152, sat 0.27-0.30,
+#   skin RGB ~131/107/95 (G/B 1.06-1.13; reference 155/110/100).
 # airy: the first three IG reels (bakery 130/108/96, sat 0.34): a slight lift, a soft haze, no warmth.
-# colorbalance stays before the split: a screen blend straight after curves shifted colour to magenta.
+# The halation split/blur/blend runs in planar gbrp: in yuv420p the screen blend lifts U/V (magenta cast), in
+# packed rgb24 gblur mixes the interleaved channels (blue cast). Balance: the reference skin is peach-pink,
+# G/B ~1.09 (a muse clip 1.2-1.5 = orange), so a little red and blue in, green out, saturation x0.95.
 PRESETS = {
-    "film": "format=gbrp,curves=all='0/0 0.2/0.12 0.5/0.38 0.8/0.74 1/0.95',"
-            "colorbalance=rs=0.02:bs=-0.03:rm=0.03:bm=-0.05:rh=0.01:bh=-0.02,format=yuv420p,eq=saturation=1.25,"
-            "split[a][b];[b]gblur=sigma=20[g];[a][g]blend=all_mode=screen:all_opacity=0.04,"
-            "gblur=sigma=0.5,noise=alls=5:allf=t",
+    "film": "format=gbrp,curves=all='0/0 0.12/0.10 0.35/0.33 0.6/0.52 0.8/0.64 1/0.80',"
+            "colorbalance=rm=0.04:gm=-0.02:bm=0.05:rh=0.03:gh=-0.01:bh=0.04,"
+            "split[a][b];[b]gblur=sigma=30[g];[a][g]blend=all_mode=screen:all_opacity=0.12,"
+            "format=yuv420p,eq=saturation=0.95,gblur=sigma=0.9,noise=alls=4:allf=t",
     "airy": "split[a][b];[b]gblur=sigma=24[g];[a][g]blend=all_mode=screen:all_opacity=0.08,"
             "format=gbrp,curves=all='0/0.02 0.5/0.53 1/0.97',colorbalance=rm=0.025:bm=-0.03:rh=0.01:bh=-0.01,"
             "format=yuv420p,eq=saturation=1.15,gblur=sigma=0.6,noise=alls=4:allf=t",
