@@ -39,7 +39,10 @@ def measure(path):
         return None
     L, a, b = (lab[..., c][m] for c in range(3))
     lum = rgb @ [0.299, 0.587, 0.114]
-    p = lambda v, q: float(np.percentile(v, q))
+
+    def p(v, q):
+        return float(np.percentile(v, q))
+
     return {
         "faceRGB": [round(float(rgb[..., c][m].mean())) for c in range(3)],
         "faceR": round(float(rgb[..., 0][m].mean())),
