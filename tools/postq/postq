@@ -584,7 +584,7 @@ class Handler(BaseHTTPRequestHandler):
         return self.headers.get("Host") in (f"127.0.0.1:{PORT}", f"localhost:{PORT}")
 
     def _item_path(self):
-        item_id = self.path.removesuffix("/claim").removesuffix("/release").rsplit("/", 1)[-1]
+        item_id = self.path.removesuffix("/claim").removesuffix("/release").removesuffix("/mark").rsplit("/", 1)[-1]
         p = ROOT / f"{item_id}.json"
         return p if p.parent == ROOT and p.is_file() else None
 
@@ -618,6 +618,8 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         # /api/items/<id>/claim   200 for the first poster, 409 while another holds a live claim
         # /api/items/<id>/release body {error}: drop the claim after a failed post
+        # /api/items/<id>/mark    body {video_id}: saved before the extension presses publish, so a retry
+        #                         (even after the extension died mid-post) only checks, never posts twice
         # /api/items/<id>         body {status, url?, error?, log?, + edited fields}: archive with the outcome
         if not self._local():
             return self._send(403)
@@ -632,6 +634,16 @@ class Handler(BaseHTTPRequestHandler):
                 claim.write_text("")
             return self._send(200, b"{}")
         body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or "{}")
+        if self.path.endswith("/mark"):
+            if not body.get("video_id"):
+                return self._send(400)
+            with queue_lock():
+                if p.is_file():
+                    item = json.loads(p.read_text()) | {"video_id": body["video_id"]}
+                    tmp = p.with_suffix(".tmp")
+                    tmp.write_text(json.dumps(item, indent=2, ensure_ascii=False))
+                    tmp.replace(p)
+            return self._send(200, b"{}")
         if self.path.endswith("/release"):
             # A failed post stays pending; its error is kept so `postq wait` / `list` can show it,
             # and `auto` is dropped so it is not retried until approved again.

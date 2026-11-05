@@ -261,14 +261,22 @@ async function metaFlow(stored, pg) {
   const when = item.schedule_at ? Date.parse(item.schedule_at) : null;
   const list = `${BS}/posts/${when ? 'scheduled' : 'published'}_posts?${q}`;
 
-  // Never a second post: a submitted item, or one whose caption is already in the list, is only checked.
+  // Never a second post: a submitted item, or one whose caption is already in the list, is only checked;
+  // a reel already at this slot for a target (one saved without its caption looks like nobody's) stops it.
   if (!item.dry_run) {
     await say('Opening Business Suite…');
     await pg.go(list, `${BS}/posts/`);
-    const found = await pg.step('findScheduled', [item.caption, item.caption_ig]);
+    const rows = await pg.step('findScheduled', [item.caption, item.caption_ig]);
+    const found = rows.filter((r) => r.match);
     if (item.video_id || found.length) {
       await say(`Already ${when ? 'scheduled' : 'posted'} (${found.length} row(s)) · checking it`);
       return checkMetaList(item, pg, list, when, 'resumed', found);
+    }
+    const slot = when && listTime(when, item.tz);
+    const taken = rows.filter((r) => slot && r.date === slot && item.targets.includes(r.platform));
+    if (taken.length) {
+      const what = taken.map((r) => `${r.platform} "${r.blank ? '(no caption)' : r.title.slice(0, 40)}"`).join(', ');
+      throw new Error(`${slot} already has ${what} in ${list}: not posting a second reel (fix or remove it there, or move this item)`);
     }
   }
   await say('Opening the Reel composer…');
@@ -306,8 +314,12 @@ async function metaFlow(stored, pg) {
   ].filter(Boolean).join(' · ');
   await say(note);
   if (item.dry_run) return { status: 'dry-run', url: `${BS}/reels_composer/?${q}`, log: `${note} · form filled, not submitted (tab left open)` };
+  // Marked on the server before the press: whatever happens next (no confirmation, the extension dies),
+  // a retry finds video_id and only checks the list.
+  stored.video_id = item.video_id = 'meta-submitted';
+  const mark = await api(`/${item.id}/mark`, { video_id: stored.video_id });
+  if (!mark.ok) throw new Error(`could not mark the item submitted (HTTP ${mark.status}): not pressing ${when ? 'Schedule' : 'Share'}`);
   const sent = await pg.step('submit');
-  stored.video_id = 'meta-submitted'; // kept on failure (release), so a retry checks instead of posting again
   await say(`${sent.confirm} · checking the ${when ? 'Scheduled' : 'Published'} list`);
   await pg.go(list, `${BS}/posts/`);
   return checkMetaList(item, pg, list, when, note);
@@ -321,12 +333,12 @@ async function checkMetaList(item, pg, list, when, note, rows) {
       await new Promise((r) => setTimeout(r, 6000));
       await pg.go(list, `${BS}/posts/`);
     }
-    found = await pg.step('findScheduled', [item.caption, item.caption_ig]);
+    found = (await pg.step('findScheduled', [item.caption, item.caption_ig])).filter((r) => r.match);
   }
   const checks = [];
   for (const t of item.targets) {
     const row = found.find((r) => r.platform === t);
-    if (!row) throw new Error(`no ${t} row with this caption in ${list}`);
+    if (!row) throw new Error(`no ${t} row with this caption in ${list}${item.video_id ? ' (item is marked submitted, so it is never posted again; if nothing went out, clear its video_id)' : ''}`);
     if (when && row.date !== listTime(when, item.tz)) throw new Error(`${t} is scheduled ${row.date}, wanted ${listTime(when, item.tz)}`);
     if (!row.thumb) throw new Error(`${t} row has no thumbnail`);
     checks.push(`${t} ${row.date || 'posted'} ✓ thumbnail ✓`);

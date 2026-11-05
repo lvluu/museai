@@ -80,6 +80,9 @@
 
   // Caption box is Draft.js: a paste over select-all replaces the text and keeps line breaks.
   // insertText with "\n" garbles lines; execCommand delete/insertParagraph break Draft's DOM.
+  // The paste only changes the editor; the post keeps its caption from the editor's blur handler.
+  // A real blur never comes in an unfocused window (postq opens posts in background windows), and a
+  // reel posted without it has an empty caption, so blur is sent as events here.
   async function paste(el, value) {
     el.focus();
     await sleep(150);
@@ -89,6 +92,49 @@
     dt.setData('text/plain', value);
     el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
     await sleep(700);
+    el.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
+    el.dispatchEvent(new FocusEvent('blur'));
+    await sleep(700);
+  }
+
+  // The caption the post will carry, as the composer's preview renders it (the editor's own text is
+  // no proof: see paste). `kind`: "Facebook Feed preview" or "Instagram reel preview" (the Facebook
+  // reel preview never shows a caption).
+  const previewMenu = () => [...document.querySelectorAll('[role=button][aria-haspopup=menu]')]
+    .find((b) => visible(b) && / preview$/.test(text(b)));
+  async function previewText(kind) {
+    const menu = previewMenu();
+    if (!menu) throw new Error('no preview menu');
+    if (text(menu) !== kind) {
+      menu.click();
+      let item;
+      for (let i = 0; i < 20 && !item; i++) {
+        await sleep(150);
+        item = [...document.querySelectorAll('[role=menuitem]')].find((x) => visible(x) && text(x) === kind);
+      }
+      if (!item) throw new Error(`no "${kind}" in the preview menu`);
+      item.click();
+      for (let i = 0; i < 20 && text(previewMenu()) !== kind; i++) await sleep(150);
+      if (text(previewMenu()) !== kind) throw new Error(`could not switch to ${kind}`);
+    }
+    await sleep(600);
+    const s = document.body.innerText;
+    const i = s.lastIndexOf(kind);
+    const j = s.indexOf('Give us feedback', i);
+    return s.slice(i + kind.length, j < 0 ? undefined : j);
+  }
+  // Throws unless the preview for `platform` shows `caption` (its start: previews cut long text).
+  async function checkStored(platform, caption) {
+    const kind = platform === 'instagram' ? 'Instagram reel preview' : 'Facebook Feed preview';
+    const head = fold(caption).slice(0, 40).trim();
+    if (!head) throw new Error(`${platform} caption is empty in the item`);
+    let shown = '';
+    for (let i = 0; i < 5; i++) {
+      shown = await previewText(kind);
+      if (fold(shown).includes(head)) return true;
+      await sleep(1000);
+    }
+    throw new Error(`${platform} caption not stored: ${kind} shows ${JSON.stringify(shown.replace(/\s+/g, ' ').trim().slice(0, 80))}`);
   }
   // Facebook / Instagram caption tabs (Customise on); they switch on pointer events only.
   async function captionTab(name) {
@@ -228,7 +274,9 @@
       return own ? 'captions: own Facebook + Instagram' : 'caption: one for all targets';
     },
 
-    // Re-check the caption(s) right before leaving the Create step (they survive only if nothing re-rendered).
+    // Re-check the caption(s) right before leaving the Create step: the editor text (it survives only
+    // if nothing re-rendered) and the caption the post stores, per target, from the preview.
+    // The flow never reaches submit when this throws.
     async checkCaptions(item) {
       const own = $(SEL.customise)?.checked;
       const plan = own ? [['Facebook', item.caption], ['Instagram', item.caption_ig]] : [[null, item.caption]];
@@ -236,7 +284,13 @@
         if (tab) await captionTab(tab);
         if (!sameText($(SEL.editor)?.innerText, value)) throw new Error(`${tab || ''} caption got lost before Next`);
       }
-      return true;
+      const stored = {};
+      for (const p of item.targets) {
+        const value = own && p === 'instagram' ? item.caption_ig : item.caption;
+        await checkStored(p, value);
+        stored[p] = fold(value).slice(0, 40);
+      }
+      return stored;
     },
 
     // Create -> Edit -> Share.
@@ -310,8 +364,9 @@
       throw new Error(`pressed "${label}", the composer did not confirm within 2 min`);
     },
 
-    // Scheduled list (Content > Posts and reels > Scheduled): rows whose text starts like one of `captions`
-    // (the Facebook and the Instagram caption differ when Customise was on).
+    // Scheduled list (Content > Posts and reels > Scheduled): every row; `match` when its text starts
+    // like one of `captions` (the Facebook and the Instagram caption differ when Customise was on),
+    // `blank` when it has no caption (the list then shows "Your reel" in place of the text).
     async findScheduled(captions) {
       await waitFor(SEL.row, { timeout: 60000, what: 'scheduled posts table' });
       await sleep(1500);
@@ -319,12 +374,15 @@
       return [...document.querySelectorAll(SEL.row)].slice(1).map((r) => {
         const cells = [...r.querySelectorAll('[role=gridcell], [role=cell]')].map(text);
         const imgs = [...r.querySelectorAll('img')];
+        const title = cells[1] || '';
         return {
-          title: cells[1] || '', date: cells[2] || '',
+          title, date: cells[2] || '',
           platform: PLATFORM[imgs.find((i) => PLATFORM[i.alt])?.alt] || null,
           thumb: imgs.find((i) => i.width >= 32 && /fbcdn/.test(i.src))?.src || null,
+          match: heads.some((h) => fold(title).startsWith(h)),
+          blank: !fold(title) || /^your reel reel\b/.test(fold(title)), // "Your reel Reel · <Page>"
         };
-      }).filter((r) => heads.some((h) => fold(r.title).startsWith(h)));
+      });
     },
   };
 })();
