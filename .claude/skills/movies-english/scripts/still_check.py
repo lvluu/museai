@@ -1,50 +1,54 @@
 #!/usr/bin/env python3
-"""Measure a still against the memoriescore close-up bands (reference-study.md "Round 3").
+"""Measure a still's face against the memoriescore reel (reference-study.md "Round 3e").
 
-usage: uv run -q --no-project --python 3.12 --with numpy --with pillow python scripts/still_check.py <png>...
+usage: uv run -q --no-project --python 3.12 --with numpy --with pillow --with scikit-image --with scipy \
+    python scripts/still_check.py <png>...
 Prints one line per still: the metrics, then PASS or the bands it misses. Exit 1 if any still fails.
+The face is the largest pink blob of the frame (refgrade.face_mask), read at 1080x1920 in CIELAB, exactly
+as the reel was measured in the browser; a whole-frame RGB skin rule (the earlier version) also took beige
+walls and blonde hair and banded on that mix.
 """
 import sys
+from pathlib import Path
 
 import numpy as np
 from PIL import Image
+from skimage import color
 
-# measured on memoriescore close-ups (reference-study.md): soft frontal light, matte-glow skin, dark glowing room
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from refgrade import face_mask  # noqa: E402
+
+# twelve face readings of the THAT WAS HIM reel: her close-ups rgb 148/95/82, L50 46-47, a50 20-21, b50 16-17;
+# his 142-147/84-91/71-78, L50 43-46, a50 22, b50 17-19; small faces b50 up to 24. L p5 25-33, p95 51-71.
 BANDS = {
-    "skinMean": (100, 130),  # face brightness
-    "skinP10": (75, 999),    # no dark shadow side
-    "skinP90": (0, 150),     # no hot highlight
-    "skinRange": (0, 70),    # low contrast skin (p90-p10)
-    "skinSat": (0.28, 0.42), # muted warmth, never orange
-    "bgP50": (0, 255),       # any scene: the reference reels go from a black fur coat to a white blazer
-    "hiFrac": (0, 0.05),     # lights bloom, never clip (snow and a white blazer may)
-    "skinGB": (0.95, 1.25),  # green/blue of the skin: peach-pink, not orange (reference 1.09; ours was 1.5)
+    "L50": (41, 50),       # face brightness: a mid tone, never a bright glow
+    "a50": (17, 25),       # pink-red: the face reads as skin, not grey (ours was 14-16 before)
+    "b50": (14, 22),       # warm: never cold-grey, never orange-yellow
+    "Lspread": (18, 45),   # p95 - p5: modelled, not flat, no hot highlight
+    "faceR": (135, 160),   # mean red of the face
+    "hiFrac": (0, 0.07),   # lights bloom, never clip (snow and a white blazer may)
 }
 
 
 def measure(path):
-    im = np.asarray(Image.open(path).convert("RGB").resize((135, 240))).astype(float)
-    r, g, b = im[..., 0], im[..., 1], im[..., 2]
-    lum = 0.299 * r + 0.587 * g + 0.114 * b
-    skin = (r > 95) & (g > 40) & (b > 20) & (r > g) & (g > b) & (r - b > 15) & (r - g > 10) & (r < 250)
-    sl, bl = lum[skin], lum[~skin]
-    if sl.size < 200:
+    im = Image.open(path).convert("RGB").resize((1080, 1920), Image.BICUBIC)
+    rgb = np.asarray(im).astype(float)
+    lab = color.rgb2lab(rgb / 255.0)
+    m = face_mask(lab, rgb.shape[:2])
+    if m is None or m.sum() < 2000:
         return None
-    mx, mn = im.max(2), im.min(2)
-    sat = ((mx - mn) / np.maximum(mx, 1))[skin]
-    p = lambda a, q: float(np.percentile(a, q))
-    rgb = [float(r[skin].mean()), float(g[skin].mean()), float(b[skin].mean())]
+    L, a, b = (lab[..., c][m] for c in range(3))
+    lum = rgb @ [0.299, 0.587, 0.114]
+    p = lambda v, q: float(np.percentile(v, q))
     return {
-        "skinRGB": [round(v) for v in rgb],
-        "skinGB": round(rgb[1] / max(rgb[2], 1), 2),
-        "skinMean": round(float(sl.mean())),
-        "skinP10": round(p(sl, 10)),
-        "skinP90": round(p(sl, 90)),
-        "skinRange": round(p(sl, 90) - p(sl, 10)),
-        "skinSat": round(float(sat.mean()), 2),
-        "bgP50": round(p(bl, 50)),
+        "faceRGB": [round(float(rgb[..., c][m].mean())) for c in range(3)],
+        "faceR": round(float(rgb[..., 0][m].mean())),
+        "L50": round(p(L, 50), 1),
+        "a50": round(p(a, 50), 1),
+        "b50": round(p(b, 50), 1),
+        "Lspread": round(p(L, 95) - p(L, 5), 1),
         "hiFrac": round(float((lum > 235).mean()), 3),
-        "skinFrac": round(float(skin.mean()), 2),
+        "facePx": int(m.sum()),
     }
 
 
@@ -54,7 +58,7 @@ def main():
         m = measure(path)
         name = path.split("/")[-1]
         if m is None:
-            print(f"{name}: no face found (skin < 200 px)")
+            print(f"{name}: no face found")
             bad += 1
             continue
         miss = [f"{k}={m[k]} not in {lo}-{hi}" for k, (lo, hi) in BANDS.items() if not lo <= m[k] <= hi]

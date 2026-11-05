@@ -212,3 +212,24 @@ only grain. Skin numbers hold (frames 133-134/107-108/92-93, mean 113-114, sat 0
 135-136/106-107/91-92, mean 113-114, sat 0.33); still_check no longer bands the background brightness
 (the reels go from a black fur coat to a white blazer) and allows 5 % clipped whites (snow, a white blazer).
 The per-frame pass costs ~1 s a frame.
+
+Round 3e: still vague. Measured the reel itself in the browser at 1080x1920, face only this time: the
+largest connected pink blob of each frame (CIELAB a > 12, L 35-85, b 8-26, found at 270 wide), dilated,
+read with a loose skin rule; checked on screen that the box sits on the face (the beige wall and the blonde
+hair are out). Twelve frames (seven close-ups of her, five of him):
+
+| | her close-ups | him | ours, Round 3d grade | ours, Round 3e grade |
+|---|---|---|---|---|
+| face RGB | 148/95/82 | 142-147/84-91/71-78 | 137/96/84 | 147/96/83 |
+| L50, a50, b50 | 46-47, 20-21, 16-17 | 43-46, 22, 17-19 | 46, 15.6, 14.0 | 47, 19.8, 16.7 |
+| L p5-p95 | 33-55 | 27-54 | 24-56 | 28-61 |
+| laplacian var, face, 1080 | 4-7 | 4-8 | 4-12 | 14 |
+
+The Round 3c table was read with the whole-frame RGB skin rule from a screenshot crop: wall and hair in,
+a median 14, b 15.5. A face is a 21 and b 17.5, so every matched face landed grey and dull: that is the
+"vague". Also the reel's face is smooth (laplacian variance under 10 at 1080), so sharpness was never the
+gap. refgrade now carries the face-only table (mean of the twelve readings), reads the source side the
+same way (largest blob of the frame being graded). still_check measures the face blob in Lab and bands L50 41-50, a50 17-25, b50 14-22, L spread
+18-45, mean red 135-160. The old grade fails it on a50 (15.6), the raw muse still on L50 (54), a50 (14.5)
+and red (163).
+
