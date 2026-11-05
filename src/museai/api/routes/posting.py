@@ -82,6 +82,10 @@ CHANNELS = {
                              2: "7 PM: Europe lunch / afternoon, South and East Asia evening"}),
     "healing": ("Healing", {1: "7 AM: Americas afternoon / evening, East Asia morning",
                             2: "7 PM: Europe lunch / afternoon, South and East Asia evening"}),
+    # English drama (movies-english, me-NNNN files) posts on accounts of its own (user rule 2026-11-05),
+    # on the Travel plan: its viewers are English speakers around the world too.
+    "english": ("English drama", {1: "7 AM: Americas afternoon / evening, East Asia morning",
+                                  2: "7 PM: Europe lunch / afternoon, South and East Asia evening"}),
 }
 # Short name of an audience clock, shown beside the GMT+7 time so the user sees whose evening a slot is.
 CLOCKS = {"Europe/London": "London", "America/New_York": "New York"}
@@ -91,13 +95,15 @@ CLOCKS = {"Europe/London": "London", "America/New_York": "New York"}
 AUDIENCE = {"chinese": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2,
             "travel": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2,
             "dream": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2,
-            "healing": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2}
+            "healing": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2,
+            "english": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2}
 # The format skills name their files <prefix>-<slug> (muse-video SKILL.md "Format skills"); a renamed file
 # that still names its format ("Kelingking Beach - zoominview.mp4") is travel too. The English formats
 # (nostalgia, gown, ...) post on the Travel accounts: their viewers share its clock. Dream-life and healing
 # videos post on accounts of their own (user rules 2026-11-02).
 DREAM_NAME = re.compile(r"^dream[-_ ]|\bdream-life\b", re.IGNORECASE)
 HEALING_NAME = re.compile(r"^healing[-_ ]|\bhealing-video\b", re.IGNORECASE)
+ENGLISH_NAME = re.compile(r"^me-\d|\bmovies-english\b", re.IGNORECASE)  # movies-english: me-NNNN
 # YouTube playlists for Dream life, picked from the file's theme slug (dream-<slug>, dream-life
 # themes.py): the first rule that matches wins, the rest are cozy everyday jobs. Playlists keep a viewer watching the
 # next video and give the channel page shelves; Instagram and Facebook Reels have none.
@@ -140,7 +146,7 @@ TIMES = {
     # change a Short's long-term reach: the opening shot and retention matter more.
     "travel": {p: ["07:00 19:00"] * 7 for p in ("youtube", "tiktok", "facebook", "instagram", "x", "threads")},
 }  # fmt: skip
-TIMES["dream"] = TIMES["healing"] = TIMES["travel"]
+TIMES["dream"] = TIMES["healing"] = TIMES["english"] = TIMES["travel"]
 SLOT_KEY = re.compile(r"^(\d{4}-\d{2}-\d{2})/([1-4])$")
 FOLDER_MARK = ".museai-post"  # marks a folder this module made for one video
 SETTLE = 30  # seconds a video must sit unchanged before it moves (deliver.sh may still be copying it)
@@ -199,6 +205,8 @@ def _channel(name: str, entry: dict) -> str:
         return "dream"
     if HEALING_NAME.search(name):
         return "healing"
+    if ENGLISH_NAME.search(name):
+        return "english"
     return "travel" if TRAVEL_NAME.search(name) else "chinese"
 
 

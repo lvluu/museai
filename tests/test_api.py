@@ -533,6 +533,8 @@ def test_posting_channel_from_file_name():
         assert posting._channel(name, {}) == "dream", name
     for name in ("healing-highland-pear-compote.mp4", "Provence herbs - healing-video.mp4"):
         assert posting._channel(name, {}) == "healing", name
+    for name in ("me-0002-final-v5-raw1080.mp4", "Bakery meet-cute - movies-english.mp4"):
+        assert posting._channel(name, {}) == "english", name
     for name in ("EVERYDAY CHINESE 13 - Finding the subway.mp4", "Tiếng Trung mỗi ngày 16 - Đi cắt tóc.mp4",
                  "lesson-bi-so-sanh_vertical_9x16.mp4", "Zoomed lesson.mp4"):
         assert posting._channel(name, {}) == "chinese", name
@@ -628,7 +630,7 @@ def test_posting_move_slot(client, admin, settings, monkeypatch, clock):
     assert len(set(slots.values())) == 2
     assert set(d["videos"][0]["schedule"]) == {"youtube", "tiktok", "facebook", "instagram", "x", "threads"}
     assert sum(s["video"] is not None for day in d["calendar"]["chinese"] for s in day["slots"]) == 2
-    assert {c["id"] for c in d["channels"]} == {"chinese", "travel", "dream", "healing"}
+    assert {c["id"] for c in d["channels"]} == {"chinese", "travel", "dream", "healing", "english"}
 
     r = client.post("/dashboard/posts/a.mp4", headers=admin, json={"slot": slots["b.mp4"]}).json()
     assert r["video"]["slot"] == slots["b.mp4"]
