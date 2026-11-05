@@ -402,7 +402,8 @@ def _view(path: Path, entry: dict, svc: Services) -> dict:
             "auto_captions": svc.captions.status(_key(path.name)),
             "posted": entry.get("posted", {}), "slot": key, "channel": _channel(path.name, entry),
             "playlist": _playlist(path.name, entry),
-            "thumbnails": [{"kind": k, "use": THUMBS[k]} for k in _thumbs(path)],
+            "thumbnails": [{"kind": k, "use": THUMBS[k], "v": int(t.stat().st_mtime)}  # v: new URL when replaced
+                           for k, t in _thumbs(path).items()],
             "auto": {p: j.get("state", "") for p, j in (entry.get("auto") or {}).get("jobs", {}).items()},
             "schedule": {p: t.isoformat() for p, t in _slot_times(key, _channel(path.name, entry)).items()} if key else {},
             "audience": _audience(key, _channel(path.name, entry)) if key else None}
