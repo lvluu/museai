@@ -5,7 +5,8 @@
 # UHD=1 (only when the user asked for 4K) the 4K UHD video (upscale.sh, Real-ESRGAN, ~1 h for 15 s), to ~/Desktop (DEST=dir to change) and checks it. Then it deletes
 # every other resource made for the video: earlier Desktop copies whose name starts with prefix,
 # the work folder (raw clips, takes, sheets, mouth strips, frame grabs, cues, words, prompts), the
-# ~/Movies/museai renders starting with prefix, and the server's identical copies in data/media/.
+# ~/Movies/museai renders starting with prefix, and the server copies in data/media of every take it logged
+# (task ids) or that is identical to a clip.
 # prefix defaults to the work folder's name (e.g. ep10). Deleted = moved to the Trash.
 # CAPTIONS_FILE=captions.json: one caption per platform ({"youtube": "title\n\ndescription", "tiktok": ...,
 # "facebook", "instagram", "x", "threads"}), written with the social-captions skill and checked by its
@@ -110,11 +111,44 @@ for f in "$HOME/Movies/museai/$prefix"[-_.]*; do
   renders+=("$f")
 done
 junk+=(${renders[@]+"${renders[@]}"})
-media="$(cd "$(dirname "$0")/../../../.." && pwd)/data/media"
-for m in "$media"/vid_*.mp4; do
-  for f in ${renders[@]+"${renders[@]}"} "$work"/*.mp4 "$work"/*/*.mp4; do
-    [ "$(stat -f%z "$m")" = "$(stat -f%z "$f")" ] && cmp -s "$m" "$f" && { junk+=("$m"); break; }
-  done
+# Server copies: every take the server rendered for this video stays in <data>/media (1490 files, 10 GB by
+# 2026-11-05), also rejected takes and re-encoded ones no byte check finds. The skills run from a
+# museai-main checkout with no data/, so look in the running server's folder too (MUSEAI_DATA to force one).
+datas=()
+for d in "${MUSEAI_DATA:-}" "$(cd "$(dirname "$0")/../../../.." && pwd)/data" \
+  "$(lsof -a -d cwd -Fn -p "$(pgrep -f 'python -m museai' | head -1)" 2>/dev/null | sed -n 's/^n//p' | head -1)/data"; do
+  [ -n "$d" ] && [ -d "$d/media" ] || continue
+  d=$(cd "$d" && pwd)
+  for u in ${datas[@]+"${datas[@]}"}; do [ "$u" = "$d" ] && continue 2; done
+  datas+=("$d")
+done
+# 1. each task muse-video logged (task task_x submitted) in the work folder or a render log: its result file
+ids=$(grep -rhoE 'task_[0-9a-f]{16}' "$work" ${renders[@]+"${renders[@]}"} 2>/dev/null | sort -u || true)
+mp4s=()
+while IFS= read -r f; do mp4s+=("$f"); done < <(find "$work" -type f -name '*.mp4')
+for f in ${renders[@]+"${renders[@]}"}; do [ "${f%.mp4}" = "$f" ] || mp4s+=("$f"); done
+for d in ${datas[@]+"${datas[@]}"}; do
+  if [ -n "$ids" ] && [ -f "$d/tasks.json" ]; then
+    while IFS= read -r m; do junk+=("$m"); done < <(IDS="$ids" python3 - "$d" <<'PY'
+import json, os, sys
+d = sys.argv[1]
+ids = set(os.environ["IDS"].split())
+for t in json.load(open(os.path.join(d, "tasks.json"))):
+    url = (t.get("result") or {}).get("url") or ""
+    p = os.path.join(d, "media", os.path.basename(url))
+    if t.get("id") in ids and url and os.path.isfile(p):
+        print(p)
+PY
+)
+  fi
+  # 2. any server file identical to a clip of this video (tasks.json keeps only the last 500 tasks)
+  # (one stat per folder, cmp only on equal sizes: data/media holds thousands of files)
+  [ ${#mp4s[@]} -gt 0 ] || continue
+  sizes=" $(stat -f%z "${mp4s[@]}" | tr '\n' ' ')"
+  while read -r s m; do
+    case "$sizes" in *" $s "*) ;; *) continue ;; esac
+    for f in "${mp4s[@]}"; do cmp -s "$m" "$f" && { junk+=("$m"); break; }; done
+  done < <(find "$d/media" -maxdepth 1 -name 'vid_*.mp4' -exec stat -f'%z %N' {} +)
 done
 # list each path once, or trash fails on an already-trashed path and set -e aborts the cleanup
 uniq=()
