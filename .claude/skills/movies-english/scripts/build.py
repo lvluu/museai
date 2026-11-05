@@ -29,6 +29,15 @@ FRAMING = {
     "two-shot": "Medium two-shot from the waist up, both bodies facing the camera squarely, each turning only the head partway toward the other, both faces in front three-quarter view, both mouths visible",
     "insert": "Insert: a tight close-up of hands and an object (no face in the frame), shallow focus, the object large and centred, the action of the hands clear",
 }
+LIGHT = ("LIGHT exactly like the memoriescore reels: SOFT, FRONTAL and LOW-CONTRAST beauty light, as if one big diffused "
+         "warm source sits right beside the camera: the whole face evenly lit, no shadow side, no hard nose or cheek "
+         "shadow, no hot spot, the skin a smooth soft matte glow (not oily, not shiny, not wet): fair peach skin with a soft "
+         "pink blush, muted film colour, never orange, never golden-tan, never yellow; a gentle warm halo on the edge of the hair from a light behind; the room behind "
+         "much darker than the face (deep brown, black, night) with soft out-of-focus warm lights (lamps, candles, "
+         "string lights, city lights) that bloom gently and never clip; a light haze as if shot through a diffusion "
+         "filter, the whole frame slightly soft like a 1990s video still, no hyper-sharp detail, no dramatic "
+         "chiaroscuro, no HDR. A soft out-of-focus foreground piece (a shoulder, a glass, a door frame, a plant) at "
+         "one side of the frame.")
 CAMERA = "A very slow gentle push-in or a slight natural handheld drift, eye level, never fast; ONE CONTINUOUS TAKE, no cuts, no zoom."
 
 
@@ -76,13 +85,14 @@ def still_prompt(shot, sc):
     people = "" if shot["framing"] == "insert" else people
     return (f"A frame grab from a 1999 Hollywood romantic comedy, shot on 35 mm film with an 85 mm lens, "
             f"slightly soft like a DVD frame. Vertical 9:16. {FRAMING[shot['framing']]}. "
-            f"Place: {sc['setting']}. The moment: {pose} Caught mid-moment, real and candid, not posing; a speaker's "
+            f"Place: {sc['setting']}. {LIGHT} The moment: {pose} Caught mid-moment, real and candid, not posing; a speaker's "
             f"mouth closed. {people} LEFT and RIGHT mean the person's own side. Original faces that resemble no actor, "
             f"celebrity or public figure. The face is in focus; the background is softly out of focus. 1990s Kodak film "
-            f"picture: warm golden light, rich clean saturated colour, real deep black shadows, soft highlights that "
-            f"never clip, a gentle halation glow on lamps and windows, fine film grain; skin warm, golden and glowing "
-            f"with real texture. Real young actors on a real film set, 1990s supermodel styling (big blown-out hair, "
-            f"strong brows, glossy lips), not a render. Never flat, grey, milky or washed out, never teal-and-orange, "
+            f"picture: soft warm light, muted clean colour like 35 mm Kodak film (beige, cream, brown, deep red), real deep black "
+            f"shadows in the room, soft highlights that never clip, a gentle halation glow on lamps and windows, fine film "
+            f"grain; fair peach skin with a soft pink blush, the colour muted like 35 mm film (the blue of the skin almost as strong as the green: never orange, never golden-tan, never yellow), soft and evenly lit with a smooth matte glow, never oily or shiny. Real young actors on a real film set, 1990s supermodel "
+            f"styling (big voluminous blown-out hair, strong brows, high-shine glossy lips that catch the light (the lips are the only gloss), gold "
+            f"jewellery), not a render. Never flat, grey, milky or washed out, never teal-and-orange, "
             f"never HDR or razor-sharp, no CGI look. No text, no logos, no watermark.")
 
 
@@ -94,7 +104,7 @@ def shot_prompt(shot, sc):
     p = [f"NO TEXT ON SCREEN. One continuous {dur}-second shot of a short film. The attached image is the exact "
          f"first frame: keep every face, hairstyle, outfit, the framing and the camera position.",
          *([f"CAST (keep faces, hair, outfits and voices identical for the whole clip):\n{people}"] if people else []),
-         f"SETTING: {sc['setting']}.",
+         f"SETTING: {sc['setting']}. {LIGHT}",
          f"CAMERA: {'Exactly the framing and camera position of the first frame' if first else FRAMING[shot['framing']]}. {CAMERA}",
          f"ACTION: {shot['action']}"]
     ln = shot.get("line")

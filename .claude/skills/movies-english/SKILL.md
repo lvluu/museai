@@ -1,6 +1,6 @@
 ---
 name: movies-english
-description: Make "Movies English" reels - 15-30 s vertical AI rom-com short movies that look exactly like the memoriescore.studio reels (warm 1990s Kodak-film picture with deep blacks and rich colour, 1990s supermodel cast Viv & Jamie, Sienna & Theo, Maya & Lucas, 10-20 quick shots with inserts and big close-ups, constant motion, physical comedy, a reaction button ending with a meaning of its own, tiny white English subtitles). A story, never a lesson: no card unless the script lists `words`. Holds a library of 1000 ready scripts, the cast bible, the build/render/finish pipeline through museai/muse-video, and the social growth plan. Use for "movies english", "english through movies", "learn English reel", "make video ME-0042", "next movies english video", "rom-com English lesson", or videos in the style of the memoriescore.studio / EmmaRobins / Aspen ski / Christmas pyjama reference reels.
+description: Make "Movies English" reels - 15-30 s vertical AI rom-com short movies that look exactly like the memoriescore.studio reels (warm 1990s Kodak-film picture with deep blacks and rich colour, 1990s supermodel cast Viv & Jamie, Sienna & Theo, Maya & Lucas, 10-20 quick shots with inserts and big close-ups, constant motion, physical comedy, a reaction button ending with a meaning of its own, tiny white English subtitles). A story, never a lesson: no card unless the script lists `words`. Holds a library of 1000 ready scripts, the cast bible, the build/render/finish pipeline through museai/muse-video, and the social growth plan. Christmas mode: `christmas`/`party`/`fur` wardrobe keys, snowy night settings lit by tree or string lights, ready scripts ME-X001..X004. Use for "movies english", "christmas movies english", "christmas reel", "english through movies", "learn English reel", "make video ME-0042", "next movies english video", "rom-com English lesson", or videos in the style of the memoriescore.studio / EmmaRobins / Aspen ski / Christmas pyjama reference reels.
 ---
 
 # Movies English
@@ -13,10 +13,11 @@ only what is specific to the format.
 |---|---|
 | `references/reference-study.md` | the reference reels measured (memoriescore.studio x10, the target; the three IG reels): cuts, shots, picture, faces, subtitles, sound |
 | `references/script-format.md` | the script JSON shape and the writing rules |
+| `references/style-catalogue.md` | wardrobe, scenes, animals and acting beats seen in the reels, and the Christmas mode (settings, palette, wardrobe keys, plots) |
 | `references/growth.md` | platforms, posting plan, engagement and monetisation |
 | `series/cast.json` | the six recurring characters: identity (face), wardrobe sets, voice, comic engine |
 | `prompt/look.txt` | the memoriescore look (warm 1990s film, deep blacks, rich colour, slow push/drift camera, constant motion, 90s supermodel faces), appended to every shot prompt |
-| `library/batch_NN.json` | 1000 scripts, `ME-0001`..`ME-1000` (00: 1, 01: 99, 02-10: 100 each) |
+| `library/batch_NN.json` | 1000 scripts, `ME-0001`..`ME-1000` (00: 1, 01: 99, 02-10: 100 each); `batch_xmas.json` holds the Christmas scripts `ME-X001`..`ME-X004` |
 | `scripts/check.py` | library lint: counts, unique ids and phrases, phrase in a line, line length, timing |
 | `scripts/build.py` | `ME-NNNN WORK` → still requests, shot prompts, `render.sh` |
 | `scripts/stills.sh` | renders every still (two takes each) through `/v1/images/generations` |
@@ -29,7 +30,15 @@ only what is specific to the format.
 2. Look at each still pair next to the reference faces (reference-study.md "Picture"); copy the better
    take to `$WORK/stills/<name>.png`. Reject a face that looks older than 23, contour or heavy brows,
    plastic or airbrushed skin, a flat grey or washed-out picture, a famous-looking face, wrong wardrobe,
-   text in the frame, a speaker facing away. Want: warm golden film light, deep blacks, big 90s hair. Close-ups of one
+   text in the frame, a speaker facing away, a bright flat evenly lit room, a busy pastel background, pale pink skin,
+   matte lips, a dramatic side-lit face with a hot highlight and a dark cheek, orange or shiny skin, razor-sharp
+   hyper-detail, a murky underexposed frame. Want: soft frontal even light on the face (no shadow side), the
+   background much darker than the face but glowing (lamps, candles, string lights blooming), fair peach matte-glow skin with a pink blush (never orange or golden),
+   high-shine glossy lips, big 90s hair, a blurred foreground piece at one side. Numbers settle it:
+   `python3 scripts/still_check.py $WORK/stills/*.png` prints each take against the reference bands and
+   says PASS or which band it misses. A muse still always comes out with hot skin highlights, so run
+   `python3 scripts/still_match.py <take>.png $WORK/stills/<name>.png` on the chosen take (the film roll-off,
+   a soft glow) and check the result; a take that still fails on skin saturation or a dark cheek is re-rendered. Close-ups of one
    person share one still per episode: that is what keeps the face the same across cuts.
 3. `$WORK/render.sh` in the background: the shots render one at a time (`render-queue`), one muse call each, through
    `../muse-video/scripts/muse-video` (quality block appended). Check each clip with

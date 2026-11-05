@@ -5,6 +5,26 @@ The user's target (2026-11-05): every video looks exactly like the memoriescore.
 40K-1.1M views each. The first section is their measurement; the three IG reels of 2026-11-03 follow
 (brighter, slower; kept as the `airy` grade and for the subtitle/sound facts).
 
+
+### Frame-level measurements (reels 2 and 9, ten frames each, 135x240 samples)
+Luminance percentiles and the mean colour of skin pixels (r>g>b, r-b>15):
+
+| | p5 | p25 | p50 | p75 | p95 | skin RGB |
+|---|---|---|---|---|---|---|
+| memoriescore night restaurant (reel 9) | 5 | 14-42 | 27-92 | 85-142 | 117-204 | 124-152 / 86-118 / 73-108 |
+| memoriescore day boutique (reel 2) | 1-25 | 48-74 | 75-109 | 107-150 | 149-235 | 134-154 / 95-113 / 75-98 |
+| ME-0002 film grade v1 | 2-12 | 27-49 | 64-108 | 106-163 | 176-210 | 142-169 / 101-127 / 82-105 |
+| ME-0002 film grade v2 (S1, S2, S5) | 2-4 | 29-39 | 67-87 | 113-129 | 166-176 | 137-147 / 103-111 / 77-81 |
+
+So the reels keep p75 near 110 and p95 near 165 even in daylight; our v1 grade sat 30-40 points higher in the
+upper mids, which is what reads as flat and bright. Skin is a deep golden tan (R-B ≈ 55), not pale pink.
+
+What the close-ups show (zoomed frames): one warm directional key light, the far cheek in shadow, a glow on
+the hair edge; the background darker than the face (dark wood, black, night) and simple; an out-of-focus
+foreground piece (a shoulder, a glass) at one side; big voluminous hair; high-shine glossy pink-red lips;
+defined eyes; gold jewellery; bold solid-colour wardrobe (white, red, black satin). Our bakery frames had the
+opposite: a bright busy pastel background, flat window light, pale skin, matte dark lips.
+
 ## memoriescore.studio (ten reels, measured in the browser 2026-11-05)
 Measured in-page at 90x160, one sample per 0.5 s: mean RGB, share of pixels under 40 (deep shadow) and
 over 200 (bright), saturation (max-min over max), cuts (frame difference > 30), motion (mean frame
@@ -54,6 +74,21 @@ difference between cuts).
 - Subtitles: tiny white sans text at ~74 % of the height, only on spoken lines (finish.py: 26 px at
   720 wide). Caption on the post: one question ("When was the last time you were late because you
   chose kindness?"). A soft retro pop song under the dialogue (She & Him) on some reels.
+
+## Round 2 (2026-11-05): one more memoriescore reel and six Christmas reels
+- memoriescore "STILL WORKS" (lake dock in heavy rain, 28.6 s): one location, one outfit each (white
+  strapless mini, soaked; white open shirt, black trousers, both barefoot), a macro insert (a hand
+  catching rain) opens the reel, an empty wide of the dock is the breath before the kiss.
+- Christmas reels (memoriescore "TEN BANANAS, OZZY", "HI, AGAIN", "THAT WAS HIM"; "THE WRONG HOUSE";
+  two palette references): same curve as the night restaurant reels, darker in the shadows:
+  p5 6-13, p25 17-42, p50 70-98, p75 109-129, p95 149-165, skin 123-149 / 90-111 / 66-97; a decoration
+  slideshow in a dark room reaches p25 15, p50 25-45, p95 244 (only the lights clip). A white blazer
+  frame reaches p75 178. Look: snow falling, one warm practical source (tree, string lights, carousel
+  bulbs), blue-black behind the faces, red / cream / gold / burgundy / forest green wardrobe, shearling
+  collars and cuffs, tartan, fur over sequins, leather gloves, a red paper cup of cocoa.
+- Animals: a golden retriever (adult on a lead; a puppy carried), a tiny white Pomeranian as the
+  comedy device; each with a close-up insert and a beat in a person's arms.
+- Everything catalogued in `style-catalogue.md`; the four Christmas scripts are `library/batch_xmas.json`.
 
 ## The three IG reels (2026-11-03; `GRADE=airy`)
 
@@ -111,3 +146,29 @@ already mid-action (a scream, a counter exchange, a pillow fight); no establishi
 ## Sound
 Dialogue at about -18 dB mean with room ambience (gaps -22..-24 dB); at most a faint music bed. Muse's
 own clip audio is right; add no music unless the user asks.
+
+## Round 3 (2026-11-05): the "AI look", measured
+
+Side by side with a memoriescore close-up (THAT WAS HIM, the blonde in the fur coat; same 135x240 measure,
+skin = warm-pixel mask), the LIGHT v1/v2 stills differed in light and skin colour, not in exposure:
+
+| | reference | ours (v1/v2) |
+|---|---|---|
+| skin p10 / p90 | 88 / 135 (range 47: soft frontal light, no shadow side, no hot spot) | 76 / 180 (range 103: one hard side light, a hot cheek, a dark cheek) |
+| skin saturation | 0.36 | 0.44-0.57 |
+| skin RGB, G/B | 155/110/100, 1.09 (fair peach, pink blush: blue almost as strong as green) | 170/116/75, 1.5 (orange-gold: "golden-tan" in the prompt) |
+| room behind the face p50 | 16, glowing bokeh | 12-26 |
+| picture | slightly soft, hazy, muted film colour, beige wall 122/110/97 | razor-sharp, rich saturated |
+
+That contrast, the orange skin and the sharpness are what read as AI.
+
+Fixes: LIGHT v3 in build.py / look.txt asks for soft frontal low-contrast light, fair peach matte-glow
+skin (never golden-tan, orange or yellow), muted film colour, a light haze; `scripts/still_check.py`
+prints the bands (skin mean 100-130, p10 >= 75, p90 <= 150, range <= 70, sat 0.28-0.42, G/B 0.95-1.25,
+bg p50 8-45, clipped < 1 %); `scripts/still_match.py` rolls the highlights off and shifts the skin to
+peach on the chosen still (v3 stills land at p90 165-183, G/B 1.3 before it; 138-149, 1.08-1.15 after,
+PASS); the film grade in finish.py dropped saturation x1.3 (it took clip skin from 0.36 to 0.54) for
+x0.95, a harder roll-off (1 -> 0.80), a peach balance and a touch more blur. Two ffmpeg traps found on the
+way: a screen blend in yuv420p lifts U/V (magenta cast) and gblur on packed rgb24 mixes the channels
+(blue cast), so the halation split runs in planar gbrp. ME-0002 clips after the grade: skin mean 112-113,
+p10 78-82, p90 139-152, sat 0.27-0.31, RGB ~132/107/95.
