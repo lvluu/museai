@@ -92,8 +92,15 @@
     dt.setData('text/plain', value);
     el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
     await sleep(700);
-    el.dispatchEvent(new FocusEvent('focusout', { bubbles: true }));
-    el.dispatchEvent(new FocusEvent('blur'));
+    // The handler ignores a blur while the box is not focused (the paste can drop focus, seen on the
+    // Instagram tab), so focus it again first.
+    const box = $(SEL.editor) || el;
+    box.focus();
+    box.dispatchEvent(new FocusEvent('focus'));
+    box.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    await sleep(300);
+    box.dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: document.body }));
+    box.dispatchEvent(new FocusEvent('blur', { relatedTarget: document.body }));
     await sleep(700);
   }
 
@@ -123,18 +130,31 @@
     const j = s.indexOf('Give us feedback', i);
     return s.slice(i + kind.length, j < 0 ? undefined : j);
   }
-  // Throws unless the preview for `platform` shows `caption` (its start: previews cut long text).
-  async function checkStored(platform, caption) {
+  // Longest start of `want` (folded) that `shown` (folded) contains.
+  function shownPrefix(shown, want) {
+    let lo = 0, hi = want.length;
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2);
+      if (shown.includes(want.slice(0, mid))) lo = mid; else hi = mid - 1;
+    }
+    return lo;
+  }
+  // Throws unless the preview for `platform` shows `caption`. Previews may cut long text, so a start is
+  // enough, but it must reach 30 characters past the title line both captions share, or the whole caption.
+  async function checkStored(platform, caption, title) {
     const kind = platform === 'instagram' ? 'Instagram reel preview' : 'Facebook Feed preview';
-    const head = fold(caption).slice(0, 40).trim();
-    if (!head) throw new Error(`${platform} caption is empty in the item`);
+    const want = fold(caption);
+    if (!want) throw new Error(`${platform} caption is empty in the item`);
+    const need = Math.min(want.length, Math.max(60, fold(title).length + 30));
     let shown = '';
+    let got = 0;
     for (let i = 0; i < 5; i++) {
       shown = await previewText(kind);
-      if (fold(shown).includes(head)) return true;
+      got = shownPrefix(fold(shown), want);
+      if (got >= need) return got;
       await sleep(1000);
     }
-    throw new Error(`${platform} caption not stored: ${kind} shows ${JSON.stringify(shown.replace(/\s+/g, ' ').trim().slice(0, 80))}`);
+    throw new Error(`${platform} caption not stored (${got}/${need} characters match): ${kind} shows ${JSON.stringify(shown.replace(/\s+/g, ' ').trim().slice(0, 120))}`);
   }
   // Facebook / Instagram caption tabs (Customise on); they switch on pointer events only.
   async function captionTab(name) {
@@ -160,6 +180,14 @@
     .formatToParts(new Date(ms)).find((x) => x.type === 'timeZoneName').value;
   const sameZone = (a, b, ms) => { try { return offset(a, ms) === offset(b, ms); } catch { return false; } };
 
+  // Fields here keep their value on blur, and a real blur never comes in an unfocused window (postq
+  // opens posts in background windows), so it is also sent as events.
+  function unfocus(el) {
+    el.blur();
+    el.dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: document.body }));
+    el.dispatchEvent(new FocusEvent('blur', { relatedTarget: document.body }));
+  }
+
   // Spinbuttons only take typed characters (no setter, no synthetic keydown).
   async function typeSpin(el, n) {
     el.focus();
@@ -167,7 +195,7 @@
     document.execCommand('selectAll', false);
     for (const c of String(n).padStart(2, '0')) document.execCommand('insertText', false, c);
     await sleep(150);
-    el.blur();
+    unfocus(el);
   }
 
   // Each schedule row (one per platform) follows its platform's logo in document order.
@@ -256,15 +284,16 @@
     // Captions go in last: switching the thumbnail tab re-renders "Reel details" and drops typed text.
     // One caption for both, or Customise on with each platform's own (Facebook / Instagram tabs).
     async fill(item) {
-      const both = item.targets.includes('facebook') && item.targets.includes('instagram');
-      const own = both && item.caption_ig && !sameText(item.caption_ig, item.caption);
+      // Customise is always on for Facebook + Instagram: each tab gets its own caption (the IG one
+      // falls back to the Facebook caption), and each is read back on its own.
+      const own = item.targets.includes('facebook') && item.targets.includes('instagram');
       const sw = $(SEL.customise);
       if (sw && sw.checked !== !!own) {
         sw.click();
         await sleep(800);
       }
       if (own && !$(SEL.customise)?.checked) throw new Error('could not turn on "Customise post for Facebook and Instagram"');
-      const plan = own ? [['Facebook', item.caption], ['Instagram', item.caption_ig]] : [[null, item.caption]];
+      const plan = own ? [['Facebook', item.caption], ['Instagram', item.caption_ig || item.caption]] : [[null, item.caption]];
       for (const [tab, value] of plan) {
         if (tab) await captionTab(tab);
         await paste(await waitFor(SEL.editor, { what: 'caption box' }), value);
@@ -278,17 +307,19 @@
     // if nothing re-rendered) and the caption the post stores, per target, from the preview.
     // The flow never reaches submit when this throws.
     async checkCaptions(item) {
-      const own = $(SEL.customise)?.checked;
-      const plan = own ? [['Facebook', item.caption], ['Instagram', item.caption_ig]] : [[null, item.caption]];
+      const own = item.targets.includes('facebook') && item.targets.includes('instagram');
+      if (own && !$(SEL.customise)?.checked) throw new Error('"Customise post for Facebook and Instagram" is off before Next');
+      const ig = item.caption_ig || item.caption;
+      const plan = own ? [['Facebook', item.caption], ['Instagram', ig]] : [[null, item.caption]];
       for (const [tab, value] of plan) {
         if (tab) await captionTab(tab);
-        if (!sameText($(SEL.editor)?.innerText, value)) throw new Error(`${tab || ''} caption got lost before Next`);
+        const got = $(SEL.editor)?.innerText;
+        if (!sameText(got, value)) throw new Error(`${tab || ''} caption box reads ${JSON.stringify((got || '').trim().slice(0, 80))} before Next, not its caption`);
       }
       const stored = {};
       for (const p of item.targets) {
-        const value = own && p === 'instagram' ? item.caption_ig : item.caption;
-        await checkStored(p, value);
-        stored[p] = fold(value).slice(0, 40);
+        const value = p === 'instagram' ? ig : item.caption;
+        stored[p] = `${await checkStored(p, value, item.title)}/${fold(value).length} characters`;
       }
       return stored;
     },
@@ -321,7 +352,7 @@
         r.date.focus();
         setValue(r.date, `${want.dd}/${want.mm}/${want.y}`);
         key(r.date, 'Enter');
-        r.date.blur();
+        unfocus(r.date);
         await sleep(400);
         await typeSpin(r.hours, want.h);
         await typeSpin(r.minutes, want.min);
