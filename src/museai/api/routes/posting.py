@@ -286,11 +286,12 @@ def _slots_from(now: datetime, channel: str):
 def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
     """Lay each channel's queue out back to back in its free slots. History is the slots of videos
     posted or deleted (records) and of queued videos posted on a platform or planned for auto-posting;
-    those never move. Every other queued video takes a free upcoming slot, in queue order: its current
+    those never move. Every other queued video takes a free upcoming slot after the channel's last history
+    slot (the platforms' schedulers already hold the days up to it), in queue order: its current
     slot (a slot the user picks sets its place in line), then delivery. Kinds mix (``_kind``): each free
     slot takes the first video in line of a kind not yet posting that day nor in the slot before, else
     one not in the slot before (four Chinese slots: conversation, quiz, conversation, quiz), else one not
-    yet posting that day, else the first. So no upcoming slot stays empty while videos wait, a
+    yet posting that day, else the first. So no slot after the history stays empty while videos wait, a
     slot that passed unposted moves up, and a day shows e.g. a healing video and a drone reel.
     Returns True when the state changed."""
     entries = [(p.name, state.setdefault(_key(p.name), {})) for p in sorted(videos, key=lambda p: p.stat().st_mtime)]
@@ -320,7 +321,8 @@ def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
     for ch, line in queue.items():
         line.sort(key=lambda ne: ne[1].get("slot") or "~")  # stable: delivery order breaks ties
         taken = history[ch]
-        for slot in (k for k in _slots_from(now, ch) if k not in taken):
+        last = max(taken, default="")  # the queue runs on after the last slot already scheduled
+        for slot in (k for k in _slots_from(now, ch) if k > last):
             if not line:
                 break
             day, n = slot.split("/")
