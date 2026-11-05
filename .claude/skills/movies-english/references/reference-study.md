@@ -314,3 +314,16 @@ Read in the page of the THAT WAS HIM reel (no download): 1080x1920, 30 fps, 26.8
   with them came back no tighter than v3 (face about half the width either way): muse does not follow percentages.
 - 30 fps: the muse clips are 24 fps, so the episode stays 24 (doubling frames would judder).
 - `scripts/reel_measure.py` holds the bands; run it on every finished episode.
+
+## Round 3k: vintage without specks or blur
+
+"I need vintage a bit too, to look real." Grain read as dancing specks and a luma blur as "blurry" (Rounds
+3d-3h), so the vintage layer is all static and leaves the luma sharp:
+
+- colour softened in the chroma planes only (`gblur planes=6`, sigma 1.6): the dye bleed of a film print, the
+  eyes and lashes stay as sharp as the render (checked at 1:1);
+- a warm halation glow from everything above 140, blurred 40 px, tinted orange-red, screened in at 30 % in
+  planar gbrp;
+- a warm print tint in the highlights and a soft vignette (angle 0.3; 0.45 dropped Lp95 to 58 and Lp50 to 35, out of the reel bands; 0.3 measures Lp95 62, Lp50 39, skin L 48).
+
+It sits at the end of `GRADE=reel`, so `reel_measure.py` still checks the result against the reel.

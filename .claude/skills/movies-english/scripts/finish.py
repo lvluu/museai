@@ -45,7 +45,7 @@ CARD = 3.5
 #   (4 %): a luma-only roll-off above Y 122 (skin and everything darker untouched; an RGB curve greyed the skin,
 #   a 14 -> a 21 lost), a touch of green/blue into the shadows (the reel's are brown 17/11/9, muse's red 17/8/6)
 #   and less blue in the mids and highs (the reel's background honey 118/100/88, muse's grey 128/114/110).
-#   No blur, no grain: sharpness stays the render's.
+#   Then VINTAGE. No luma blur, no grain: sharpness stays the render's.
 # raw: nothing. The muse picture as rendered at the reel's own 1080x1920: the reel's skin colour is asked for in
 #   the prompt (build.py SKIN, measured from the reel) and still_check gates the still, so no post-grade is
 #   needed; a 540 p round trip, a 720 p output and grain read as blur and as specks dancing over the frame, so
@@ -56,10 +56,19 @@ CARD = 3.5
 # airy: the first three IG reels (bakery 130/108/96, sat 0.34): a slight lift, a soft haze, no warmth.
 # ffmpeg traps kept for raw chains: a screen blend in yuv420p lifts U/V (magenta cast), gblur on packed rgb24
 # mixes the channels (blue cast): run a halation split in planar gbrp.
+# Vintage, all static so nothing dances (grain and a luma blur were rejected, Rounds 3d-3h): colour softened in
+# the chroma planes only (film dye bleed, the luma and the eyes stay sharp), a warm halation glow from the
+# highlights (screen, planar gbrp: in yuv420p a screen blend tints magenta), a warm print tint in the highs and
+# a soft vignette. Round 3k.
+HALO = "if(gt(val,140),(val-140)*2.2,0)"
+VINTAGE = ("format=yuv444p,gblur=sigma=1.6:planes=6,format=gbrp,split[a][b];"
+           f"[b]lutrgb=r='{HALO}':g='{HALO}':b='{HALO}',gblur=sigma=40,colorchannelmixer=rr=1:gg=0.55:bb=0.3[g];"
+           "[a][g]blend=all_mode=screen:all_opacity=0.3,colorbalance=rh=0.015:gh=0.005:bh=-0.02,"
+           "vignette=angle=0.3,format=yuv420p")
 REEL_Y = "if(lt(val,122),val,if(lt(val,158),122+(val-122)*0.47,if(lt(val,204),139+(val-158)*0.6,167+(val-204)*0.6)))"
 PRESETS = {
     "reel": "format=yuv444p,lutyuv=y='" + REEL_Y.replace(",", "\\,") + "',format=gbrp,"
-            "colorbalance=gs=0.015:bs=0.03:rm=0.01:bm=-0.015:bh=-0.03,format=yuv420p",
+            "colorbalance=gs=0.015:bs=0.03:rm=0.01:bm=-0.015:bh=-0.03," + VINTAGE,
     "raw": "null",
     "match": "null",
     "airy": "split[a][b];[b]gblur=sigma=24[g];[a][g]blend=all_mode=screen:all_opacity=0.08,"
