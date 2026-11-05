@@ -20,24 +20,38 @@ from pathlib import Path
 SKILL = Path(__file__).resolve().parent.parent
 CAST = json.loads((SKILL / "series/cast.json").read_text())
 LOOK = (SKILL / "prompt/look.txt").read_text().strip()
+# The reel's faces measure rgb 148/95/82, L 46-47, a 20-21, b 16-17 (reference-study.md Round 3e): a midtone, rosy,
+# not yellow. "fair peach" rendered them light (L 50-52), grey (a 16-17) and yellow (b 19-23).
+SKIN = ("medium-toned warm rose-tan skin, a full shade deeper than fair, like a lightly tanned Mediterranean complexion "
+        "on 35 mm film: a midtone that reads darker than the pale surroundings, red clearly stronger than yellow "
+        "(rosy, never yellow, never golden, never orange, never pale or porcelain), a soft rose flush on the cheeks and "
+        "deep glossy rose lips")
 FRAMING = {
     "ecu": "Extreme close-up: the face fills the frame, eyes and mouth large and centred, front view",
     "wide": "Wide shot, the whole scene and the people full-length, the place clearly established",
-    "medium": "Medium shot from the waist up, the person alone in the frame, the face in the upper half, front three-quarter view, eyes on the other person who stands just outside the frame beside the camera",
-    "close": "Close-up from the chest up, the person alone in the frame, the face large in the upper half, both eyes and the whole mouth clearly visible, front three-quarter view, never profile, eyes on the other person who stands just outside the frame beside the camera",
+    "medium": "Medium close-up from the upper chest up, the person alone in the frame, the face big and the clear centre of the frame (about 40 % of the frame width), the top of the hair about a tenth below the top edge, the eyes about 40 % down, front three-quarter view, eyes on the other person who stands just outside the frame beside the camera",
+    "close": "Tight close-up from the upper chest up like the memoriescore reels, the person alone in the frame: the face fills about half the frame width and the hair almost the whole width, the top of the hair about a tenth below the top edge, the eyes about 40 % down, both eyes and the whole mouth clearly visible, front three-quarter view, never profile, eyes on the other person who stands just outside the frame beside the camera",
     "ots": "Over-the-shoulder shot: the second person's shoulder, hair and cheek soft and out of focus in the near foreground at one side, the first person facing the camera in three-quarter view from the chest up, sharp, looking at the second person's eyes",
     "two-shot": "Medium two-shot from the waist up, both bodies facing the camera squarely, each turning only the head partway toward the other, both faces in front three-quarter view, both mouths visible",
     "insert": "Insert: a tight close-up of hands and an object (no face in the frame), shallow focus, the object large and centred, the action of the hands clear",
 }
-LIGHT = ("LIGHT exactly like the memoriescore reels: SOFT, FRONTAL and LOW-CONTRAST beauty light, as if one big diffused "
-         "warm source sits right beside the camera: the whole face evenly lit, no shadow side, no hard nose or cheek "
-         "shadow, no hot spot, the skin a smooth soft matte glow (not oily, not shiny, not wet): fair peach skin with a soft "
-         "pink blush on the cheeks and deep glossy rose lips, the colour everywhere muted and pastel like a faded film print, never orange, never golden-tan, never yellow; a gentle warm halo on the edge of the hair from a light behind; the surroundings "
-         "pale and desaturated (beige stone, cream plaster, grey, white, snow, a pale overcast sky, soft brown wood), no strong colour anywhere except the blush and the lips, "
-         "the background softly out of focus; any lamps or string lights bloom gently and never clip; a light haze as if shot through a diffusion "
-         "filter, the whole frame slightly soft like a 1990s video still, no hyper-sharp detail, no dramatic "
-         "chiaroscuro, no HDR. A soft out-of-focus foreground piece (a shoulder, a glass, a door frame, a plant) at "
-         "one side of the frame.")
+# CLEAN: tiny detail (boucle, sequins, racks of pastries, register keys) crawled frame to frame and read as
+# "particles flickering"; the reel's backgrounds are a few large soft shapes (reference-study.md Round 3h).
+CLEAN = ("A CLEAN PICTURE: no film grain, no noise, no dust, no sparkle, no glitter, no specks, no flicker. The "
+         "background simple and calm: a few large soft shapes in muted warm grey-taupe, beige and cream, heavily and "
+         "smoothly defocused, never a busy rack of small objects, no small repeating detail, no small bright points. "
+         "Every fabric smooth and solid at a glance (plain wool, satin, velvet, silk, leather, plush), no small busy "
+         "texture or print.")
+LIGHT = ("LIGHT exactly like the memoriescore reels: a broad SOFT FRONTAL key slightly to one side of the camera, gently "
+         "modelling the face with soft shadows, no hard nose or cheek shadow, no hot spot; a subtle warm backlight "
+         "catching single hairs. " + SKIN + "; natural skin texture under a light optical diffusion, never waxy or "
+         "airbrushed. Warm neutrals with restrained pink-red accents (honey beige #B49A7D, rose-tan skin #BD8978, rose "
+         "lips #A6534E, taupe #8C8277, deep brown-black #170F0B), creamy whites, about 5,500 K with a subtle warm "
+         "finish, medium contrast with rich deep brown-black shadows in clothes and hair (never lifted, milky or "
+         "faded), low-to-moderate saturation. The face big, evenly lit and clearly readable, eyes and lips crisp, "
+         "smooth fine detail, no digital crispness. " + CLEAN + " Lamps bloom gently and never clip; no haze, no "
+         "dramatic chiaroscuro, no HDR. A soft out-of-focus foreground piece (a shoulder, a glass, a door frame) may "
+         "sit at one side.")
 CAMERA = "A very slow gentle push-in or a slight natural handheld drift, eye level, never fast; ONE CONTINUOUS TAKE, no cuts, no zoom."
 
 
@@ -84,16 +98,13 @@ def still_prompt(shot, sc):
         if shot["framing"] in ("close", "medium") else shot["action"])
     people = "" if shot["framing"] == "insert" else people
     return (f"A frame grab from a 1999 Hollywood romantic comedy, shot on 35 mm film with an 85 mm lens, "
-            f"slightly soft like a DVD frame. Vertical 9:16. {FRAMING[shot['framing']]}. "
+            f"warm softly diffused vintage glamour, the face clearly readable. Vertical 9:16. {FRAMING[shot['framing']]}. "
             f"Place: {sc['setting']}. {LIGHT} The moment: {pose} Caught mid-moment, real and candid, not posing; a speaker's "
             f"mouth closed. {people} LEFT and RIGHT mean the person's own side. Original faces that resemble no actor, "
-            f"celebrity or public figure. The face is in focus; the background is softly out of focus. 1990s Kodak film "
-            f"picture: soft warm light, muted pastel colour like a faded 35 mm film print (pale beige, cream, grey, soft brown), the background "
-            f"desaturated and pale, the only deep blacks in dark clothes or hair, soft highlights that never clip, a gentle halation glow on lamps and windows, fine film "
-            f"grain; fair peach skin with a soft pink blush on the cheeks and deep glossy rose lips, the colour muted like 35 mm film (the blue of the skin almost as strong as the green: never orange, never golden-tan, never yellow), soft and evenly lit with a smooth matte glow, never oily or shiny. Real young actors on a real film set, 1990s supermodel "
+            f"celebrity or public figure. The face is in focus; the background is heavily out of focus. Real young actors on a real film set, 1990s supermodel "
             f"styling (big voluminous blown-out hair, strong brows, high-shine glossy lips that catch the light (the lips are the only gloss), gold "
-            f"jewellery), not a render. Never flat, grey, milky or washed out, never teal-and-orange, "
-            f"never HDR or razor-sharp, no CGI look. No text, no logos, no watermark.")
+            f"jewellery), not a render. Never flat, grey, milky, faded or washed out, never teal-and-orange, never sepia, "
+            f"never HDR, no CGI look. No text, no logos, no watermark.")
 
 
 def shot_prompt(shot, sc):

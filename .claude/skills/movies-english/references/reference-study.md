@@ -233,3 +233,57 @@ same way (largest blob of the frame being graded). still_check measures the face
 18-45, mean red 135-160. The old grade fails it on a50 (15.6), the raw muse still on L50 (54), a50 (14.5)
 and red (163).
 
+
+Round 3f: the Round 3e grade watched as a video: "too blurry", and on the raw | final sheet of every ME-0002
+character the raw render read better. Measured whole-frame sharpness, same metric both sides:
+
+| laplacian variance (g99) | at 1080 | at 720 | at 480 |
+|---|---|---|---|
+| reel, 1:1 canvas read | 4-7 (8-15) | 7-17 (12-22) | 25-63 (17-31) |
+| our raw muse clip | 26-40 (20-23) | 49-77 (27-30) | 122-176 (36-38) |
+| our 720 p final, grain on | 38 (27) | 240 (40) | 286 (48) |
+
+So pixel sharpness was never below the reel's: the blur is the 540 p round trip plus the 720 p output
+(finish.py sized the output "like the references", which play at 1080x1920) and the grain, and the flatness is
+the skin transfer itself (a per-channel quantile map onto a narrow face range takes the modelling out of the
+face). At 1:1 the reel is clean and smooth, no grain. finish.py now outputs 1080x1920 with no soft pass and no
+grain for every grade. Watched as videos (raw 1080 against the old 720 p match): the matched colour read better,
+the raw face clearer, and the grain read as "small things jumping around the screen".
+
+Round 3g: the colour moved into the prompt instead of a post-grade. The old prompt asked for "fair peach" skin and
+a "slightly soft", hazy, grainy picture; the raw stills measured L 50-52, a 16-17, b 19-23 (light, grey, yellow)
+against the reel's L 46-47, a 20-21, b 16-17, and the clips came out soft. build.py SKIN now describes the
+measured face ("medium-toned warm rose-tan, a full shade deeper than fair ... red clearly stronger than yellow")
+and the prompts ask for a crisp, clean face with no grain, haze or diffusion (background still soft). The ME-0002
+re-render measured a 19-24 and L 43-53 (medium-JAMIE PASS on both takes); b stayed 21-24, a touch yellow, and
+reads fine. GRADE=raw is the default (match and airy stay as options, still_match as a test tool).
+
+Round 3h: the user, watching the 1080 match video: "too many tiny flickering particles, the face is not clear,
+not like the reference". Measured and looked at 1:1:
+- No grain layer: a temporal-only denoise (hqdn3d 0:0:6:6) left the frame-to-frame shimmer ratio unchanged
+  (1.47 → 1.44). The specks are content: a boucle jacket, racks of croissants, register keys. Thousands of tiny
+  details that the video model redraws a little differently every frame, so they crawl when people move.
+- Face size, strict skin blob of the largest face (same mask as refgrade, read at 270 wide):
+
+| | skin blob, % of frame | face width, % of frame | hair top |
+|---|---|---|---|
+| reel singles (26 frames, 1 s apart) | 7-12 | 45-54 | ~13 % |
+| ours, ME-0002 medium stills | 2.8-3.5 | 27-33 | 18-26 % |
+| ours, close-JAMIE | 4.6-6.3 | 36-50 | 21-23 % |
+
+So the fixes went to the source, not to finish.py: build.py FRAMING makes close and medium tight chest-up
+close-ups (face about half the width, hair top a tenth down, eyes 40 % down); CLEAN asks for a clean picture
+with no grain, specks or sparkle, a background of a few large soft shapes and smooth solid fabrics (cast.json and
+the library lost boucle, tweed, sequins and cable-knit); LIGHT takes the warm softly diffused glamour targets
+(medium contrast, rich brown-black shadows, not faded; palette #B49A7D #BD8978 #A6534E #8C8277 #170F0B, about
+5,500 K). still_check fails a close-/medium- still whose blob is under 6 % of the frame.
+
+
+## Round 3i: clean tight stills (ME-0002 v3)
+
+- Prompt with CLEAN, smooth wardrobe and the bakery racks "melted into a few large soft blobs": stills came back with
+  no specks, a calm background and faces about 40-45 % of the width (VIV), half the width (JAMIE close).
+- The strict-blob `faceArea` read 1.9-3 % on the tight VIV takes: highlights and her lighter skin split the blob.
+  A looser mask with closing mixed in neck and hands and no longer separated medium from close. So `faceArea` is a
+  warning; the frame decides.
+- One JAMIE still serves both his close and medium shots, so his face is identical across cuts.

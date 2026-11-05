@@ -21,7 +21,7 @@ only what is specific to the format.
 | `scripts/check.py` | library lint: counts, unique ids and phrases, phrase in a line, line length, timing |
 | `scripts/build.py` | `ME-NNNN WORK` → still requests, shot prompts, `render.sh` |
 | `scripts/stills.sh` | renders every still (two takes each) through `/v1/images/generations` |
-| `scripts/finish.py` | Whisper trims, grade (`GRADE=film` default / `airy`), hard cuts at 720x1280/24 fps, tiny white subtitles, "new words" end card |
+| `scripts/finish.py` | Whisper trims, as rendered (`GRADE=raw` default / `match` / `airy`), hard cuts at 1080x1920/24 fps, tiny white subtitles, "new words" end card |
 | `posted.json` | ids already delivered (next video = the lowest id not in it, unless the user names one) |
 
 ## Make one video
@@ -32,13 +32,15 @@ only what is specific to the format.
    plastic or airbrushed skin, a flat grey or washed-out picture, a famous-looking face, wrong wardrobe,
    text in the frame, a speaker facing away, a bright flat evenly lit room, a busy pastel background, pale pink skin,
    matte lips, a dramatic side-lit face with a hot highlight and a dark cheek, orange or shiny skin, razor-sharp
-   hyper-detail, a murky underexposed frame. Want: soft frontal even light on the face (no shadow side), the
-   surroundings pale and desaturated (beige stone, cream, grey, snow, pale sky; any lamps bloom softly), muted pastel colour like a faded film print, fair peach matte-glow skin with a pink blush on the cheeks and deep glossy rose lips (never orange or golden),
+   hyper-detail, a soft, hazy or grainy face, a murky underexposed frame, a small face (a waist-up framing), busy
+   small detail anywhere (boucle or knit, sequins, racks of pastries, rows of bottles: it crawls in motion and reads as
+   flickering specks), faded or lifted blacks. Want: a tight close-up, the face about half the frame width, soft frontal
+   light on the face, the background a few large soft muted shapes, warm neutrals with rich deep brown-black shadows, medium-toned rose-tan matte-glow skin a shade deeper than fair with a rose flush on the cheeks and deep glossy rose lips (rosy, never yellow, golden or pale),
    high-shine glossy lips, big 90s hair, a blurred foreground piece at one side. Numbers settle it:
    `uv run --no-project --python 3.12 --with numpy --with pillow --with scikit-image --with scipy python scripts/still_check.py $WORK/stills/*.png` prints each take's face against the reference bands and
-   says PASS or which band it misses. A muse still always comes out with hot skin highlights, so run
-   `uv run --no-project --python 3.12 --with numpy --with pillow --with scikit-image --with scipy python scripts/still_match.py <take>.png $WORK/stills/<name>.png`
-   on the chosen take (a Lab colour transfer onto the reference's own skin and background statistics, a soft glow) and check the result; a take that still fails on skin saturation or a dark cheek is re-rendered. Close-ups of one
+   says PASS or which band it misses; the still stays as rendered. (`scripts/still_match.py <take>.png <out>.png`
+   puts the skin onto the reel's face-only numbers; watched against the reel, the raw render read better, so it is a
+   test tool, not a step.) A take that fails on the face bands is re-rendered; a `faceArea` warning means look: re-render only if the face is visibly smaller than about half the frame width. Close-ups of one
    person share one still per episode: that is what keeps the face the same across cuts.
 3. `$WORK/render.sh` in the background: the shots render one at a time (`render-queue`), one muse call each, through
    `../muse-video/scripts/muse-video` (quality block appended). Check each clip with

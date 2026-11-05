@@ -14,6 +14,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 from skimage import color
+from skimage.measure import label
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from refgrade import face_mask  # noqa: E402
@@ -28,6 +29,23 @@ BANDS = {
     "faceR": (135, 160),   # mean red of the face
     "hiFrac": (0, 0.07),   # lights bloom, never clip (snow and a white blazer may)
 }
+# The reel's singles: the strict skin blob covers 7-12 % of the frame (face ~45-54 % of the width, hair top ~13 %).
+# Our medium shots measured 3-5 % and read as "the face is not clear" (Round 3h). Only close-*/medium-* stills.
+# A warning, not a fail: highlights and lighter skin break the strict blob apart, so a tight close-up can read
+# 2-4 % (Round 3i); look at the frame before re-rendering.
+FACE_AREA_MIN = 6.0
+
+
+def face_area(lab):
+    """Largest strict skin blob at 270 wide, % of the frame: the same measure as the browser read of the reel."""
+    small = lab[::4, ::4]
+    L, a, b = small[..., 0], small[..., 1], small[..., 2]
+    strict = (a > 12) & (a < 40) & (L > 35) & (L < 85) & (b > 8) & (b < 26)
+    lab_ = label(strict, connectivity=1)
+    if lab_.max() == 0:
+        return 0.0
+    sizes = np.bincount(lab_.ravel()); sizes[0] = 0
+    return round(100.0 * sizes.max() / strict.size, 1)
 
 
 def measure(path):
@@ -52,6 +70,7 @@ def measure(path):
         "Lspread": round(p(L, 95) - p(L, 5), 1),
         "hiFrac": round(float((lum > 235).mean()), 3),
         "facePx": int(m.sum()),
+        "faceArea": face_area(lab),
     }
 
 
@@ -65,8 +84,10 @@ def main():
             bad += 1
             continue
         miss = [f"{k}={m[k]} not in {lo}-{hi}" for k, (lo, hi) in BANDS.items() if not lo <= m[k] <= hi]
+        warn = (f"\n  WARN faceArea={m['faceArea']}% < {FACE_AREA_MIN}%: check the face is about half the width"
+                if name.startswith(("close-", "medium-")) and m["faceArea"] < FACE_AREA_MIN else "")
         vals = " ".join(f"{k}={v}" for k, v in m.items())
-        print(f"{name}: {vals}\n  {'PASS' if not miss else 'FAIL ' + '; '.join(miss)}")
+        print(f"{name}: {vals}\n  {'PASS' if not miss else 'FAIL ' + '; '.join(miss)}{warn}")
         bad += bool(miss)
     sys.exit(1 if bad else 0)
 
