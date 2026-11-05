@@ -67,7 +67,8 @@ async function approve(item, edits) {
     if (result.status !== 'dry-run') chrome.tabs.remove(tabId).catch(() => {});
     return result;
   } catch (e) {
-    await api(`/${item.id}/release`, { error: e.message });
+    // An upload that got as far as a video id is kept, so the retry finishes that video, no second copy.
+    await api(`/${item.id}/release`, { error: e.message, video_id: post.video_id });
     await progress(item.id, `failed: ${e.message}`);
     if (tabId) chrome.tabs.update(tabId, { active: true }).catch(() => {}); // leave it open to look at
     throw e;
@@ -123,7 +124,17 @@ function page(tabId, platform, adapter) {
     }
     await inject();
   }
-  return { inject, step, send, go };
+  // After a channel switch: let Studio's own reload settle, then load the upload page again.
+  async function reopen() {
+    const end = Date.now() + 30000;
+    const before = (await chrome.tabs.get(tabId)).url;
+    while ((await chrome.tabs.get(tabId)).url === before && Date.now() < end) await new Promise((r) => setTimeout(r, 500));
+    while ((await chrome.tabs.get(tabId)).status !== 'complete' && Date.now() < end) await new Promise((r) => setTimeout(r, 500));
+    await chrome.tabs.update(tabId, { url: adapter.url, active: true });
+    while ((await chrome.tabs.get(tabId)).status === 'complete' && Date.now() < end) await new Promise((r) => setTimeout(r, 200));
+    await inject();
+  }
+  return { inject, step, send, go, reopen };
 }
 
 const mimeOf = (file) => ({ mp4: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm', jpg: 'image/jpeg',
@@ -139,17 +150,30 @@ async function youtubeFlow(item, pg) {
   await say('Opening YouTube Studio…');
   await pg.inject();
   await pg.step('ready');
-  const who = await pg.step('whoami');
+  let who = await pg.step('whoami');
   if (!accountMatches(item.account, who)) {
-    throw new Error(`Studio is on channel "${who.name}" (${who.id}), item wants "${item.account}". Switch channel in YouTube, then retry.`);
+    await say(`Studio is on "${who.name}", switching to "${item.account}"…`);
+    await pg.step('switchChannel', item.account);
+    await pg.reopen(); // the switch reloads Studio on the channel's dashboard
+    await pg.step('ready');
+    who = await pg.step('whoami');
+    if (!accountMatches(item.account, who)) {
+      throw new Error(`switched channel, but Studio is on "${who.name}" (${who.id}), item wants "${item.account}"`);
+    }
+  }
+  const when = item.schedule_at ? Date.parse(item.schedule_at) : null;
+  // Already uploaded (`postq approve --video <id>`): no second copy, only finish and check that video.
+  if (item.video_id) {
+    await say(`Channel ${who.name} ✓ · resuming video ${item.video_id}`);
+    return checkOnEditPage(item, pg, item.video_id, `https://youtube.com/shorts/${item.video_id}`, when, 'resumed');
   }
   await say(`Channel ${who.name} ✓ · moving video into the tab…`);
   await pg.send('video', item.video, (p) => say(`Moving video into the tab ${p}%`));
   await pg.step('setVideo', item.video.name, mimeOf(item.video.file));
+  item.video_id = (await pg.step('progress')).url?.match(/(?:shorts\/|youtu\.be\/|[?&]v=)([\w-]{11})/)?.[1];
   await say('Filling details…');
   const warnings = await pg.step('fill', item);
   await pg.step('toVisibility');
-  const when = item.schedule_at ? Date.parse(item.schedule_at) : null;
   const vis = await pg.step('visibility', item, when);
   const note = [vis.mode === 'scheduled' ? `scheduled ${vis.date} ${vis.time} (${vis.zone})` : vis.mode, ...warnings].join(' · ');
   await say(note);
@@ -165,10 +189,26 @@ async function youtubeFlow(item, pg) {
   const sent = await pg.step('submit');
   const link = sent.url || url;
   await say(`${sent.confirm} · checking the edit page`);
-  // Only the saved video counts: reopen it in Studio, fix what drifted, read the schedule back.
   const id = link?.match(/(?:shorts\/|youtu\.be\/|[?&]v=)([\w-]{11})/)?.[1];
   if (!id) throw new Error(`pressed "${sent.button}" but got no video id to check (link: ${link})`);
-  await pg.go(`https://studio.youtube.com/video/${id}/edit`);
+  return checkOnEditPage(item, pg, id, link, when, note);
+}
+
+// Only the saved video counts: reopen it in Studio, schedule it if it is still a draft, fix what
+// drifted, read the schedule back.
+async function checkOnEditPage(item, pg, id, link, when, note) {
+  const say = (line) => progress(item.id, line);
+  const edit = `https://studio.youtube.com/video/${id}/edit`;
+  await pg.go(edit);
+  if (await pg.step('openDraft')) {
+    await say('Still a draft: setting its schedule…');
+    await pg.step('toVisibility');
+    await pg.step('visibility', item, when);
+    const sent = await pg.step('submit');
+    await say(`${sent.confirm} · checking the edit page`);
+    await pg.go(edit);
+    if (await pg.step('openDraft')) throw new Error(`video ${id} is still a draft after "${sent.button}"`);
+  }
   // Cover goes up on the edit page: the upload dialog has no thumbnail picker for Shorts.
   if (item.cover) await pg.send('cover', item.cover, (p) => say(`Moving thumbnail into the tab ${p}%`));
   const checks = await pg.step('verify', { ...item, cover: item.cover && { name: item.cover.name, type: mimeOf(item.cover.file) } }, when);

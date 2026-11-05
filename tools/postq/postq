@@ -39,7 +39,7 @@ PORT = int(os.environ.get("POSTQ_PORT", "8766"))
 GUARD_HEADER = "X-Postq"  # forces a CORS preflight: ordinary web pages cannot drive the mutating endpoints
 CLAIM_TTL = 3600  # a video upload can take a while; a dead poster's claim expires after this
 CLAIM_LOCK = threading.Lock()
-EXT_MIN = (0, 2)  # oldest extension that verifies on the edit page; older code must not auto-post
+EXT_MIN = (0, 5)  # oldest extension that switches channel and verifies on the edit page; older code must not auto-post
 POLLED = ROOT / ".polled"  # touched on every extension poll (every 30 s while Chrome runs it)
 VIDEO_SUFFIXES = {".mp4", ".mov", ".webm"}
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
@@ -60,11 +60,23 @@ READY = {"youtube"}  # platforms with an adapter in ext/adapters/
 # video, "<title> - thumbnail 9x16.jpg" and captions.txt. The folder name's first word picks the series.
 SERIES = {
     "Chinese": {"account": "Chinese Everyday For Everyone", "playlist": "Hội Thoại Tiếng Trung",
-                "related": "latest:Tập", "tz": "Asia/Ho_Chi_Minh",
+                "related": "latest:Tập", "tz": "Asia/Ho_Chi_Minh", "channel": "chinese",
                 # No thumbnail in the folder: muse renders the scene, the thumbnail skill lays out the text.
                 "thumb": {"style": "chinese", "sub": "Nói sao bằng tiếng Trung?",
                           "scene": "Everyday scene for a short Chinese-conversation lesson"}},
+    # Playlist per episode: captions.txt's "=== YouTube playlist ===" section (the dashboard picks it).
+    "Dream": {"account": "Dream Jobs Daily", "tz": "Asia/Ho_Chi_Minh", "channel": "dream",
+              "related": "latest:"},
+    "Travel": {"account": "Blue Eyes Wander", "tz": "Asia/Ho_Chi_Minh", "channel": "travel",
+              "related": "latest:"},
+    "Healing": {"account": "Slow Sunlit Days", "tz": "Asia/Ho_Chi_Minh", "channel": "healing",
+                "related": "latest:",  # newest public video of the channel
+                # captions.txt name -> the playlist's name on the channel, where they differ
+                "playlists": {"Slow Living Kitchen & Home": "Slow Kitchen", "Rain, Snow & Misty Days": "Rain & Snow Days"}},
 }
+# museai dashboard slots (posting.py CHANNELS): "HH:MM" -> n in the "YYYY-MM-DD/n" slot key.
+SLOTS = {"chinese": ["12:00", "18:30"], "travel": ["07:00", "19:00"], "dream": ["07:00", "19:00"],
+         "healing": ["07:00", "19:00"]}
 MUSEAI = Path(os.environ.get("MUSEAI_HOME", Path.home() / "Work" / "museai"))
 MUSEAI_BASE = os.environ.get("MUSEAI_BASE", "http://127.0.0.1:18610")
 # Skills run from the fresh origin/main checkout (the working checkout may be on an old branch).
@@ -215,6 +227,7 @@ def enqueue(a):
         "tags": tags,
         "playlist": getattr(a, "playlist", None),
         "related": getattr(a, "related", None),
+        "channel": getattr(a, "channel", None),
         "source": str(Path(a.file).expanduser().resolve()),
         "visibility": a.visibility,
         "schedule_at": when.isoformat() if when else None,
@@ -266,6 +279,31 @@ def parse_captions(text):
     return out
 
 
+def caption_playlist(text):
+    """The "=== YouTube playlist ===" section's first line, or None."""
+    m = re.search(r"^=== YouTube playlist ===\n\s*(.+)", text, re.M)
+    return m[1].strip() if m else None
+
+
+def channel_playlist(series, name):
+    """The episode's playlist as named on the channel: captions.txt's, through the series' renames."""
+    if not name:
+        return series.get("playlist")
+    bare = re.sub(r"[^\w&,' ]", "", name).strip()  # without the emoji the dashboard adds
+    return series.get("playlists", {}).get(bare, name)
+
+
+def slot_key(item):
+    """The dashboard slot ("YYYY-MM-DD/n") this post really landed in, from its schedule; None off-slot."""
+    channel = item.get("channel") or next((s.get("channel") for s in SERIES.values() if s["account"] == item["account"]), "")
+    times = SLOTS.get(channel or "")
+    if not times or not item.get("schedule_at"):
+        return None
+    at = datetime.fromisoformat(item["schedule_at"]).astimezone(ZoneInfo(item.get("tz") or "Asia/Ho_Chi_Minh"))
+    hhmm = f"{at:%H:%M}"
+    return f"{at:%Y-%m-%d}/{times.index(hhmm) + 1}" if hhmm in times else None
+
+
 def mark_dashboard(item):
     """Tick the platform on the museai dashboard's post card (its 'posted' boxes), as a click there would.
     The dashboard trashes a video once every platform is ticked: that is its own rule."""
@@ -273,16 +311,20 @@ def mark_dashboard(item):
     name = item["video"]["name"]
     boxes = item.get("targets") or [item["platform"]] if item["platform"] == "meta" else [item["platform"]]
     note = []
+    # The real slot goes along: the dashboard pins it, so new videos are planned after the last
+    # scheduled post instead of from today (its slot history is the done records' slots).
+    slot = slot_key(item)
     for box in boxes:
+        body = {"platform": box, "posted": True} | ({"slot": slot} if slot else {})
         req = urllib.request.Request(f"{MUSEAI_BASE}/dashboard/posts/{urllib.parse.quote(name)}",
-                                     json.dumps({"platform": box, "posted": True}).encode(),
+                                     json.dumps(body).encode(),
                                      {"Content-Type": "application/json"})
         try:
             urllib.request.urlopen(req, timeout=20).read()
             note.append(f"{box} ticked")
         except Exception as e:  # not on the dashboard (posted with postq add) or museai not running
             note.append(f"{box}: {e}")
-    log_line(f"dashboard {item['id']} {name}: {', '.join(note)}")
+    log_line(f"dashboard {item['id']} {name}{f' slot {slot}' if slot else ''}: {', '.join(note)}")
 
 
 def log_line(msg):
@@ -350,7 +392,8 @@ def cmd_episode(a):
     if len(videos) != 1:
         sys.exit(f"{d}: expected one video, found {len(videos)}")
     covers = [p for p in d.iterdir() if p.suffix.lower() in IMAGE_SUFFIXES and "thumbnail" in p.name.lower()]
-    sections = parse_captions(cap_file.read_text())
+    cap_text = cap_file.read_text()
+    sections = parse_captions(cap_text)
     wanted = set(a.platforms)
     if not covers and series.get("thumb") and not a.no_render and "YouTube Shorts" in sections:
         body = sections["YouTube Shorts"][2]
@@ -394,7 +437,8 @@ def cmd_episode(a):
             cover=str(covers[0]) if covers and platform == "youtube" else None, title=p.get("title"),
             caption=p["caption"], tags=None, at=p["at"], tz=series["tz"], visibility="public",
             made_for_kids=False, dry_run=a.dry_run, auto=a.auto,
-            playlist=series.get("playlist") if platform == "youtube" else None,
+            playlist=channel_playlist(series, caption_playlist(cap_text)) if platform == "youtube" else None,
+            channel=series.get("channel"),
             related=(a.related or series.get("related")) if platform == "youtube" else None)
         try:
             print(f"{enqueue(ns)}  {platform}  {p['at']}  {(p.get('title') or p['caption'])[:60]!r}")
@@ -408,8 +452,13 @@ def cmd_episode(a):
 def cmd_episodes(a):
     """Every episode folder of a series in DIR (oldest slot first), queued like `postq episode`."""
     root = Path(a.root).expanduser()
-    dirs = sorted(d for d in root.iterdir() if d.is_dir() and d.name.split()[0] == a.series
-                  and (d / ".museai-post").exists())
+    names = list(SERIES) if a.series == "all" else [a.series]
+    # Oldest slot first across series: the folder name's "Sat 07-11 07h00" (month, day, time).
+    def when(d):
+        m = re.search(r"· \w{3} (\d{1,2})-(\d{1,2}) (\d{1,2})h(\d{2}) ·", d.name)
+        return (int(m[2]), int(m[1]), int(m[3]), int(m[4])) if m else (99,)
+    dirs = sorted((d for d in root.iterdir() if d.is_dir() and d.name.split()[0] in names
+                   and (d / ".museai-post").exists()), key=when)
     if not dirs:
         sys.exit(f"no {a.series} episode folders in {root}")
     print(f"{len(dirs)} {a.series} episode(s):", file=sys.stderr)
@@ -451,7 +500,9 @@ def cmd_approve(a):
                 print(f"not pending: {item_id}", file=sys.stderr)
                 continue
             tmp = p.with_suffix(".tmp")
-            tmp.write_text(json.dumps(json.loads(p.read_text()) | {"auto": True, "last_error": None}, indent=2, ensure_ascii=False))
+            extra = {"video_id": a.video} if a.video else {}
+            tmp.write_text(json.dumps(json.loads(p.read_text()) | {"auto": True, "last_error": None} | extra,
+                                      indent=2, ensure_ascii=False))
             tmp.replace(p)
             print(f"approved {item_id}")
 
@@ -559,6 +610,8 @@ class Handler(BaseHTTPRequestHandler):
             with queue_lock():
                 if p.is_file():
                     item = json.loads(p.read_text()) | {"last_error": body.get("error"), "auto": False}
+                    if body.get("video_id"):  # uploaded before it failed: the retry resumes that video
+                        item["video_id"] = body["video_id"]
                     tmp = p.with_suffix(".tmp")
                     tmp.write_text(json.dumps(item, indent=2, ensure_ascii=False))
                     tmp.replace(p)
@@ -622,12 +675,13 @@ def main():
     ep.add_argument("--no-render", action="store_true", help="no thumbnail in the folder: queue without one "
                     "instead of rendering it with muse")
     eps = sub.add_parser("episodes", help="queue every episode folder of a series (e.g. all Chinese ones on the Desktop)")
-    eps.add_argument("--series", default="Chinese")
+    eps.add_argument("--series", default="Chinese", help=f"one of {', '.join(SERIES)}, or all")
     eps.add_argument("--root", default="~/Desktop")
     for act in ep._actions[2:]:  # the same options as `episode` (minus dir)
         eps._add_action(act)
     ap_ = sub.add_parser("approve")
     ap_.add_argument("ids", nargs="+")
+    ap_.add_argument("--video", help="already uploaded as this YouTube video id: schedule and check it, no new upload")
     sub.add_parser("list")
     sub.add_parser("results")
     sub.add_parser("serve")

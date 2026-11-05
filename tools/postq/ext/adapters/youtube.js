@@ -6,6 +6,9 @@ globalThis.postqAdapters.youtube ??= (() => {
   const SEL = {
     fileInput: ['ytcp-uploads-file-picker input[type=file]', 'input[type=file][name=Filedata]'],
     channelName: ['#entity-name'],
+    avatar: ['#avatar-btn', 'ytcp-topbar-menu-button-renderer button'],
+    menuLinks: 'ytd-compact-link-renderer',
+    accountItems: 'ytd-account-item-renderer', // #channel-title holds the channel name
     title: ['#title-textarea #textbox', 'ytcp-social-suggestions-textbox#title-textarea #textbox'],
     description: ['#description-textarea #textbox'],
     kids: (mfk) => [`tp-yt-paper-radio-button[name=${mfk ? 'VIDEO_MADE_FOR_KIDS_MFK' : 'VIDEO_MADE_FOR_KIDS_NOT_MFK'}]`],
@@ -31,10 +34,12 @@ globalThis.postqAdapters.youtube ??= (() => {
     progress: ['ytcp-video-upload-progress .progress-label', 'ytcp-video-upload-progress'],
     videoLink: ['ytcp-video-info a[href*="youtu"]', '.video-url-fadeable a'],
     done: ['#done-button'],
+    uploadProgress: 'ytcp-video-upload-progress', // inside the upload form's own dialog
     afterDone: ['ytcp-video-share-dialog', 'ytcp-uploads-still-processing-dialog', 'ytcp-prechecks-warning-dialog'],
     closeAfterDone: ['ytcp-video-share-dialog #close-button', 'ytcp-uploads-still-processing-dialog #close-button'],
     // Video edit page (studio.youtube.com/video/<id>/edit), used to check the post after Schedule/Publish.
     save: ['ytcp-button#save', '#save'],
+    editDraft: 'ytcp-button, button', // the one reading "Edit draft"
     thumbShown: ['ytcp-thumbnail-uploader img[src*="ytimg"]', 'ytcp-video-thumbnail-editor img[src*="ytimg"]'],
     visibilityShown: ['ytcp-video-metadata-visibility'],
     visibilityOpen: ['ytcp-video-metadata-visibility #select-button'],
@@ -42,8 +47,9 @@ globalThis.postqAdapters.youtube ??= (() => {
   };
 
   const text = (el) => (el?.innerText || el?.textContent || '').trim();
-  // Playlist names compare without case or Vietnamese accents.
-  const fold = (s) => s.replace(/đ/g, 'd').replace(/Đ/g, 'D').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+  // Names compare without case, Vietnamese accents, emoji or punctuation ("I’d Live 🏡" == "I'd Live").
+  const fold = (s) => s.replace(/đ/g, 'd').replace(/Đ/g, 'D').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 
   // want: "Tập 36" (title prefix) or a full title; "latest:Tập" = newest public video whose title starts so.
   async function setRelated(want) {
@@ -59,9 +65,10 @@ globalThis.postqAdapters.youtube ??= (() => {
     const cards = [...document.querySelectorAll(SEL.relatedCards)].filter((c) => c.getBoundingClientRect().height);
     const title = (c) => text(c.querySelector('.title'));
     // "Tập 3" must not pick "Tập 30": the prefix has to end at a non-digit.
+    // "latest:" alone = the newest video in the list (Studio lists newest first).
     const card = cards.find((c) => {
       const t = fold(title(c));
-      return t === prefix || (t.startsWith(prefix) && !/\d/.test(t[prefix.length] || ''));
+      return !prefix || t === prefix || (t.startsWith(prefix) && !/\d/.test(t[prefix.length] || ''));
     });
     if (!card) {
       $(SEL.relatedClose)?.click();
@@ -74,6 +81,41 @@ globalThis.postqAdapters.youtube ??= (() => {
     const shown = text($(SEL.relatedShown));
     if (!fold(shown).includes(fold(picked))) throw new Error(`related video reads back as "${shown}", wanted "${picked}"`);
     return picked;
+  }
+
+  const sameTime = (a, b) => a.replace(/\s/g, '').toLowerCase() === b.replace(/\s/g, '').toLowerCase();
+  const timeFor = (when, shown) => when.toLocaleTimeString(/am|pm/i.test(shown) ? 'en-US' : 'en-GB',
+    { hour: 'numeric', minute: '2-digit', hour12: /am|pm/i.test(shown) });
+
+  // Fills the open schedule picker (upload form or edit page popover) with `when`, local time.
+  // Date first: changing the date resets the time to 12:00 AM, and the date can land a moment late,
+  // so the time is re-read after a pause and typed again when it got reset.
+  async function setWhen(when) {
+    const lang = document.documentElement.lang || 'en';
+    (await waitFor(SEL.dateTrigger)).click();
+    const dateInput = await waitFor(SEL.dateInput, { what: 'date input' });
+    const date = when.toLocaleDateString(lang, { month: 'short', day: 'numeric', year: 'numeric' });
+    setValue(dateInput, date);
+    // A synthetic Enter does not commit the picker; submitting its form does (checked 2026-11).
+    dateInput.closest('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await sleep(500);
+    if ($(SEL.dateInput)) $(SEL.dateTrigger)?.click(); // close the calendar if it stayed open
+    await sleep(800);
+    const shownDate = text($(SEL.dateTrigger));
+    if (!shownDate.includes(String(when.getFullYear())) || !shownDate.includes(String(when.getDate()))) {
+      throw new Error(`date reads back as "${shownDate}", wanted ${date}`);
+    }
+    const timeInput = await waitFor(SEL.timeInput, { what: 'time input' });
+    const time = timeFor(when, timeInput.value);
+    for (let i = 0; i < 3 && !sameTime(timeInput.value, time); i++) {
+      timeInput.focus();
+      setValue(timeInput, time);
+      key(timeInput, 'Enter');
+      timeInput.blur();
+      await sleep(1500);
+    }
+    if (!sameTime(timeInput.value, time)) throw new Error(`time reads back as "${timeInput.value}", wanted ${time}`);
+    return { shownDate: text($(SEL.dateTrigger)), shownTime: timeInput.value };
   }
 
   async function addToPlaylist(name) {
@@ -103,6 +145,33 @@ globalThis.postqAdapters.youtube ??= (() => {
 
     whoami() {
       return { name: text($(SEL.channelName, { hidden: true })), id: location.pathname.match(/channel\/(UC[\w-]+)/)?.[1] };
+    },
+
+    // Avatar → Switch account → the channel titled `name`. The click reloads Studio on that channel,
+    // so it fires after this step has answered; the caller reopens the upload page.
+    async switchChannel(name) {
+      (await waitFor(SEL.avatar, { what: 'account avatar' })).click();
+      const until = async (fn, what) => {
+        for (const end = Date.now() + 15000; Date.now() < end; await sleep(250)) {
+          const v = fn();
+          if (v) return v;
+        }
+        throw new Error(`not found after 15s: ${what}`);
+      };
+      (await until(() => [...document.querySelectorAll(SEL.menuLinks)]
+        .find((e) => /switch account/i.test(text(e)))?.querySelector('tp-yt-paper-item'), 'Switch account entry')).click();
+      const items = await until(() => {
+        const all = [...document.querySelectorAll(SEL.accountItems)].filter((i) => text(i.querySelector('#channel-title')));
+        return all.length ? all : null;
+      }, 'channel list');
+      const title = (i) => text(i.querySelector('#channel-title'));
+      const item = items.find((i) => fold(title(i)) === fold(name));
+      if (!item) {
+        key(document.body, 'Escape');
+        throw new Error(`no channel "${name}" under this Google account (has: ${items.map(title).join(', ')})`);
+      }
+      setTimeout(() => (item.querySelector('tp-yt-paper-icon-item') || item).click(), 200);
+      return title(item);
     },
 
     async setVideo(name, type) {
@@ -163,37 +232,7 @@ globalThis.postqAdapters.youtube ??= (() => {
       }
       (await waitFor(SEL.scheduleExpand, { what: 'Schedule section' })).click();
       await sleep(600);
-      const when = new Date(whenMs);
-      const lang = document.documentElement.lang || 'en';
-
-      // Date first: changing the date resets the time to 12:00 AM.
-      (await waitFor(SEL.dateTrigger)).click();
-      const dateInput = await waitFor(SEL.dateInput, { what: 'date input' });
-      const date = when.toLocaleDateString(lang, { month: 'short', day: 'numeric', year: 'numeric' });
-      setValue(dateInput, date);
-      // A synthetic Enter does not commit the picker; submitting its form does (checked 2026-11).
-      dateInput.closest('form').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-      await sleep(500);
-      if ($(SEL.dateInput)) $(SEL.dateTrigger)?.click(); // close the calendar if it stayed open
-      await sleep(500);
-
-      const timeInput = await waitFor(SEL.timeInput, { what: 'time input' });
-      const h12 = /am|pm/i.test(timeInput.value);
-      const time = when.toLocaleTimeString(h12 ? 'en-US' : 'en-GB', { hour: 'numeric', minute: '2-digit', hour12: h12 });
-      timeInput.focus();
-      setValue(timeInput, time);
-      key(timeInput, 'Enter');
-      timeInput.blur();
-      await sleep(500);
-
-      const shownDate = text($(SEL.dateTrigger));
-      const shownTime = timeInput.value;
-      if (!shownDate.includes(String(when.getFullYear())) || !shownDate.includes(String(when.getDate()))) {
-        throw new Error(`date reads back as "${shownDate}", wanted ${date}`);
-      }
-      if (shownTime.replace(/\s/g, '').toLowerCase() !== time.replace(/\s/g, '').toLowerCase()) {
-        throw new Error(`time reads back as "${shownTime}", wanted ${time}`);
-      }
+      const { shownDate, shownTime } = await setWhen(new Date(whenMs));
       return { mode: 'scheduled', date: shownDate, time: shownTime, zone: Intl.DateTimeFormat().resolvedOptions().timeZone };
     },
 
@@ -215,13 +254,40 @@ globalThis.postqAdapters.youtube ??= (() => {
       // Only Studio's own confirmation counts; anything else (a checks warning, nothing) is a failure.
       const ok = /video (scheduled|published)|still processing|processing will begin/i;
       for (const end = Date.now() + 90000; Date.now() < end; await sleep(1000)) {
+        // Not the upload form's dialog: its progress label reads "Processing will begin shortly" while
+        // the save is still running, and leaving the page then leaves the video a draft.
         const shown = [...document.querySelectorAll([...SEL.afterDone, 'tp-yt-paper-dialog'].join(','))]
-          .filter((d) => d.getBoundingClientRect().height).map(text);
+          .filter((d) => d.getBoundingClientRect().height && !d.querySelector(SEL.uploadProgress)).map(text);
         const hit = shown.find((t) => ok.test(t));
         if (hit) return { url, button: text(done), confirm: hit.replace(/\s+/g, ' ').slice(0, 160) };
-        if ($(['ytcp-prechecks-warning-dialog'])) throw new Error(`YouTube checks warning after "${text(done)}": ${text($(['ytcp-prechecks-warning-dialog'])).slice(0, 200)}`);
+        // "We're still checking your content": YouTube finishes the checks after scheduling, so
+        // acknowledge it ("Got it") and keep going. Any other checks warning stops the post.
+        const warnDlg = $(['ytcp-prechecks-warning-dialog']);
+        if (warnDlg && /still checking/i.test(text(warnDlg))) {
+          const ack = [...warnDlg.querySelectorAll('ytcp-button, button')]
+            .find((b) => /got it|schedule anyway|publish anyway|^ok$/i.test(text(b)) && b.getBoundingClientRect().height);
+          if (ack) {
+            ack.click();
+            await sleep(1500);
+            // Back on the form with Schedule still there: press it again.
+            if (done.isConnected && done.getBoundingClientRect().height && !off()) done.click();
+            continue;
+          }
+        }
+        if (warnDlg) throw new Error(`YouTube checks warning after "${text(done)}": ${text($(['ytcp-prechecks-warning-dialog'])).slice(0, 200)}`);
       }
       throw new Error(`no "Video scheduled/published" confirmation 90 s after pressing "${text(done)}"`);
+    },
+
+    // Edit page of a video that is still a draft: open its upload form ("Edit draft"). False when not a draft.
+    async openDraft() {
+      await waitFor(SEL.title, { timeout: 60000, what: 'edit page title (video missing?)' });
+      const btn = [...document.querySelectorAll(SEL.editDraft)].find((b) => /^edit draft$/i.test(text(b)) && b.getBoundingClientRect().height);
+      if (!btn) return false;
+      btn.click();
+      await waitFor(SEL.next, { what: 'draft upload form' });
+      await sleep(1500);
+      return true;
     },
 
     // Runs on the video's edit page after posting: re-checks every field, fixes title, description,
@@ -257,7 +323,8 @@ globalThis.postqAdapters.youtube ??= (() => {
         else {
           const want = fold(item.related.replace(/^latest:/, ''));
           const shown = fold(text($(SEL.relatedShown)));
-          ok.push(`related ✓ ${shown.includes(want) ? text($(SEL.relatedShown)).split('\n').pop() : await setRelated(item.related)}`);
+          // "latest:" has no name to compare against, so it is always (re)picked.
+          ok.push(`related ✓ ${want && shown.includes(want) ? text($(SEL.relatedShown)).split('\n').pop() : await setRelated(item.related)}`);
         }
       }
       const save = $(SEL.save);
@@ -290,24 +357,47 @@ globalThis.postqAdapters.youtube ??= (() => {
         return [...ok, `visibility ✓ ${item.visibility}`];
       }
       if (!/scheduled/i.test(vis)) throw new Error(`edit page: visibility reads "${vis}", wanted Scheduled (still a draft?)`);
-      (await waitFor(SEL.visibilityOpen)).click();
-      const pop = await waitFor(SEL.visibilityPopover, { what: 'visibility popover' });
-      await sleep(800);
-      const shownDate = text(await waitFor(SEL.dateTrigger, { what: 'scheduled date' }));
-      const shownTime = (await waitFor(SEL.timeInput, { what: 'scheduled time' })).value;
-      key(document.activeElement || pop, 'Escape');
-      if ($(SEL.dateTrigger)) key(pop, 'Escape');
-      await sleep(600);
       const when = new Date(whenMs);
-      const d = new Date(Date.parse(shownDate));
-      if (isNaN(d) || d.getFullYear() !== when.getFullYear() || d.getMonth() !== when.getMonth() || d.getDate() !== when.getDate()) {
-        throw new Error(`edit page: scheduled date reads "${shownDate}", wanted ${when.toDateString()}`);
+      const sameDay = (shown) => {
+        const d = new Date(Date.parse(shown));
+        return !isNaN(d) && d.getFullYear() === when.getFullYear() && d.getMonth() === when.getMonth() && d.getDate() === when.getDate();
+      };
+      const readSchedule = async () => {
+        (await waitFor(SEL.visibilityOpen)).click();
+        const pop = await waitFor(SEL.visibilityPopover, { what: 'visibility popover' });
+        await sleep(1200);
+        const date = text(await waitFor(SEL.dateTrigger, { what: 'scheduled date' }));
+        const time = (await waitFor(SEL.timeInput, { what: 'scheduled time' })).value;
+        return { pop, date, time, right: sameDay(date) && sameTime(time, timeFor(when, time)) };
+      };
+      const closePop = async (pop) => {
+        key(document.activeElement || pop, 'Escape');
+        if ($(SEL.dateTrigger)) key(pop, 'Escape');
+        await sleep(600);
+      };
+      let s = await readSchedule();
+      if (!s.right) {
+        // Wrong date/time on the saved video: set it in the popover, Done, Save, read it again.
+        const was = `${s.date} ${s.time}`;
+        await setWhen(when);
+        const doneBtn = [...(s.pop.closest('tp-yt-paper-dialog, ytcp-dialog, tp-yt-iron-dropdown') || document).querySelectorAll('ytcp-button, button')].find((b) => /^(done|save)$/i.test(text(b)) && b.getBoundingClientRect().height);
+        if (!doneBtn) throw new Error('edit page: no Done button in the visibility popover');
+        doneBtn.click();
+        await sleep(1000);
+        for (const end = Date.now() + 15000; !dirty() && Date.now() < end;) await sleep(500);
+        if (!dirty()) throw new Error(`edit page: schedule fix (was ${was}) did not make the page savable`);
+        $(SEL.save).click();
+        for (const end = Date.now() + 90000; dirty() && Date.now() < end;) await sleep(500);
+        if (dirty()) throw new Error('edit page: Save of the schedule fix did not finish within 90 s');
+        ok.push(`schedule fixed (was ${was})`);
+        s = await readSchedule();
+        if (!s.right) {
+          await closePop(s.pop);
+          throw new Error(`edit page: schedule still reads "${s.date} ${s.time}" after the fix, wanted ${when.toString()}`);
+        }
       }
-      const h12 = /am|pm/i.test(shownTime);
-      const time = when.toLocaleTimeString(h12 ? 'en-US' : 'en-GB', { hour: 'numeric', minute: '2-digit', hour12: h12 });
-      if (shownTime.replace(/\s/g, '').toLowerCase() !== time.replace(/\s/g, '').toLowerCase()) {
-        throw new Error(`edit page: scheduled time reads "${shownTime}", wanted ${time}`);
-      }
+      await closePop(s.pop);
+      const shownDate = s.date, shownTime = s.time;
       if (dirty()) throw new Error('edit page: closing the schedule popover left unsaved changes');
       return [...ok, `schedule ✓ ${shownDate} ${shownTime}`];
     },
