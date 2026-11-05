@@ -8,8 +8,11 @@ WORK holds script.json (build.py) and clips/<id>-<shot>.mp4 (render.sh). Steps:
    (the reaction beat the reference reels hold; a shot's "hold": N keeps N s after it, for a payoff such as
    a laugh after the punchline); a silent shot keeps 0.3 s .. 0.3 + sec. Each heard
    line is compared with the script; under 70 % word match prints MISHEARD (re-render that shot).
-2. Every segment is graded (GRADE=film default: every frame histogram-matched onto the reference colour, refgrade.py; airy, or a raw chain) and re-encoded to 720x1280 (the references' size: a softer picture reads as
-   film, 1080p micro-detail reads as AI), exactly N frames at 24 fps with its audio padded/cut to the same
+2. Every segment is re-encoded as rendered at 1080x1920, the reel's size (GRADE=raw default: the colour comes
+   from the prompt, build.py SKIN; match: skin histogram-matched onto the reel's face, refgrade.py; airy; or a raw
+   ffmpeg chain): an earlier 540 p pass, 720 p output and grain read as blur and as specks dancing over the frame,
+   exactly N frames at 24 fps
+   with its audio padded/cut to the same
    length, then joined with hard cuts (concat demuxer), so lips never drift at a join.
 3. Overlays (Pillow PNGs, ffmpeg overlay with enable windows), all as in references/reference-study.md:
    each spoken line as a small white English subtitle centred at ~74 %, an optional handle watermark
@@ -26,7 +29,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
-W, H, FPS = 720, 1280, 24
+W, H, FPS = 1080, 1920, 24  # the reel's own size (the THAT WAS HIM reel plays at 1080x1920)
+PX = W / 720  # overlay sizes were drawn at 720 wide
 FONTS = "/System/Library/Fonts/Supplemental/"
 ROUND, SERIF, ITALIC = FONTS + "Arial Rounded Bold.ttf", FONTS + "Georgia Bold.ttf", FONTS + "Georgia Italic.ttf"
 VI = FONTS + "Arial Bold.ttf"  # Arial Rounded has no Vietnamese diacritics
@@ -35,29 +39,30 @@ HANDLE = os.environ.get("HANDLE", "")
 CARD = 3.5
 
 
-# Grade (GRADE=film default, airy, or a raw ffmpeg chain). Measured targets: references/reference-study.md.
-# film: the memoriescore.studio look, exactly: the skin of every frame is histogram-matched in CIELAB onto the
-#   reference's own skin distribution (refgrade.py, the source quantiles per frame, smoothed over time, so
-#   every frame lands on the reference and the mapping never jumps), the rest of the picture untouched, then
-#   fine grain. No blur, no halation: the reference is clean and crisp (laplacian variance 25-145 at 480 wide,
-#   our clips after the 540 p pass ~170); a blur plus a 12 % halation read as vague. Measured on the reference
-#   close-up and on our frames after it: skin RGB ~136/106/91, mean ~113, p10 ~88, p90 ~135, sat ~0.34.
-#   A hand-tuned curve/colorbalance chain (v2-v5) only approximated these.
+# Grade (GRADE=raw default, match, airy, or a raw ffmpeg chain). Measured targets: references/reference-study.md.
+# raw: nothing. The muse picture as rendered at the reel's own 1080x1920: the reel's skin colour is asked for in
+#   the prompt (build.py SKIN, measured from the reel) and still_check gates the still, so no post-grade is
+#   needed; a 540 p round trip, a 720 p output and grain read as blur and as specks dancing over the frame, so
+#   those are gone for every grade.
+# match: the skin of every frame histogram-matched in CIELAB onto the reel's face-only distribution
+#   (refgrade.py, the source quantiles per frame, smoothed over time), the rest untouched. A fallback for clips
+#   whose still slipped past the gate.
 # airy: the first three IG reels (bakery 130/108/96, sat 0.34): a slight lift, a soft haze, no warmth.
 # ffmpeg traps kept for raw chains: a screen blend in yuv420p lifts U/V (magenta cast), gblur on packed rgb24
 # mixes the channels (blue cast): run a halation split in planar gbrp.
 PRESETS = {
-    "film": "noise=alls=4:allf=t",
+    "raw": "null",
+    "match": "null",
     "airy": "split[a][b];[b]gblur=sigma=24[g];[a][g]blend=all_mode=screen:all_opacity=0.08,"
             "format=gbrp,curves=all='0/0.02 0.5/0.53 1/0.97',colorbalance=rm=0.025:bm=-0.03:rh=0.01:bh=-0.01,"
             "format=yuv420p,eq=saturation=1.15,gblur=sigma=0.6,noise=alls=4:allf=t",
 }
-GRADE_NAME = os.environ.get("GRADE", "film")
+GRADE_NAME = os.environ.get("GRADE", "raw")
 GRADE = PRESETS.get(GRADE_NAME, GRADE_NAME)
 
 
 def transfer_clip(src, dst):
-    """GRADE=film: put every frame of src onto the reference (refgrade.transfer), audio copied."""
+    """GRADE=match: put every frame of src onto the reference (refgrade.transfer), audio copied."""
     import av
     from refgrade import source_quantiles, transfer
     tmp = dst.with_suffix(".v.mp4")
@@ -144,14 +149,13 @@ def cut(work, sc, tr):
         seg = work / "seg" / f"{sh['id']}.mp4"
         seg.parent.mkdir(exist_ok=True)
         run(["ffmpeg", "-v", "error", "-y", "-ss", f"{s}", "-i", str(clip), "-frames:v", str(n),
-             # the 540 p pass gives the soft DVD picture of the references (no crisp micro-detail)
+             # no soft pass: a 540 p round trip and a 720 p output read as blurry against the 1080 p reel
              "-vf", f"scale={W}:{H}:force_original_aspect_ratio=increase:flags=lanczos,crop={W}:{H},fps={FPS},"
-                    f"scale=540:960:flags=area,scale={W}:{H}:flags=bicubic,"
                     f"setsar=1,{GRADE}",
              "-af", f"aresample=48000,apad,atrim=0:{length:.4f}", "-ar", "48000", "-ac", "2",
              "-c:v", "libx264", "-crf", "16", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
              str(seg)])
-        if GRADE_NAME == "film":
+        if GRADE_NAME == "match":
             raw = seg.with_name(f"{sh['id']}.raw.mp4")
             seg.rename(raw)
             transfer_clip(raw, seg)
@@ -169,7 +173,7 @@ def cut(work, sc, tr):
 
 
 def font(p, size):
-    return ImageFont.truetype(p, size)
+    return ImageFont.truetype(p, round(size * PX))
 
 
 def wrap(text, f, maxw, d):
@@ -185,7 +189,7 @@ def wrap(text, f, maxw, d):
 
 
 def centred(d, y, text, f, fill, stroke=2):
-    d.text(((W - d.textlength(text, font=f)) / 2, y), text, font=f, fill=fill, stroke_width=stroke,
+    d.text(((W - d.textlength(text, font=f)) / 2, y), text, font=f, fill=fill, stroke_width=round(stroke * PX),
            stroke_fill=(20, 16, 14))
 
 
@@ -194,10 +198,10 @@ def subtitle_png(en, path):
     d = ImageDraw.Draw(img)
     f = font(ROUND, 26)  # memoriescore subtitles are tiny: ~2 % of the height
     rows = wrap(en, f, W * 0.8, d)
-    y = int(H * 0.735) - 16 * (len(rows) - 1)
+    y = int(H * 0.735) - round(16 * PX) * (len(rows) - 1)
     for r in rows:
         centred(d, y, r, f, WHITE)
-        y += 33
+        y += round(33 * PX)
     img.save(path)
 
 
@@ -205,25 +209,25 @@ def handle_png(path):
     img = Image.new("RGBA", (W, H))
     d = ImageDraw.Draw(img)
     f = font(ITALIC, 20)
-    d.text((W - 40 - d.textlength(HANDLE, font=f), int(H * 0.945)), HANDLE, font=f, fill=(255, 255, 255, 140))
+    d.text((W - 40 * PX - d.textlength(HANDLE, font=f), int(H * 0.945)), HANDLE, font=f, fill=(255, 255, 255, 140))
     img.save(path)
 
 
 def words_png(frame, words, path):
-    base = Image.open(frame).convert("RGB").resize((W, H)).filter(ImageFilter.GaussianBlur(14))
+    base = Image.open(frame).convert("RGB").resize((W, H)).filter(ImageFilter.GaussianBlur(14 * PX))
     base = Image.blend(base, Image.new("RGB", (W, H), (14, 11, 10)), 0.5).convert("RGBA")
     d = ImageDraw.Draw(base)
     fh, fe, fv = font(ROUND, 22), font(SERIF, 40), font(VI, 25)
-    blocks = [[(r, fe, WHITE, 50) for r in wrap(w["en"], fe, W * 0.84, d)]
-              + [(r, fv, (232, 224, 218), 38) for r in wrap(w["vi"], fv, W * 0.84, d)] for w in words]
-    y = (H - 64 - sum(sum(x[3] for x in b) + 36 for b in blocks)) / 2
+    blocks = [[(r, fe, WHITE, 50 * PX) for r in wrap(w["en"], fe, W * 0.84, d)]
+              + [(r, fv, (232, 224, 218), 38 * PX) for r in wrap(w["vi"], fv, W * 0.84, d)] for w in words]
+    y = (H - 64 * PX - sum(sum(x[3] for x in b) + 36 * PX for b in blocks)) / 2
     centred(d, y, "NEW WORDS", fh, (255, 255, 255, 200), 1)
-    y += 64
+    y += 64 * PX
     for b in blocks:
         for r, f, c, lh in b:
             centred(d, y, r, f, c, 1)
             y += lh
-        y += 36
+        y += 36 * PX
     base.save(path)
 
 
