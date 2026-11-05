@@ -65,7 +65,7 @@ HALO = "if(gt(val,140),(val-140)*2.2,0)"
 VINTAGE = ("format=yuv444p,gblur=sigma=2.4:planes=6,format=gbrp,split[a][b];"
            f"[b]lutrgb=r='{HALO}':g='{HALO}':b='{HALO}',gblur=sigma=40,colorchannelmixer=rr=1:gg=0.55:bb=0.3[g];"
            "[a][g]blend=all_mode=screen:all_opacity=0.45,colorbalance=rh=0.03:gh=0.012:bh=-0.04,format=yuv444p,"
-           "lutyuv=y='22+val*0.9',format=gbrp,colorbalance=bs=-0.012,"
+           "lutyuv=y='22+val*0.88',format=gbrp,colorbalance=rm=0.025:gm=-0.012:bs=-0.012,"
            "vignette=angle=0.3,format=yuv420p")
 REEL_Y = "if(lt(val,122),val,if(lt(val,158),122+(val-122)*0.47,if(lt(val,204),139+(val-158)*0.6,167+(val-204)*0.6)))"
 PRESETS = {
