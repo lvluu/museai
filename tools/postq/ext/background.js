@@ -243,8 +243,17 @@ function listTime(ms, tz) {
   return `${p.day} ${p.month} ${p.hour}:${p.minute}`;
 }
 
+// Reels have no title field: item.title goes in as each caption's first line, unless that line already is it.
+const fold = (s) => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+function titled(title, caption) {
+  if (!title || !caption || fold(caption.split('\n')[0]) === fold(title)) return caption;
+  return `${title}\n${caption}`;
+}
+
 // One Business Suite Reel for the Page and/or its Instagram account (item.targets).
-async function metaFlow(item, pg) {
+async function metaFlow(stored, pg) {
+  // Steps see the titled captions; `stored` (persisted) keeps them apart so an edit or retry never doubles the title.
+  const item = { ...stored, caption: titled(stored.title, stored.caption), caption_ig: titled(stored.title, stored.caption_ig) };
   const say = (line) => progress(item.id, line);
   const a = item.asset;
   if (!a?.asset_id || !a?.business_id) throw new Error('item has no Business Suite asset (postq add --asset BUSINESS_ID:ASSET_ID)');
@@ -256,7 +265,7 @@ async function metaFlow(item, pg) {
   if (!item.dry_run) {
     await say('Opening Business Suite…');
     await pg.go(list, `${BS}/posts/`);
-    const found = await pg.step('findScheduled', item.caption);
+    const found = await pg.step('findScheduled', [item.caption, item.caption_ig]);
     if (item.video_id || found.length) {
       await say(`Already ${when ? 'scheduled' : 'posted'} (${found.length} row(s)) · checking it`);
       return checkMetaList(item, pg, list, when, 'resumed', found);
@@ -298,7 +307,7 @@ async function metaFlow(item, pg) {
   await say(note);
   if (item.dry_run) return { status: 'dry-run', url: `${BS}/reels_composer/?${q}`, log: `${note} · form filled, not submitted (tab left open)` };
   const sent = await pg.step('submit');
-  item.video_id = 'meta-submitted'; // kept on failure (release), so a retry checks instead of posting again
+  stored.video_id = 'meta-submitted'; // kept on failure (release), so a retry checks instead of posting again
   await say(`${sent.confirm} · checking the ${when ? 'Scheduled' : 'Published'} list`);
   await pg.go(list, `${BS}/posts/`);
   return checkMetaList(item, pg, list, when, note);
@@ -312,7 +321,7 @@ async function checkMetaList(item, pg, list, when, note, rows) {
       await new Promise((r) => setTimeout(r, 6000));
       await pg.go(list, `${BS}/posts/`);
     }
-    found = await pg.step('findScheduled', item.caption);
+    found = await pg.step('findScheduled', [item.caption, item.caption_ig]);
   }
   const checks = [];
   for (const t of item.targets) {

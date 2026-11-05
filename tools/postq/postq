@@ -49,7 +49,7 @@ IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
 PLATFORMS = {
     "youtube": {"title": 100, "caption": 5000, "tags": 500, "schedule": (timedelta(minutes=15), timedelta(days=365)),
                 "forbidden": "<>"},
-    "meta": {"title": 0, "caption": 2200, "tags": 0, "schedule": (timedelta(minutes=20), timedelta(days=29)),
+    "meta": {"title": 255, "title_line": True, "caption": 2200, "tags": 0, "schedule": (timedelta(minutes=20), timedelta(days=29)),
              "targets": {"facebook", "instagram"}},
     "tiktok": {"title": 0, "caption": 2200, "tags": 0, "schedule": (timedelta(minutes=15), timedelta(days=10))},
     "x": {"title": 0, "caption": 280, "tags": 0, "schedule": (timedelta(minutes=5), timedelta(days=545))},
@@ -170,7 +170,9 @@ def parse_schedule(at, tz):
 def validate(a, caption, tags, when, now=None):
     """Error messages for anything the platform would reject; empty list = fine."""
     spec, errors = PLATFORMS[a.platform], []
-    if spec["title"] and not a.title:
+    # title_line: no title field, the title goes in as the caption's first line (optional).
+    head = len(a.title) + 1 if a.title and spec.get("title_line") else 0
+    if spec["title"] and not a.title and not spec.get("title_line"):
         errors.append(f"{a.platform} needs --title")
     if a.title and spec["title"] and len(a.title) > spec["title"]:
         errors.append(f"title is {len(a.title)} chars, {a.platform} allows {spec['title']}")
@@ -179,8 +181,8 @@ def validate(a, caption, tags, when, now=None):
     bad = [c for c in spec.get("forbidden", "") if c in (a.title or "") + caption]
     if bad:
         errors.append(f"{a.platform} rejects the characters {''.join(bad)} in title/caption")
-    if len(caption) > spec["caption"]:
-        errors.append(f"caption is {len(caption)} chars, {a.platform} allows {spec['caption']}")
+    if len(caption) + head > spec["caption"]:
+        errors.append(f"caption is {len(caption) + head} chars, {a.platform} allows {spec['caption']}")
     if tags and not spec["tags"]:
         errors.append(f"{a.platform} has no tags field: put #hashtags in --caption")
     if spec["tags"] and len(",".join(tags)) > spec["tags"]:
@@ -194,8 +196,8 @@ def validate(a, caption, tags, when, now=None):
         ig = getattr(a, "caption_ig", None) or caption
         if "instagram" in (a.targets or []) and ig.count("#") > 30:
             errors.append("instagram allows at most 30 hashtags")
-        if len(ig) > spec["caption"]:
-            errors.append(f"instagram caption is {len(ig)} chars, {a.platform} allows {spec['caption']}")
+        if len(ig) + head > spec["caption"]:
+            errors.append(f"instagram caption is {len(ig) + head} chars, {a.platform} allows {spec['caption']}")
     if when:
         lead = when - (now or datetime.now(timezone.utc))
         lo, hi = spec["schedule"]
@@ -447,6 +449,8 @@ def cmd_episode(a):
             del plan[platform]
     if "meta" in plan:
         p = plan["meta"]
+        if "YouTube Shorts" in sections:  # Reels have no title field: the Shorts title leads both captions
+            p["title"] = sections["YouTube Shorts"][2].partition("\n")[0].strip() or None
         if "facebook" not in p["targets"]:
             p["caption"] = p.pop("caption_ig")
         elif p.get("caption_ig") == p["caption"] or "instagram" not in p["targets"]:
@@ -677,7 +681,7 @@ def main():
     add.add_argument("--account", required=True, help="channel/page name or id the post must go to; checked before posting")
     add.add_argument("--file", required=True, help="the video")
     add.add_argument("--cover", help="thumbnail image")
-    add.add_argument("--title", help="youtube title")
+    add.add_argument("--title", help="youtube title; meta: first line of the FB/IG caption (skipped when it already is)")
     add.add_argument("--caption", help="description/caption, or - to read stdin")
     add.add_argument("--caption-ig", help="meta: own Instagram caption (default: --caption for both)")
     add.add_argument("--asset", type=lambda s: dict(zip(("business_id", "asset_id"), s.split(":"))),

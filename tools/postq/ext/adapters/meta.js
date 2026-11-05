@@ -310,11 +310,12 @@
       throw new Error(`pressed "${label}", the composer did not confirm within 2 min`);
     },
 
-    // Scheduled list (Content > Posts and reels > Scheduled): rows whose text starts like `caption`.
-    async findScheduled(caption) {
+    // Scheduled list (Content > Posts and reels > Scheduled): rows whose text starts like one of `captions`
+    // (the Facebook and the Instagram caption differ when Customise was on).
+    async findScheduled(captions) {
       await waitFor(SEL.row, { timeout: 60000, what: 'scheduled posts table' });
       await sleep(1500);
-      const head = fold(caption).slice(0, 40);
+      const heads = [].concat(captions).filter(Boolean).map((c) => fold(c).slice(0, 40));
       return [...document.querySelectorAll(SEL.row)].slice(1).map((r) => {
         const cells = [...r.querySelectorAll('[role=gridcell], [role=cell]')].map(text);
         const imgs = [...r.querySelectorAll('img')];
@@ -323,7 +324,7 @@
           platform: PLATFORM[imgs.find((i) => PLATFORM[i.alt])?.alt] || null,
           thumb: imgs.find((i) => i.width >= 32 && /fbcdn/.test(i.src))?.src || null,
         };
-      }).filter((r) => fold(r.title).startsWith(head));
+      }).filter((r) => heads.some((h) => fold(r.title).startsWith(h)));
     },
   };
 })();
