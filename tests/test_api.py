@@ -428,7 +428,7 @@ def test_chinese_day_alternates_conversations_and_quizzes(tmp_path):
 
 def test_posting_slots(tmp_path):
     import os
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     from museai.api.routes import posting
 
@@ -441,11 +441,13 @@ def test_posting_slots(tmp_path):
     # No YouTube Short goes out at noon (its weakest hours); a learner's Sunday starts in the morning.
     assert all(posting._slot_times(f"2026-11-0{d}/2")["youtube"].hour not in range(12, 16) for d in range(2, 9))
     assert posting._slot_times("2026-11-01/1")["tiktok"].isoformat() == "2026-11-01T08:45:00+07:00"
-    # Travel speaks to the whole world: 09:00 and 20:00 GMT+7 on every platform, TikTok 15 minutes ahead.
-    assert posting._slot_times("2026-11-03/1", "travel")["youtube"].isoformat() == "2026-11-03T09:00:00+07:00"
-    assert posting._slot_times("2026-11-03/2", "travel")["tiktok"].isoformat() == "2026-11-03T19:45:00+07:00"
-    assert posting._slot_times("2026-11-03/2", "travel")["threads"].isoformat() == "2026-11-03T20:00:00+07:00"
-    assert posting._audience("2026-11-03/1", "travel") is None
+    # Travel, Dream life and Healing: 07:00 and 19:00 GMT+7 (00 and 12 UTC) on every platform.
+    for channel in ("travel", "dream", "healing"):
+        for n, clock in ((1, "07:00"), (2, "19:00")):
+            times = posting._slot_times(f"2026-11-03/{n}", channel)
+            assert {t.isoformat() for t in times.values()} == {f"2026-11-03T{clock}:00+07:00"}, (channel, n)
+            assert times["youtube"].astimezone(timezone.utc).hour == (0, 12)[n - 1]
+        assert posting._audience("2026-11-03/1", channel) is None
 
     videos = []
     for i, name in enumerate(("a.mp4", "b.mp4", "c.mp4")):
@@ -460,14 +462,14 @@ def test_posting_slots(tmp_path):
     cal = posting._calendar(state, {n: n for n in ("a.mp4", "b.mp4", "c.mp4")}, now)["chinese"]
     assert len(cal) == 7 and cal[0]["slots"][2]["video"] == "b.mp4" and cal[0]["slots"][1]["video"] is None
 
-    # Travel posts from other accounts on its own clock: today's 09:00 slot has passed, so it books
-    # today's 20:00 one.
+    # Travel posts from other accounts on its own clock: at 19:00 today's 07:00 and 19:00 slots are no
+    # longer ahead, so it books tomorrow's 07:00 one.
     (p := tmp_path / "zoom-madeira.mp4").write_bytes(b"v")
     os.utime(p, (2000, 2000))
     assert posting._assign_slots(state, [*videos, p], now)
-    assert state["zoom-madeira.mp4"]["slot"] == "2026-10-29/2"
+    assert state["zoom-madeira.mp4"]["slot"] == "2026-10-30/1"
     cal = posting._calendar(state, {n: n for n in state}, now)
-    assert cal["travel"][0]["slots"][1]["video"] == "zoom-madeira.mp4"
+    assert cal["travel"][1]["slots"][0]["video"] == "zoom-madeira.mp4"
     assert cal["chinese"][0]["slots"][2]["video"] == "b.mp4"
 
     # A new Chinese video takes the next free Chinese slot, not one only Travel has free.
@@ -541,18 +543,15 @@ def test_posting_channel_from_file_name():
 def test_posting_dream_two_slots_a_day(client, admin, settings):
     from museai.api.routes import posting
 
-    # New York 20:00 on Monday is Tuesday 08:00 in GMT+7 (winter time); New York 07:00 Tuesday is 19:00
-    assert posting._slot_times("2026-11-03/1", "dream")["instagram"].isoformat() == "2026-11-03T08:00:00+07:00"
+    assert posting._slot_times("2026-11-03/1", "dream")["instagram"].isoformat() == "2026-11-03T07:00:00+07:00"
     assert posting._slot_times("2026-11-03/2", "dream")["instagram"].isoformat() == "2026-11-03T19:00:00+07:00"
     settings.post_dir.mkdir()
     for name in ("dream-a.mp4", "dream-b.mp4"):
         (settings.post_dir / name).write_bytes(b"v")
     d = client.get("/dashboard/posts", headers=admin).json()
     assert all(len(day["slots"]) == 2 for day in d["calendar"]["dream"])
-    # shown in GMT+7, with the audience's own clock beside it
-    aud = posting._audience("2026-11-03/1", "dream")
-    assert aud["clock"] == "New York" and aud["times"]["instagram"] == "2026-11-02T20:00:00-05:00"
-    assert d["calendar"]["dream"][0]["slots"][0]["audience"]["clock"] == "New York"
+    # set in GMT+7 like every channel: no second clock beside it
+    assert d["calendar"]["dream"][0]["slots"][0]["audience"] is None
     assert d["calendar"]["chinese"][0]["slots"][0]["audience"] is None
     assert len({v["slot"] for v in d["videos"]}) == 2
 
