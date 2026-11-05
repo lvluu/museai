@@ -3,7 +3,12 @@ clips' own ambience (rain, birds, river).
 
 Usage:
   python3 scripts/compose.py --idea idea.json --music track.m4a --out healing-<slug>.mp4 s1.mp4 s2.mp4@1.5 ...
-  [--shot 1.2] [--text "override caption"] [--no-text] [--ambience 0.35]
+  [--shot 1.2] [--text "override caption"] [--no-text] [--ambience 0.35] [--foley 1.0] [--music-in 0.8]
+
+Hook (insights 2026-11-05: viewers who stay past 2 s stay 6 s+ when soft music meets the REAL sound of
+the action): the first frame is already the action (no fade from black), each shot keeps its own sound
+in sync (the pour, the crust cracking, the meow) at FOLEY_LUFS, and the music only enters after
+--music-in seconds, so the first thing heard is the action itself.
 
 Concepts (idea["concept"]):
   postcard (reference 1): 8 shots x 1.2 s, ONE caption on every shot ("the way I want to live:").
@@ -25,6 +30,9 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 FONT = "/System/Library/Fonts/Supplemental/Georgia.ttf"
 XF = 0.35  # ambience cross-fade between shots (s)
 AMB_LUFS = -30  # every clip's ambience is levelled to this before --ambience scales the bed
+FOLEY_LUFS = -22  # each shot's own action sound (pour, sizzle, meow, birds): clearly heard next to the music
+HOOK_LUFS = -16  # shot 1's action sound plays alone before the music: as loud as the finished mix
+FX = 0.12  # foley cross-fade at a cut: short, so each sound stays on its own shot
 # Real recorded ambience beds. muse's own rain is spectrally flat hiss with no droplets (hv-0001:
 # "not natural raining sounds"), so when the idea's sound has a recording here, the recording replaces
 # the clips' sound. ~/.config/museai/ambience/<name>.(wav|mp3|m4a|flac) wins over the built-ins, so
@@ -56,11 +64,13 @@ def text_png(text, w, h, path):
     img.save(path)
 
 
-def loudness(clip):
-    """Integrated loudness (LUFS) of a clip's sound, None when it has none or is silent."""
+def loudness(clip, start=None, dur=None):
+    """Integrated loudness (LUFS) of a clip's sound (only start..start+dur when given), None when it has
+    none or is silent."""
     if not has_audio(clip):
         return None
-    err = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", "-i", clip, "-map", "0:a", "-af", "ebur128",
+    win = ["-ss", str(start), "-t", f"{dur:.3f}"] if dur else []
+    err = subprocess.run(["ffmpeg", "-hide_banner", "-nostats", *win, "-i", clip, "-map", "0:a", "-af", "ebur128",
                           "-f", "null", "-"], capture_output=True, text=True).stderr
     i = float(err.rsplit("I:", 1)[1].split("LUFS")[0])
     return i if i > -70 else None
@@ -94,6 +104,10 @@ def main():
     ap.add_argument("--ambience", type=float, default=0.35, help="clip ambience level under the music")
     ap.add_argument("--bed", help=f"ambience recording: {', '.join(BEDS)} or a file; 'clips' = the clips' own "
                     "sound (default: picked from the idea's sound)")
+    ap.add_argument("--foley", type=float, default=1.0, help="level of each shot's own action sound, kept in "
+                    "sync with its shot (0 = off)")
+    ap.add_argument("--music-in", type=float, default=0.8, help="seconds of action sound alone before the music "
+                    "fades in (the hook)")
     ap.add_argument("--size", default="1080x1920")
     ap.add_argument("--dissolve", type=float, default=0, help="cross-dissolve seconds between shots (reference 4: 0.5); 0 = hard cuts")
     a = ap.parse_args()
@@ -133,13 +147,19 @@ def main():
             args += ["-ss", start or "1.0", "-t", f"{shot + XF:.3f}", "-i", path]
     args += ["-i", a.music]
     mi = n + (1 if bed else n)
+    fi = None
+    if a.foley:
+        fi = len([x for x in args if x == "-i"])
+        for c in a.clips:
+            path, _, start = c.partition("@")
+            args += ["-ss", start or "1.0", "-t", f"{shot + FX:.3f}", "-i", path]
     pngs = []
     for i, t in enumerate(texts):
         if t:
             p = tmp / f"t{i}.png"
             text_png(t, w, h, p)
+            pngs.append(len([x for x in args if x == "-i"]))
             args += ["-i", str(p)]
-            pngs.append(mi + len(pngs) + 1)
         else:
             pngs.append(None)
     for i in range(n):
@@ -178,12 +198,38 @@ def main():
         chain = f"[{vp}]trim=duration={total:.3f},"
     else:
         chain = "".join(f"[w{i}]" for i in range(n)) + f"concat=n={n}:v=1:a=0,"
+    mixes = ["[mus]"]
+    if not (fi is not None and not bed):  # with --bed clips the foley layer already is the clips' sound
+        af.append(f"[{prev}]atrim=duration={total:.3f},{denoise}volume={a.ambience},"
+                  f"afade=in:d=0.05,afade=out:st={total - 1.2:.3f}:d=1.2[amb]")
+        mixes.append("[amb]")
+    if fi is not None:
+        fprev = None
+        for i, c in enumerate(a.clips):
+            path, _, start = c.partition("@")
+            lu = loudness(path, start or "1.0", shot + FX)  # the window heard, not the whole clip
+            if lu is None:
+                af.append(f"anullsrc=r=44100:cl=stereo,atrim=duration={shot + FX:.3f}[f{i}]")
+            else:
+                af.append(f"[{fi + i}:a]aresample=44100,aformat=channel_layouts=stereo,highpass=f=70,"
+                          f"afftdn=nf=-40,volume={(HOOK_LUFS if i == 0 else FOLEY_LUFS) - lu:.1f}dB,"
+                          f"alimiter=limit=0.7,asetpts=PTS-STARTPTS[f{i}]")
+            if fprev:
+                af.append(f"[{fprev}][f{i}]acrossfade=d={FX}:c1=qsin:c2=qsin[fx{i}]")
+                fprev = f"fx{i}"
+            else:
+                fprev = f"f{i}"
+        af.append(f"[{fprev}]atrim=duration={total:.3f},volume={a.foley},"
+                  f"afade=out:st={total - 1.0:.3f}:d=1.0[fol]")
+        mixes.append("[fol]")
+    mus_in = max(0.0, min(a.music_in, total / 3))
     graph = vf + af + [
-        f"{chain}fade=t=in:d=0.3,fade=t=out:st={total - 0.5:.3f}:d=0.5,format=yuv420p[vout]",
-        f"[{prev}]atrim=duration={total:.3f},{denoise}volume={a.ambience},"
-        f"afade=in:d=0.3,afade=out:st={total - 1.2:.3f}:d=1.2[amb]",
-        f"[{mi}:a]atrim=duration={total:.3f},afade=in:d=0.2,afade=out:st={total - 1.2:.3f}:d=1.2[mus]",
-        "[mus][amb]amix=inputs=2:normalize=0[aout]",
+        # no fade from black: frame 0 is already the action (the hook)
+        f"{chain}fade=t=out:st={total - 0.5:.3f}:d=0.5,format=yuv420p[vout]",
+        f"[{mi}:a]atrim=duration={total - mus_in:.3f},asetpts=PTS-STARTPTS,afade=in:d=1.2,"
+        f"afade=out:st={total - mus_in - 1.2:.3f}:d=1.2,adelay={int(mus_in * 1000)}:all=1,"
+        f"apad=whole_dur={total:.3f}[mus]",
+        f"{''.join(mixes)}amix=inputs={len(mixes)}:normalize=0,atrim=duration={total:.3f}[aout]",
     ]
     args += ["-filter_complex", ";".join(graph), "-map", "[vout]", "-map", "[aout]",
              "-c:v", "libx264", "-crf", "18", "-preset", "medium", "-c:a", "pcm_s16le", str(tmp / "mix.mov")]
