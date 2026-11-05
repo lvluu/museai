@@ -41,19 +41,21 @@ CARD = 3.5
 #   skin saturation ~0.36 (muted warmth, never orange), room behind the face p50 ~16, no clipped whites,
 #   a light halation glow, a slightly soft picture, fine grain. A muse clip comes out with skin p10 ~80 /
 #   p90 ~175 and sat ~0.36, so: a curve that rolls the highlights off hard (1 -> 0.80) and sinks the upper
-#   mids while keeping the shadows, a peach balance (see below), saturation x0.95 (x1.3 pushed the skin to
-#   0.54 = the orange AI look), a 12 % screen halation, a touch of blur, grain. Measured on ME-0002 S1/S8
+#   mids while keeping the shadows, a peach balance (see below), saturation x1.1 (x1.3 pushed the skin to
+#   0.54 = the orange AI look; x0.95 left the skin at 0.28 under the reference 0.34), a 12 % screen halation, a touch of blur, grain. Measured on ME-0002 S1/S8
 #   after the grade, skin mask fixed on the raw frame: mean 112-113, p10 78-82, p90 139-152, sat 0.27-0.30,
 #   skin RGB ~131/107/95 (G/B 1.06-1.13; reference 155/110/100).
 # airy: the first three IG reels (bakery 130/108/96, sat 0.34): a slight lift, a soft haze, no warmth.
 # The halation split/blur/blend runs in planar gbrp: in yuv420p the screen blend lifts U/V (magenta cast), in
 # packed rgb24 gblur mixes the interleaved channels (blue cast). Balance: the reference skin is peach-pink,
-# G/B ~1.09 (a muse clip 1.2-1.5 = orange), so a little red and blue in, green out, saturation x0.95.
+# G/B 1.09-1.16 (a muse clip 1.2-1.5 = orange), so red in, green and a touch of blue out (bm 0.05 gave
+# 135/106/98 = too blue; rm 0.06 / gm -0.02 / bm -0.01 gives 137/111/95, reference 136/106/91); the shadows go the other way (red out, green and blue in) so the
+# dark warm rooms muse paints lose their orange-brown and sit near the neutral beige of the reference.
 PRESETS = {
     "film": "format=gbrp,curves=all='0/0 0.12/0.10 0.35/0.33 0.6/0.52 0.8/0.64 1/0.80',"
-            "colorbalance=rm=0.04:gm=-0.02:bm=0.05:rh=0.03:gh=-0.01:bh=0.04,"
+            "colorbalance=rs=-0.04:gs=0.02:bs=0.02:rm=0.06:gm=-0.02:bm=-0.01:rh=0.03,"
             "split[a][b];[b]gblur=sigma=30[g];[a][g]blend=all_mode=screen:all_opacity=0.12,"
-            "format=yuv420p,eq=saturation=0.95,gblur=sigma=0.9,noise=alls=4:allf=t",
+            "format=yuv420p,eq=saturation=1.1,gblur=sigma=0.9,noise=alls=4:allf=t",
     "airy": "split[a][b];[b]gblur=sigma=24[g];[a][g]blend=all_mode=screen:all_opacity=0.08,"
             "format=gbrp,curves=all='0/0.02 0.5/0.53 1/0.97',colorbalance=rm=0.025:bm=-0.03:rh=0.01:bh=-0.01,"
             "format=yuv420p,eq=saturation=1.15,gblur=sigma=0.6,noise=alls=4:allf=t",

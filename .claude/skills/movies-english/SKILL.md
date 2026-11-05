@@ -33,7 +33,7 @@ only what is specific to the format.
    text in the frame, a speaker facing away, a bright flat evenly lit room, a busy pastel background, pale pink skin,
    matte lips, a dramatic side-lit face with a hot highlight and a dark cheek, orange or shiny skin, razor-sharp
    hyper-detail, a murky underexposed frame. Want: soft frontal even light on the face (no shadow side), the
-   background much darker than the face but glowing (lamps, candles, string lights blooming), fair peach matte-glow skin with a pink blush (never orange or golden),
+   surroundings pale and desaturated (beige stone, cream, grey, snow, pale sky; any lamps bloom softly), muted pastel colour like a faded film print, fair peach matte-glow skin with a pink blush on the cheeks and deep glossy rose lips (never orange or golden),
    high-shine glossy lips, big 90s hair, a blurred foreground piece at one side. Numbers settle it:
    `python3 scripts/still_check.py $WORK/stills/*.png` prints each take against the reference bands and
    says PASS or which band it misses. A muse still always comes out with hot skin highlights, so run
