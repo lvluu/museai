@@ -11,7 +11,7 @@ import sys
 
 CHAIN = (
     "format=gbrp,curves=all='0/0 0.12/0.12 0.35/0.34 0.6/0.51 0.8/0.60 1/0.72',"
-    "colorbalance=rm=0.04:gm=-0.02:bm=0.05:rh=0.03:gh=-0.01:bh=0.04,split[a][b];[b]gblur=sigma=30[g];[a][g]blend=all_mode=screen:all_opacity=0.12,format=rgb24,gblur=sigma=1.2"
+    "colorbalance=rs=-0.04:gs=0.02:bs=0.02:rm=0.06:gm=-0.02:bm=-0.01:rh=0.03,split[a][b];[b]gblur=sigma=30[g];[a][g]blend=all_mode=screen:all_opacity=0.12,format=rgb24,eq=saturation=1.1,gblur=sigma=1.2"
 )
 
 src, dst = sys.argv[1:3]

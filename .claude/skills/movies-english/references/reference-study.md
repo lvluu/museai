@@ -172,3 +172,19 @@ x0.95, a harder roll-off (1 -> 0.80), a peach balance and a touch more blur. Two
 way: a screen blend in yuv420p lifts U/V (magenta cast) and gblur on packed rgb24 mixes the channels
 (blue cast), so the halation split runs in planar gbrp. ME-0002 clips after the grade: skin mean 112-113,
 p10 78-82, p90 139-152, sat 0.27-0.31, RGB ~132/107/95.
+
+Round 3b: the reference frame measured again from a full-size grab (same mask): skin mean 113, p10 88,
+p90 133, sat 0.34, skin RGB 136/106/91 (G/B 1.16); forehead 158/116/105, cheeks 160/112/105 and 140/91/79,
+lips 140/74/68 (sat 0.52: the one saturated thing), hair 124-147/109-123/94-104, wall 122/110/99 (sat 0.19);
+whole frame p50 96, p75 120; background mids RGB 112/100/94, sat 0.21. Our matched v4 stills: skin
+135/106/98 (too blue), sat 0.28, frame p50 51-68, background mids 96-102/73-80/71-77, sat 0.30-0.39. So the
+remaining gap was not the face but the world around it: muse paints a dark, saturated orange-brown room
+behind the face (the prompt asked for "much darker than the face, deep brown, black, night"); the reference
+is a mid-key, muted pastel frame (beige stone, snow, grey sky, blonde hair) where only the blush and the
+lips carry colour. Fixes: LIGHT v4 / look.txt ask for pale desaturated surroundings (beige stone, cream,
+grey, snow, pale sky, soft brown) with no strong colour except the blush and the glossy rose lips, overcast
+or open-shade daylight instead of golden hour; still_match.py and the film grade keep the mids balance at
+rm 0.06 / gm -0.02 / bm -0.01, pull red out of the shadows (rs -0.04, gs/bs +0.02) and saturate x1.1.
+Stills with the v4 prompt (winter street, fur coat, snow) after still_match: skin 137/111/95 and 139/109/92
+(G/B 1.17-1.18), sat 0.32-0.34, p90 149-151, background mids 114-126/99-116/88-108 at sat 0.20-0.28,
+frame p50 64-94: on the reference for the first time, face and world.
