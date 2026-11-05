@@ -39,6 +39,10 @@ class ImageGenerationRequest(_Lenient):
     size: str | None = None
     response_format: Literal["url", "b64_json"] = "url"
     user: str | None = None
+    image: str | list[str] | None = Field(
+        default=None,
+        description="Reference image(s) as data URLs or http(s) URLs, e.g. a character's portrait to keep the face",
+    )
 
 
 class VideoCreateRequest(_Lenient):

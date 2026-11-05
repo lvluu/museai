@@ -1,0 +1,18 @@
+{
+ "key": "MAYA",
+ "version": 1,
+ "name": "Maya Rivera-Chen",
+ "age": 21,
+ "sex": "F",
+ "origin": "Mexican-American",
+ "build": "5 ft 5 in",
+ "identity": "a 21-year-old Mexican-American woman with a soft oval face: warm golden-tan skin, dark-brown eyes, full dark brows, a small nose, full lips with a glossy rosy-berry lip gloss, a wide bright smile. Very long, thick, glossy dark-brown hair in soft 1990s blowout waves past the chest. Two small gold hoops in her LEFT ear, one in her RIGHT. Light makeup: a little soft brown liner, mascara, soft blush.",
+ "voice": "clear, quick, confident West Coast American English, crisp and witty",
+ "base_wardrobe": "a plain soft-white cotton crew-neck T-shirt with soft natural creases",
+ "used_by": [
+  "movies-english"
+ ],
+ "views": {
+  "hero": "hero.jpg"
+ }
+}

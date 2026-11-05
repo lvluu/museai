@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import json
 import time
 import unicodedata
@@ -69,6 +70,16 @@ def test_image_b64(client, auth):
     r = client.post("/v1/images/generations", headers=auth,
                     json={"prompt": "a dog", "response_format": "b64_json"})
     assert r.json()["data"][0]["b64_json"]
+
+
+def test_image_with_reference_images(client, auth):
+    png = "data:image/png;base64," + base64.b64encode(b"\x89PNG\r\n\x1a\n").decode()
+    r = client.post("/v1/images/generations", headers=auth,
+                    json={"prompt": "Viv at a cafe", "image": [png, png]})
+    assert r.status_code == 200
+    assert r.json()["data"][0]["revised_prompt"] == "Viv at a cafe [2 reference images]"
+    one = client.post("/v1/images/generations", headers=auth, json={"prompt": "Viv", "image": png})
+    assert one.json()["data"][0]["revised_prompt"] == "Viv [1 reference images]"
 
 
 def test_video_task(client, auth):

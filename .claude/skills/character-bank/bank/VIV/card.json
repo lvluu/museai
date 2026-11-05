@@ -1,0 +1,18 @@
+{
+ "key": "VIV",
+ "version": 1,
+ "name": "Vivienne 'Viv' Laurent",
+ "age": 19,
+ "sex": "F",
+ "origin": "American, French-Italian descent",
+ "build": "slim, 5 ft 7 in",
+ "identity": "a 19-year-old American woman of French-Italian descent with a slim oval face and soft youthful cheeks: warm golden-tan skin, dark brown eyes with long dark lashes, softly arched dark brows, a small straight nose, full lips with a glossy pink-red lip gloss, one dimple in her LEFT cheek when she smiles. Glossy dark-chocolate brown hair in a smooth 1990s blowout that just touches her shoulders, swept back off her forehead with lift at the roots, the ends curved softly under. Small gold heart-shaped earrings and a thin gold chain. Light makeup: a little soft brown liner, mascara, soft blush.",
+ "voice": "low, smooth, faintly amused American English with a hint of French polish, dry and unhurried",
+ "base_wardrobe": "a plain soft-white cotton crew-neck T-shirt with soft natural creases",
+ "used_by": [
+  "movies-english"
+ ],
+ "views": {
+  "hero": "hero.jpg"
+ }
+}

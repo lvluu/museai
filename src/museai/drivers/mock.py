@@ -73,7 +73,8 @@ class MockDriver(MuseDriver):
                     kind="image",
                     width=64,
                     height=64,
-                    revised_prompt=req.prompt,
+                    revised_prompt=req.prompt
+                    + (f" [{len(req.reference_images)} reference images]" if req.reference_images else ""),
                 )
             )
         return results
