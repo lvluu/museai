@@ -75,32 +75,29 @@ CHANNELS = {
                             2: "Lunch break: bite-sized (word of the day, quizzes)",
                             3: "Study hour after dinner: conversations, common mistakes, quizzes",
                             4: "Late evening: one more before bed"}),
-    # world-wide audience (user rule 2026-11-04): each slot at an hour when most of the world is awake
-    "travel": ("Travel", {1: "Americas evening, East Asia and Australia morning",
-                          2: "Europe midday, US East morning, Asia evening"}),
-    # a new account (dream-life skill): two reels a day from 2026-11-02, 10+ hours apart, so each still gets
-    # its own seed-audience test and the account fills the 90-day Shorts-views window faster
-    "dream": ("Dream life", {1: "US evening wind-down: the strongest dream of the day",
-                             2: "US morning commute: the lighter, quicker dream"}),
-    # its own account too (user rule 2026-11-02): kitchen and home clips lose travel viewers
-    "healing": ("Healing", {1: "Europe evening, US afternoon: the calmest video of the day",
-                            2: "US morning, Europe lunch: a lighter, brighter one"}),
+    # Travel, Dream life and Healing share one plan (user rule 2026-11-05): 07:00 and 19:00 GMT+7 (00 and 12 UTC)
+    # on every platform, 12 hours apart, so each slot reaches its own half of the world. Kept for 3-4 weeks,
+    # then tuned from each account's own audience data (YouTube's "When your viewers are on YouTube").
+    "travel": ("Travel", {1: "7 AM: Americas afternoon / evening, East Asia morning",
+                          2: "7 PM: Europe lunch / afternoon, South and East Asia evening"}),
+    "dream": ("Dream life", {1: "7 AM: Americas afternoon / evening, East Asia morning",
+                             2: "7 PM: Europe lunch / afternoon, South and East Asia evening"}),
+    "healing": ("Healing", {1: "7 AM: Americas afternoon / evening, East Asia morning",
+                            2: "7 PM: Europe lunch / afternoon, South and East Asia evening"}),
 }
 # Short name of an audience clock, shown beside the GMT+7 time so the user sees whose evening a slot is.
 CLOCKS = {"Europe/London": "London", "America/New_York": "New York"}
-# Whose clock each slot's times follow. Chinese lessons have Vietnamese captions for Vietnamese
-# learners: both slots in GMT+7. Travel speaks to the whole world, so its times are set in GMT+7 at the
-# hours the most regions overlap awake (TIMES["travel"]). Dream and healing speak to English viewers, who
-# are asleep at Vietnam's peaks: their audience day is the day before the calendar day for an evening
-# time and the calendar day itself for a morning one; schedule them in each platform's scheduler.
+# Whose clock each slot's times follow: every channel's times are set in GMT+7. Chinese lessons have
+# Vietnamese captions for Vietnamese learners; Travel, Dream life and Healing post at 07:00 and 19:00 GMT+7
+# (00 and 12 UTC), two windows that cover the world between them (TIMES["travel"]).
 AUDIENCE = {"chinese": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 4,
             "travel": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2,
-            "dream": (ZoneInfo("America/New_York"), ZoneInfo("America/New_York")),
-            "healing": (ZoneInfo("Europe/London"), ZoneInfo("America/New_York"))}
+            "dream": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2,
+            "healing": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2}
 # The format skills name their files <prefix>-<slug> (muse-video SKILL.md "Format skills"); a renamed file
 # that still names its format ("Kelingking Beach - zoominview.mp4") is travel too. The English formats
 # (nostalgia, gown, ...) post on the Travel accounts: their viewers share its clock. Dream-life and healing
-# videos post on accounts of their own (user rules 2026-11-02), at the US evening.
+# videos post on accounts of their own (user rules 2026-11-02).
 DREAM_NAME = re.compile(r"^dream[-_ ]|\bdream-life\b", re.IGNORECASE)
 HEALING_NAME = re.compile(r"^healing[-_ ]|\bhealing-video\b", re.IGNORECASE)
 # YouTube playlists for Dream life, picked from the file's theme slug (dream-<slug>, dream-life
@@ -158,46 +155,15 @@ TIMES = {
                       "07:30 09:00 11:00 13:00", "07:30 09:00 11:00 13:00", "07:30 09:00 11:00 13:00",
                       "09:00 11:00 13:00 15:00"],
     },
-    # GMT+7, world-wide (user rule 2026-11-04: reach every region, not only the US). Slot 1, 09:00 (02 UTC):
-    # New York 21 h, Los Angeles 18 h, São Paulo 23 h, Tokyo 11 h, Sydney 13 h, Vietnam 9 h; only Europe
-    # sleeps. Slot 2, 20:00 (13 UTC): London 13 h, Berlin 14 h, New York 08 h, India 18:30, Vietnam 20 h,
-    # Tokyo 22 h; only the US West sleeps. Every platform posts then (one clock for all), TikTok 15 minutes
-    # ahead so its first test audience arrives with the hour.
-    "travel": {
-        "youtube":   ["09:00 20:00"] * 7,
-        "tiktok":    ["08:45 19:45"] * 7,
-        "facebook":  ["09:00 20:00"] * 7,
-        "instagram": ["09:00 20:00"] * 7,
-        "x":         ["09:00 20:00"] * 7,
-        "threads":   ["09:00 20:00"] * 7,
-    },
+    # GMT+7 (user rule 2026-11-05), one plan for Travel, Dream life and Healing. Slot 1, 07:00 (00 UTC):
+    # New York 19 h, Los Angeles 16 h, São Paulo 21 h, Tokyo 09 h, Vietnam 07 h. Slot 2, 19:00 (12 UTC):
+    # London 12 h, Berlin 13 h, India 17:30, Vietnam 19 h, Tokyo 21 h. Every platform at the same time.
+    # Start point to test for 3-4 weeks, then tune from each account's own audience report; compare
+    # videos at the same age (e.g. 7 days), not by early views. YouTube says posting time does not
+    # change a Short's long-term reach: the opening shot and retention matter more.
+    "travel": {p: ["07:00 19:00"] * 7 for p in ("youtube", "tiktok", "facebook", "instagram", "x", "threads")},
 }  # fmt: skip
-# New York clock, "evening morning". Slot 1: the platform's best evening hour plus one, because about
-# half of US viewers live west of New York (Central -1 h, Pacific -3 h; the dream-life skill's
-# scripts/post_time.py weights the zones by population), capped at 21-22 h; it lands at 08-10 h in
-# GMT+7. Slot 2: the weekday morning commute (the platforms' 6-9 h peaks, Instagram's Thursday 8 h),
-# later on weekends; it lands at 18-23 h the same day in GMT+7. X posts at 21 h (Metricool's best X
-# hour; the feed decays within hours, so it posts when viewers are live) and Threads at noon.
-TIMES["dream"] = {
-    "youtube":   ["21:00 07:00", "21:00 07:00", "20:00 07:00", "20:00 07:00", "19:00 07:00", "20:00 09:00", "20:00 09:00"],
-    "tiktok":    ["19:45 06:45", "19:45 05:45", "20:45 05:45", "19:45 05:45", "18:45 06:45", "17:45 08:45", "19:45 08:45"],
-    "facebook":  ["21:00 08:00", "20:00 08:00", "20:00 08:00", "21:00 09:00", "20:00 08:00", "22:00 09:00", "21:00 10:00"],
-    "instagram": ["20:00 07:00", "20:00 07:00", "19:00 08:00", "21:00 08:00", "21:00 06:00", "21:00 09:00", "21:00 09:00"],
-    "x":         ["21:00 09:00", "21:00 09:00", "21:00 10:00", "21:00 09:00", "21:00 09:00", "21:00 09:00", "21:00 09:00"],
-    "threads":   ["12:00 09:00", "12:00 10:00", "12:00 09:00", "12:00 09:00", "12:00 10:00", "12:00 10:00", "12:00 11:00"],
-}  # fmt: skip
-# Healing: two a day at the hours when both Europe and America are awake (user rule 2026-11-04).
-# Slot 1 follows London's evening wind-down (19-20 h: 14-15 h New York, 11-12 h Los Angeles), i.e.
-# 02-03 h in GMT+7 on the calendar day; slot 2 is the US morning (08 h New York = 13 h London lunch),
-# 19-21 h in GMT+7. X and Threads sit an hour earlier on slot 1, inside their daytime peak.
-TIMES["healing"] = {
-    "youtube":   ["19:00 08:00", "19:00 08:00", "19:00 08:00", "19:00 08:00", "19:00 08:00", "20:00 09:00", "20:00 09:00"],
-    "tiktok":    ["18:45 07:45", "18:45 07:45", "18:45 07:45", "18:45 07:45", "18:45 07:45", "19:45 08:45", "19:45 08:45"],
-    "facebook":  ["19:00 08:00", "19:00 08:00", "19:00 08:00", "19:00 09:00", "19:00 08:00", "20:00 09:00", "20:00 10:00"],
-    "instagram": ["19:00 08:00", "19:00 08:00", "19:00 08:00", "19:00 08:00", "20:00 08:00", "20:00 09:00", "20:00 09:00"],
-    "x":         ["18:00 09:00", "18:00 09:00", "18:00 10:00", "18:00 09:00", "18:00 09:00", "18:00 09:00", "18:00 09:00"],
-    "threads":   ["18:00 09:00", "18:00 10:00", "18:00 09:00", "18:00 09:00", "18:00 10:00", "18:00 10:00", "18:00 11:00"],
-}  # fmt: skip
+TIMES["dream"] = TIMES["healing"] = TIMES["travel"]
 SLOT_KEY = re.compile(r"^(\d{4}-\d{2}-\d{2})/([1-4])$")
 FOLDER_MARK = ".museai-post"  # marks a folder this module made for one video
 SETTLE = 30  # seconds a video must sit unchanged before it moves (deliver.sh may still be copying it)
