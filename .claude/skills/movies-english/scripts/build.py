@@ -27,7 +27,9 @@ FRAMING = {
     "close": "Close-up from the chest up, the person alone in the frame, the face large in the upper half, both eyes and the whole mouth clearly visible, front three-quarter view, never profile, eyes on the other person who stands just outside the frame beside the camera",
     "ots": "Over-the-shoulder shot: the second person's shoulder, hair and cheek soft and out of focus in the near foreground at one side, the first person facing the camera in three-quarter view from the chest up, sharp, looking at the second person's eyes",
     "two-shot": "Medium two-shot from the waist up, both bodies facing the camera squarely, each turning only the head partway toward the other, both faces in front three-quarter view, both mouths visible",
+    "insert": "Insert: a tight close-up of hands and an object (no face in the frame), shallow focus, the object large and centred, the action of the hands clear",
 }
+CAMERA = "A very slow gentle push-in or a slight natural handheld drift, eye level, never fast; ONE CONTINUOUS TAKE, no cuts, no zoom."
 
 
 def load_script(sid):
@@ -71,15 +73,17 @@ def still_prompt(shot, sc):
         if shot["framing"] == "ots" else
         f"{' and '.join(names)} at ease, a natural relaxed face with the hint of a smile, mouth closed, eyes on the other person just outside the frame beside the camera."
         if shot["framing"] in ("close", "medium") else shot["action"])
+    people = "" if shot["framing"] == "insert" else people
     return (f"A frame grab from a 1999 Hollywood romantic comedy, shot on 35 mm film with an 85 mm lens, "
             f"slightly soft like a DVD frame. Vertical 9:16. {FRAMING[shot['framing']]}. "
             f"Place: {sc['setting']}. The moment: {pose} Caught mid-moment, real and candid, not posing; a speaker's "
             f"mouth closed. {people} LEFT and RIGHT mean the person's own side. Original faces that resemble no actor, "
-            f"celebrity or public figure. The face is in focus; the background is softly out of focus. Bright, soft, "
-            f"airy picture: soft diffused daylight, low contrast, natural clean colour gently muted, whites clean white "
-            f"or cream, skin natural and matte, fine film grain. Real young actors on a real film set, real skin, not a "
-            f"render. Never an orange or amber cast, never cold, grey or teal, never saturated, HDR or razor-sharp, no "
-            f"CGI look. No text, no logos, no watermark.")
+            f"celebrity or public figure. The face is in focus; the background is softly out of focus. 1990s Kodak film "
+            f"picture: warm golden light, rich clean saturated colour, real deep black shadows, soft highlights that "
+            f"never clip, a gentle halation glow on lamps and windows, fine film grain; skin warm, golden and glowing "
+            f"with real texture. Real young actors on a real film set, 1990s supermodel styling (big blown-out hair, "
+            f"strong brows, glossy lips), not a render. Never flat, grey, milky or washed out, never teal-and-orange, "
+            f"never HDR or razor-sharp, no CGI look. No text, no logos, no watermark.")
 
 
 def shot_prompt(shot, sc):
@@ -89,9 +93,9 @@ def shot_prompt(shot, sc):
                        f"Voice: {CAST[k]['voice']}." for k in shot["cast"])
     p = [f"NO TEXT ON SCREEN. One continuous {dur}-second shot of a short film. The attached image is the exact "
          f"first frame: keep every face, hairstyle, outfit, the framing and the camera position.",
-         f"CAST (keep faces, hair, outfits and voices identical for the whole clip):\n{people}",
+         *([f"CAST (keep faces, hair, outfits and voices identical for the whole clip):\n{people}"] if people else []),
          f"SETTING: {sc['setting']}.",
-         f"CAMERA: {'Exactly the framing and camera position of the first frame' if first else FRAMING[shot['framing']]}. Steady, locked, eye-level; ONE CONTINUOUS TAKE, no cuts, no zoom.",
+         f"CAMERA: {'Exactly the framing and camera position of the first frame' if first else FRAMING[shot['framing']]}. {CAMERA}",
          f"ACTION: {shot['action']}"]
     ln = shot.get("line")
     if ln:
