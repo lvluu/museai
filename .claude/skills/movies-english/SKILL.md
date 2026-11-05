@@ -43,7 +43,7 @@ only what is specific to the format.
 3. `$WORK/render.sh` in the background: the shots render one at a time (`render-queue`), one muse call each, through
    `../muse-video/scripts/muse-video` (quality block appended). Check each clip with
    `../muse-video/scripts/check_clip.sh`; re-render a failing shot once with `RETAKE=1`.
-4. `uv run --no-project --python 3.12 --with faster-whisper --with 'av<14' --with pillow python scripts/finish.py $WORK $WORK/final.mp4`
+4. `uv run --no-project --python 3.12 --with faster-whisper --with 'av<14' --with pillow --with numpy --with scikit-image --with scipy python scripts/finish.py $WORK $WORK/final.mp4`
    (optional `HANDLE="@yourpage"` watermark; no music unless asked). `MISHEARD` → re-render that shot.
 5. Put frames next to the references (reference-study.md memoriescore table): warm film picture with
    deep blacks and rich colour, 1.7 s average shot, faces as young and glamorous, subtitle tiny and
