@@ -339,3 +339,6 @@ User asked for more vintage after v10. Tested on the nine clips (reel_measure, s
 - B + `colorbalance bs=-0.012`: Lp95 65, Lp50 44, skin L 48 / a 18.3 / b 19.8, bgRB 1.38, shGB 0.93. All in band. Kept.
 
 Still no grain and no luma blur (rejected in Rounds 3d-3h).
+- Full episode (v11) put skin on the band edges (L 50.0, a 18.0). Fade gain 0.9 → 0.88 and `colorbalance
+  rm=0.025:gm=-0.012` (red + magenta in the mids) → v12: Lp95 64, Lp50 43, skin L 49.4 / a 18.1 / b 18.7,
+  bgRB 1.41, shGB 0.97. All in band. rm alone (0.012) did not move skin a.
