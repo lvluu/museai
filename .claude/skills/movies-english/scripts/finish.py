@@ -8,7 +8,7 @@ WORK holds script.json (build.py) and clips/<id>-<shot>.mp4 (render.sh). Steps:
    (the reaction beat the reference reels hold; a shot's "hold": N keeps N s after it, for a payoff such as
    a laugh after the punchline); a silent shot keeps 0.3 s .. 0.3 + sec. Each heard
    line is compared with the script; under 70 % word match prints MISHEARD (re-render that shot).
-2. Every segment is graded and re-encoded to 720x1280 (the references' size: a softer picture reads as
+2. Every segment is graded (GRADE=film default, airy, or a raw chain) and re-encoded to 720x1280 (the references' size: a softer picture reads as
    film, 1080p micro-detail reads as AI), exactly N frames at 24 fps with its audio padded/cut to the same
    length, then joined with hard cuts (concat demuxer), so lips never drift at a join.
 3. Overlays (Pillow PNGs, ffmpeg overlay with enable windows), all as in references/reference-study.md:
@@ -35,16 +35,26 @@ HANDLE = os.environ.get("HANDLE", "")
 CARD = 3.5
 
 
-# Grade toward the reference reels: soft, low-contrast, gently muted warm pastel. A small lift and a soft
-# top end, a little less saturation, warm mids, a light screen-blended halation, a touch of blur to take
-# the AI micro-sharpness off skin, fine grain. References: mean RGB 88-130/72-109/65-96, shadows ~20/15/10,
-# mids R-B 25-42, warm skin, real blacks (a lifted black reads milky and fake). RGB before the blend: a screen blend on YUV planes shifts colour to magenta.
-# measured against the bakery reel (reference-study.md): a slight lift and a soft haze; no warm colour balance,
-# which pushed the picture orange and over-saturated (mean 114/94/78 vs the reel's 130/108/96)
-GRADE = os.environ.get("GRADE", "split[a][b];[b]gblur=sigma=24[g];[a][g]blend=all_mode=screen:all_opacity=0.08,"
-                       "format=gbrp,curves=all='0/0.02 0.5/0.53 1/0.97',colorbalance=rm=0.025:bm=-0.03:rh=0.01:bh=-0.01,"
-                       "format=yuv420p,eq=saturation=1.15,"
-                       "gblur=sigma=0.6,noise=alls=4:allf=t")
+# Grade presets (GRADE=film|airy, or a raw ffmpeg chain). Measured targets: references/reference-study.md.
+# film (default): the memoriescore.studio look, measured over ten reels: mean RGB ~97/73/65 (day scenes
+#   ~108/85/74, night ~88/65/60), a quarter of the pixels under 40 (real deep blacks), under 5 % above 200
+#   (no clipped whites), saturation ~0.43: warm golden skin, amber lamps, rich clean colour, a light
+#   halation glow, fine grain. A muse clip comes out at ~121/101/90, sat 0.30, so: an S-curve that sinks
+#   the mids and keeps the blacks black, a small warm balance (more red, less blue, through all tones),
+#   saturation x1.25, a 4 % screen halation, grain. Measured on ME-0002: day medium 115/94/80 sat 0.46,
+#   night wide 88/69/64 sat 0.49.
+# airy: the first three IG reels (bakery 130/108/96, sat 0.34): a slight lift, a soft haze, no warmth.
+# colorbalance stays before the split: a screen blend straight after curves shifted colour to magenta.
+PRESETS = {
+    "film": "format=gbrp,curves=all='0/0 0.2/0.12 0.5/0.38 0.8/0.74 1/0.95',"
+            "colorbalance=rs=0.02:bs=-0.03:rm=0.03:bm=-0.05:rh=0.01:bh=-0.02,format=yuv420p,eq=saturation=1.25,"
+            "split[a][b];[b]gblur=sigma=20[g];[a][g]blend=all_mode=screen:all_opacity=0.04,"
+            "gblur=sigma=0.5,noise=alls=5:allf=t",
+    "airy": "split[a][b];[b]gblur=sigma=24[g];[a][g]blend=all_mode=screen:all_opacity=0.08,"
+            "format=gbrp,curves=all='0/0.02 0.5/0.53 1/0.97',colorbalance=rm=0.025:bm=-0.03:rh=0.01:bh=-0.01,"
+            "format=yuv420p,eq=saturation=1.15,gblur=sigma=0.6,noise=alls=4:allf=t",
+}
+GRADE = PRESETS.get(os.environ.get("GRADE", "film"), os.environ.get("GRADE"))
 
 
 def run(a, **kw):
@@ -151,12 +161,12 @@ def centred(d, y, text, f, fill, stroke=2):
 def subtitle_png(en, path):
     img = Image.new("RGBA", (W, H))
     d = ImageDraw.Draw(img)
-    f = font(ROUND, 30)
+    f = font(ROUND, 26)  # memoriescore subtitles are tiny: ~2 % of the height
     rows = wrap(en, f, W * 0.8, d)
-    y = int(H * 0.735) - 19 * (len(rows) - 1)
+    y = int(H * 0.735) - 16 * (len(rows) - 1)
     for r in rows:
         centred(d, y, r, f, WHITE)
-        y += 38
+        y += 33
     img.save(path)
 
 
