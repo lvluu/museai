@@ -37,8 +37,8 @@ only what is specific to the format.
    high-shine glossy lips, big 90s hair, a blurred foreground piece at one side. Numbers settle it:
    `python3 scripts/still_check.py $WORK/stills/*.png` prints each take against the reference bands and
    says PASS or which band it misses. A muse still always comes out with hot skin highlights, so run
-   `python3 scripts/still_match.py <take>.png $WORK/stills/<name>.png` on the chosen take (the film roll-off,
-   a soft glow) and check the result; a take that still fails on skin saturation or a dark cheek is re-rendered. Close-ups of one
+   `uv run --no-project --python 3.12 --with numpy --with pillow --with scikit-image --with scipy python scripts/still_match.py <take>.png $WORK/stills/<name>.png`
+   on the chosen take (a Lab colour transfer onto the reference's own skin and background statistics, a soft glow) and check the result; a take that still fails on skin saturation or a dark cheek is re-rendered. Close-ups of one
    person share one still per episode: that is what keeps the face the same across cuts.
 3. `$WORK/render.sh` in the background: the shots render one at a time (`render-queue`), one muse call each, through
    `../muse-video/scripts/muse-video` (quality block appended). Check each clip with

@@ -188,3 +188,11 @@ rm 0.06 / gm -0.02 / bm -0.01, pull red out of the shadows (rs -0.04, gs/bs +0.0
 Stills with the v4 prompt (winter street, fur coat, snow) after still_match: skin 137/111/95 and 139/109/92
 (G/B 1.17-1.18), sat 0.32-0.34, p90 149-151, background mids 114-126/99-116/88-108 at sat 0.20-0.28,
 frame p50 64-94: on the reference for the first time, face and world.
+
+Round 3c: a hand-tuned chain only approximates the reference; still_match.py now does a Reinhard colour
+transfer in CIELAB instead, region by region (skin pixels onto the reference skin mean/std per channel,
+L 47.6 / a 10.0 / b 13.4, std 8.3 / 5.5 / 3.7; the rest onto its background, L 19.1 / a 2.6 / b 3.3, std
+22.9 / 3.0 / 4.3), blended by a blurred skin mask. The same four stills then measure skin 138/105-110/90-95
+(G/B 1.16-1.17), mean 113-117, p10 86-88, p90 138-142, sat 0.31-0.35, bg p50 21-33: the reference's own
+numbers (136/106/91, 113, 88, 133, 0.34). One side effect to know: the background takes the reference's
+dark neutral statistics, so a strong colour there (a red scarf) comes out muted.
