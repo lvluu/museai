@@ -29,8 +29,8 @@ SKIN = ("medium-toned warm rose-tan skin, a full shade deeper than fair, like a 
 FRAMING = {
     "ecu": "Extreme close-up: the face fills the frame, eyes and mouth large and centred, front view",
     "wide": "Wide shot, the whole scene and the people full-length, the place clearly established",
-    "medium": "Medium close-up from the upper chest up, the person alone in the frame, the face big and the clear centre of the frame (about 40 % of the frame width), the top of the hair about a tenth below the top edge, the eyes about 40 % down, front three-quarter view, eyes on the other person who stands just outside the frame beside the camera",
-    "close": "Tight close-up from the upper chest up like the memoriescore reels, the person alone in the frame: the face fills about half the frame width and the hair almost the whole width, the top of the hair about a tenth below the top edge, the eyes about 40 % down, both eyes and the whole mouth clearly visible, front three-quarter view, never profile, eyes on the other person who stands just outside the frame beside the camera",
+    "medium": "Close portrait from just above the hair to the upper chest, the person alone in the frame, the face big and the clear centre of the frame (about half the frame width), the top of the hair about 11 % below the top edge, the eyes about 40 % down, the mouth about 54 % down, the collar or necklace about 75 % down, the hair cropped by both side edges, front three-quarter view, eyes on the other person who stands just outside the frame beside the camera",
+    "close": "Tight portrait like the memoriescore reels, from just above the hair to the upper chest, the person alone in the frame: the face fills about half the frame width and the hair most of the rest, the top of the hair about 11 % below the top edge, the eyes about 40 % down, the mouth about 54 % down, the collar or necklace about 75 % down, the hair cropped by both side edges, both eyes and the whole mouth clearly visible, front three-quarter view, never profile, eyes on the other person who stands just outside the frame beside the camera",
     "ots": "Over-the-shoulder shot: the second person's shoulder, hair and cheek soft and out of focus in the near foreground at one side, the first person facing the camera in three-quarter view from the chest up, sharp, looking at the second person's eyes",
     "two-shot": "Medium two-shot from the waist up, both bodies facing the camera squarely, each turning only the head partway toward the other, both faces in front three-quarter view, both mouths visible",
     "insert": "Insert: a tight close-up of hands and an object (no face in the frame), shallow focus, the object large and centred, the action of the hands clear",
@@ -43,8 +43,8 @@ CLEAN = ("A CLEAN PICTURE: no film grain, no noise, no dust, no sparkle, no glit
          "Every fabric smooth and solid at a glance (plain wool, satin, velvet, silk, leather, plush), no small busy "
          "texture or print.")
 LIGHT = ("LIGHT exactly like the memoriescore reels: a broad SOFT FRONTAL key slightly to one side of the camera, gently "
-         "modelling the face with soft shadows, no hard nose or cheek shadow, no hot spot; a subtle warm backlight "
-         "catching single hairs. " + SKIN + "; natural skin texture under a light optical diffusion, never waxy or "
+         "modelling the face with soft shadows, no hard nose or cheek shadow, no hot spot; a brighter warm edge light along "
+         "the top and one side of the hair, catching single flyaway strands. " + SKIN + "; natural skin texture under a light optical diffusion, never waxy or "
          "airbrushed. Warm neutrals with restrained pink-red accents (honey beige #B49A7D, rose-tan skin #BD8978, rose "
          "lips #A6534E, taupe #8C8277, deep brown-black #170F0B), creamy whites, about 5,500 K with a subtle warm "
          "finish, medium contrast with rich deep brown-black shadows in clothes and hair (never lifted, milky or "

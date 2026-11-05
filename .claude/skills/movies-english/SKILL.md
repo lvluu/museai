@@ -21,7 +21,8 @@ only what is specific to the format.
 | `scripts/check.py` | library lint: counts, unique ids and phrases, phrase in a line, line length, timing |
 | `scripts/build.py` | `ME-NNNN WORK` → still requests, shot prompts, `render.sh` |
 | `scripts/stills.sh` | renders every still (two takes each) through `/v1/images/generations` |
-| `scripts/finish.py` | Whisper trims, as rendered (`GRADE=raw` default / `match` / `airy`), hard cuts at 1080x1920/24 fps, tiny white subtitles, "new words" end card |
+| `scripts/finish.py` | Whisper trims, the reel's measured grade (`GRADE=reel` default: luma roll-off, warm honey mids, brown shadows, no blur or grain; `raw` / `match` / `airy`), hard cuts at 1080x1920/24 fps, tiny white subtitles, "new words" end card |
+| `scripts/reel_measure.py` | Measures the finished episode frame by frame against the reel's singles (tone, near-white share, skin Lab, background warmth, shadow colour); exit 1 when one is off |
 | `posted.json` | ids already delivered (next video = the lowest id not in it, unless the user names one) |
 
 ## Make one video

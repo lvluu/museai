@@ -8,8 +8,8 @@ WORK holds script.json (build.py) and clips/<id>-<shot>.mp4 (render.sh). Steps:
    (the reaction beat the reference reels hold; a shot's "hold": N keeps N s after it, for a payoff such as
    a laugh after the punchline); a silent shot keeps 0.3 s .. 0.3 + sec. Each heard
    line is compared with the script; under 70 % word match prints MISHEARD (re-render that shot).
-2. Every segment is re-encoded as rendered at 1080x1920, the reel's size (GRADE=raw default: the colour comes
-   from the prompt, build.py SKIN; match: skin histogram-matched onto the reel's face, refgrade.py; airy; or a raw
+2. Every segment is re-encoded as rendered at 1080x1920, the reel's size (GRADE=reel default: the reel's measured
+   tone and warmth, luma roll-off only, no blur or grain; raw: as rendered, colour from the prompt; match: skin histogram-matched onto the reel's face, refgrade.py; airy; or a raw
    ffmpeg chain): an earlier 540 p pass, 720 p output and grain read as blur and as specks dancing over the frame,
    exactly N frames at 24 fps
    with its audio padded/cut to the same
@@ -39,7 +39,13 @@ HANDLE = os.environ.get("HANDLE", "")
 CARD = 3.5
 
 
-# Grade (GRADE=raw default, match, airy, or a raw ffmpeg chain). Measured targets: references/reference-study.md.
+# Grade (GRADE=reel default, raw, match, airy, or a raw ffmpeg chain). Measured targets: references/reference-study.md.
+# reel: the THAT WAS HIM reel measured frame by frame (scripts/reel_measure.py, reference-study.md Round 3j).
+#   Its singles never go brighter than L 65 at p95 (near-white 0.5 % of the frame) while muse renders reach L 80
+#   (4 %): a luma-only roll-off above Y 122 (skin and everything darker untouched; an RGB curve greyed the skin,
+#   a 14 -> a 21 lost), a touch of green/blue into the shadows (the reel's are brown 17/11/9, muse's red 17/8/6)
+#   and less blue in the mids and highs (the reel's background honey 118/100/88, muse's grey 128/114/110).
+#   No blur, no grain: sharpness stays the render's.
 # raw: nothing. The muse picture as rendered at the reel's own 1080x1920: the reel's skin colour is asked for in
 #   the prompt (build.py SKIN, measured from the reel) and still_check gates the still, so no post-grade is
 #   needed; a 540 p round trip, a 720 p output and grain read as blur and as specks dancing over the frame, so
@@ -50,14 +56,17 @@ CARD = 3.5
 # airy: the first three IG reels (bakery 130/108/96, sat 0.34): a slight lift, a soft haze, no warmth.
 # ffmpeg traps kept for raw chains: a screen blend in yuv420p lifts U/V (magenta cast), gblur on packed rgb24
 # mixes the channels (blue cast): run a halation split in planar gbrp.
+REEL_Y = "if(lt(val,122),val,if(lt(val,158),122+(val-122)*0.47,if(lt(val,204),139+(val-158)*0.6,167+(val-204)*0.6)))"
 PRESETS = {
+    "reel": "format=yuv444p,lutyuv=y='" + REEL_Y.replace(",", "\\,") + "',format=gbrp,"
+            "colorbalance=gs=0.015:bs=0.03:rm=0.01:bm=-0.015:bh=-0.03,format=yuv420p",
     "raw": "null",
     "match": "null",
     "airy": "split[a][b];[b]gblur=sigma=24[g];[a][g]blend=all_mode=screen:all_opacity=0.08,"
             "format=gbrp,curves=all='0/0.02 0.5/0.53 1/0.97',colorbalance=rm=0.025:bm=-0.03:rh=0.01:bh=-0.01,"
             "format=yuv420p,eq=saturation=1.15,gblur=sigma=0.6,noise=alls=4:allf=t",
 }
-GRADE_NAME = os.environ.get("GRADE", "raw")
+GRADE_NAME = os.environ.get("GRADE", "reel")
 GRADE = PRESETS.get(GRADE_NAME, GRADE_NAME)
 
 
