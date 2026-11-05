@@ -11,7 +11,6 @@ import sys
 
 import numpy as np
 from PIL import Image
-
 from refgrade import transfer
 
 src, dst = sys.argv[1:3]
