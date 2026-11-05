@@ -11,7 +11,7 @@ deliver.sh puts the thumbnails (thumbnail skill) next to the video as ``<stem> -
 ``16x9``; the dashboard shows them to drag into the upload pages, and they go to the Trash with the video.
 
 Each video belongs to a channel (``CHANNELS``: separate accounts, guessed from the file name, changeable
-on the card) and gets a posting slot in that channel: two a day (Chinese four), handed out in delivery order, with a
+on the card) and gets a posting slot in that channel: two a day, handed out in delivery order, with a
 time per platform (``TIMES``, in the channel's audience clock ``AUDIENCE``) to set in each platform's
 scheduler. Times are returned in GMT+7, the user's clock.
 
@@ -69,12 +69,10 @@ THUMBS = {"9x16": "YouTube Shorts, TikTok, Facebook / Instagram Reels cover",
 TZ = ZoneInfo("Asia/Ho_Chi_Minh")  # GMT+7: the user's clock; calendar days and shown times use it
 # Channels post from separate accounts, so each has its own two slots a day: (name, focus per slot).
 CHANNELS = {
-    # four a day (user rule 2026-11-04): two conversations (Everyday Chinese) and two vocabulary quizzes,
-    # alternating (``_assign_slots`` never puts the same kind in two slots in a row)
-    "chinese": ("Chinese", {1: "Morning commute: a first lesson with breakfast",
-                            2: "Lunch break: bite-sized (word of the day, quizzes)",
-                            3: "Study hour after dinner: conversations, common mistakes, quizzes",
-                            4: "Late evening: one more before bed"}),
+    # two a day (user rule 2026-11-05): 12:00 and 18:30 GMT+7 on every platform; conversations (Everyday
+    # Chinese) and vocabulary quizzes alternate (``_assign_slots`` never puts the same kind in two slots in a row)
+    "chinese": ("Chinese", {1: "12 PM: lunch break, bite-sized lesson",
+                            2: "6:30 PM: after work, before dinner"}),
     # Travel, Dream life and Healing share one plan (user rule 2026-11-05): 07:00 and 19:00 GMT+7 (00 and 12 UTC)
     # on every platform, 12 hours apart, so each slot reaches its own half of the world. Kept for 3-4 weeks,
     # then tuned from each account's own audience data (YouTube's "When your viewers are on YouTube").
@@ -90,7 +88,7 @@ CLOCKS = {"Europe/London": "London", "America/New_York": "New York"}
 # Whose clock each slot's times follow: every channel's times are set in GMT+7. Chinese lessons have
 # Vietnamese captions for Vietnamese learners; Travel, Dream life and Healing post at 07:00 and 19:00 GMT+7
 # (00 and 12 UTC), two windows that cover the world between them (TIMES["travel"]).
-AUDIENCE = {"chinese": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 4,
+AUDIENCE = {"chinese": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2,
             "travel": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2,
             "dream": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2,
             "healing": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2}
@@ -130,31 +128,10 @@ TRAVEL_NAME = re.compile(r"^(zoom|reel|scenic|scenery|drop|travel|nostalgia|gown
 # Shorts, TikTok, Facebook and Instagram Reels) peak 18-23 h, each on its own hour per weekday; X and
 # Threads are daytime platforms (mornings and noon best, evenings worst), so they never mirror the
 # evening reel slots; TikTok gets 15 minutes' head start on its peak (its first test audience arrives
-# with the peak). Chinese posts four a day (user rule 2026-11-04): slot 1 in the 6-9 h morning window,
-# slot 2 at lunch on every platform (user rule 2026-11-03), the learners' break, slot 3 at the study hour
-# after dinner, slot 4 late in the 18-23 h evening window (Vietnamese golden hours; X and Threads stay
-# in the daytime).
+# with the peak). Chinese posts two a day at its own times, 12:00 and 18:30 GMT+7 on every platform
+# (user rule 2026-11-05).
 TIMES = {
-    "chinese": {
-        "youtube":   ["07:00 11:30 20:00 22:00", "07:00 11:30 20:00 22:00", "07:00 11:30 20:00 22:00",
-                      "07:00 11:30 20:00 22:00", "07:00 11:30 19:00 21:30", "08:00 11:00 19:00 21:30",
-                      "08:00 11:00 20:00 22:00"],
-        "tiktok":    ["06:45 11:45 20:45 21:45", "06:45 11:45 20:45 21:45", "06:45 11:45 20:45 21:45",
-                      "06:45 11:45 18:45 21:45", "06:45 11:45 19:45 21:45", "08:45 11:45 19:45 21:45",
-                      "08:45 11:45 19:45 21:45"],
-        "facebook":  ["07:00 11:30 20:00 22:00", "07:00 11:30 20:00 22:00", "07:00 11:30 20:00 22:00",
-                      "07:00 11:30 20:30 22:00", "07:00 11:30 20:00 22:00", "09:00 11:30 20:00 22:00",
-                      "09:00 11:30 19:30 21:30"],
-        "instagram": ["07:30 12:00 20:00 22:00", "07:30 12:00 20:00 22:00", "07:30 12:00 19:00 21:30",
-                      "09:00 12:00 20:00 22:00", "07:30 12:00 21:00 22:30", "08:00 11:00 21:00 22:30",
-                      "08:00 11:00 21:00 22:30"],
-        "x":         ["07:30 09:00 12:00 17:00", "07:30 09:00 12:00 17:00", "07:30 10:00 12:00 17:00",
-                      "07:30 09:00 12:00 17:00", "07:30 09:00 12:00 17:00", "07:30 09:00 12:00 17:00",
-                      "07:30 09:00 12:00 17:00"],
-        "threads":   ["07:30 09:00 12:00 15:00", "07:30 09:00 11:00 13:00", "07:30 09:00 12:00 15:00",
-                      "07:30 09:00 11:00 13:00", "07:30 09:00 11:00 13:00", "07:30 09:00 11:00 13:00",
-                      "09:00 11:00 13:00 15:00"],
-    },
+    "chinese": {p: ["12:00 18:30"] * 7 for p in ("youtube", "tiktok", "facebook", "instagram", "x", "threads")},
     # GMT+7 (user rule 2026-11-05), one plan for Travel, Dream life and Healing. Slot 1, 07:00 (00 UTC):
     # New York 19 h, Los Angeles 16 h, São Paulo 21 h, Tokyo 09 h, Vietnam 07 h. Slot 2, 19:00 (12 UTC):
     # London 12 h, Berlin 13 h, India 17:30, Vietnam 19 h, Tokyo 21 h. Every platform at the same time.
@@ -290,7 +267,7 @@ def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
     slot (the platforms' schedulers already hold the days up to it), in queue order: its current
     slot (a slot the user picks sets its place in line), then delivery. Kinds mix (``_kind``): each free
     slot takes the first video in line of a kind not yet posting that day nor in the slot before, else
-    one not in the slot before (four Chinese slots: conversation, quiz, conversation, quiz), else one not
+    one not in the slot before (Chinese: conversation, quiz in turn), else one not
     yet posting that day, else the first. So no slot after the history stays empty while videos wait, a
     slot that passed unposted moves up, and a day shows e.g. a healing video and a drone reel.
     Returns True when the state changed."""

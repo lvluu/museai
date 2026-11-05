@@ -373,7 +373,7 @@ def test_posting_queue_fills_free_slots(tmp_path):
              "ep48.mp4": {"slot": "2026-11-12/1"}}
     assert posting._assign_slots(state, videos, now)
     assert [state[f"ep{n}.mp4"]["slot"] for n in (46, 47, 48, 49)] == [
-        "2026-11-08/2", "2026-11-10/2", "2026-11-10/3", "2026-11-10/4"]
+        "2026-11-08/2", "2026-11-10/2", "2026-11-11/1", "2026-11-11/2"]
     assert not posting._assign_slots(state, videos, now)
 
 
@@ -408,7 +408,7 @@ def test_chinese_day_alternates_conversations_and_quizzes(tmp_path):
 
     from museai.api.routes import posting
 
-    # Conversations delivered in a run, then quizzes: each day gets four, conversation and quiz in turn.
+    # Conversations delivered in a run, then quizzes: each day gets two, conversation and quiz in turn.
     now = datetime(2026, 11, 8, 5, 0, tzinfo=posting.TZ)
     names = [f"Tiếng Trung mỗi ngày {n} - x.mp4" for n in (52, 53, 54, 55)] + \
         [f"quiz-{t}.mp4" for t in ("food", "family", "school", "body")]
@@ -421,9 +421,7 @@ def test_chinese_day_alternates_conversations_and_quizzes(tmp_path):
     assert posting._assign_slots(state, videos, now)
     by_time = sorted(names, key=lambda n: posting._slot_times(state[n]["slot"])["youtube"])
     assert [posting._kind(n) for n in by_time] == ["tiếng", "quiz"] * 4
-    assert {state[n]["slot"][:10] for n in names} == {"2026-11-08", "2026-11-09"}
-    assert [posting._slot_times(f"2026-11-09/{n}")["youtube"].hour for n in posting.CHANNELS["chinese"][1]] == \
-        [7, 11, 20, 22]
+    assert {state[n]["slot"][:10] for n in names} == {"2026-11-08", "2026-11-09", "2026-11-10", "2026-11-11"}
     assert not posting._assign_slots(state, videos, now)
 
 
@@ -433,15 +431,13 @@ def test_posting_slots(tmp_path):
 
     from museai.api.routes import posting
 
-    # Thursday 2026-10-29 19:00 GMT+7: today's morning (7:00) and lunch (11:30) YouTube slots have passed,
-    # the evening ones (20:00, 22:00) are ahead.
-    now = datetime(2026, 10, 29, 19, 0, tzinfo=posting.TZ)
-    times = posting._slot_times("2026-10-31/3")  # Saturday evening, each platform at its own peak
-    assert times["youtube"].isoformat() == "2026-10-31T19:00:00+07:00"
-    assert times["x"].isoformat() == "2026-10-31T12:00:00+07:00"
-    # No YouTube Short goes out at noon (its weakest hours); a learner's Sunday starts in the morning.
-    assert all(posting._slot_times(f"2026-11-0{d}/2")["youtube"].hour not in range(12, 16) for d in range(2, 9))
-    assert posting._slot_times("2026-11-01/1")["tiktok"].isoformat() == "2026-11-01T08:45:00+07:00"
+    # Thursday 2026-10-29 15:00 GMT+7: today's lunch slot (12:00) has passed, the evening one (18:30) is ahead.
+    now = datetime(2026, 10, 29, 15, 0, tzinfo=posting.TZ)
+    # Chinese: 12:00 and 18:30 GMT+7 on every platform, every day.
+    for n, clock in ((1, "12:00"), (2, "18:30")):
+        for d in range(1, 8):
+            times = posting._slot_times(f"2026-11-0{d}/{n}")
+            assert {t.isoformat() for t in times.values()} == {f"2026-11-0{d}T{clock}:00+07:00"}, (d, n)
     # Travel, Dream life and Healing: 07:00 and 19:00 GMT+7 (00 and 12 UTC) on every platform.
     for channel in ("travel", "dream", "healing"):
         for n, clock in ((1, "07:00"), (2, "19:00")):
@@ -458,45 +454,45 @@ def test_posting_slots(tmp_path):
     state = {"b.mp4": {"slot": "2026-10-29/1", "posted": {}}}  # missed, not pinned
     assert posting._assign_slots(state, videos, now)
     assert [state[n]["slot"] for n in ("b.mp4", "a.mp4", "c.mp4")] == [
-        "2026-10-29/3", "2026-10-29/4", "2026-10-30/1"]  # missed b keeps its place in line, then delivery order
+        "2026-10-29/2", "2026-10-30/1", "2026-10-30/2"]  # missed b keeps its place in line, then delivery order
     assert not posting._assign_slots(state, videos, now)
     cal = posting._calendar(state, {n: n for n in ("a.mp4", "b.mp4", "c.mp4")}, now)["chinese"]
-    assert len(cal) == 7 and cal[0]["slots"][2]["video"] == "b.mp4" and cal[0]["slots"][1]["video"] is None
+    assert len(cal) == 7 and cal[0]["slots"][1]["video"] == "b.mp4" and cal[0]["slots"][0]["video"] is None
 
-    # Travel posts from other accounts on its own clock: at 19:00 today's 07:00 and 19:00 slots are no
-    # longer ahead, so it books tomorrow's 07:00 one.
+    # Travel posts from other accounts on its own clock: at 15:00 today's 07:00 slot has passed, so it
+    # books today's 19:00 one.
     (p := tmp_path / "zoom-madeira.mp4").write_bytes(b"v")
     os.utime(p, (2000, 2000))
     assert posting._assign_slots(state, [*videos, p], now)
-    assert state["zoom-madeira.mp4"]["slot"] == "2026-10-30/1"
+    assert state["zoom-madeira.mp4"]["slot"] == "2026-10-29/2"
     cal = posting._calendar(state, {n: n for n in state}, now)
-    assert cal["travel"][1]["slots"][0]["video"] == "zoom-madeira.mp4"
-    assert cal["chinese"][0]["slots"][2]["video"] == "b.mp4"
+    assert cal["travel"][0]["slots"][1]["video"] == "zoom-madeira.mp4"
+    assert cal["chinese"][0]["slots"][1]["video"] == "b.mp4"
 
     # A new Chinese video takes the next free Chinese slot, not one only Travel has free.
     (p := tmp_path / "d.mp4").write_bytes(b"v")
     os.utime(p, (3000, 3000))
     assert posting._assign_slots(state, [*videos, p], now)
     chinese = [e["slot"] for n, e in state.items() if posting._channel(n, e) == "chinese"]
-    assert state["d.mp4"]["slot"] == "2026-10-30/2" and len(set(chinese)) == len(chinese)
+    assert state["d.mp4"]["slot"] == "2026-10-31/1" and len(set(chinese)) == len(chinese)
 
     # Posted / deleted videos keep their slot (records go a year after it); the queue runs on after the
     # last of them.
-    state["gone.mp4"] = {"slot": "2026-10-30/3", "channel": "chinese", "title": "t", "done": 1}
+    state["gone.mp4"] = {"slot": "2026-10-30/2", "channel": "chinese", "title": "t", "done": 1}
     state["old.mp4"] = {"slot": "2025-10-01/1", "channel": "chinese", "title": "t", "done": 1}
     (p := tmp_path / "e.mp4").write_bytes(b"v")
     os.utime(p, (4000, 4000))
     assert posting._forget_old(state, now) and "old.mp4" not in state
     assert posting._assign_slots(state, [*videos, tmp_path / "d.mp4", p], now)
     assert [state[n]["slot"] for n in ("b.mp4", "a.mp4", "c.mp4", "d.mp4", "e.mp4")] == [
-        "2026-10-30/4", "2026-10-31/1", "2026-10-31/2", "2026-10-31/3", "2026-10-31/4"]
+        "2026-10-31/1", "2026-10-31/2", "2026-11-01/1", "2026-11-01/2", "2026-11-02/1"]
     # The same name delivered again is a new video: the old record moves aside, staying in the history,
     # and the new one joins the end of the queue.
     (tmp_path / "gone.mp4").write_bytes(b"v")
     os.utime(tmp_path / "gone.mp4", (5000, 5000))
     assert posting._assign_slots(state, [*videos, tmp_path / "d.mp4", p, tmp_path / "gone.mp4"], now)
-    assert state["gone.mp4"]["slot"] == "2026-11-01/1" and "done" not in state["gone.mp4"]
-    assert state["(posted chinese 2026-10-30/3)"]["done"]  # kept for the next passes too
+    assert state["gone.mp4"]["slot"] == "2026-11-02/2" and "done" not in state["gone.mp4"]
+    assert state["(posted chinese 2026-10-30/2)"]["done"]  # kept for the next passes too
 
 
 def test_episodes_post_in_number_order(tmp_path):
@@ -505,7 +501,7 @@ def test_episodes_post_in_number_order(tmp_path):
 
     from museai.api.routes import posting
 
-    now = datetime(2026, 10, 29, 19, 0, tzinfo=posting.TZ)  # Thursday: slot 2 (11:30) passed, slot 3 (20:00) ahead
+    now = datetime(2026, 10, 29, 15, 0, tzinfo=posting.TZ)  # Thursday: slot 1 (12:00) passed, slot 2 (18:30) ahead
     videos = []
     names = ("Tiếng Trung mỗi ngày 47 - B.mp4", "lesson-bi-so-sanh.mp4", "Tiếng Trung mỗi ngày 46 - A.mp4")
     for i, name in enumerate(names):
@@ -515,16 +511,16 @@ def test_episodes_post_in_number_order(tmp_path):
     state = {}
     assert posting._assign_slots(state, videos[:2], now)  # EP47 arrives first and books the first slot
     assert posting._assign_slots(state, videos, now)  # then EP46: it takes EP47's slot, EP47 its
-    assert state["Tiếng Trung mỗi ngày 46 - A.mp4"]["slot"] == "2026-10-29/3"
-    assert state["lesson-bi-so-sanh.mp4"]["slot"] == "2026-10-29/4"  # another series keeps its slot
-    assert state["Tiếng Trung mỗi ngày 47 - B.mp4"]["slot"] == "2026-10-30/1"
+    assert state["Tiếng Trung mỗi ngày 46 - A.mp4"]["slot"] == "2026-10-29/2"
+    assert state["lesson-bi-so-sanh.mp4"]["slot"] == "2026-10-30/1"  # another series keeps its slot
+    assert state["Tiếng Trung mỗi ngày 47 - B.mp4"]["slot"] == "2026-10-30/2"
     assert not posting._assign_slots(state, videos, now)
 
     # A slot the user picked stays.
-    state["Tiếng Trung mỗi ngày 47 - B.mp4"].update(slot="2026-10-29/3", slot_pinned=True)
-    state["Tiếng Trung mỗi ngày 46 - A.mp4"]["slot"] = "2026-10-30/1"
+    state["Tiếng Trung mỗi ngày 47 - B.mp4"].update(slot="2026-10-29/2", slot_pinned=True)
+    state["Tiếng Trung mỗi ngày 46 - A.mp4"]["slot"] = "2026-10-30/2"
     assert not posting._assign_slots(state, videos, now)
-    assert state["Tiếng Trung mỗi ngày 47 - B.mp4"]["slot"] == "2026-10-29/3"
+    assert state["Tiếng Trung mỗi ngày 47 - B.mp4"]["slot"] == "2026-10-29/2"
 
 
 def test_posting_channel_from_file_name():
