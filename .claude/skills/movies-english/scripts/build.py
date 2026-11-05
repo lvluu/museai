@@ -11,6 +11,7 @@ and "state" (e.g. "soaked", or {"VIV": "soaked"} for one person of a two-shot) t
 Shots: one muse render per shot, first frame = its still, one line at most, timed so the line starts
 at 0.6 s (a line at 0 s fails SOUND WITHOUT LIPS) and the clip runs `sec + 1` s for trimming room.
 """
+import base64
 import json
 import math
 import re
@@ -19,6 +20,11 @@ from pathlib import Path
 
 SKILL = Path(__file__).resolve().parent.parent
 CAST = json.loads((SKILL / "series/cast.json").read_text())
+# character-bank portraits: attached to every still with a face, so each person keeps the bank face (and its real
+# skin) in every episode. A still without them is rendered from the identity text alone.
+BANK = SKILL.parent / "character-bank/bank"
+BANK_SKIN = ("Real unretouched skin texture as in the reference portraits: fine visible pores, faint vellus hair, "
+             "slightly uneven tone with a natural flush, a slight natural shine, no airbrushing, no plastic or waxy skin.")
 LOOK = (SKILL / "prompt/look.txt").read_text().strip()
 # The reel's faces measure rgb 148/95/82, L 46-47, a 20-21, b 16-17 (reference-study.md Round 3e): a midtone, rosy,
 # not yellow. "fair peach" rendered them light (L 50-52), grey (a 16-17) and yellow (b 19-23).
@@ -33,7 +39,9 @@ FRAMING = {
     "close": "Tight portrait like the memoriescore reels, from just above the hair to the upper chest, the person alone in the frame: the face fills about half the frame width and the hair most of the rest, the top of the hair about 11 % below the top edge, the eyes about 40 % down, the mouth about 54 % down, the collar or necklace about 75 % down, the hair cropped by both side edges, both eyes and the whole mouth clearly visible, front three-quarter view, never profile, eyes on the other person who stands just outside the frame beside the camera",
     "ots": "Over-the-shoulder shot: the second person's shoulder, hair and cheek soft and out of focus in the near foreground at one side, the first person facing the camera in three-quarter view from the chest up, sharp, looking at the second person's eyes",
     "two-shot": "Medium two-shot from the waist up, both bodies facing the camera squarely, each turning only the head partway toward the other, both faces in front three-quarter view, both mouths visible",
-    "insert": "Insert: a tight close-up of hands and an object (no face in the frame), shallow focus, the object large and centred, the action of the hands clear",
+    # a side-on insert came back with a stranger's face or a picture-in-picture inset; looking straight down leaves
+    # no room for a head
+    "insert": "TOP-DOWN OVERHEAD insert looking straight down: only hands and forearms enter the frame from the bottom edge, no head, no face, no person visible anywhere, one single photograph (no inset, no collage, no picture-in-picture), shallow focus, the object large and centred, the action of the hands clear",
 }
 # CLEAN: tiny detail (boucle, sequins, racks of pastries, register keys) crawled frame to frame and read as
 # "particles flickering"; the reel's backgrounds are a few large soft shapes (reference-study.md Round 3h).
@@ -98,7 +106,7 @@ def still_prompt(shot, sc):
         if shot["framing"] in ("close", "medium") else shot["action"])
     people = "" if shot["framing"] == "insert" else people
     return (f"A frame grab from a 1999 Hollywood romantic comedy, shot on 35 mm film with an 85 mm lens, "
-            f"warm softly diffused vintage glamour, the face clearly readable. Vertical 9:16. {FRAMING[shot['framing']]}. "
+            f"warm softly diffused vintage glamour{'' if shot['framing'] == 'insert' else ', the face clearly readable'}. Vertical 9:16. {FRAMING[shot['framing']]}. "
             f"Place: {sc['setting']}. {LIGHT} The moment: {pose} Caught mid-moment, real and candid, not posing; a speaker's "
             f"mouth closed. {people} LEFT and RIGHT mean the person's own side. Original faces that resemble no actor, "
             f"celebrity or public figure. The face is in focus; the background is heavily out of focus. Real young actors on a real film set, 1990s supermodel "
@@ -107,16 +115,34 @@ def still_prompt(shot, sc):
             f"never HDR, no CGI look. No text, no logos, no watermark.")
 
 
+def bank_refs(shot):
+    """Hero portraits of the shot's cast from the character bank, and the sentence that binds them by name."""
+    if shot["framing"] == "insert":
+        return [], ""
+    imgs, binds = [], []
+    for k in shot["cast"]:
+        hero = BANK / k / "hero.jpg"
+        if hero.exists():
+            imgs.append("data:image/jpeg;base64," + base64.b64encode(hero.read_bytes()).decode())
+            binds.append(f"{CAST[k]['name'].split()[0].strip(chr(39))} is the person in image {len(imgs)}")
+    if not imgs:
+        return [], ""
+    return imgs, ("Reference images: " + "; ".join(binds) + ". Keep each face, age, eyes, brows, nose, lips and skin "
+                  "tone exactly as in the reference image; take the hair styling, clothes, place, light and framing "
+                  "from this description, not from the reference. ")
+
+
 def shot_prompt(shot, sc):
     dur = max(4, math.ceil(shot["sec"]) + 1)
     first = bool(shot.get("first"))
     people = "\n".join(f"- {CAST[k]['name'].split()[0]}: {person(k, sc, shot.get('state', ''), first)} "
-                       f"Voice: {CAST[k]['voice']}." for k in shot["cast"])
+                       f"Voice: {CAST[k]['voice']}." for k in shot["cast"]) if shot["framing"] != "insert" else ""
     p = [f"NO TEXT ON SCREEN. One continuous {dur}-second shot of a short film. The attached image is the exact "
          f"first frame: keep every face, hairstyle, outfit, the framing and the camera position.",
          *([f"CAST (keep faces, hair, outfits and voices identical for the whole clip):\n{people}"] if people else []),
          f"SETTING: {sc['setting']}. {LIGHT}",
-         f"CAMERA: {'Exactly the framing and camera position of the first frame' if first else FRAMING[shot['framing']]}. {CAMERA}",
+         f"CAMERA: {'Exactly the framing and camera position of the first frame' if first else FRAMING[shot['framing']]}. {CAMERA}"
+         + (" The camera stays looking straight down at the hands; no head or face ever enters the frame." if shot["framing"] == "insert" else ""),
          f"ACTION: {shot['action']}"]
     ln = shot.get("line")
     if ln:
@@ -150,7 +176,9 @@ def build(sid, work):
         # "first": a frame you supply (e.g. a reference frame) is the first frame; no still is generated
         k = shot.get("first") or still_key(shot, sc)
         if not shot.get("first"):
-            stills.setdefault(k, still_prompt(shot, sc))
+            if k not in stills:
+                imgs, lead = bank_refs(shot)
+                stills[k] = (lead + still_prompt(shot, sc) + (" " + BANK_SKIN if imgs else ""), imgs)
         text, dur = shot_prompt(shot, sc)
         (work / "shots" / f"{shot['id']}.prompt.txt").write_text(text)
         out = f"{sid.lower()}-{shot['id']}.mp4"
@@ -158,14 +186,16 @@ def build(sid, work):
                     f"NO_OPEN=1 \"$MV\" -f shots/{shot['id']}.prompt.txt && cp ~/Movies/museai/{out} clips/; }}")
     (work / "jobs.txt").write_text("\n".join(jobs) + "\n")
     lines.append('"${MV%/muse-video}/render-queue" jobs.txt')
-    for k, p in stills.items():
-        (work / "stills" / f"{k}.json").write_text(json.dumps(
-            {"prompt": p, "n": 2, "size": "1080x1920", "response_format": "b64_json"}))
+    for k, (p, imgs) in stills.items():
+        body = {"prompt": p, "n": 2, "size": "1080x1920", "response_format": "b64_json"}
+        if imgs:
+            body["image"] = imgs
+        (work / "stills" / f"{k}.json").write_text(json.dumps(body))
     (work / "render.sh").write_text("\n".join(lines) + "\n")
     (work / "render.sh").chmod(0o755)
     print(f"{sid}: {len(sc['shots'])} shots, {len(stills)} stills -> {work}")
-    for k in stills:
-        print(f"  still {k}")
+    for k, (_, imgs) in stills.items():
+        print(f"  still {k}" + (f" ({len(imgs)} bank face{'s' * (len(imgs) > 1)})" if imgs else ""))
 
 
 if __name__ == "__main__":

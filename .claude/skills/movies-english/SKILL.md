@@ -28,6 +28,9 @@ only what is specific to the format.
 ## Make one video
 `WORK=~/Movies/museai/me-NNNN`.
 1. `python3 scripts/build.py ME-NNNN $WORK`, then `scripts/stills.sh $WORK` (background, 5-15 min).
+   Every still with a face carries the cast's `../character-bank/bank/<KEY>/hero.jpg` as reference images
+   (bound by name, real-skin line appended), so each person keeps one face across episodes. Inserts are framed
+   top-down, hands only: a side-on insert came back with a stranger's face or a picture-in-picture inset.
 2. Look at each still pair next to the reference faces (reference-study.md "Picture"); copy the better
    take to `$WORK/stills/<name>.png`. Reject a face that looks older than 23, contour or heavy brows,
    plastic or airbrushed skin, a flat grey or washed-out picture, a famous-looking face, wrong wardrobe,
