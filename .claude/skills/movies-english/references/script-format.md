@@ -43,14 +43,20 @@ card: the reel ends on its last frame like the references).
 ```
 
 ## Rules (check.py enforces the countable ones)
+- `setting` is a place that lights like a memoriescore reel: soft warm light on the faces from lamp light, candles, string lights, neon or low sun through one window, with a dark rich background (dark wood, night, deep shadow, one deep colour) behind the faces. Name the light source and the dark background in the setting ("a candle-lit restaurant, dark wood panelling, the city lights behind the window"). The place glows: the light sources are in the frame and bloom (candles on the table, string lights behind, city lights in the window), shadows warm, never pitch black or murky. Never a bright flat evenly lit room or a busy pastel shop; a daytime shop has a dim warm interior and sun from one side.
 - Cut like memoriescore: 10-20 shots in 15-30 s, most of them 1-2.5 s (a line shot 2-3.5 s, a physical
   take 3-5 s, never longer than 6); 2-4 `insert` shots of hands and objects; the first shot is already
   mid-action and striking (oranges spill down the stairs, a dog drinks the lemonade, he lowers his
   sunglasses); the last shot is a reaction close-up button (`close`/`ecu`), sometimes a look straight
   into the lens (a wink, a finger to the lips). check.py allows 4-20 shots, `sec` 0.5-9, 14-32 s total;
   2-6 spoken lines, each ≤ 8 words, one line per shot, one speaker per shot.
+- Actions are movie-star beats that read in two seconds (a slow look up and down, a double take, a head turn to the camera, a sip with the eyes still on the other person, a hair flip, a smirk that grows, a lowered pair of sunglasses), never "stands and talks".
 - Something moves in every shot (walks in, kneels, drops, sips, turns); extras and animals carry gags
-  (a kid, an old lady, a golden retriever).
+  (a kid, an old lady, a golden retriever). An animal gets its own `insert` close-up and one beat where
+  a person holds, walks or talks to it (style-catalogue.md "Animals").
+- Wardrobe, places, animals and beats come from `style-catalogue.md`; a Christmas script uses its
+  Christmas settings and the `christmas` / `party` / `fur` wardrobe keys, with snow falling and the
+  tree or string lights as the only light.
 - With a `phrase`, it (any inflection) appears in one spoken line, word for word; without one the lines
   are whatever the story needs. Never bend a line to teach a word.
 - A speaker is never filmed from behind; a line shot is `ots`, `two-shot`, `close`, `medium` or `ecu` with the speaker's face visible; never `wide` or `insert`.
