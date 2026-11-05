@@ -203,5 +203,12 @@ halation, a touch of blur, grain. Measured with still_check.py (same mask, 135x2
 | skin mean, p10, p90 | 114, 88, 134 | 113-115, 85-88, 134-141 | 111-112, 85-86, 135-136 |
 | skin sat | 0.34 | 0.31-0.33 | 0.32 |
 
-One side effect to know: the background takes the reference's dark neutral distribution, so a strong colour
-there (a red scarf) comes out muted. The per-frame pass costs ~1 s a frame.
+Round 3d: watched against the reel itself, those frames read as vague: matching the background onto that one
+frame's distribution (a black fur coat) made every scene dark and murky, and the 12 % halation plus the blur
+put a haze over it, while the reference is clean and crisp (laplacian variance 25-145 at 480 wide, local
+block contrast 6-13; our clips after the 540 p pass ~170 and 10-14, the graded frames 53 with the blur).
+Now only the skin is matched; the rest of the picture keeps its own light and colour; no blur, no halation,
+only grain. Skin numbers hold (frames 133-134/107-108/92-93, mean 113-114, sat 0.31-0.32; stills
+135-136/106-107/91-92, mean 113-114, sat 0.33); still_check no longer bands the background brightness
+(the reels go from a black fur coat to a white blazer) and allows 5 % clipped whites (snow, a white blazer).
+The per-frame pass costs ~1 s a frame.

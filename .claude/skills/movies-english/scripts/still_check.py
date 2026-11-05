@@ -16,8 +16,8 @@ BANDS = {
     "skinP90": (0, 150),     # no hot highlight
     "skinRange": (0, 70),    # low contrast skin (p90-p10)
     "skinSat": (0.28, 0.42), # muted warmth, never orange
-    "bgP50": (8, 45),        # dark room behind the face
-    "hiFrac": (0, 0.01),     # lights bloom, never clip
+    "bgP50": (0, 255),       # any scene: the reference reels go from a black fur coat to a white blazer
+    "hiFrac": (0, 0.05),     # lights bloom, never clip (snow and a white blazer may)
     "skinGB": (0.95, 1.25),  # green/blue of the skin: peach-pink, not orange (reference 1.09; ours was 1.5)
 }
 

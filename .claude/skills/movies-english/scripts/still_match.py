@@ -4,8 +4,8 @@
 usage: uv run --no-project --python 3.12 --with numpy --with pillow --with scikit-image --with scipy \
            python scripts/still_match.py <in.png> <out.png>
 
-Histogram matching in CIELAB onto the reference's own skin and background distributions (refgrade.py),
-then a soft halation and a touch of blur. Check with still_check.py afterwards.
+Histogram matching of the skin in CIELAB onto the reference's own skin distribution (refgrade.py); the rest
+of the picture is untouched. Check with still_check.py afterwards.
 """
 import sys
 
