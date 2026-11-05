@@ -91,8 +91,10 @@ Every caption ends with one question (which job next, which would you take). Com
 Instagram ranks on, and sends count most for reaching people who don't follow you.
 
 ## When to post: the calculation
-`python3 scripts/post_time.py` (run from the dream-life skill folder) calculates it. The dashboard's
-**Dream** tab uses the same table (`posting.py` `TIMES["dream"]`).
+The dashboard's **Dream** tab posts at 07:00 and 19:00 GMT+7 (00 and 12 UTC) on every platform, the same plan
+as Travel and Healing (`posting.py` `TIMES`, user rule 2026-11-05): a test plan for 3-4 weeks. After that,
+`python3 scripts/post_time.py` (run from the dream-life skill folder) with `--insights` tunes it from the
+account's own audience; the calculation below is how it scores hours.
 
 1. **Whose evening:** the audience is US viewers. Their clocks are weighted by population: Eastern 47 %,
    Central 29 %, Mountain 7 %, Pacific 17 %.

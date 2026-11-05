@@ -51,7 +51,7 @@ Paths are relative to this folder (`.claude/skills/dream-life/`). Server, retrie
    ```
 
 ## Growing the account
-- The account kit (`references/account-kit.md`): handle, bios, profile art, AI labels, pillars, first 30 days. Dream videos post on an account of their own: the dashboard's **Dream** tab, one slot a day at the US evening (`posting.py` `TIMES["dream"]`, calculated by `scripts/post_time.py`; `--plan <day>` for a new account's first 30 days, `--insights` to use the account's own active hours once it has ~100 followers).
+- The account kit (`references/account-kit.md`): handle, bios, profile art, AI labels, pillars, first 30 days. Dream videos post on an account of their own: the dashboard's **Dream** tab, two slots a day at 07:00 and 19:00 GMT+7 (00 and 12 UTC), the same plan as Travel and Healing (`posting.py` `TIMES`, user rule 2026-11-05). Keep it 3-4 weeks, then tune from the account's own audience report (`scripts/post_time.py --insights`).
 - Series beat one-offs: post 3-5 of one format in a row ("pov: your job is ..." day jobs), then rotate. `next --format day --n 5` plans a week.
 - One style for the whole account: every video photoreal film, Pastel Americana or Lavender Fairytale, the same lead where the idea allows. A switch to an illustrated look reads as a different account.
 - The hook is a pov or a wish ("pov: your job is picking the moon"), never a title card; it opens every caption, never on the video or the cover; the first shot is the most surprising beat (move it first in step 2 if needed).
