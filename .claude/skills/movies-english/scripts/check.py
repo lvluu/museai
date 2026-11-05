@@ -7,7 +7,7 @@ from pathlib import Path
 
 SKILL = Path(__file__).resolve().parent.parent
 CAST = json.loads((SKILL / "series/cast.json").read_text())
-FRAMINGS = {"wide", "medium", "close", "ecu", "ots", "two-shot"}
+FRAMINGS = {"wide", "medium", "close", "ecu", "ots", "two-shot", "insert"}
 
 
 def words(s):
@@ -55,7 +55,7 @@ def main(files):
             shots = s["shots"]
             total = sum(x["sec"] for x in shots)
             lines = [x["line"] for x in shots if x.get("line")]
-            if not 4 <= len(shots) <= 12:
+            if not 4 <= len(shots) <= 20:
                 e(f"{len(shots)} shots")
             if not 14 <= total <= 32:
                 e(f"{total} s total")
@@ -75,8 +75,8 @@ def main(files):
                         e(f"{x['id']} line over 8 words")
                     if ln["who"] not in x.get("cast", []):
                         e(f"{x['id']} speaker {ln['who']} not in shot cast")
-                    if x.get("framing") == "wide":
-                        e(f"{x['id']} line in a wide shot")
+                    if x.get("framing") in ("wide", "insert"):
+                        e(f"{x['id']} line in a {x['framing']} shot")
             if ph and not any(has_phrase(ln["en"], ph) for ln in lines):
                 e(f"phrase {ph!r} not spoken")
     for m in errs:

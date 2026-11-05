@@ -1,7 +1,7 @@
 # Script format (library/batch_NN.json = JSON array of these)
 
-Measurements of the three reference reels: `reference-study.md`. A script is a short rom-com movie with a
-meaning of its own, never a lesson: a situation, 2-6 short natural lines, the comedy in the picture and
+Measurements of the reference reels (memoriescore.studio, the target style): `reference-study.md`. A
+script is a short rom-com movie with a meaning of its own, never a lesson: a situation, 2-6 short natural lines, the comedy in the picture and
 the timing, and a payoff that says something about the two people (she says no and leaves a lipstick
 kiss; the crash victim is the ski teacher). Write the story first; English is just the language they
 speak. `phrase`, `words`, `hook_vi` and `cta_vi` are optional social-caption metadata; nothing of them
@@ -43,10 +43,17 @@ card: the reel ends on its last frame like the references).
 ```
 
 ## Rules (check.py enforces the countable ones)
-- 4-12 shots, `sec` 0.5-9 each (mix 1.5-2.5 s reactions with 4-7 s takes), 14-32 s total; 2-6 spoken lines, each ≤ 8 words, one line per shot, one speaker per shot.
+- Cut like memoriescore: 10-20 shots in 15-30 s, most of them 1-2.5 s (a line shot 2-3.5 s, a physical
+  take 3-5 s, never longer than 6); 2-4 `insert` shots of hands and objects; the first shot is already
+  mid-action and striking (oranges spill down the stairs, a dog drinks the lemonade, he lowers his
+  sunglasses); the last shot is a reaction close-up button (`close`/`ecu`), sometimes a look straight
+  into the lens (a wink, a finger to the lips). check.py allows 4-20 shots, `sec` 0.5-9, 14-32 s total;
+  2-6 spoken lines, each ≤ 8 words, one line per shot, one speaker per shot.
+- Something moves in every shot (walks in, kneels, drops, sips, turns); extras and animals carry gags
+  (a kid, an old lady, a golden retriever).
 - With a `phrase`, it (any inflection) appears in one spoken line, word for word; without one the lines
   are whatever the story needs. Never bend a line to teach a word.
-- A speaker is never filmed from behind; a line shot is `ots`, `two-shot`, `close`, `medium` or `ecu` with the speaker's face visible.
+- A speaker is never filmed from behind; a line shot is `ots`, `two-shot`, `close`, `medium` or `ecu` with the speaker's face visible; never `wide` or `insert`.
 - Cover a conversation like the reference reels: each line is a single `close` or `medium` of the speaker alone, eyes on the other person just outside the frame beside the camera; a `wide` shows both people and the place when something physical happens; `two-shot` only for a physical beat with both in frame. `ots` exists but reads cramped and unnatural: avoid it. Payoffs are small and visual (a dollar on the counter, a lipstick kiss on a napkin, a look back at the door).
 - Line 1 within the first 5 s; the hook is a situation, never a greeting or a lesson.
 - The last shot is the payoff: a twist, a callback to the phrase, or a romantic beat. No moral, no teacher voice.
