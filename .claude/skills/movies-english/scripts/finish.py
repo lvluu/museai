@@ -36,11 +36,13 @@ CARD = 3.5
 
 
 # Grade (GRADE=film default, airy, or a raw ffmpeg chain). Measured targets: references/reference-study.md.
-# film: the memoriescore.studio look, exactly: every frame is histogram-matched in CIELAB onto the reference's
-#   own skin and background distributions (refgrade.py, the source quantiles per frame, smoothed over time, so
-#   every frame lands on the reference and the mapping never jumps), then a 12 % halation, a touch of blur and fine grain. Measured on the
-#   reference close-up and on our frames after it: skin RGB ~136/106/91, mean ~113, p10 ~88, p90 ~135,
-#   sat ~0.34, background p50 ~19. A hand-tuned curve/colorbalance chain (v2-v5) only approximated these.
+# film: the memoriescore.studio look, exactly: the skin of every frame is histogram-matched in CIELAB onto the
+#   reference's own skin distribution (refgrade.py, the source quantiles per frame, smoothed over time, so
+#   every frame lands on the reference and the mapping never jumps), the rest of the picture untouched, then
+#   fine grain. No blur, no halation: the reference is clean and crisp (laplacian variance 25-145 at 480 wide,
+#   our clips after the 540 p pass ~170); a blur plus a 12 % halation read as vague. Measured on the reference
+#   close-up and on our frames after it: skin RGB ~136/106/91, mean ~113, p10 ~88, p90 ~135, sat ~0.34.
+#   A hand-tuned curve/colorbalance chain (v2-v5) only approximated these.
 # airy: the first three IG reels (bakery 130/108/96, sat 0.34): a slight lift, a soft haze, no warmth.
 # ffmpeg traps kept for raw chains: a screen blend in yuv420p lifts U/V (magenta cast), gblur on packed rgb24
 # mixes the channels (blue cast): run a halation split in planar gbrp.
@@ -71,8 +73,8 @@ def transfer_clip(src, dst):
                 qf = source_quantiles(rgb)
             except ValueError:  # no face in this frame: keep the last mapping
                 qf = q
-            q = qf if q is None else tuple(0.5 * a + 0.5 * b for a, b in zip(q, qf))
-            img = transfer(rgb, q, glow=0.12, blur=0.9)
+            q = qf if q is None else 0.5 * q + 0.5 * qf
+            img = transfer(rgb, q)
             for p in out.encode(av.VideoFrame.from_image(img)):
                 o.mux(p)
         for p in out.encode():
