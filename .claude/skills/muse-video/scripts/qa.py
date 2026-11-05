@@ -192,10 +192,13 @@ if travel:
           f"{'; '.join(lines) if lines else 'nature travels at real-time speed' if mo.returncode == 0 else mo.stderr[-300:]}")
     mo.returncode == 0 or fails.append("motion")
 
-# mouth: contact sheet, one frame in the middle of each line (travel: 12 even frames, whole frame)
-times = [dur * (i + 0.5) / 12 for i in range(12)] if travel else [(s + e) / 2 for s, e, *_ in cues]
-crop = f"scale=270:{270 * h // w}" if travel else "crop=1080:1100:0:0,scale=270:-1"
-tile_h = (270 * h // w if travel else 275) + 5
+# mouth: contact sheet, one frame in the middle of each line (travel: 12 even frames, whole frame).
+# No cues (a video without speech run with an empty cues file) also takes the 12 even frames:
+# zero tiles left ffmpeg a "null" graph with no input ("Error binding filtergraph")
+even = travel or not cues
+times = [dur * (i + 0.5) / 12 for i in range(12)] if even else [(s + e) / 2 for s, e, *_ in cues]
+crop = f"scale=270:{270 * h // w}" if even else "crop=1080:1100:0:0,scale=270:-1"
+tile_h = (270 * h // w if even else 275) + 5
 tiles = []
 for i, t in enumerate(times):
     tile = Path(sheet).with_suffix(f".{i:02}.jpg")
