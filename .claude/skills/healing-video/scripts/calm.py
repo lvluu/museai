@@ -11,7 +11,7 @@ import sys
 import librosa
 import numpy as np
 
-MAX_ONSETS = 2.5  # notes per second: held notes, not running arpeggios
+MAX_ONSETS = 3.0  # notes/s: calm takes 1.4-2.9, dramatic runs 3.4+
 MAX_CENTROID = 780  # Hz median: calm felt-piano take 763, dramatic ones 860-1020
 MAX_SWELL = 6.0  # dB, loudest 3 s over the median 3 s: no crescendo or dramatic build
 
