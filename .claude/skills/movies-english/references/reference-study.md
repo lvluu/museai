@@ -287,3 +287,30 @@ the library lost boucle, tweed, sequins and cable-knit); LIGHT takes the warm so
   A looser mask with closing mixed in neck and hands and no longer separated medium from close. So `faceArea` is a
   warning; the frame decides.
 - One JAMIE still serves both his close and medium shots, so his face is identical across cuts.
+
+## Round 3j: the reel measured frame by frame, the grade that follows
+
+Read in the page of the THAT WAS HIM reel (no download): 1080x1920, 30 fps, 26.8 s. A frame every second at
+270x480, CIELAB. Singles (skin over 18 % of the frame) against ME-0002 v7 (raw, 24 fps clips):
+
+| | reel singles | v7 raw | v7 + `GRADE=reel` |
+|---|---|---|---|
+| L p5 / p50 / p95 | 1.5 / 40 / 64-67 | 0.2 / 40 / 80 | 0.5 / 39 / 66 |
+| near-white (luma > 200) | 0.4-0.7 % | 4 % | 0 % |
+| skin L / a / b | 46-48 / 20-21 / 17 | 47 / 20 / 17 | 47 / 20 / 19 |
+| shadow RGB (luma < 40) | 17 / 11 / 9, 30 % of frame | 17 / 8 / 6 | brown again |
+| top band RGB | 118 / 100 / 88 (honey) | 128 / 114 / 110 (grey) | R/B 1.29 |
+| sat p90 | 0.6 | 0.8-0.9 | 0.7-0.8 |
+| Laplacian energy | 140-230 | 250-420 | unchanged (no blur) |
+| largest skin blob | 10-12 % | 5-9 % | |
+
+- What separates them is the top of the tone curve: the reel never goes past creamy (p95 L 66), muse renders
+  white aprons, windows and jackets up to L 80. A luma-only roll-off above Y 122 brings it in; the same curve on
+  RGB pulled skin a from 21 to 14 (grey skin), and `vibrance` did the same. Skin is left alone below Y 122.
+- Shadows: muse's are red-black, the reel's brown-black; a little green and blue in the shadows fixes it.
+- The reel is softer (lower Laplacian) but a blur read as "blurry" every time (Rounds 3d-3f), so none.
+- The reel's faces are bigger still: the pasted look sheet puts hair top 11 %, eyes 40 %, mouth 54 %, necklace
+  75 %, hair cropped at both sides. Those anchors are now in build.py FRAMING and look.txt, but the first stills
+  with them came back no tighter than v3 (face about half the width either way): muse does not follow percentages.
+- 30 fps: the muse clips are 24 fps, so the episode stays 24 (doubling frames would judder).
+- `scripts/reel_measure.py` holds the bands; run it on every finished episode.
