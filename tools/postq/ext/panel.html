@@ -1,0 +1,54 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>post-approve</title>
+  <style>
+    :root { --bg: #f4f5f7; --card: #fff; --fg: #1f2328; --muted: #6b7280; --line: #dfe1e6;
+            --ok: #1a7f37; --bad: #cf222e; --primary: #cc0000; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #1d2125; --card: #22272b; --fg: #d6dde4; --muted: #8c9bab; --line: #38414a;
+              --ok: #4bce97; --bad: #f87462; --primary: #ff4e45; }
+    }
+    body { margin: 0; width: 520px; max-height: 590px; background: var(--bg); color: var(--fg); font: 13px/1.4 system-ui, sans-serif; }
+    header { position: sticky; top: 0; z-index: 1; background: var(--bg); padding: 8px 12px; display: flex;
+             align-items: center; gap: 12px; border-bottom: 1px solid var(--line); }
+    header h1 { font-size: 14px; margin: 0; flex: 1; }
+    main { padding: 8px 12px; display: grid; gap: 8px; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px; display: grid; gap: 6px; }
+    .top { display: flex; gap: 10px; }
+    video { width: 120px; height: 160px; object-fit: cover; background: #000; border-radius: 6px; flex: none; }
+    .fields { flex: 1; display: grid; gap: 6px; align-content: start; }
+    .meta { color: var(--muted); font-size: 12px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+    .pill { background: var(--primary); color: #fff; border-radius: 10px; padding: 0 8px; font-weight: 600; }
+    .pill.dry { background: var(--muted); }
+    label { font-size: 11px; color: var(--muted); display: grid; gap: 2px; }
+    input, textarea, select { font: inherit; background: var(--bg); color: var(--fg); border: 1px solid var(--line);
+                              border-radius: 4px; padding: 4px 6px; box-sizing: border-box; width: 100%; }
+    textarea { min-height: 56px; resize: vertical; }
+    .count { float: right; }
+    .count.over { color: var(--bad); }
+    .row { display: flex; gap: 8px; align-items: center; }
+    .row label { flex: 1; }
+    .check { display: flex; gap: 4px; align-items: center; font-size: 12px; color: var(--fg); }
+    .check input { width: auto; }
+    button { font: inherit; padding: 5px 14px; border-radius: 4px; border: 1px solid var(--line);
+             background: var(--card); color: var(--fg); cursor: pointer; }
+    button.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+    button:disabled { opacity: .5; cursor: default; }
+    .status { font-size: 12px; word-break: break-word; }
+    .status.ok { color: var(--ok); } .status.bad { color: var(--bad); }
+    .status a { color: inherit; }
+    .empty { color: var(--muted); text-align: center; padding: 40px 16px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Pending posts</h1>
+    <span class="meta">Enter = approve all</span>
+    <button id="all" class="primary">Approve all</button>
+  </header>
+  <main id="list"></main>
+  <script src="panel.js"></script>
+</body>
+</html>

@@ -1,0 +1,644 @@
+#!/usr/bin/env python3
+"""postq - queue social posts (video + title + schedule + account) for one-click approval in the
+post-approve Chrome extension, which posts them through your own logged-in session.
+
+  postq add --platform youtube --account "Panda English" --file v.mp4 --title "..." \
+            [--caption - ] [--tags a,b] [--cover c.jpg] [--at "2026-11-07 19:00" --tz Asia/Ho_Chi_Minh] \
+            [--visibility public|unlisted|private] [--dry-run] [--auto]
+  postq add --platform meta --targets facebook,instagram ...   # one Meta Business Suite post for both
+  postq episode DIR [--platforms youtube,meta,tiktok,x] [--dry-run] [--no-render]  # from DIR/captions.txt;
+                                      # no thumbnail there -> muse renders one
+  postq list | results | serve
+  postq wait [ID ...] [--timeout S]   # exit 0 posted, 2 failed/discarded, 3 timeout
+  postq approve ID ...                # post without a click (Chrome + extension must be running)
+"""
+import argparse
+import urllib.parse
+import re
+import unicodedata
+import fcntl
+import json
+import mimetypes
+import os
+import shutil
+import socket
+import subprocess
+import sys
+import threading
+import time
+import uuid
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+
+ROOT = Path(os.environ.get("POSTQ_DIR", Path.home() / ".local" / "state" / "postq" / "queue"))
+DONE = ROOT / "done"
+PORT = int(os.environ.get("POSTQ_PORT", "8766"))
+GUARD_HEADER = "X-Postq"  # forces a CORS preflight: ordinary web pages cannot drive the mutating endpoints
+CLAIM_TTL = 3600  # a video upload can take a while; a dead poster's claim expires after this
+CLAIM_LOCK = threading.Lock()
+EXT_MIN = (0, 2)  # oldest extension that verifies on the edit page; older code must not auto-post
+POLLED = ROOT / ".polled"  # touched on every extension poll (every 30 s while Chrome runs it)
+VIDEO_SUFFIXES = {".mp4", ".mov", ".webm"}
+IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
+
+# Per platform: what the upload form accepts. Checked at `add`, so a post fails here and not halfway
+# through the studio form. schedule = (min lead, max lead) the platform's own scheduler allows.
+PLATFORMS = {
+    "youtube": {"title": 100, "caption": 5000, "tags": 500, "schedule": (timedelta(minutes=15), timedelta(days=365)),
+                "forbidden": "<>"},
+    "meta": {"title": 0, "caption": 2200, "tags": 0, "schedule": (timedelta(minutes=20), timedelta(days=29)),
+             "targets": {"facebook", "instagram"}},
+    "tiktok": {"title": 0, "caption": 2200, "tags": 0, "schedule": (timedelta(minutes=15), timedelta(days=10))},
+    "x": {"title": 0, "caption": 280, "tags": 0, "schedule": (timedelta(minutes=5), timedelta(days=545))},
+}
+READY = {"youtube"}  # platforms with an adapter in ext/adapters/
+
+# Episode folders made by the video skills: "<Series> NN · Mon 16-11 18h30 · <title>/" holding the
+# video, "<title> - thumbnail 9x16.jpg" and captions.txt. The folder name's first word picks the series.
+SERIES = {
+    "Chinese": {"account": "Chinese Everyday For Everyone", "playlist": "Hội Thoại Tiếng Trung",
+                "related": "latest:Tập", "tz": "Asia/Ho_Chi_Minh",
+                # No thumbnail in the folder: muse renders the scene, the thumbnail skill lays out the text.
+                "thumb": {"style": "chinese", "sub": "Nói sao bằng tiếng Trung?",
+                          "scene": "Everyday scene for a short Chinese-conversation lesson"}},
+}
+MUSEAI = Path(os.environ.get("MUSEAI_HOME", Path.home() / "Work" / "museai"))
+MUSEAI_BASE = os.environ.get("MUSEAI_BASE", "http://127.0.0.1:18610")
+# Skills run from the fresh origin/main checkout (the working checkout may be on an old branch).
+THUMB_PY = Path(os.environ.get("POSTQ_THUMB_PY", Path.home() / "Work" / "museai-main" / ".claude" / "skills"
+                               / "thumbnail" / "scripts" / "thumb.py"))
+CJK = r"[\u4e00-\u9fff]"
+
+# captions.txt section name -> (platform, meta target)
+SECTIONS = {
+    "YouTube Shorts": ("youtube", None), "YouTube": ("youtube", None),
+    "Facebook Reels": ("meta", "facebook"), "Instagram Reels": ("meta", "instagram"),
+    "TikTok": ("tiktok", None), "X": ("x", None),
+}
+
+
+@contextmanager
+def queue_lock():
+    ROOT.mkdir(parents=True, exist_ok=True)
+    with (ROOT / ".lock").open("w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        yield
+
+
+def server_running():
+    with socket.socket() as s:
+        return s.connect_ex(("127.0.0.1", PORT)) == 0
+
+
+def auto_blocked():
+    if why := ext_ready():
+        print(f"not auto-posting: {why}. Then: postq approve <id>", file=sys.stderr)
+    return bool(why)
+
+
+def ext_ready():
+    """None when a current extension polled in the last 90 s, else what is wrong."""
+    if not POLLED.is_file() or time.time() - POLLED.stat().st_mtime > 90:
+        return "the post-approve extension is not polling (Chrome closed, or extension not loaded)"
+    v = POLLED.read_text().strip()
+    try:
+        ver = tuple(int(x) for x in v.split(".")) if "." in v else (0,)  # 0.1 sent a bare "1"
+    except ValueError:
+        ver = (0,)
+    if ver < EXT_MIN:
+        return (f"the post-approve extension is version {v or 'old'}, needs {'.'.join(map(str, EXT_MIN))}: "
+                "chrome://extensions -> reload post-approve")
+    return None
+
+
+def dashboard_posted(video_name):
+    """Platforms ticked for this video on the museai dashboard; None when it is not listed there."""
+    import urllib.request
+    try:
+        d = json.load(urllib.request.urlopen(f"{MUSEAI_BASE}/dashboard/posts", timeout=5))
+    except Exception:
+        return None
+    return next((set(v.get("posted", {})) for v in d.get("videos", []) if v["name"] == video_name), None)
+
+
+def ensure_server():
+    if server_running():
+        return
+    log = open(ROOT / "server.log", "ab")
+    subprocess.Popen([sys.executable, __file__, "serve"], stdout=log, stderr=log, start_new_session=True)
+
+
+def parse_schedule(at, tz):
+    """"2026-11-07 19:00" in tz (default: this machine's zone) -> aware datetime; None = post now."""
+    if not at:
+        return None
+    try:
+        zone = ZoneInfo(tz) if tz else datetime.now().astimezone().tzinfo
+    except ZoneInfoNotFoundError:
+        sys.exit(f"unknown time zone: {tz} (use an IANA name like Asia/Ho_Chi_Minh)")
+    try:
+        when = datetime.fromisoformat(at.replace(" ", "T"))
+    except ValueError:
+        sys.exit(f"--at must look like 2026-11-07 19:00, got {at!r}")
+    return when if when.tzinfo else when.replace(tzinfo=zone)
+
+
+def validate(a, caption, tags, when, now=None):
+    """Error messages for anything the platform would reject; empty list = fine."""
+    spec, errors = PLATFORMS[a.platform], []
+    if spec["title"] and not a.title:
+        errors.append(f"{a.platform} needs --title")
+    if a.title and spec["title"] and len(a.title) > spec["title"]:
+        errors.append(f"title is {len(a.title)} chars, {a.platform} allows {spec['title']}")
+    if a.title and not spec["title"]:
+        errors.append(f"{a.platform} has no title field: put it in --caption")
+    bad = [c for c in spec.get("forbidden", "") if c in (a.title or "") + caption]
+    if bad:
+        errors.append(f"{a.platform} rejects the characters {''.join(bad)} in title/caption")
+    if len(caption) > spec["caption"]:
+        errors.append(f"caption is {len(caption)} chars, {a.platform} allows {spec['caption']}")
+    if tags and not spec["tags"]:
+        errors.append(f"{a.platform} has no tags field: put #hashtags in --caption")
+    if spec["tags"] and len(",".join(tags)) > spec["tags"]:
+        errors.append(f"tags are {len(','.join(tags))} chars, {a.platform} allows {spec['tags']}")
+    if "targets" in spec:
+        unknown = set(a.targets or []) - spec["targets"]
+        if not a.targets or unknown:
+            errors.append(f"--targets must be a subset of {','.join(sorted(spec['targets']))}")
+        if "instagram" in (a.targets or []) and caption.count("#") > 30:
+            errors.append("instagram allows at most 30 hashtags")
+    if when:
+        lead = when - (now or datetime.now(timezone.utc))
+        lo, hi = spec["schedule"]
+        if not lo <= lead <= hi:
+            errors.append(f"--at must be {lo} to {hi.days} days ahead for {a.platform}, it is {lead}")
+    return errors
+
+
+def stage(src, item_id, role, suffixes):
+    src = Path(src).expanduser()
+    if not src.is_file():
+        sys.exit(f"file not found: {src}")
+    if src.suffix.lower() not in suffixes:
+        sys.exit(f"{src.name}: {role} must be one of {' '.join(sorted(suffixes))}")
+    name = f"{item_id}-{role}{src.suffix.lower()}"
+    shutil.copyfile(src, ROOT / name)
+    return {"file": name, "name": src.name, "size": src.stat().st_size}
+
+
+def enqueue(a):
+    caption = sys.stdin.read().rstrip("\n") if a.caption == "-" else (a.caption or "")
+    tags = [t.strip() for t in (a.tags or "").split(",") if t.strip()]
+    when = parse_schedule(a.at, a.tz)
+    errors = validate(a, caption, tags, when)
+    if errors:
+        sys.exit("\n".join(errors))
+    source = str(Path(a.file).expanduser().resolve())
+    if any(i.get("source") == source and i["platform"] == a.platform for i in pending()):
+        sys.exit(f"already queued for {a.platform}: {source}")
+    if a.platform not in READY:
+        print(f"note: no {a.platform} adapter yet, the item waits in the queue", file=sys.stderr)
+    ROOT.mkdir(parents=True, exist_ok=True)
+    item_id = time.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:6]
+    item = {
+        "id": item_id,
+        "platform": a.platform,
+        "targets": a.targets or [],
+        "account": a.account,
+        "video": stage(a.file, item_id, "video", VIDEO_SUFFIXES),
+        "cover": stage(a.cover, item_id, "cover", IMAGE_SUFFIXES) if a.cover else None,
+        "title": a.title or "",
+        "caption": caption,
+        "tags": tags,
+        "playlist": getattr(a, "playlist", None),
+        "related": getattr(a, "related", None),
+        "source": str(Path(a.file).expanduser().resolve()),
+        "visibility": a.visibility,
+        "schedule_at": when.isoformat() if when else None,
+        "tz": a.tz or str(datetime.now().astimezone().tzinfo),
+        "made_for_kids": a.made_for_kids,
+        "dry_run": a.dry_run,
+        "auto": a.auto and not auto_blocked(),
+        "created": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    (ROOT / f"{item_id}.json").write_text(json.dumps(item, indent=2, ensure_ascii=False))
+    ensure_server()
+    return item_id
+
+
+def pending():
+    return sorted((json.loads(p.read_text()) for p in ROOT.glob("*.json")), key=lambda i: i["id"])
+
+
+def cmd_add(a):
+    print(enqueue(a))
+
+
+def fold(s):
+    """Compare names without case or Vietnamese accents ("Hoi Thoai tieng trung" == "Hội Thoại Tiếng Trung")."""
+    s = unicodedata.normalize("NFD", s.replace("đ", "d").replace("Đ", "D"))
+    return "".join(c for c in s if not unicodedata.combining(c)).casefold().strip()
+
+
+def episode_when(day_month, hhmm, tz, today=None):
+    """"Mon 16-11", "18:30" -> the next such date whose weekday matches (captions.txt has no year)."""
+    wd, dm = day_month.split()
+    d, m = map(int, dm.split("-"))
+    today = today or datetime.now(ZoneInfo(tz)).date()
+    for year in (today.year, today.year + 1):
+        try:
+            cand = datetime(year, m, d).date()
+        except ValueError:
+            continue
+        if cand >= today - timedelta(days=1) and cand.strftime("%a") == wd:
+            return f"{cand} {hhmm}"
+    sys.exit(f"cannot place {day_month} on a calendar date from {today}")
+
+
+def parse_captions(text):
+    """captions.txt -> {section: (when "YYYY-MM-DD HH:MM" fn args, body)}."""
+    out = {}
+    for m in re.finditer(r"^=== (.+?)\s{2,}(\w{3} \d{1,2}-\d{1,2}) (\d{1,2}:\d{2}) ===\n(.*?)(?=^=== |\Z)", text, re.M | re.S):
+        out[m[1].strip()] = (m[2], m[3], m[4].strip())
+    return out
+
+
+def mark_dashboard(item):
+    """Tick the platform on the museai dashboard's post card (its 'posted' boxes), as a click there would.
+    The dashboard trashes a video once every platform is ticked: that is its own rule."""
+    import urllib.request
+    name = item["video"]["name"]
+    boxes = item.get("targets") or [item["platform"]] if item["platform"] == "meta" else [item["platform"]]
+    note = []
+    for box in boxes:
+        req = urllib.request.Request(f"{MUSEAI_BASE}/dashboard/posts/{urllib.parse.quote(name)}",
+                                     json.dumps({"platform": box, "posted": True}).encode(),
+                                     {"Content-Type": "application/json"})
+        try:
+            urllib.request.urlopen(req, timeout=20).read()
+            note.append(f"{box} ticked")
+        except Exception as e:  # not on the dashboard (posted with postq add) or museai not running
+            note.append(f"{box}: {e}")
+    log_line(f"dashboard {item['id']} {name}: {', '.join(note)}")
+
+
+def log_line(msg):
+    with (ROOT / "server.log").open("a") as f:
+        f.write(f"{datetime.now():%F %T} {msg}\n")
+
+
+def render_cover(d, video, series, yt_title, captions):
+    """Missing thumbnail: muse renders the episode's scene (no text), the thumbnail skill adds title,
+    hanzi hook and badge. Returns the new '<video> - thumbnail 9x16.jpg' in the folder."""
+    import base64
+    import tempfile
+    import urllib.request
+    t = series["thumb"]
+    topic = video.stem.split(" - ", 1)[-1]
+    first = next((ln for ln in captions.splitlines() if ln.strip()), "")
+    prompt = (f"Vertical 9:16 photo, real camera, natural light, bright true colours. {t['scene']}: {topic}. "
+              f"{yt_title}. {first} Two friendly young adults in this everyday situation, faces sharp and clearly "
+              "visible, smiling, turned toward the camera, upper bodies in the lower two thirds of the frame; the "
+              "top third is calm, uncluttered background. Original fictional people, not resembling any real "
+              "person. No text, letters, subtitles, signs with writing, logos or watermarks anywhere.")
+    key = (MUSEAI / "data" / "api_key").read_text().strip()
+    body = json.dumps({"prompt": prompt, "n": 1, "size": "1080x1920", "response_format": "b64_json"}).encode()
+    req = urllib.request.Request(f"{MUSEAI_BASE}/v1/images/generations", body,
+                                 {"Authorization": f"Bearer {key}", "Content-Type": "application/json"})
+    print(f"rendering thumbnail with muse ({MUSEAI_BASE})...", file=sys.stderr)
+    with urllib.request.urlopen(req, timeout=900) as r:
+        png = base64.b64decode(json.load(r)["data"][0]["b64_json"])
+    with tempfile.TemporaryDirectory(prefix="postq-cover-") as tmp:
+        tmp = Path(tmp)
+        (tmp / "still.png").write_bytes(png)
+        # thumb.py reads frames from a video: a 2 s clip of the still.
+        subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-loop", "1", "-i", str(tmp / "still.png"), "-t", "2",
+                        "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=25",
+                        "-pix_fmt", "yuv420p", str(tmp / "still.mp4")], check=True)
+        zh = (re.search(rf"câu hỏi:\s*({CJK}[^\n？?]*[？?])", captions)
+              or re.search(rf"({CJK}[^\n。？！?!(（]*[。？！?!])", captions))
+        ep = re.search(r"(\d+)\s*$", video.stem.split(" - ", 1)[0])
+        cmd = ["uv", "run", "--no-project", "--python", "3.12", "--with", "mediapipe==0.10.14",
+               "--with", "opencv-python-headless==4.10.0.84", "--with", "pillow==11.0.0", "--with", "fonttools",
+               "python", str(THUMB_PY), t["style"], str(tmp), str(tmp / "still.mp4"), "--name", "cover",
+               "--at", "1", "--title", topic.upper(), "--sub", t["sub"]]
+        if zh:
+            cmd += ["--zh", zh.group(1)]
+        if ep:
+            cmd += ["--badge", f"TẬP {int(ep.group(1))}"]
+        run = subprocess.run(cmd, capture_output=True, text=True, cwd=THUMB_PY.parent)
+        if run.returncode:
+            raise RuntimeError(f"thumbnail skill failed: {(run.stderr or run.stdout).strip()[-400:]}")
+        dst = d / f"{video.stem} - thumbnail 9x16.jpg"
+        shutil.copy(tmp / "cover_9x16.jpg", dst)
+        (d / f"{video.stem} - muse still.png").write_bytes(png)  # kept to redo the layout by hand
+    return dst
+
+
+def cmd_episode(a):
+    d = Path(a.dir).expanduser()
+    series = SERIES.get(d.name.split()[0])
+    if not series:
+        sys.exit(f"{d.name}: unknown series, add its first word to SERIES in {__file__}")
+    cap_file = d / "captions.txt"
+    if not cap_file.is_file():
+        sys.exit(f"no captions.txt in {d}")
+    videos = [p for p in d.iterdir() if p.suffix.lower() in VIDEO_SUFFIXES]
+    if len(videos) != 1:
+        sys.exit(f"{d}: expected one video, found {len(videos)}")
+    covers = [p for p in d.iterdir() if p.suffix.lower() in IMAGE_SUFFIXES and "thumbnail" in p.name.lower()]
+    sections = parse_captions(cap_file.read_text())
+    wanted = set(a.platforms)
+    if not covers and series.get("thumb") and not a.no_render and "YouTube Shorts" in sections:
+        body = sections["YouTube Shorts"][2]
+        yt_title, _, yt_caption = body.partition("\n")
+        try:
+            covers = [render_cover(d, videos[0], series, yt_title.strip(), yt_caption)]
+            print(f"thumbnail rendered: {covers[0].name}", file=sys.stderr)
+        except Exception as e:  # a missing cover must not block the post
+            print(f"note: thumbnail render failed, queuing without one: {e}", file=sys.stderr)
+    plan = {}  # platform -> args
+    for name, (day, hhmm, body) in sections.items():
+        platform, target = SECTIONS.get(name, (None, None))
+        if platform not in wanted:
+            continue
+        at = a.at or episode_when(day, hhmm, series["tz"])
+        if platform == "meta":
+            # One Business Suite post for both: the Facebook caption goes to both, Instagram's is used when alone.
+            p = plan.setdefault("meta", {"targets": [], "caption": body, "at": at})
+            p["targets"].append(target)
+            if target == "facebook":
+                p["caption"] = body
+            continue
+        title, caption = None, body
+        if platform == "youtube":
+            title, _, caption = body.partition("\n")
+            title, caption = title.strip(), caption.strip()
+        plan[platform] = {"targets": None, "caption": caption, "title": title, "at": at}
+    missing = wanted - plan.keys()
+    if missing:
+        print(f"note: captions.txt has no section for {','.join(sorted(missing))}", file=sys.stderr)
+    ticked = dashboard_posted(videos[0].name) or set()
+    for platform in list(plan):
+        boxes = plan[platform]["targets"] or [platform]
+        if set(boxes) <= ticked:
+            print(f"skipped {platform}: already ticked on the dashboard", file=sys.stderr)
+            del plan[platform]
+    failed = False
+    for platform, p in plan.items():
+        ns = argparse.Namespace(
+            platform=platform, targets=p["targets"], account=series["account"], file=str(videos[0]),
+            cover=str(covers[0]) if covers and platform == "youtube" else None, title=p.get("title"),
+            caption=p["caption"], tags=None, at=p["at"], tz=series["tz"], visibility="public",
+            made_for_kids=False, dry_run=a.dry_run, auto=a.auto,
+            playlist=series.get("playlist") if platform == "youtube" else None,
+            related=(a.related or series.get("related")) if platform == "youtube" else None)
+        try:
+            print(f"{enqueue(ns)}  {platform}  {p['at']}  {(p.get('title') or p['caption'])[:60]!r}")
+        except SystemExit as e:  # one platform's limits must not block the others
+            print(f"skipped {platform}: {e}", file=sys.stderr)
+            failed = True
+    if failed:
+        sys.exit(1)
+
+
+def cmd_episodes(a):
+    """Every episode folder of a series in DIR (oldest slot first), queued like `postq episode`."""
+    root = Path(a.root).expanduser()
+    dirs = sorted(d for d in root.iterdir() if d.is_dir() and d.name.split()[0] == a.series
+                  and (d / ".museai-post").exists())
+    if not dirs:
+        sys.exit(f"no {a.series} episode folders in {root}")
+    print(f"{len(dirs)} {a.series} episode(s):", file=sys.stderr)
+    failed = False
+    for d in dirs:
+        print(f"-- {d.name}", file=sys.stderr)
+        try:
+            cmd_episode(argparse.Namespace(**{**vars(a), "dir": str(d)}))
+        except SystemExit as e:
+            if e.code not in (None, 0):
+                print(f"   {e.code if isinstance(e.code, str) else 'some platforms skipped'}", file=sys.stderr)
+                failed = True
+    if failed:
+        sys.exit(1)
+
+
+def cmd_list(_):
+    for i in pending():
+        when = i["schedule_at"] or "now"
+        print(f"{i['id']}  {i['platform']}  {i['account']}  {when}  {(i['title'] or i['caption'])[:50]!r}"
+              + ("  [dry-run]" if i["dry_run"] else "")
+              + (f"  last error: {i['last_error']}" if i.get("last_error") else ""))
+
+
+def cmd_results(_):
+    for p in sorted(DONE.glob("*.json")):
+        r = json.loads(p.read_text())
+        print(f"{r['id']}  {r['platform']}  {r.get('status')}  {r.get('url') or r.get('error') or ''}")
+
+
+def cmd_approve(a):
+    ensure_server()
+    if why := ext_ready():
+        sys.exit(f"not approved: {why}")
+    with queue_lock():
+        for item_id in a.ids:
+            p = ROOT / f"{item_id}.json"
+            if not p.is_file():
+                print(f"not pending: {item_id}", file=sys.stderr)
+                continue
+            tmp = p.with_suffix(".tmp")
+            tmp.write_text(json.dumps(json.loads(p.read_text()) | {"auto": True, "last_error": None}, indent=2, ensure_ascii=False))
+            tmp.replace(p)
+            print(f"approved {item_id}")
+
+
+def cmd_wait(a):
+    ids = set(a.ids) or {i["id"] for i in pending()}
+    if not ids:
+        sys.exit("nothing pending to wait for")
+    deadline = time.monotonic() + a.timeout if a.timeout else None
+    settled = {}
+    while True:
+        for item_id in ids - settled.keys():
+            pending_p = ROOT / f"{item_id}.json"
+            if pending_p.is_file():
+                r = json.loads(pending_p.read_text())
+                if r.get("last_error") and not r.get("auto") and not pending_p.with_suffix(".claim").is_file():
+                    settled[item_id] = "failed"
+                    print(f"{item_id}  {r['platform']}  failed (still pending)  {r['last_error']}", flush=True)
+                continue
+            done = DONE / f"{item_id}.json"
+            if not done.is_file():
+                sys.exit(f"unknown item: {item_id}")
+            r = json.loads(done.read_text())
+            settled[item_id] = r.get("status")
+            print(f"{item_id}  {r['platform']}  {r.get('status')}  {r.get('url') or r.get('error') or ''}", flush=True)
+        if len(settled) == len(ids):
+            sys.exit(0 if all(s in ("posted", "scheduled", "dry-run") for s in settled.values()) else 2)
+        if deadline and time.monotonic() > deadline:
+            print(f"timeout: {len(ids) - len(settled)} still pending", flush=True)
+            sys.exit(3)
+        time.sleep(2)
+
+
+# The extension may change these on approve (edited in the popup); everything else stays as queued.
+EDITABLE = ("title", "caption", "tags", "schedule_at", "visibility", "dry_run", "related")
+OUTCOME = ("status", "url", "error", "log")
+
+
+class Handler(BaseHTTPRequestHandler):
+    def _send(self, code, body=b"", ctype="application/json", extra=None):
+        self.send_response(code)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(body)))
+        for k, v in (extra or {}).items():
+            self.send_header(k, v)
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _local(self):
+        # DNS rebinding: only requests addressed to us by name get an answer.
+        return self.headers.get("Host") in (f"127.0.0.1:{PORT}", f"localhost:{PORT}")
+
+    def _item_path(self):
+        item_id = self.path.removesuffix("/claim").removesuffix("/release").rsplit("/", 1)[-1]
+        p = ROOT / f"{item_id}.json"
+        return p if p.parent == ROOT and p.is_file() else None
+
+    def do_GET(self):
+        if not self._local():
+            return self._send(403)
+        if self.path == "/api/items":
+            if v := self.headers.get("X-Postq-Poller"):
+                POLLED.write_text(v)
+            return self._send(200, json.dumps(pending(), ensure_ascii=False).encode())
+        if self.path.startswith("/media/"):
+            p = ROOT / Path(self.path[7:]).name
+            if p.is_file() and p.suffix != ".json":
+                return self._media(p)
+        self._send(404)
+
+    def _media(self, p):
+        """Range support: the extension pulls a large video in chunks instead of holding one huge buffer."""
+        size = p.stat().st_size
+        ctype = mimetypes.guess_type(p.name)[0] or "application/octet-stream"
+        rng = self.headers.get("Range", "")
+        if not rng.startswith("bytes="):
+            return self._send(200, p.read_bytes(), ctype, {"Accept-Ranges": "bytes"})
+        start, _, end = rng[6:].partition("-")
+        start, end = int(start), min(int(end) if end else size - 1, size - 1)
+        with p.open("rb") as f:
+            f.seek(start)
+            body = f.read(end - start + 1)
+        self._send(206, body, ctype, {"Content-Range": f"bytes {start}-{end}/{size}", "Accept-Ranges": "bytes"})
+
+    def do_POST(self):
+        # /api/items/<id>/claim   200 for the first poster, 409 while another holds a live claim
+        # /api/items/<id>/release body {error}: drop the claim after a failed post
+        # /api/items/<id>         body {status, url?, error?, log?, + edited fields}: archive with the outcome
+        if not self._local():
+            return self._send(403)
+        p = self._item_path()
+        if not self.headers.get(GUARD_HEADER) or not p:
+            return self._send(404)
+        claim = p.with_suffix(".claim")
+        if self.path.endswith("/claim"):
+            with CLAIM_LOCK:
+                if claim.is_file() and time.time() - claim.stat().st_mtime < CLAIM_TTL:
+                    return self._send(409)
+                claim.write_text("")
+            return self._send(200, b"{}")
+        body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or "{}")
+        if self.path.endswith("/release"):
+            # A failed post stays pending; its error is kept so `postq wait` / `list` can show it,
+            # and `auto` is dropped so it is not retried until approved again.
+            with queue_lock():
+                if p.is_file():
+                    item = json.loads(p.read_text()) | {"last_error": body.get("error"), "auto": False}
+                    tmp = p.with_suffix(".tmp")
+                    tmp.write_text(json.dumps(item, indent=2, ensure_ascii=False))
+                    tmp.replace(p)
+            claim.unlink(missing_ok=True)
+            return self._send(200, b"{}")
+        with queue_lock():
+            if not p.is_file():
+                return self._send(404)
+            item = json.loads(p.read_text())
+            item |= {k: body[k] for k in EDITABLE if k in body} | {k: body.get(k) for k in OUTCOME}
+            DONE.mkdir(exist_ok=True)
+            (DONE / p.name).write_text(json.dumps(item, indent=2, ensure_ascii=False))
+            p.unlink()
+        claim.unlink(missing_ok=True)
+        for media in (item["video"], item.get("cover")):
+            if media and (ROOT / media["file"]).is_file():
+                (ROOT / media["file"]).replace(DONE / media["file"])
+        if item.get("status") in ("scheduled", "posted"):
+            threading.Thread(target=mark_dashboard, args=(item,), daemon=True).start()
+        self._send(200, b"{}")
+
+    def log_message(self, *args):
+        pass
+
+
+def cmd_serve(_):
+    ROOT.mkdir(parents=True, exist_ok=True)
+    print(f"postq serving {ROOT} on http://127.0.0.1:{PORT}", flush=True)
+    ThreadingHTTPServer(("127.0.0.1", PORT), Handler).serve_forever()
+
+
+def main():
+    ap = argparse.ArgumentParser(prog="postq")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    add = sub.add_parser("add")
+    add.add_argument("--platform", required=True, choices=sorted(PLATFORMS))
+    add.add_argument("--targets", type=lambda s: [t.strip() for t in s.split(",") if t.strip()],
+                     help="meta only: facebook,instagram (one Business Suite post for both)")
+    add.add_argument("--account", required=True, help="channel/page name or id the post must go to; checked before posting")
+    add.add_argument("--file", required=True, help="the video")
+    add.add_argument("--cover", help="thumbnail image")
+    add.add_argument("--title", help="youtube title")
+    add.add_argument("--caption", help="description/caption, or - to read stdin")
+    add.add_argument("--tags", help="comma-separated (youtube)")
+    add.add_argument("--at", help='publish time "YYYY-MM-DD HH:MM"; omit to publish on approve')
+    add.add_argument("--tz", help="IANA zone of --at (default: this machine's)")
+    add.add_argument("--related", help='youtube Shorts related video: "Tập 36", a full title, or "latest:Tập"')
+    add.add_argument("--playlist", help="youtube playlist name (accents/case ignored); must already exist")
+    add.add_argument("--visibility", default="public", choices=["public", "unlisted", "private"])
+    add.add_argument("--made-for-kids", action="store_true")
+    add.add_argument("--dry-run", action="store_true", help="fill the form, never press the final button")
+    add.add_argument("--auto", action="store_true", help="post without a click")
+    ep = sub.add_parser("episode", help="queue an episode folder: title, caption and time from its captions.txt")
+    ep.add_argument("dir")
+    ep.add_argument("--platforms", default="youtube", type=lambda s: [t.strip() for t in s.split(",") if t.strip()],
+                    help="comma list of youtube,meta,tiktok,x (default: youtube)")
+    ep.add_argument("--at", help="override the captions.txt time")
+    ep.add_argument("--related", help='youtube related video: "Tập 36" or a full title (default: the series\' rule)')
+    ep.add_argument("--dry-run", action="store_true")
+    ep.add_argument("--auto", action="store_true")
+    ep.add_argument("--no-render", action="store_true", help="no thumbnail in the folder: queue without one "
+                    "instead of rendering it with muse")
+    eps = sub.add_parser("episodes", help="queue every episode folder of a series (e.g. all Chinese ones on the Desktop)")
+    eps.add_argument("--series", default="Chinese")
+    eps.add_argument("--root", default="~/Desktop")
+    for act in ep._actions[2:]:  # the same options as `episode` (minus dir)
+        eps._add_action(act)
+    ap_ = sub.add_parser("approve")
+    ap_.add_argument("ids", nargs="+")
+    sub.add_parser("list")
+    sub.add_parser("results")
+    sub.add_parser("serve")
+    wait = sub.add_parser("wait")
+    wait.add_argument("ids", nargs="*")
+    wait.add_argument("--timeout", type=float, default=0)
+    a = ap.parse_args()
+    {"add": cmd_add, "list": cmd_list, "results": cmd_results, "serve": cmd_serve, "wait": cmd_wait,
+     "approve": cmd_approve, "episode": cmd_episode,
+     "episodes": cmd_episodes}[a.cmd](a)
+
+
+if __name__ == "__main__":
+    main()
