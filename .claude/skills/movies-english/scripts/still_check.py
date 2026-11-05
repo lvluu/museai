@@ -44,7 +44,8 @@ def face_area(lab):
     lab_ = label(strict, connectivity=1)
     if lab_.max() == 0:
         return 0.0
-    sizes = np.bincount(lab_.ravel()); sizes[0] = 0
+    sizes = np.bincount(lab_.ravel())
+    sizes[0] = 0
     return round(100.0 * sizes.max() / strict.size, 1)
 
 
