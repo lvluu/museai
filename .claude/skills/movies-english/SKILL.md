@@ -35,7 +35,7 @@ only what is specific to the format.
    hyper-detail, a murky underexposed frame. Want: soft frontal even light on the face (no shadow side), the
    surroundings pale and desaturated (beige stone, cream, grey, snow, pale sky; any lamps bloom softly), muted pastel colour like a faded film print, fair peach matte-glow skin with a pink blush on the cheeks and deep glossy rose lips (never orange or golden),
    high-shine glossy lips, big 90s hair, a blurred foreground piece at one side. Numbers settle it:
-   `python3 scripts/still_check.py $WORK/stills/*.png` prints each take against the reference bands and
+   `uv run --no-project --python 3.12 --with numpy --with pillow --with scikit-image --with scipy python scripts/still_check.py $WORK/stills/*.png` prints each take's face against the reference bands and
    says PASS or which band it misses. A muse still always comes out with hot skin highlights, so run
    `uv run --no-project --python 3.12 --with numpy --with pillow --with scikit-image --with scipy python scripts/still_match.py <take>.png $WORK/stills/<name>.png`
    on the chosen take (a Lab colour transfer onto the reference's own skin and background statistics, a soft glow) and check the result; a take that still fails on skin saturation or a dark cheek is re-rendered. Close-ups of one
