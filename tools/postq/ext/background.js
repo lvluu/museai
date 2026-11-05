@@ -6,6 +6,7 @@ const log = (...args) => console.debug('[post-approve]', ...args);
 // Background side of each platform: where the composer lives and which page scripts drive it.
 const ADAPTERS = {
   youtube: { url: 'https://www.youtube.com/upload', host: 'studio.youtube.com', files: ['adapters/lib.js', 'adapters/youtube.js'], flow: youtubeFlow },
+  meta: { url: 'https://business.facebook.com/latest/', host: 'business.facebook.com', files: ['adapters/lib.js', 'adapters/meta.js'], flow: metaFlow },
 };
 
 const api = (path, body) => fetch(`${QUEUE}/api/items${path}`, {
@@ -115,10 +116,11 @@ function page(tabId, platform, adapter) {
     }
   }
   // Load another page in the same tab and re-inject (status reads 'complete' until the new load starts).
-  async function go(url) {
+  // `until`: the URL prefix to wait for, where the site rewrites the query string on load.
+  async function go(url, until = url) {
     await chrome.tabs.update(tabId, { url, active: true });
     const end = Date.now() + 60000;
-    while (!(await chrome.tabs.get(tabId)).url?.startsWith(url)) {
+    while (!(await chrome.tabs.get(tabId)).url?.startsWith(until)) {
       if (Date.now() > end) throw new Error(`tab did not go to ${url} (a "leave page?" prompt?)`);
       await new Promise((r) => setTimeout(r, 500));
     }
@@ -134,7 +136,11 @@ function page(tabId, platform, adapter) {
     while ((await chrome.tabs.get(tabId)).status === 'complete' && Date.now() < end) await new Promise((r) => setTimeout(r, 200));
     await inject();
   }
-  return { inject, step, send, go, reopen };
+  // Run `func` in the page's own (MAIN) world, e.g. to patch a prototype the page itself calls.
+  async function main(func, ...args) {
+    await chrome.scripting.executeScript({ target: { tabId }, world: 'MAIN', func, args });
+  }
+  return { inject, step, send, go, reopen, main };
 }
 
 const mimeOf = (file) => ({ mp4: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm', jpg: 'image/jpeg',
@@ -213,6 +219,110 @@ async function checkOnEditPage(item, pg, id, link, when, note) {
   if (item.cover) await pg.send('cover', item.cover, (p) => say(`Moving thumbnail into the tab ${p}%`));
   const checks = await pg.step('verify', { ...item, cover: item.cover && { name: item.cover.name, type: mimeOf(item.cover.file) } }, when);
   return { status: when ? 'scheduled' : 'posted', url: link, log: [note, ...checks].join(' · ') };
+}
+
+// MAIN world: Business Suite opens its file picker with .click() on a detached <input type=file>.
+// Keep that input instead (in the DOM, marked), so the adapter can set its files; no native dialog.
+function hookFileInputs() {
+  if (window.__postqFileHook) return;
+  window.__postqFileHook = true;
+  const click = HTMLInputElement.prototype.click;
+  HTMLInputElement.prototype.click = function () {
+    if (this.type !== 'file') return click.call(this);
+    this.dataset.postqFile = String(Date.now());
+    this.style.display = 'none';
+    if (!this.isConnected) document.body.appendChild(this);
+  };
+}
+
+const BS = 'https://business.facebook.com/latest';
+// "17 November 12:00": how the Scheduled list shows a time in the Page's zone.
+function listTime(ms, tz) {
+  const p = Object.fromEntries(new Intl.DateTimeFormat('en-GB', { timeZone: tz, day: 'numeric', month: 'long',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).formatToParts(new Date(ms)).map((x) => [x.type, x.value]));
+  return `${p.day} ${p.month} ${p.hour}:${p.minute}`;
+}
+
+// One Business Suite Reel for the Page and/or its Instagram account (item.targets).
+async function metaFlow(item, pg) {
+  const say = (line) => progress(item.id, line);
+  const a = item.asset;
+  if (!a?.asset_id || !a?.business_id) throw new Error('item has no Business Suite asset (postq add --asset BUSINESS_ID:ASSET_ID)');
+  const q = `asset_id=${a.asset_id}&business_id=${a.business_id}`;
+  const when = item.schedule_at ? Date.parse(item.schedule_at) : null;
+  const list = `${BS}/posts/${when ? 'scheduled' : 'published'}_posts?${q}`;
+
+  // Never a second post: a submitted item, or one whose caption is already in the list, is only checked.
+  if (!item.dry_run) {
+    await say('Opening Business Suite…');
+    await pg.go(list, `${BS}/posts/`);
+    const found = await pg.step('findScheduled', item.caption);
+    if (item.video_id || found.length) {
+      await say(`Already ${when ? 'scheduled' : 'posted'} (${found.length} row(s)) · checking it`);
+      return checkMetaList(item, pg, list, when, 'resumed', found);
+    }
+  }
+  await say('Opening the Reel composer…');
+  await pg.go(`${BS}/reels_composer/?${q}`, `${BS}/reels_composer/`);
+  await pg.main(hookFileInputs);
+  await pg.step('ready');
+  const who = await pg.step('whoami');
+  if (who.id !== a.asset_id || !accountMatches(item.account, who)) {
+    throw new Error(`composer is on "${who.name}" (${who.id}), item wants "${item.account}" (${a.asset_id})`);
+  }
+  const targets = await pg.step('setTargets', item.targets);
+  await say(`${who.name}${who.ig ? ` + ${who.ig}` : ''} ✓ · ${targets.join('+')} · moving video into the tab…`);
+  await pg.send('video', item.video, (p) => say(`Moving video into the tab ${p}%`));
+  await pg.step('setVideo', item.video.name, mimeOf(item.video.file));
+  const end = Date.now() + UPLOAD_TIMEOUT_MS;
+  let up = await pg.step('progress');
+  for (; up.uploading; up = await pg.step('progress')) {
+    if (Date.now() > end) throw new Error(`upload did not finish within 60 min (${up.pct}%)`);
+    await say(`Uploading ${up.pct}%`);
+    await new Promise((r) => setTimeout(r, 3000));
+  }
+  if (up.failed) throw new Error(up.failed);
+  if (item.cover) {
+    await pg.send('cover', item.cover, (p) => say(`Moving thumbnail into the tab ${p}%`));
+    await pg.step('setCover', item.cover.name, mimeOf(item.cover.file));
+  }
+  const captions = await pg.step('fill', item);
+  await pg.step('checkCaptions', item);
+  await pg.step('toShare');
+  const sch = await pg.step('schedule', when, item.tz);
+  const { story } = await pg.step('extras');
+  const note = [
+    sch.mode === 'scheduled' ? sch.rows.map((r) => `${r.platform} ${r.date} ${r.time}`).join(', ') + ` (${sch.zone})` : 'share now',
+    captions, item.cover ? 'thumbnail uploaded' : 'no thumbnail', up.check, story ? 'Facebook story share on' : null,
+  ].filter(Boolean).join(' · ');
+  await say(note);
+  if (item.dry_run) return { status: 'dry-run', url: `${BS}/reels_composer/?${q}`, log: `${note} · form filled, not submitted (tab left open)` };
+  const sent = await pg.step('submit');
+  item.video_id = 'meta-submitted'; // kept on failure (release), so a retry checks instead of posting again
+  await say(`${sent.confirm} · checking the ${when ? 'Scheduled' : 'Published'} list`);
+  await pg.go(list, `${BS}/posts/`);
+  return checkMetaList(item, pg, list, when, note);
+}
+
+// Only the saved post counts: each target has a row with the caption, the time and a thumbnail.
+async function checkMetaList(item, pg, list, when, note, rows) {
+  let found = rows;
+  for (let i = 0; i < 10 && (!found || found.length < item.targets.length); i++) {
+    if (i) {
+      await new Promise((r) => setTimeout(r, 6000));
+      await pg.go(list, `${BS}/posts/`);
+    }
+    found = await pg.step('findScheduled', item.caption);
+  }
+  const checks = [];
+  for (const t of item.targets) {
+    const row = found.find((r) => r.platform === t);
+    if (!row) throw new Error(`no ${t} row with this caption in ${list}`);
+    if (when && row.date !== listTime(when, item.tz)) throw new Error(`${t} is scheduled ${row.date}, wanted ${listTime(when, item.tz)}`);
+    if (!row.thumb) throw new Error(`${t} row has no thumbnail`);
+    checks.push(`${t} ${row.date || 'posted'} ✓ thumbnail ✓`);
+  }
+  return { status: when ? 'scheduled' : 'posted', url: list, log: [note, ...checks].join(' · ') };
 }
 
 // Posting runs here, not in the popup: the popup closes on blur, an upload must not.

@@ -54,22 +54,31 @@ PLATFORMS = {
     "tiktok": {"title": 0, "caption": 2200, "tags": 0, "schedule": (timedelta(minutes=15), timedelta(days=10))},
     "x": {"title": 0, "caption": 280, "tags": 0, "schedule": (timedelta(minutes=5), timedelta(days=545))},
 }
-READY = {"youtube"}  # platforms with an adapter in ext/adapters/
+READY = {"youtube", "meta"}  # platforms with an adapter in ext/adapters/
 
 # Episode folders made by the video skills: "<Series> NN · Mon 16-11 18h30 · <title>/" holding the
 # video, "<title> - thumbnail 9x16.jpg" and captions.txt. The folder name's first word picks the series.
 SERIES = {
-    "Chinese": {"account": "Chinese Everyday For Everyone", "playlist": "Hội Thoại Tiếng Trung",
+    "Chinese": {"account": "Chinese Everyday For Everyone",
+                "meta": {"account": "Chinese Everyday For Everyone", "business_id": "1310575373049632",
+                         "asset_id": "102602519330709"},
+                "playlist": "Hội Thoại Tiếng Trung",
                 "related": "latest:Tập", "tz": "Asia/Ho_Chi_Minh", "channel": "chinese",
                 # No thumbnail in the folder: muse renders the scene, the thumbnail skill lays out the text.
                 "thumb": {"style": "chinese", "sub": "Nói sao bằng tiếng Trung?",
                           "scene": "Everyday scene for a short Chinese-conversation lesson"}},
     # Playlist per episode: captions.txt's "=== YouTube playlist ===" section (the dashboard picks it).
-    "Dream": {"account": "Dream Jobs Daily", "tz": "Asia/Ho_Chi_Minh", "channel": "dream",
+    "Dream": {"account": "Dream Jobs Daily",
+              "meta": {"account": "Dream Jobs", "business_id": "101536708808337", "asset_id": "1409316562268486"},
+              "tz": "Asia/Ho_Chi_Minh", "channel": "dream",
               "related": "latest:"},
-    "Travel": {"account": "Blue Eyes Wander", "tz": "Asia/Ho_Chi_Minh", "channel": "travel",
+    "Travel": {"account": "Blue Eyes Wander",
+               "meta": {"account": "Blue Eyes Wander", "business_id": "101536708808337", "asset_id": "101493205479354"},
+               "tz": "Asia/Ho_Chi_Minh", "channel": "travel",
               "related": "latest:"},
-    "Healing": {"account": "Slow Sunlit Days", "tz": "Asia/Ho_Chi_Minh", "channel": "healing",
+    "Healing": {"account": "Slow Sunlit Days",
+                "meta": {"account": "Slow Sunlit Days", "business_id": "101536708808337", "asset_id": "1500320413167603"},
+                "tz": "Asia/Ho_Chi_Minh", "channel": "healing",
                 "related": "latest:",  # newest public video of the channel
                 # captions.txt name -> the playlist's name on the channel, where they differ
                 "playlists": {"Slow Living Kitchen & Home": "Slow Kitchen", "Rain, Snow & Misty Days": "Rain & Snow Days"}},
@@ -176,12 +185,17 @@ def validate(a, caption, tags, when, now=None):
         errors.append(f"{a.platform} has no tags field: put #hashtags in --caption")
     if spec["tags"] and len(",".join(tags)) > spec["tags"]:
         errors.append(f"tags are {len(','.join(tags))} chars, {a.platform} allows {spec['tags']}")
+    if a.platform == "meta" and not (getattr(a, "asset", None) or {}).get("asset_id"):
+        errors.append("meta needs --asset BUSINESS_ID:ASSET_ID (Business Suite URL of the Page)")
     if "targets" in spec:
         unknown = set(a.targets or []) - spec["targets"]
         if not a.targets or unknown:
             errors.append(f"--targets must be a subset of {','.join(sorted(spec['targets']))}")
-        if "instagram" in (a.targets or []) and caption.count("#") > 30:
+        ig = getattr(a, "caption_ig", None) or caption
+        if "instagram" in (a.targets or []) and ig.count("#") > 30:
             errors.append("instagram allows at most 30 hashtags")
+        if len(ig) > spec["caption"]:
+            errors.append(f"instagram caption is {len(ig)} chars, {a.platform} allows {spec['caption']}")
     if when:
         lead = when - (now or datetime.now(timezone.utc))
         lo, hi = spec["schedule"]
@@ -224,6 +238,8 @@ def enqueue(a):
         "cover": stage(a.cover, item_id, "cover", IMAGE_SUFFIXES) if a.cover else None,
         "title": a.title or "",
         "caption": caption,
+        "caption_ig": getattr(a, "caption_ig", None),  # meta: own Instagram caption ("Customise post")
+        "asset": getattr(a, "asset", None),  # meta: Business Suite {business_id, asset_id} of the account
         "tags": tags,
         "playlist": getattr(a, "playlist", None),
         "related": getattr(a, "related", None),
@@ -410,11 +426,10 @@ def cmd_episode(a):
             continue
         at = a.at or episode_when(day, hhmm, series["tz"])
         if platform == "meta":
-            # One Business Suite post for both: the Facebook caption goes to both, Instagram's is used when alone.
+            # One Business Suite post for both; Instagram gets its own caption when it differs.
             p = plan.setdefault("meta", {"targets": [], "caption": body, "at": at})
             p["targets"].append(target)
-            if target == "facebook":
-                p["caption"] = body
+            p[{"facebook": "caption", "instagram": "caption_ig"}[target]] = body
             continue
         title, caption = None, body
         if platform == "youtube":
@@ -430,11 +445,20 @@ def cmd_episode(a):
         if set(boxes) <= ticked:
             print(f"skipped {platform}: already ticked on the dashboard", file=sys.stderr)
             del plan[platform]
+    if "meta" in plan:
+        p = plan["meta"]
+        if "facebook" not in p["targets"]:
+            p["caption"] = p.pop("caption_ig")
+        elif p.get("caption_ig") == p["caption"] or "instagram" not in p["targets"]:
+            p.pop("caption_ig", None)
     failed = False
     for platform, p in plan.items():
+        meta = series.get("meta", {}) if platform == "meta" else {}
         ns = argparse.Namespace(
-            platform=platform, targets=p["targets"], account=series["account"], file=str(videos[0]),
-            cover=str(covers[0]) if covers and platform == "youtube" else None, title=p.get("title"),
+            platform=platform, targets=p["targets"], account=meta.get("account", series["account"]),
+            file=str(videos[0]), caption_ig=p.get("caption_ig"),
+            asset={k: meta[k] for k in ("business_id", "asset_id") if k in meta} or None,
+            cover=str(covers[0]) if covers and platform in ("youtube", "meta") else None, title=p.get("title"),
             caption=p["caption"], tags=None, at=p["at"], tz=series["tz"], visibility="public",
             made_for_kids=False, dry_run=a.dry_run, auto=a.auto,
             playlist=channel_playlist(series, caption_playlist(cap_text)) if platform == "youtube" else None,
@@ -537,7 +561,7 @@ def cmd_wait(a):
 
 
 # The extension may change these on approve (edited in the popup); everything else stays as queued.
-EDITABLE = ("title", "caption", "tags", "schedule_at", "visibility", "dry_run", "related")
+EDITABLE = ("title", "caption", "caption_ig", "tags", "schedule_at", "visibility", "dry_run", "related")
 OUTCOME = ("status", "url", "error", "log")
 
 
@@ -655,6 +679,9 @@ def main():
     add.add_argument("--cover", help="thumbnail image")
     add.add_argument("--title", help="youtube title")
     add.add_argument("--caption", help="description/caption, or - to read stdin")
+    add.add_argument("--caption-ig", help="meta: own Instagram caption (default: --caption for both)")
+    add.add_argument("--asset", type=lambda s: dict(zip(("business_id", "asset_id"), s.split(":"))),
+                     help="meta: BUSINESS_ID:ASSET_ID of the Page (default: switch to --account by name)")
     add.add_argument("--tags", help="comma-separated (youtube)")
     add.add_argument("--at", help='publish time "YYYY-MM-DD HH:MM"; omit to publish on approve')
     add.add_argument("--tz", help="IANA zone of --at (default: this machine's)")
