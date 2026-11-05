@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Cut the rendered shots into the reel the way the reference reels look, then add subtitles and new words.
 
-  uv run --no-project --python 3.12 --with faster-whisper --with 'av<14' --with pillow python scripts/finish.py WORK OUT.mp4
+  uv run --no-project --python 3.12 --with faster-whisper --with 'av<14' --with pillow --with numpy --with scikit-image --with scipy python scripts/finish.py WORK OUT.mp4
 
 WORK holds script.json (build.py) and clips/<id>-<shot>.mp4 (render.sh). Steps:
 1. Per line shot, Whisper word times -> keep 0.35 s before the first word to 0.6 s after the last
    (the reaction beat the reference reels hold; a shot's "hold": N keeps N s after it, for a payoff such as
    a laugh after the punchline); a silent shot keeps 0.3 s .. 0.3 + sec. Each heard
    line is compared with the script; under 70 % word match prints MISHEARD (re-render that shot).
-2. Every segment is graded (GRADE=film default, airy, or a raw chain) and re-encoded to 720x1280 (the references' size: a softer picture reads as
+2. Every segment is graded (GRADE=film default: every frame histogram-matched onto the reference colour, refgrade.py; airy, or a raw chain) and re-encoded to 720x1280 (the references' size: a softer picture reads as
    film, 1080p micro-detail reads as AI), exactly N frames at 24 fps with its audio padded/cut to the same
    length, then joined with hard cuts (concat demuxer), so lips never drift at a join.
 3. Overlays (Pillow PNGs, ffmpeg overlay with enable windows), all as in references/reference-study.md:
@@ -35,32 +35,50 @@ HANDLE = os.environ.get("HANDLE", "")
 CARD = 3.5
 
 
-# Grade presets (GRADE=film|airy, or a raw ffmpeg chain). Measured targets: references/reference-study.md.
-# film (default): the memoriescore.studio look, measured on its close-ups (reference-study.md Round 3):
-#   skin mean ~113, skin p10 ~88 / p90 ~135 (a soft low-contrast face, no hot highlight, no dark cheek),
-#   skin saturation ~0.36 (muted warmth, never orange), room behind the face p50 ~16, no clipped whites,
-#   a light halation glow, a slightly soft picture, fine grain. A muse clip comes out with skin p10 ~80 /
-#   p90 ~175 and sat ~0.36, so: a curve that rolls the highlights off hard (1 -> 0.80) and sinks the upper
-#   mids while keeping the shadows, a peach balance (see below), saturation x1.1 (x1.3 pushed the skin to
-#   0.54 = the orange AI look; x0.95 left the skin at 0.28 under the reference 0.34), a 12 % screen halation, a touch of blur, grain. Measured on ME-0002 S1/S8
-#   after the grade, skin mask fixed on the raw frame: mean 112-113, p10 78-82, p90 139-152, sat 0.27-0.30,
-#   skin RGB ~131/107/95 (G/B 1.06-1.13; reference 155/110/100).
+# Grade (GRADE=film default, airy, or a raw ffmpeg chain). Measured targets: references/reference-study.md.
+# film: the memoriescore.studio look, exactly: every frame is histogram-matched in CIELAB onto the reference's
+#   own skin and background distributions (refgrade.py, the source quantiles per frame, smoothed over time, so
+#   every frame lands on the reference and the mapping never jumps), then a 12 % halation, a touch of blur and fine grain. Measured on the
+#   reference close-up and on our frames after it: skin RGB ~136/106/91, mean ~113, p10 ~88, p90 ~135,
+#   sat ~0.34, background p50 ~19. A hand-tuned curve/colorbalance chain (v2-v5) only approximated these.
 # airy: the first three IG reels (bakery 130/108/96, sat 0.34): a slight lift, a soft haze, no warmth.
-# The halation split/blur/blend runs in planar gbrp: in yuv420p the screen blend lifts U/V (magenta cast), in
-# packed rgb24 gblur mixes the interleaved channels (blue cast). Balance: the reference skin is peach-pink,
-# G/B 1.09-1.16 (a muse clip 1.2-1.5 = orange), so red in, green and a touch of blue out (bm 0.05 gave
-# 135/106/98 = too blue; rm 0.06 / gm -0.02 / bm -0.01 gives 137/111/95, reference 136/106/91); the shadows go the other way (red out, green and blue in) so the
-# dark warm rooms muse paints lose their orange-brown and sit near the neutral beige of the reference.
+# ffmpeg traps kept for raw chains: a screen blend in yuv420p lifts U/V (magenta cast), gblur on packed rgb24
+# mixes the channels (blue cast): run a halation split in planar gbrp.
 PRESETS = {
-    "film": "format=gbrp,curves=all='0/0 0.12/0.10 0.35/0.33 0.6/0.52 0.8/0.64 1/0.80',"
-            "colorbalance=rs=-0.04:gs=0.02:bs=0.02:rm=0.06:gm=-0.02:bm=-0.01:rh=0.03,"
-            "split[a][b];[b]gblur=sigma=30[g];[a][g]blend=all_mode=screen:all_opacity=0.12,"
-            "format=yuv420p,eq=saturation=1.1,gblur=sigma=0.9,noise=alls=4:allf=t",
+    "film": "noise=alls=4:allf=t",
     "airy": "split[a][b];[b]gblur=sigma=24[g];[a][g]blend=all_mode=screen:all_opacity=0.08,"
             "format=gbrp,curves=all='0/0.02 0.5/0.53 1/0.97',colorbalance=rm=0.025:bm=-0.03:rh=0.01:bh=-0.01,"
             "format=yuv420p,eq=saturation=1.15,gblur=sigma=0.6,noise=alls=4:allf=t",
 }
-GRADE = PRESETS.get(os.environ.get("GRADE", "film"), os.environ.get("GRADE"))
+GRADE_NAME = os.environ.get("GRADE", "film")
+GRADE = PRESETS.get(GRADE_NAME, GRADE_NAME)
+
+
+def transfer_clip(src, dst):
+    """GRADE=film: put every frame of src onto the reference (refgrade.transfer), audio copied."""
+    import av
+    from refgrade import source_quantiles, transfer
+    tmp = dst.with_suffix(".v.mp4")
+    with av.open(str(src)) as i, av.open(str(tmp), "w") as o:
+        vs = i.streams.video[0]
+        out = o.add_stream("libx264", rate=vs.average_rate)
+        out.width, out.height, out.pix_fmt = vs.width, vs.height, "yuv420p"
+        out.options = {"crf": "16", "preset": "medium"}
+        q = None
+        for fr in i.decode(vs):
+            rgb = fr.to_ndarray(format="rgb24")
+            try:
+                qf = source_quantiles(rgb)
+            except ValueError:  # no face in this frame: keep the last mapping
+                qf = q
+            q = qf if q is None else tuple(0.5 * a + 0.5 * b for a, b in zip(q, qf))
+            img = transfer(rgb, q, glow=0.12, blur=0.9)
+            for p in out.encode(av.VideoFrame.from_image(img)):
+                o.mux(p)
+        for p in out.encode():
+            o.mux(p)
+    run(["ffmpeg", "-v", "error", "-y", "-i", str(tmp), "-i", str(src), "-map", "0:v", "-map", "1:a?", "-c", "copy", str(dst)])
+    tmp.unlink()
 
 
 def run(a, **kw):
@@ -131,6 +149,11 @@ def cut(work, sc, tr):
              "-af", f"aresample=48000,apad,atrim=0:{length:.4f}", "-ar", "48000", "-ac", "2",
              "-c:v", "libx264", "-crf", "16", "-preset", "medium", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k",
              str(seg)])
+        if GRADE_NAME == "film":
+            raw = seg.with_name(f"{sh['id']}.raw.mp4")
+            seg.rename(raw)
+            transfer_clip(raw, seg)
+            raw.unlink()
         if sh.get("line"):
             cues.append([round(t + lead - 0.1, 3), round(t + min(said, length), 3), sh["line"]["en"]])
         segs.append(seg)
