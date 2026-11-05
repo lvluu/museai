@@ -91,7 +91,24 @@ for f in "$dest/$prefix"[-_.]*; do
   for k in "${kept[@]}"; do [ "$f" = "$k" ] && continue 2; done
   junk+=("$f")
 done
-renders=("$HOME/Movies/museai/$prefix"*)
+# Renders are files only: every directory under ~/Movies/museai is some video's work folder, and a short
+# prefix (reel) matched reel-bled/, reel-machupicchu/ ... of other running sessions (2026-11-05).
+# This video's own folder is "$work", already listed above. A render named after another work folder
+# (reel-b_s1.mp4 next to reel-b/) belongs to that video, not this one.
+others=()
+for d in "$HOME/Movies/museai"/*/; do
+  d=${d%/}; [ "$d" = "$work" ] || others+=("$(basename "$d")")
+done
+renders=()
+for f in "$HOME/Movies/museai/$prefix"[-_.]*; do
+  [ -d "$f" ] && continue
+  b=$(basename "$f") w=$(basename "$work")
+  for o in ${others[@]+"${others[@]}"}; do
+    # the longest matching folder name owns the file (reel-a_s1.mp4 stays ours next to a reel/ folder)
+    case "$b" in "$o"[-_.]*) case "$b" in "$w"[-_.]*) [ ${#w} -ge ${#o} ] && continue ;; esac; continue 2 ;; esac
+  done
+  renders+=("$f")
+done
 junk+=(${renders[@]+"${renders[@]}"})
 media="$(cd "$(dirname "$0")/../../../.." && pwd)/data/media"
 for m in "$media"/vid_*.mp4; do
@@ -99,8 +116,7 @@ for m in "$media"/vid_*.mp4; do
     [ "$(stat -f%z "$m")" = "$(stat -f%z "$f")" ] && cmp -s "$m" "$f" && { junk+=("$m"); break; }
   done
 done
-# a work dir ~/Movies/museai/<prefix>-x (scenic-drop-reel) also matches the renders glob: list it once,
-# or trash fails on the already-trashed path and set -e aborts the cleanup
+# list each path once, or trash fails on an already-trashed path and set -e aborts the cleanup
 uniq=()
 for f in "${junk[@]}"; do
   for u in ${uniq[@]+"${uniq[@]}"}; do [ "$u" = "$f" ] && continue 2; done
