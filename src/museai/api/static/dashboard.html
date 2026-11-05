@@ -751,9 +751,11 @@ const slotLabel = (key) => { const [d, n] = key.split("/"); return `${dayLabel(d
 const firstLine = (v, p) => (captionFor(v, p) || "").split("\n")[0].trim();
 function renderSchedule() {
   const today = todayGmt7();
-  $("sched").innerHTML = ((posts.calendar || {})[chan] || []).map((day) => `
+  // Slots already posted or deleted, and free slots whose time has passed, are done with: not shown.
+  const open = (s) => s.video || (!s.gone && !late(s.time));
+  $("sched").innerHTML = ((posts.calendar || {})[chan] || []).filter((day) => day.slots.some(open)).map((day) => `
     <div class="sday ${day.date === today ? "today" : ""}"><h3>${esc(dayLabel(day.date))}</h3>
-      ${day.slots.map((s) => {
+      ${day.slots.filter(open).map((s) => {
         const v = s.video && posts.videos.find((x) => x.name === s.video);
         const title = v ? firstLine(v, "youtube") || v.name : s.gone ? `✓ ${s.gone.title || s.gone.name}` : "free";
         return `<button class="sslot ${v ? "booked" : ""} ${s.gone ? "gone" : ""} ${v && late(s.time) && !Object.keys(v.posted).length ? "late" : ""}"
