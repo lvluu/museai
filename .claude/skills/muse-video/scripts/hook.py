@@ -10,7 +10,12 @@ keep watching instead of scrolling past"). SUB="..." adds a small yellow open-lo
 short). Faces (opencv haar, every 0.25 s of the span, forehead added) set the box's lowest edge, and
 the font shrinks to fit; with too little headroom it exits 1 with NO HEADROOM instead of covering her
 head (EP44 intro: head top at y~300, 16 %): give the intro still headroom ("head top below 20 % of the
-frame"), or shorten the line. Run after captions and cards, before qa's frame check."""
+frame"), or shorten the line. Run after captions and cards, before qa's frame check.
+REVEAL=<s> (EVERYDAY CHINESE: the second the key phrase starts) keeps a second open loop on screen across
+the cut, where viewers left (user, 2026-11-05: "people just watch around 3s and then swipe"): when the
+hook fades, a small black pill in the same top band counts down "Câu trả lời sau 7s" each second until
+REVEAL, then turns green "Câu trả lời đây ↓" for 2 s, pointing at the captions. Faces under the pill
+drop it (printed), never cover a head."""
 
 import os
 import re
@@ -26,8 +31,10 @@ W, H = 1080, 1920
 X0, X1, Y0, Y1 = 86, 918, 134, 365  # x8-85 %, y7-19 % at most
 GAP = 14  # px kept between the box and the highest head
 LATIN = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
-ZH = ("/System/Library/AssetsV2/com_apple_MobileAsset_Font8/86ba2c91f017a3749571a82f2c6d890ac7ffb2fb"
-      ".asset/AssetData/PingFang.ttc")
+ZH = (
+    "/System/Library/AssetsV2/com_apple_MobileAsset_Font8/86ba2c91f017a3749571a82f2c6d890ac7ffb2fb"
+    ".asset/AssetData/PingFang.ttc"
+)
 CJK = re.compile(r"[\u3000-\u9fff\uff00-\uffef]")
 CJK_SPLIT = re.compile(r"([\u3000-\u9fff\uff00-\uffef]+)")
 FADE = 0.3
@@ -35,6 +42,8 @@ FADE = 0.3
 video, text, out = sys.argv[1], sys.argv[2], sys.argv[3]
 until = float(sys.argv[4]) if len(sys.argv) > 4 else 2.8
 sub = os.environ.get("SUB", "Cuối video có câu hỏi cho bạn!")
+reveal = float(os.environ["REVEAL"]) if os.environ.get("REVEAL") else None
+PIN_SHOW = 2.0  # s the green "answer is here" pill stays after REVEAL
 
 
 class Mixed:
@@ -75,7 +84,10 @@ def wrap(f, words, width):
             cur = w
     lines.append(cur)
     if len(lines) == 2:  # balance two lines: no lone "gì?" on the second one
-        i = min(range(1, len(words)), key=lambda i: max(f.getlength(" ".join(p)) for p in (words[:i], words[i:])))
+        i = min(
+            range(1, len(words)),
+            key=lambda i: max(f.getlength(" ".join(p)) for p in (words[:i], words[i:])),
+        )
         lines = [" ".join(words[:i]), " ".join(words[i:])]
     return lines
 
@@ -93,11 +105,12 @@ def layout(y1, sub):
     return None
 
 
-def head_tops():
-    """[(t, head_top_y)] of faces under the hook's columns"""
+def head_tops(t0=0.0, t1=None, x0=X0, x1=X1):
+    """[(t, head_top_y)] of faces under columns x0-x1 between t0 and t1 (default: the hook's span)"""
     cascade = cv2.CascadeClassifier(cv2.data.haarcascades + "haarcascade_frontalface_default.xml")
-    cap, hits, t = cv2.VideoCapture(video), [], 0.0
-    while t <= until:
+    t1 = until if t1 is None else t1
+    cap, hits, t = cv2.VideoCapture(video), [], t0
+    while t <= t1:
         cap.set(cv2.CAP_PROP_POS_MSEC, t * 1000)
         ok, fr = cap.read()
         if not ok:
@@ -109,7 +122,7 @@ def head_tops():
                 (x + w) * 2,
                 y * 2 - h * 2 * 0.35,
             )  # haar box starts at the brows: add the forehead
-            if fx1 > X0 and fx0 < X1:
+            if fx1 > x0 and fx0 < x1:
                 hits.append((t, int(fy0)))
         t += 0.25
     return hits
@@ -151,13 +164,59 @@ if sub:
         stroke_width=4,
         stroke_fill="black",
     )
+
+
+def pill(label, bg, fg):
+    """small rounded label centred in the top band at Y0; returns (image, bottom y, x0, x1)"""
+    pf = Mixed(46)
+    w = pf.getlength(label) + 56
+    p = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    pd = ImageDraw.Draw(p)
+    px0 = (W - w) / 2
+    pd.rounded_rectangle((px0, Y0, px0 + w, Y0 + 76), 38, fill=bg)
+    pf.draw(pd, (px0 + 28, Y0 + 12), label, fg)
+    return p, Y0 + 76, int(px0), int(px0 + w)
+
+
+# countdown pills: one per remaining second from the hook's end to REVEAL, then the green "here" pill
+pins = []  # (image, start, end)
+if reveal is not None and reveal > until + 0.5:
+    steps, t = [], until
+    while t < reveal - 0.05:
+        n = max(1, int(-(-(reveal - t) // 1)))  # ceil
+        end = min(reveal, reveal - n + 1)
+        steps.append((pill(f"Câu trả lời sau {n}s", (0, 0, 0, 215), (255, 214, 10)), t, end))
+        t = end
+    steps.append(
+        (pill("Câu trả lời đây ↓", (22, 150, 70, 235), "white"), reveal, reveal + PIN_SHOW)
+    )
+    pbottom = max(s[0][1] for s in steps)
+    px0, px1 = min(s[0][2] for s in steps), max(s[0][3] for s in steps)
+    hit = [(t, y) for t, y in head_tops(until, reveal + PIN_SHOW, px0, px1) if y - GAP < pbottom]
+    if hit:
+        t, y = hit[0]
+        print(
+            f"countdown pill dropped: head top y={y} at {t:.2f}s under the pill (bottom y={pbottom})"
+        )
+    else:
+        pins = [(im, a, b) for (im, _, _, _), a, b in steps]
+elif reveal is not None:
+    print(f"countdown pill skipped: REVEAL={reveal} is within 0.5 s of the hook's end ({until})")
+
 with tempfile.TemporaryDirectory() as tmp:
     png = Path(tmp) / "hook.png"
     img.save(png)
+    inputs = ["-loop", "1", "-t", f"{until:.2f}", "-i", str(png)]
     vf = (
         f"[1:v]format=rgba,fade=t=out:st={until - FADE:.2f}:d={FADE}:alpha=1[h];"
-        f"[0:v][h]overlay=0:0:enable='lte(t,{until:.2f})'[v]"
+        f"[0:v][h]overlay=0:0:enable='lte(t,{until:.2f})'[v0]"
     )
+    for i, (im, a, b) in enumerate(pins):
+        pp = Path(tmp) / f"pin{i}.png"
+        im.save(pp)
+        inputs += ["-i", str(pp)]
+        vf += f";[v{i}][{i + 2}:v]overlay=0:0:enable='between(t,{a:.2f},{b - 0.001:.3f})'[v{i + 1}]"
+    vf += f";[v{len(pins)}]null[v]"
     subprocess.run(
         [
             "ffmpeg",
@@ -166,12 +225,7 @@ with tempfile.TemporaryDirectory() as tmp:
             "-y",
             "-i",
             video,
-            "-loop",
-            "1",
-            "-t",
-            f"{until:.2f}",
-            "-i",
-            str(png),
+            *inputs,
             "-filter_complex",
             vf,
             "-map",
@@ -194,4 +248,9 @@ with tempfile.TemporaryDirectory() as tmp:
     )
 print(
     f"WROTE {out}  hook 0-{until:.2f}s, {len(lines)} line(s) {f.size}px, box bottom y={bottom:.0f}"
+    + (
+        f", countdown {until:.2f}-{reveal:.2f}s + answer pill to {reveal + PIN_SHOW:.2f}s"
+        if pins
+        else ""
+    )
 )

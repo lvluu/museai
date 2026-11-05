@@ -39,6 +39,22 @@ Viral rules (user rule 2026-10-29, from Chinese-learning Shorts that spread):
   same dilemma in Vietnamese above her head from frame 0, with the open loop "Cuối video có câu hỏi cho
   bạn!" (SKILL.md Timing step 5, Hook). When the brief fixes a weaker intro ("今天学怎么预约看牙"), keep
   its words and let the Vietnamese hook line carry the question.
+- **Hold them past 3 s** (user rule 2026-11-05: "people just watch around 3s and then swipe"; the
+  hook faded and the cut to the two-shot landed right at ~3 s with nothing left to wait for):
+  - Hook line = pain + promise, ≤ 8 words: the problem, then what one sentence gets them
+    ("Sắp lỡ chuyến bay? Hỏi 1 câu là xong", "Đừng nói 你好 khi gọi món!"), never a bare
+    topic ("Hỏi đường ở sân bay"). The wrong-habit form ("Đừng nói X, hãy nói…") beats a plain question.
+  - The intro is said with urgency (worried, surprised, a little embarrassed), not as a calm
+    presenter; she leans in slightly toward the lens. Write the emotion into the ACTING line of the
+    intro ("says it with mild panic, eyebrows raised").
+  - A second open loop crosses the cut: `REVEAL=<start of the key phrase>` on `scripts/hook.py`
+    counts down "Câu trả lời sau Ns" in the top band from the hook's fade until the key phrase,
+    then flags it green. So the key phrase (the one the hook promises) must come early, by ~8-12 s,
+    in the WOMAN's first or second line, not at the end; the ending quiz then asks it back.
+  - No dead air at the cut: the first two-shot line starts within 0.2 s of the cut and is the
+    turn of the story (her problem said to the other person), never "你好" small talk.
+  - A new thing on screen every 2-3 s through the first 10 s (hook → cut → countdown → first card →
+    green flag): put the first vocab card on the first two-shot line, not later.
 - **She looks gorgeous** (user rule 2026-10-30, after EP44's plain lavender blouse: "the girl wear beautiful
   dress", "like a video in a party", so viewers keep watching): the woman always wears a beautiful,
   eye-catching dress, never a plain blouse or cardigan, with styled hair (soft waves or an elegant
@@ -140,7 +156,7 @@ Position x10–82%, y62–76%. Keep faces above text; leave bottom 20% and right
 Sync captions to speech. Add exact text in post if needed.
 
 SCRIPT
-INTRO: Woman centered, arms relaxed.
+INTRO: Woman centered, arms relaxed, leaning in slightly toward camera; says the line with <emotion: mild panic / surprise / embarrassment>.
 WOMAN:
 <汉字>
 <Pinyin>
