@@ -7,7 +7,11 @@ keeps only the session cookies, posts them to /admin/accounts and calls /renew o
 Cookie values are never printed.
 
 Usage:
-    python scripts/import_account.py muse.ai_cookies.json --label muse-2 [--base http://127.0.0.1:18610]
+    python scripts/import_account.py muse.ai_cookies.json --label muse-2 [--base http://127.0.0.1:18610] [--replace]
+
+--replace: once the new account's session checks ok, delete the accounts it replaces: the ones with the same
+label and the ones upstream marked invalid (logged out or banned). A new account whose check fails is deleted
+again, so a bad export leaves the pool as it was.
 """
 
 import argparse
@@ -62,6 +66,8 @@ def main():
     parser.add_argument("input", help="Cookie export file")
     parser.add_argument("--label", required=True, help="Account label, e.g. muse-2")
     parser.add_argument("--base", default="http://127.0.0.1:18610", help="museai server URL")
+    parser.add_argument("--replace", action="store_true",
+                        help="after a good session check, delete accounts with this label and invalid accounts")
     args = parser.parse_args()
 
     # Session cookies only: UI cookies (theme, wd, dpr, ps_*) don't matter upstream.
@@ -78,8 +84,20 @@ def main():
     renewed = call(base, key, "POST", f"/admin/accounts/{account['id']}/renew")
     meta = renewed.get("meta") or {}
     if not renewed.get("ok"):
+        if args.replace:
+            call(base, key, "DELETE", f"/admin/accounts/{account['id']}")
         sys.exit(f"[!] Session check failed for {account['id']}; log in again, re-export the cookies and re-import")
     print(f"[+] Session check: ok session={meta.get('session_status')} vm={meta.get('vm_state')}")
+    if args.replace:
+        listed = call(base, key, "GET", "/admin/accounts").get("data", [])
+        for old in replaced(listed, account["id"], args.label):
+            call(base, key, "DELETE", f"/admin/accounts/{old['id']}")
+            print(f"[+] Removed {old.get('label') or old['id']} ({old.get('status')})")
+
+
+def replaced(accounts: list[dict], new_id: str, label: str) -> list[dict]:
+    """The accounts a good new import replaces: same label, or marked invalid upstream."""
+    return [a for a in accounts if a["id"] != new_id and (a.get("label") == label or a.get("status") == "invalid")]
 
 
 if __name__ == "__main__":
