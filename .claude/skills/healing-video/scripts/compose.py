@@ -139,14 +139,14 @@ def main():
     bed = make_bed(a.bed, idea, total, tmp)
     if bed:
         args += ["-i", str(bed)]
-    else:
+    elif not a.foley:  # with foley and no bed, the foley layer is the clips' sound (hv-0193 crashed here)
         # the clips' own sound brought to one level and cross-faded into ONE continuous bed. Hard-cutting
         # it per shot made the level jump 10 dB every 1.2 s, which felt like stuttering / lagging.
         for c in a.clips:
             path, _, start = c.partition("@")
             args += ["-ss", start or "1.0", "-t", f"{shot + XF:.3f}", "-i", path]
     args += ["-i", a.music]
-    mi = n + (1 if bed else n)
+    mi = n + (1 if bed else 0 if a.foley else n)
     fi = None
     if a.foley:
         fi = len([x for x in args if x == "-i"])
@@ -176,7 +176,7 @@ def main():
     if bed:
         af.append(f"[{n}:a]anull[x0]")
         prev, denoise = "x0", ""
-    else:
+    elif not a.foley:
         for i, c in enumerate(a.clips):
             lu = loudness(path_of(c))
             if lu is None:

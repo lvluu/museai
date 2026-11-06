@@ -44,7 +44,16 @@ with open(sys.argv[1], "w") as lf:
     except BlockingIOError:
         print("another ACE render is running on this machine; waiting for it", file=sys.stderr)
         fcntl.flock(lf, fcntl.LOCK_EX)
-    sys.exit(subprocess.run(sys.argv[2:]).returncode)
+    # 2026-11-05: an ACE take that runs > 30 min is stuck; kill it and run it again (3 tries, then
+    # exit 3 so the caller moves to the next seed). The lock stays held across the retries.
+    for attempt in range(3):
+        p = subprocess.Popen(sys.argv[2:])
+        try:
+            sys.exit(p.wait(timeout=1800))
+        except subprocess.TimeoutExpired:
+            p.kill(); p.wait()
+            print(f"ACE render ran > 30 min (try {attempt + 1}); killed, running it again", file=sys.stderr)
+    sys.exit(3)
 PY
 else
   uv run --no-project "$MV/music.py" --engine musicgen --style "$tags" --bpm 70 --body-beats $((secs * 70 / 60)) --out "$raw.m4a"
