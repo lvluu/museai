@@ -729,6 +729,9 @@ class BrowserDriver(MuseDriver):
 
     async def generate_image(self, account: Account, req: ImageRequest) -> list[MediaResult]:
         prompt = self._media_prompt(req.prompt, "image", req.size)
+        if req.reference_images:  # without this muse tends to describe the picture instead of editing it
+            prompt = prompt.replace(
+                "Generate an image", "Edit the attached image(s) and generate the edited image", 1)
         results = []
         for _ in range(max(1, req.n)):
             r = await self._generate(

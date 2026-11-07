@@ -46,7 +46,44 @@ CHAT_STATE = f"""(() => {{
   }});
   scrollers.forEach(e => {{ e.scrollTop = e.scrollHeight; }});
   const bubbles = [...document.querySelectorAll({q(AGENT_BUBBLE)})];
-  const last = bubbles.length ? (bubbles[bubbles.length - 1].innerText || '').trim() : '';
+  // innerText drops code fences and leaves the language label as a bare line; rebuild the
+  // markdown fence so clients (and /v1/projects) get code blocks back.
+  // innerText skips code that muse hides behind a preview tab and drops the fences; mark each <pre>
+  // with a visible token, read the text, then swap the tokens for fenced textContent.
+  const textOf = (el) => {{
+    const pres = [...el.querySelectorAll('pre')];
+    // muse collapses some cards (display/visibility hidden), so a token placed at the <pre> can
+    // vanish from innerText: climb until it shows, i.e. place it before the hidden root.
+    const marks = pres.map((pre, i) => {{
+      const tok = '@@PRE' + i + '@@';
+      const m = document.createElement('div');
+      m.textContent = tok;
+      let at = pre;
+      for (;;) {{
+        at.parentNode.insertBefore(m, at);
+        if ((el.innerText || '').includes(tok) || !at.parentElement || at.parentElement === el) break;
+        m.remove();
+        at = at.parentElement;
+      }}
+      return m;
+    }});
+    let out = el.innerText || '';
+    marks.forEach((m) => m.remove());
+    pres.forEach((pre, i) => {{
+      // shiki draws one span per line with no newline in textContent
+      const lines = [...pre.querySelectorAll('code > span')];
+      let txt = (lines.length ? lines.map((l) => l.textContent).join('\\n') : (pre.textContent || '')).replace(/\\s+$/, '');
+      let lang = '';
+      const code = pre.querySelector('code');
+      const m = ((code && code.className) || '').match(/language-([\\w+#-]+)/);
+      if (m) lang = m[1];
+      out = out.replace('@@PRE' + i + '@@', () => '\\n```' + lang + '\\n' + txt + '\\n```\\n');
+    }});
+    // muse draws the language as a label above the block, outside the <pre>.
+    out = out.replace(/^([A-Za-z+#-]{{1,14}})\\n+```\\n/gm, '```$1\\n');
+    return out.trim();
+  }};
+  const last = bubbles.length ? textOf(bubbles[bubbles.length - 1]) : '';
   const atts = [...document.querySelectorAll({q(ATTACHMENT)})].map(a => {{
     const v = a.querySelector('video'), i = a.querySelector('img');
     const m = v || i;

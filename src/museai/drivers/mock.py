@@ -51,6 +51,8 @@ class MockDriver(MuseDriver):
 
     async def chat_stream(self, account: Account, req: ChatRequest) -> AsyncIterator[str]:
         reply = f"[mock:{req.model}] You said: {req.prompt[-200:]}"
+        if "FILE: <path>" in req.prompt:  # /v1/projects
+            reply = "Done.\n```html path=index.html\n<h1>mock</h1>\n```\n```js path=js/app.js\nx=1\n```"
         if req.images:
             reply += f" (with {len(req.images)} image(s))"
         for i in range(0, len(reply), 8):

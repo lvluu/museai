@@ -12,6 +12,7 @@ from . import (
     models,
     posting,
     profiles,
+    projects,
     responses,
     videos,
 )
@@ -19,7 +20,7 @@ from . import (
 
 def build_router() -> APIRouter:
     router = APIRouter()
-    for module in (health, models, chat, responses, images, videos, media, admin, dashboard, posting, autopost, campaign, profiles):
+    for module in (health, models, chat, responses, images, videos, projects, media, admin, dashboard, posting, autopost, campaign, profiles):
         router.include_router(module.router)
     router.include_router(autopost.callback_router)
     return router

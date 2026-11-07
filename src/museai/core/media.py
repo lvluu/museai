@@ -20,6 +20,7 @@ _EXT_BY_MIME = {
     "video/mp4": ".mp4",
     "video/webm": ".webm",
     "video/quicktime": ".mov",
+    "application/zip": ".zip",
 }
 _SAFE_NAME = re.compile(r"^[A-Za-z0-9_\-]+\.[A-Za-z0-9]+$")
 

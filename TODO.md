@@ -14,7 +14,7 @@ Priorities: **P0** must be done first · **P1** core feature · **P2** better ex
 |---|---|---|---|---|---|
 | A1 | Install dependencies, get tests and lint passing | P0 | `tests/` | | Not started |
 | A2 | Test the browser driver with real accounts | P0 | `drivers/browser/` | | Not started |
-| A3 | Verify how image/video generation is triggered | P0 | `drivers/browser/driver.py` | | Not started |
+| A3 | Verify how image/video generation is triggered | P0 | `drivers/browser/driver.py` | | Done (docs/features.md) |
 | A4 | Verify session renewal | P0 | `upstream/muse.py` | | Not started |
 | A5 | Verify the Docker image builds and runs | P1 | `Dockerfile` | | Not started |
 | A6 | Enable GitHub Actions CI | P1 | `.github/workflows/ci.yml` | | Not started |
@@ -22,7 +22,7 @@ Priorities: **P0** must be done first · **P1** core feature · **P2** better ex
 | B2 | Reuse conversation threads to cut first-token latency | P2 | `drivers/browser/` | | Done |
 | B3 | Quota lookup | P2 | `MuseDriver.quota` | | Not started |
 | C1 | `/v1/responses` endpoint | P1 | `api/routes/responses.py` | | Not started |
-| C2 | `/v1/images/edits` endpoint | P1 | `api/routes/images.py` | | Not started |
+| C2 | `/v1/images/edits` endpoint | P1 | `api/routes/images.py` | | Done |
 | C3 | Emulated tool calling | P2 | `core/prompt.py` | | Not started |
 | C4 | Streaming heartbeats to avoid client timeouts | P2 | `api/routes/chat.py` | | Not started |
 | D1 | Support more cookie import formats | P1 | `api/routes/admin.py` | | Not started |
