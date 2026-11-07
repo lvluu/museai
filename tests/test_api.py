@@ -193,7 +193,6 @@ def test_parse_cookie_export():
 
 def test_reserved_endpoints(client, auth):
     assert client.post("/v1/responses", headers=auth, json={}).status_code == 501
-    assert client.post("/v1/images/edits", headers=auth).status_code == 501
 
 
 def test_admin_accounts_crud(client, auth, admin):
@@ -733,3 +732,44 @@ def test_auto_captions_parse_and_prompt():
     assert captions.parse("no json here", ["x"]) == {}
     text = captions.prompt("a.mp4", "", ["x"], "RULES", ["x: 300 characters, limit 280"])
     assert "RULES" in text and "x: 300 characters" in text and "frames" in text
+
+
+def test_image_edits_multipart(client, auth):
+    png = b"\x89PNG\r\n\x1a\n"
+    r = client.post("/v1/images/edits", headers=auth, data={"prompt": "make it blue"},
+                    files=[("image", ("a.png", png, "image/png"))])
+    assert r.status_code == 200
+    assert r.json()["data"][0]["revised_prompt"] == "make it blue [1 reference images]"
+    assert client.post("/v1/images/edits", headers=auth, data={"prompt": "x"}).status_code == 400
+
+
+def test_projects_zip(client, auth):
+    import io
+    import zipfile
+
+    from museai.core.projects import extract_files
+
+    reply = "ok\n```html path=index.html\n<h1>hi</h1>\n```\n```css\n/* path: css/a.css */\nb{}\n```"
+    assert extract_files(reply) == {"index.html": "<h1>hi</h1>\n", "css/a.css": "b{}\n"}
+    assert extract_files("```html\n<p>x</p>\n```") == {"index.html": "<p>x</p>\n"}
+    labelled = "FILE: src/a.js\n```js\nx\n```\nfile: `b.css`\n```css\ny\n```\n```html\n<p/>\n```"
+    assert extract_files(labelled) == {"src/a.js": "x\n", "b.css": "y\n", "index.html": "<p/>\n"}
+    labelled = "FILE: src/a.js\n```js\nx\n```\nfile: `b.css`\n```css\ny\n```\n```html\n<p/>\n```"
+    assert extract_files(labelled) == {"src/a.js": "x\n", "b.css": "y\n", "index.html": "<p/>\n"}
+    for bad in ("```x path=../evil\ny\n```", "```x path=/etc/passwd\ny\n```"):
+        try:
+            extract_files(bad)
+        except Exception as e:  # noqa: BLE001
+            assert "unsafe" in str(e)
+        else:
+            raise AssertionError(bad)
+    r = client.post("/v1/projects", headers=auth, json={"prompt": "a page"})
+    assert r.status_code == 200
+    body = r.json()
+    assert [f["path"] for f in body["files"]] == ["index.html", "js/app.js"]
+    z = zipfile.ZipFile(io.BytesIO(client.get(body["zip_url"].replace("http://testserver", "")).content))
+    assert z.read("index.html") == b"<h1>mock</h1>\n"
+    from museai.core.projects import build_zip
+
+    z = zipfile.ZipFile(io.BytesIO(build_zip({"index.html": "<h1>hi</h1>\n"})))
+    assert z.namelist() == ["index.html"]

@@ -8,7 +8,7 @@ from fastapi import APIRouter, Depends, Request
 from ...core.media import load_image_ref
 from ...core.models import resolve_model
 from ...drivers.base import ImageRequest, InputImage, MediaResult
-from ...errors import FeatureNotImplemented
+from ...errors import InvalidRequest
 from ...services.container import Services
 from ..deps import get_services, public_base, require_api_key
 from ..schemas import ImageGenerationRequest
@@ -41,7 +41,19 @@ async def generate_images(body: ImageGenerationRequest, request: Request,
 
 
 @router.post("/v1/images/edits")
-async def edit_images() -> None:
-    # TODO(contributors): parse multipart (image[], prompt, size, response_format), load files
-    # into ImageRequest.reference_images and reuse generate_images' response shaping.
-    raise FeatureNotImplemented("/v1/images/edits is planned")
+async def edit_images(request: Request, svc: Services = Depends(get_services)) -> dict:
+    """Multipart ``image`` / ``image[]`` files + ``prompt`` (OpenAI shape); same output as generations."""
+    form = await request.form()
+    prompt = str(form.get("prompt") or "").strip()
+    uploads = [f for k in ("image", "image[]") for f in form.getlist(k) if hasattr(f, "read")]
+    if not prompt or not uploads:
+        raise InvalidRequest("prompt and at least one image file are required")
+    refs = [InputImage(await f.read(), f.content_type or "image/png") for f in uploads]
+    spec = resolve_model(str(form.get("model") or "") or None, "image")
+    req = ImageRequest(prompt=prompt, model=spec.id, size=str(form.get("size") or "") or None,
+                       n=int(form.get("n") or 1), reference_images=refs,
+                       timeout=svc.settings.image_timeout)
+    results = await svc.gateway.generate_image(req)
+    fmt = str(form.get("response_format") or "url")
+    base = public_base(request)
+    return {"created": int(time.time()), "data": [_image_item(r, fmt, svc, base) for r in results]}
