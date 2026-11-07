@@ -52,16 +52,27 @@ CHAT_STATE = f"""(() => {{
   // with a visible token, read the text, then swap the tokens for fenced textContent.
   const textOf = (el) => {{
     const pres = [...el.querySelectorAll('pre')];
+    // muse collapses some cards (display/visibility hidden), so a token placed at the <pre> can
+    // vanish from innerText: climb until it shows, i.e. place it before the hidden root.
     const marks = pres.map((pre, i) => {{
+      const tok = '@@PRE' + i + '@@';
       const m = document.createElement('div');
-      m.textContent = '@@PRE' + i + '@@';
-      pre.parentNode.insertBefore(m, pre);
+      m.textContent = tok;
+      let at = pre;
+      for (;;) {{
+        at.parentNode.insertBefore(m, at);
+        if ((el.innerText || '').includes(tok) || !at.parentElement || at.parentElement === el) break;
+        m.remove();
+        at = at.parentElement;
+      }}
       return m;
     }});
     let out = el.innerText || '';
     marks.forEach((m) => m.remove());
     pres.forEach((pre, i) => {{
-      let txt = (pre.textContent || '').replace(/\\s+$/, '');
+      // shiki draws one span per line with no newline in textContent
+      const lines = [...pre.querySelectorAll('code > span')];
+      let txt = (lines.length ? lines.map((l) => l.textContent).join('\\n') : (pre.textContent || '')).replace(/\\s+$/, '');
       let lang = '';
       const code = pre.querySelector('code');
       const m = ((code && code.className) || '').match(/language-([\\w+#-]+)/);
