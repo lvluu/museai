@@ -33,6 +33,7 @@ FORMATS = {
     "zoominview": ("zoom", ("9:16",), True),
     "travel": ("travel", ("9:16", "16:9"), True),
     "scenery-director": ("scenic", ("9:16", "16:9"), True),
+    "place-story": ("story", ("9:16",), True),
     "chinese-scenery-style": ("scenic-china", ("9:16",), True),
     "product-ad": ("ad", ("9:16",), False),
     "teaching-video": ("lesson", ("9:16+16:9",), False),
