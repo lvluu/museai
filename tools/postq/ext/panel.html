@@ -11,9 +11,16 @@
               --ok: #4bce97; --bad: #f87462; --primary: #ff4e45; }
     }
     body { margin: 0; width: 520px; max-height: 590px; background: var(--bg); color: var(--fg); font: 13px/1.4 system-ui, sans-serif; }
-    header { position: sticky; top: 0; z-index: 1; background: var(--bg); padding: 8px 12px; display: flex;
-             align-items: center; gap: 12px; border-bottom: 1px solid var(--line); }
-    header h1 { font-size: 14px; margin: 0; flex: 1; }
+    header { position: sticky; top: 0; z-index: 2; background: var(--bg); padding: 8px 12px; display: flex;
+             flex-wrap: wrap; align-items: center; gap: 6px 10px; border-bottom: 1px solid var(--line); }
+    header h1 { font-size: 14px; margin: 0; flex: 1 1 auto; white-space: nowrap; }
+    header .bar { flex: 1 1 100%; display: flex; align-items: center; gap: 8px; flex-wrap: nowrap; }
+    header .bar select { width: auto; min-width: 0; flex: 1 1 120px; max-width: 200px; text-overflow: ellipsis; }
+    header .bar button { white-space: nowrap; padding: 4px 10px; flex: none; }
+    header .bar .check { white-space: nowrap; flex: none; }
+    header .bar #all { margin-left: auto; }
+    select { appearance: auto; cursor: pointer; }
+    select option { background: var(--card); color: var(--fg); }
     main { padding: 8px 12px; display: grid; gap: 8px; }
     .card { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 10px; display: grid; gap: 6px; }
     .top { display: flex; gap: 10px; }
@@ -39,15 +46,48 @@
     .status { font-size: 12px; word-break: break-word; }
     .status.ok { color: var(--ok); } .status.bad { color: var(--bad); }
     .status a { color: inherit; }
+    .card[data-state=queued] { border-left: 4px solid var(--ok); }
+    .card[data-state=posting] { border-left: 4px solid var(--primary); }
+    .card[data-state=done] { border-left: 4px solid var(--ok); opacity: .7; }
+    .card[data-state=failed] { border-left: 4px solid var(--bad); }
+    .pill.state { background: var(--ok); }
+    .card[data-state=posting] .pill.state { background: var(--primary); }
+    #sum { font-size: 12px; color: var(--muted); }
     .empty { color: var(--muted); text-align: center; padding: 40px 16px; }
+    #dupbox { padding: 8px 12px; display: grid; gap: 6px; border-bottom: 1px solid var(--line); }
+    [hidden] { display: none !important; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip { border-radius: 16px; padding: 6px 12px; }
+    .chip.on, #dups.on { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+    #duplist { display: grid; gap: 6px; }
+    .dup { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 8px; display: grid; gap: 4px; }
+    .dup.gone { opacity: .55; }
+    .dtop { display: flex; gap: 8px; align-items: center; }
+    .dtop img { width: 64px; height: 48px; object-fit: cover; border-radius: 4px; background: #000; flex: none; }
+    .dinfo { flex: 1; min-width: 0; display: grid; gap: 2px; }
+    .dinfo b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dup a { color: inherit; }
+    button.danger { border-color: var(--bad); color: var(--bad); flex: none; padding: 8px 14px; }
+    .dupall { display: flex; justify-content: flex-end; }
+    button.danger.armed { background: var(--bad); color: #fff; }
   </style>
 </head>
 <body>
   <header>
     <h1>Pending posts</h1>
-    <span class="meta">Enter = approve all</span>
-    <button id="all" class="primary">Approve all</button>
+    <span id="sum"></span>
+    <div class="bar">
+      <select id="chan" title="Show one channel only; Approve all then applies to it"><option value="">All channels</option></select>
+      <button id="dups">Duplicates</button>
+      <label class="check"><input type="checkbox" id="hide"> hide approved</label>
+      <button id="all" class="primary" title="Enter = approve all">Approve all</button>
+    </div>
   </header>
+  <section id="dupbox" hidden>
+    <div id="dupch" class="chips"></div>
+    <div class="status" id="dupst"></div>
+    <div id="duplist"></div>
+  </section>
   <main id="list"></main>
   <script src="panel.js"></script>
 </body>
