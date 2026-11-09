@@ -331,7 +331,7 @@
         if (Date.now() > end) throw new Error('did not reach the Share step');
         const next = button('Next');
         if (next && next.getAttribute('aria-disabled') !== 'true') next.click();
-        await sleep(2000); // let the step render before the next press (a fast second click is lost)
+        await sleep(3000); // let the step render before the next press (a fast second click is lost)
       }
       return true;
     },
