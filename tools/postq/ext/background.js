@@ -296,13 +296,10 @@ async function metaFlow(stored, pg) {
   for (; up.uploading; up = await pg.step('progress')) {
     if (Date.now() > end) throw new Error(`upload did not finish within 60 min (${up.pct}%)`);
     await say(`Uploading ${up.pct}%`);
-    await new Promise((r) => setTimeout(r, 3000));
+    await new Promise((r) => setTimeout(r, 2000));
   }
   if (up.failed) throw new Error(up.failed);
-  if (item.cover) {
-    await pg.send('cover', item.cover, (p) => say(`Moving thumbnail into the tab ${p}%`));
-    await pg.step('setCover', item.cover.name, mimeOf(item.cover.file));
-  }
+  // No thumbnail on Meta: the reel keeps its video frame (setCover skipped, saves the upload).
   const captions = await pg.step('fill', item);
   await pg.step('checkCaptions', item);
   await pg.step('toShare');
@@ -310,7 +307,7 @@ async function metaFlow(stored, pg) {
   const { story } = await pg.step('extras');
   const note = [
     sch.mode === 'scheduled' ? sch.rows.map((r) => `${r.platform} ${r.date} ${r.time}`).join(', ') + ` (${sch.zone})` : 'share now',
-    captions, item.cover ? 'thumbnail uploaded' : 'no thumbnail', up.check, story ? 'Facebook story share on' : null,
+    captions, up.check, story ? 'Facebook story share on' : null,
   ].filter(Boolean).join(' · ');
   await say(note);
   if (item.dry_run) return { status: 'dry-run', url: `${BS}/reels_composer/?${q}`, log: `${note} · form filled, not submitted (tab left open)` };

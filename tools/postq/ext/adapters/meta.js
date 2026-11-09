@@ -91,17 +91,17 @@
     const dt = new DataTransfer();
     dt.setData('text/plain', value);
     el.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
-    await sleep(700);
+    await sleep(400);
     // The handler ignores a blur while the box is not focused (the paste can drop focus, seen on the
     // Instagram tab), so focus it again first.
     const box = $(SEL.editor) || el;
     box.focus();
     box.dispatchEvent(new FocusEvent('focus'));
     box.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
-    await sleep(300);
+    await sleep(150);
     box.dispatchEvent(new FocusEvent('focusout', { bubbles: true, relatedTarget: document.body }));
     box.dispatchEvent(new FocusEvent('blur', { relatedTarget: document.body }));
-    await sleep(700);
+    await sleep(400);
   }
 
   // The caption the post will carry, as the composer's preview renders it (the editor's own text is
@@ -124,7 +124,7 @@
       for (let i = 0; i < 20 && text(previewMenu()) !== kind; i++) await sleep(150);
       if (text(previewMenu()) !== kind) throw new Error(`could not switch to ${kind}`);
     }
-    await sleep(600);
+    await sleep(400);
     const s = document.body.innerText;
     const i = s.lastIndexOf(kind);
     const j = s.indexOf('Give us feedback', i);
@@ -163,7 +163,7 @@
     if (t.getAttribute('aria-selected') !== 'true') press(t);
     for (let i = 0; i < 20 && t.getAttribute('aria-selected') !== 'true'; i++) await sleep(150);
     if (t.getAttribute('aria-selected') !== 'true') throw new Error(`${name} caption tab did not open`);
-    await sleep(400);
+    await sleep(250);
   }
   const sameText = (a, b) => (a || '').replace(/\s+/g, ' ').trim() === (b || '').replace(/\s+/g, ' ').trim();
 
@@ -331,7 +331,7 @@
         if (Date.now() > end) throw new Error('did not reach the Share step');
         const next = button('Next');
         if (next && next.getAttribute('aria-disabled') !== 'true') next.click();
-        await sleep(3000); // let the step render before the next press (a fast second click is lost)
+        await sleep(2000); // let the step render before the next press (a fast second click is lost)
       }
       return true;
     },
@@ -400,7 +400,7 @@
     // `blank` when it has no caption (the list then shows "Your reel" in place of the text).
     async findScheduled(captions) {
       await waitFor(SEL.row, { timeout: 60000, what: 'scheduled posts table' });
-      await sleep(1500);
+      await sleep(800);
       const heads = [].concat(captions).filter(Boolean).map((c) => fold(c).slice(0, 40));
       return [...document.querySelectorAll(SEL.row)].slice(1).map((r) => {
         const cells = [...r.querySelectorAll('[role=gridcell], [role=cell]')].map(text);
