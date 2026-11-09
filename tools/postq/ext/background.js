@@ -36,13 +36,13 @@ async function refreshBadge() {
 
 // `postq approve` sets item.auto. The claim stops a second start while one runs, and a failed post
 // comes back from the server with auto cleared, so it is not retried until approved again.
-// Lanes run side by side, each post in its own window. A window of its own renders even when
+// One platform at a time (curPlatform, drained before the next), one account at a time within it; each post in its own window. A window of its own renders even when
 // another is in front (Chrome pauses only hidden tabs and fully covered windows), and it never takes
 // focus, so the popup stays open. YouTube: three lanes on one channel until it is empty (a lane
 // never joins another channel while a post runs, a channel switch is login-wide); Business Suite and X pick the account per post.
 const LANES = { youtube: 3, meta: 1, x: 1, tiktok: 1 };
 const laneBusy = {};
-const ytActive = new Map(); // id -> account of in-flight YouTube posts: a new one joins only that channel
+const ytActive = new Map(); // id -> account of in-flight auto posts: a new one joins only that account
 const skipUntil = new Map(); // id -> ms: a refused claim (held or posting elsewhere) waits, no spin
 // Facebook blocked Business Suite ("You're Temporarily Blocked", 2026-11-05) after a reel every ~75 s
 // back to back. Meta posts now start GAP apart (with jitter), and a block page pauses the lane for
@@ -69,37 +69,49 @@ async function holdLane(platform, ms) {
   laneNext = { ...laneNext, [platform]: Math.max(laneNext[platform] || 0, Date.now() + ms) };
   await chrome.storage.local.set({ laneNext });
 }
+let curPlatform = ''; // the one platform the auto queue works on: drained before it moves to the next
+const lastAcct = {}; // platform -> account last started (YouTube uses ytCurrent)
 async function autoPost(items) {
   await laneNextLoaded;
-  for (const [platform, n] of Object.entries(LANES)) {
-    while ((laneBusy[platform] || 0) < n) {
-      const now = Date.now();
-      if ((laneNext[platform] || 0) > now) break;
-      const ready = (i) => i.auto && i.platform === platform && !running.has(i.id)
-        && !starting.has(i.id) && !((skipUntil.get(i.id) || 0) > now);
-      // Priority channel (Dream, every platform) goes first; then the rest in queue order.
-      const pool = items.filter((i) => ready(i) && priorityChannel && i.channel === priorityChannel);
-      const rest = items.filter((i) => ready(i) && !(priorityChannel && i.channel === priorityChannel));
-      const queue = [...pool, ...rest];
-      // YouTube: one channel at a time. The in-flight channel, else the priority channel's, else the one Studio
-      // is on (ytCurrent) while it has auto items; switch only when none are left.
-      const ytAcct = platform === 'youtube'
-        ? ([...ytActive.values()][0] ?? pool[0]?.account ?? (queue.some((i) => i.account === ytCurrent) ? ytCurrent : undefined))
-        : undefined;
-      const item = queue.find((i) => ytAcct === undefined || i.account === ytAcct);
-      if (!item) break;
-      laneBusy[platform] = (laneBusy[platform] || 0) + 1;
-      starting.add(item.id);
-      if (platform === 'youtube') ytActive.set(item.id, item.account);
-      const gap = GAP_MS[platform];
-      if (gap) holdLane(platform, gap[0] + Math.random() * (gap[1] - gap[0]));
-      approve(item, {})
-        .catch((e) => {
-          log('auto failed', item.id, e.message);
-          if (/Already being posted/.test(e.message)) skipUntil.set(item.id, Date.now() + 120000);
-        })
-        .finally(() => { laneBusy[platform] -= 1; starting.delete(item.id); ytActive.delete(item.id); });
-    }
+  const now = Date.now();
+  const ready = (i, p) => i.auto && i.platform === p && !running.has(i.id)
+    && !starting.has(i.id) && !((skipUntil.get(i.id) || 0) > now);
+  const isPrio = (i) => priorityChannel && i.channel === priorityChannel;
+  // A held lane (Meta gap) is waited out; a long pause (block page) lets the next platform go.
+  const waitOk = (p) => (laneNext[p] || 0) - now < 15 * 60000;
+  const busy = Object.keys(LANES).find((p) => (laneBusy[p] || 0) > 0);
+  if (busy) curPlatform = busy;
+  else if (!curPlatform || !items.some((i) => ready(i, curPlatform)) || !waitOk(curPlatform)) {
+    const cand = items.filter((i) => LANES[i.platform] && ready(i, i.platform) && waitOk(i.platform));
+    curPlatform = (cand.find(isPrio) || cand[0])?.platform || '';
+  }
+  const platform = curPlatform;
+  if (!platform) return;
+  const n = LANES[platform];
+  while ((laneBusy[platform] || 0) < n) {
+    if ((laneNext[platform] || 0) > Date.now()) break;
+    // Priority channel (Dream) goes first; then the rest in queue order.
+    const pool = items.filter((i) => ready(i, platform) && isPrio(i));
+    const rest = items.filter((i) => ready(i, platform) && !isPrio(i));
+    const queue = [...pool, ...rest];
+    // One account at a time: the in-flight one, else the priority channel's, else the one last used while
+    // it has auto items; switch only when none are left (an account switch costs a re-login / page reload).
+    const last = platform === 'youtube' ? ytCurrent : lastAcct[platform];
+    const acct = [...ytActive.values()][0] ?? pool[0]?.account ?? (queue.some((i) => i.account === last) ? last : undefined);
+    const item = queue.find((i) => acct === undefined || i.account === acct);
+    if (!item) break;
+    laneBusy[platform] = (laneBusy[platform] || 0) + 1;
+    starting.add(item.id);
+    ytActive.set(item.id, item.account);
+    lastAcct[platform] = item.account;
+    const gap = GAP_MS[platform];
+    if (gap) holdLane(platform, gap[0] + Math.random() * (gap[1] - gap[0]));
+    approve(item, {})
+      .catch((e) => {
+        log('auto failed', item.id, e.message);
+        if (/Already being posted/.test(e.message)) skipUntil.set(item.id, Date.now() + 120000);
+      })
+      .finally(() => { laneBusy[platform] -= 1; starting.delete(item.id); ytActive.delete(item.id); });
   }
 }
 

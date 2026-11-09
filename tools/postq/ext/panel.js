@@ -201,13 +201,17 @@ function renderFilter() {
     const cur = chanSel.value;
     chanSel.replaceChildren(new Option(`All channels (${cards.size})`, ''),
       ...accounts.map((a) => new Option(`${a} (${count[a]})`, a)));
-    chanSel.value = accounts.includes(cur) ? cur : '';
+    // Opens on ONE channel (the Dream series first), never "All": the user picks All on purpose.
+    const first = [...cards.values()].find((c) => c.item.channel === 'dream') || [...cards.values()][0];
+    const dflt = first ? brandOf(first.item.account) : '';
+    chanSel.value = chanPicked && cur === '' ? '' : accounts.includes(cur) ? cur : (accounts.includes(dflt) ? dflt : '');
     chanSel.dataset.sig = want;
   }
   for (const c of cards.values()) c.el.style.display = shown(c) ? '' : 'none';
   renderSummary();
 }
-chanSel.onchange = renderFilter;
+let chanPicked = false;
+chanSel.onchange = () => { chanPicked = true; renderFilter(); };
 hideDone.onchange = renderFilter;
 
 async function poll() {
