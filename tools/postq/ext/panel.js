@@ -1,5 +1,5 @@
 const QUEUE = 'http://127.0.0.1:8766';
-const READY = new Set(['youtube']); // platforms with an adapter (mirror of ADAPTERS in background.js)
+const READY = new Set(['youtube', 'x', 'meta']); // platforms with an adapter (mirror of ADAPTERS in background.js)
 const LIMITS = { youtube: { title: 100, caption: 5000 }, meta: { caption: 2200 }, tiktok: { caption: 2200 }, x: { caption: 280 } };
 const list = document.getElementById('list');
 const cards = new Map();
@@ -29,9 +29,9 @@ function render(item) {
   const el = document.createElement('section');
   el.className = 'card';
   el.innerHTML = `
-    <div class="meta"><span class="pill"></span><span class="who"></span><span class="pill dry" hidden>dry run</span><span class="when"></span></div>
+    <div class="meta"><span class="pill"></span><span class="who"></span><span class="pill dry" hidden>dry run</span><span class="pill state" hidden></span><span class="when"></span></div>
     <div class="top">
-      <video muted controls preload="metadata"></video>
+      <video muted controls preload="none"></video>
       <div class="fields">
         ${lim.title ? '<label>Title <input name="title"></label>' : ''}
         <label>${item.platform === 'youtube' ? 'Description' : 'Caption'} <textarea name="caption"></textarea></label>
@@ -50,12 +50,14 @@ function render(item) {
       <span class="status"></span>
     </div>`;
   const q = (s) => el.querySelector(s);
-  const [platformPill, who, dryPill, whenEl] = el.querySelectorAll('.meta > *');
+  const [platformPill, who, dryPill, badge, whenEl] = el.querySelectorAll('.meta > *');
   platformPill.textContent = item.platform + (item.targets?.length ? ` → ${item.targets.join(' + ')}` : '');
   who.textContent = item.account + (item.playlist ? ` · playlist: ${item.playlist}` : '');
   dryPill.hidden = !item.dry_run;
   whenEl.textContent = item.created;
+  // No preload: 100+ cards each fetching video metadata made the popup open slowly. The cover is the poster.
   q('video').src = `${QUEUE}/media/${item.video.file}`;
+  if (item.cover) q('video').poster = `${QUEUE}/media/${item.cover.file}`;
   const title = q('[name=title]');
   if (title) {
     title.value = item.title;
@@ -68,7 +70,7 @@ function render(item) {
   if (q('[name=visibility]')) q('[name=visibility]').value = item.visibility;
   if (q('[name=related]')) q('[name=related]').value = item.related || '';
   q('[name=dry]').checked = item.dry_run;
-  const c = { item, el, status: q('.status'), buttons: [...el.querySelectorAll('button')] };
+  const c = { item, el, badge, status: q('.status'), buttons: [...el.querySelectorAll('button')] };
   c.edits = () => {
     const at = q('[name=at]').value;
     return {
@@ -85,9 +87,40 @@ function render(item) {
   if (!READY.has(item.platform)) {
     c.buttons[0].disabled = true;
     setStatus(c, '', `no ${item.platform} adapter yet`);
+  } else if (item.auto) {
+    // Already approved: the background posts these one by one, a channel at a time. Approving it
+    // again here would start a second post next to that one, and the claim refuses it anyway.
+    c.queued = true;
+    setStatus(c, '', 'Approved · posts automatically in queue order');
   }
+  // The last try's failure survives a closed popup and a restarted extension: shown until the next try.
+  if (item.last_error && !c.queued) setStatus(c, 'bad', `Last try failed: ${item.last_error.replace(/\s+/g, ' ').slice(0, 200)}`);
   cards.set(item.id, c);
   list.append(el);
+  if (c.queued) setState(c, 'approved');
+}
+
+// One visible state per card, so approved / posting / done / failed never look like an untouched card:
+// the Approve button turns into a disabled label, the card gets a coloured edge and a badge.
+const STATES = {
+  approved: ['Approved ✓', 'queued'], posting: ['Posting…', 'posting'], done: ['Done ✓', 'done'], failed: ['Approve', 'failed'],
+};
+function setState(c, kind) {
+  c.state = kind;
+  const [label, cls] = STATES[kind] || ['Approve', ''];
+  c.el.dataset.state = cls;
+  c.buttons[0].textContent = label;
+  c.buttons[0].disabled = kind !== 'failed';
+  c.badge.hidden = !cls || kind === 'failed';
+  c.badge.textContent = kind === 'approved' ? 'approved · queued' : kind === 'posting' ? 'posting now' : kind === 'done' ? 'posted' : '';
+  c.el.style.display = shown(c) ? '' : 'none';
+  renderSummary();
+}
+function renderSummary() {
+  const all = [...cards.values()].filter((c) => READY.has(c.item.platform));
+  const n = (k) => all.filter((c) => c.state === k).length;
+  document.getElementById('sum').textContent =
+    `${all.length - all.filter((c) => c.state && c.state !== 'failed').length} to approve · ${n('approved')} approved · ${n('posting')} posting · ${n('done')} posted`;
 }
 
 function setStatus(c, cls, line) {
@@ -98,17 +131,23 @@ function setStatus(c, cls, line) {
 }
 
 async function approve(c) {
-  if (c.busy || c.done || !READY.has(c.item.platform)) return;
+  if (c.busy || c.done || c.queued || c.state === 'posting' || !READY.has(c.item.platform)) return;
   c.busy = true;
   c.buttons.forEach((b) => (b.disabled = true));
+  setState(c, 'posting');
+  c.buttons[0].disabled = true;
   setStatus(c, '', 'Starting…');
   const res = await chrome.runtime.sendMessage({ type: 'approve', item: c.item, edits: c.edits() });
   c.busy = false;
   if (res?.error) {
-    setStatus(c, 'bad', res.error);
+    // A claim refusal means another post (the auto queue) holds it: not an error the user caused.
+    setStatus(c, /Already being posted/.test(res.error) ? '' : 'bad',
+      /Already being posted/.test(res.error) ? 'In the auto queue (or posting now): nothing to do' : res.error);
     c.buttons.forEach((b) => (b.disabled = false));
+    setState(c, 'failed');
   } else {
     c.done = true;
+    setState(c, 'done');
     setStatus(c, 'ok', `${res.data.status}${res.data.url ? ` · ${res.data.url}` : ''}`);
   }
 }
@@ -132,30 +171,192 @@ async function showProgress() {
   const { progress = {} } = await chrome.storage.session.get('progress');
   for (const [id, line] of Object.entries(progress)) {
     const c = cards.get(id);
-    if (c && !c.done) setStatus(c, line.startsWith('failed') ? 'bad' : '', line);
+    if (c && !c.done) {
+      const failed = line.startsWith('failed');
+      setStatus(c, failed ? 'bad' : '', line);
+      if (failed) { if (!c.item.auto && !c.busy) setState(c, 'failed'); }
+      else if (c.state !== 'posting') setState(c, 'posting');
+    }
   }
 }
 chrome.storage.onChanged.addListener((ch, area) => area === 'session' && ch.progress && showProgress());
+
+// Channel filter, across platforms: one brand at a time. A brand = the shortest account name that
+// is a whole-word prefix of the others ("Dream Jobs" on Meta, "Dream Jobs Daily" on YouTube).
+const chanSel = document.getElementById('chan');
+let brands = [];
+const brandOf = (a) => brands.find((b) => a === b || a?.startsWith(b + ' ')) || a;
+const hideDone = document.getElementById('hide');
+const shown = (c) => (!chanSel.value || brandOf(c.item.account) === chanSel.value)
+  && !(hideDone.checked && ['approved', 'posting', 'done'].includes(c.state));
+function renderFilter() {
+  const names = [...new Set([...cards.values()].map((c) => c.item.account).filter(Boolean))]
+    .sort((x, y) => x.length - y.length);
+  brands = names.filter((n, i) => !names.slice(0, i).some((b) => n.startsWith(b + ' ')));
+  const count = {};
+  for (const c of cards.values()) { const k = brandOf(c.item.account); count[k] = (count[k] || 0) + 1; }
+  const accounts = Object.keys(count).filter(Boolean).sort();
+  const want = ['', ...accounts].map((a) => `${a}|${a ? count[a] : cards.size}`).join();
+  if (chanSel.dataset.sig !== want) {
+    const cur = chanSel.value;
+    chanSel.replaceChildren(new Option(`All channels (${cards.size})`, ''),
+      ...accounts.map((a) => new Option(`${a} (${count[a]})`, a)));
+    chanSel.value = accounts.includes(cur) ? cur : '';
+    chanSel.dataset.sig = want;
+  }
+  for (const c of cards.values()) c.el.style.display = shown(c) ? '' : 'none';
+  renderSummary();
+}
+chanSel.onchange = renderFilter;
+hideDone.onchange = renderFilter;
 
 async function poll() {
   try {
     const items = await (await fetch(`${QUEUE}/api/items`)).json();
     for (const item of items) if (!cards.has(item.id)) render(item);
+    // Posted (or discarded) items leave the queue: drop their cards, the dashboard has them ticked.
+    const live = new Set(items.map((i) => i.id));
+    for (const [id, c] of cards) if (!live.has(id) && !c.busy) { c.el.remove(); cards.delete(id); }
     renderEmpty();
+    renderFilter();
     showProgress();
   } catch {
     if (!cards.size) renderEmpty('Queue server not reachable. Run: postq serve');
   }
 }
 
+// All at once: each card is marked for auto-post with its edits, and the background starts them in
+// parallel lanes (own window each), keeping YouTube on one channel at a time.
 async function approveAll() {
-  for (const c of cards.values()) await approve(c);
+  const todo = [...cards.values()].filter((c) => !c.busy && !c.done && !c.queued && c.state !== 'posting' && c.el.style.display !== 'none' && shown(c) && READY.has(c.item.platform));
+  await Promise.all(todo.map(async (c) => {
+    const res = await fetch(`${QUEUE}/api/items/${c.item.id}/approve`, {
+      method: 'POST', headers: { 'X-Postq': '1', 'Content-Type': 'application/json' }, body: JSON.stringify(c.edits()),
+    });
+    if (!res.ok) return setStatus(c, 'bad', `approve failed (${res.status})`);
+    c.queued = true;
+    setStatus(c, '', 'Approved · starting in parallel');
+    setState(c, 'approved');
+  }));
+  chrome.runtime.sendMessage({ type: 'kick' });
 }
 document.getElementById('all').onclick = approveAll;
 document.addEventListener('keydown', (e) => {
   const inField = ['TEXTAREA', 'INPUT', 'SELECT', 'BUTTON', 'A'].includes(document.activeElement?.tagName);
   if (e.key === 'Enter' && !inField) { e.preventDefault(); approveAll(); }
 });
+
+// Duplicate cleaner: one button per channel starts a scan; each video then has its own delete button
+// (press twice: never a bulk delete). State is kept by the background, so closing the popup (the scan
+// window takes focus) loses nothing: reopen it to see the list and each delete's outcome.
+const $id = (id) => document.getElementById(id);
+const CHANNELS = ['Dream Jobs Daily', 'Blue Eyes Wander', 'Slow Sunlit Days', 'Chinese Everyday For Everyone'];
+let dupOpen = false;
+const dupAccounts = async () => {
+  let tracked = {};
+  try { tracked = await (await fetch(`${QUEUE}/api/tracked`)).json(); } catch { /* the four known channels still show */ }
+  const queued = [...cards.values()].filter((c) => c.item.platform === 'youtube').map((c) => c.item.account);
+  return [...new Set([...CHANNELS, ...Object.values(tracked).map((t) => t.account), ...queued].filter(Boolean))];
+};
+
+async function renderDups() {
+  if (!dupOpen) return;
+  const { dups = {} } = await chrome.storage.session.get('dups');
+  const chips = $id('dupch');
+  if (!chips.childElementCount) {
+    for (const a of await dupAccounts()) {
+      const b = Object.assign(document.createElement('button'), { className: 'chip', textContent: a });
+      b.dataset.account = a;
+      b.onclick = () => { chrome.runtime.sendMessage({ type: 'dupScan', account: a }); dupShown = a; renderDups(); };
+      chips.append(b);
+    }
+  }
+  const busy = Object.values(dups).some((d) => d.state === 'scanning');
+  for (const b of chips.children) {
+    const d = dups[b.dataset.account];
+    b.classList.toggle('on', b.dataset.account === dupShown);
+    b.disabled = busy;
+    b.textContent = b.dataset.account + (d?.state === 'scanning' ? ' · scanning…' : d?.state === 'done' ? ` · ${d.rows.filter((r) => r.del !== 'deleted').length}` : '');
+  }
+  const d = dups[dupShown];
+  const st = $id('dupst');
+  const list = $id('duplist');
+  list.replaceChildren();
+  if (!dupShown || !d) { st.className = 'status'; st.textContent = dupShown ? `Starting the scan of ${dupShown}…` : 'Pick a channel to scan it (opens Studio in a background window, about 1 min).'; return; }
+  if (d.state === 'scanning') { st.className = 'status'; st.textContent = `Scanning ${dupShown}… you can close this popup, the result waits here.`; return; }
+  if (d.state === 'error') { st.className = 'status bad'; st.textContent = d.error; return; }
+  const left = d.rows.filter((r) => r.del !== 'deleted').length;
+  st.className = `status ${left ? '' : 'ok'}`;
+  st.textContent = `${d.total} videos on ${dupShown} · ${left ? `${left} to clean up` : 'no duplicates left ✓'}`;
+  // Delete all: same two presses as a row, then every listed video queues one by one (each still
+  // re-checked by the background: tracked copy, last copy and title guards apply per video).
+  const todo = d.rows.filter((r) => !r.del || r.del === 'error');
+  if (todo.length > 1) {
+    const all = Object.assign(document.createElement('button'), { className: 'danger', textContent: `Delete all ${todo.length}` });
+    let armed;
+    all.onclick = () => {
+      if (!armed) {
+        armed = setTimeout(() => { armed = null; all.textContent = `Delete all ${todo.length}`; all.classList.remove('armed'); }, 4000);
+        all.textContent = `Sure? Delete ${todo.length} forever`;
+        all.classList.add('armed');
+        return;
+      }
+      clearTimeout(armed);
+      all.disabled = true;
+      all.textContent = 'Queued…';
+      for (const r of todo) chrome.runtime.sendMessage({ type: 'dupDelete', account: dupShown, id: r.id, title: r.title });
+    };
+    const bar = document.createElement('div');
+    bar.className = 'dupall';
+    bar.append(all);
+    list.append(bar);
+  }
+  for (const r of d.rows) {
+    const el = document.createElement('div');
+    el.className = `dup${r.del === 'deleted' ? ' gone' : ''}`;
+    el.innerHTML = '<div class="dtop"><img><div class="dinfo"><b class="t"></b><div class="meta"><a target="_blank"></a><span class="v"></span></div><div class="meta w"></div></div><button class="danger"></button></div><div class="status"></div>';
+    el.querySelector('img').src = `https://i.ytimg.com/vi/${r.id}/default.jpg`;
+    el.querySelector('.t').textContent = r.title || '(no title)';
+    Object.assign(el.querySelector('a'), { href: `https://studio.youtube.com/video/${r.id}/edit`, textContent: r.id });
+    el.querySelector('.v').textContent = `${r.vis}${r.date ? ` · ${r.date}` : ''}`;
+    el.querySelector('.w').textContent = r.why;
+    const btn = el.querySelector('button');
+    const rst = el.querySelector('.status');
+    if (r.del === 'deleted') { btn.remove(); rst.className = 'status ok'; rst.textContent = 'Deleted ✓'; }
+    else if (r.del === 'deleting' || r.del === 'queued') { btn.disabled = true; btn.textContent = r.del === 'queued' ? 'Queued…' : 'Deleting…'; }
+    else {
+      btn.textContent = 'Delete';
+      if (r.del === 'error') { rst.className = 'status bad'; rst.textContent = r.delError; }
+      let armed;
+      btn.onclick = () => {
+        if (!armed) {
+          armed = setTimeout(() => { armed = null; btn.textContent = 'Delete'; btn.classList.remove('armed'); }, 4000);
+          btn.textContent = 'Sure? Delete forever';
+          btn.classList.add('armed');
+          return;
+        }
+        clearTimeout(armed);
+        btn.disabled = true;
+        btn.textContent = 'Queued…';
+        chrome.runtime.sendMessage({ type: 'dupDelete', account: dupShown, id: r.id, title: r.title });
+      };
+    }
+    list.append(el);
+  }
+}
+let dupShown = null;
+$id('dups').onclick = async () => {
+  dupOpen = !dupOpen;
+  $id('dupbox').hidden = !dupOpen;
+  $id('list').hidden = dupOpen;
+  $id('dups').classList.toggle('on', dupOpen);
+  if (dupOpen && !dupShown) {
+    const { dups = {} } = await chrome.storage.session.get('dups');
+    dupShown = Object.entries(dups).sort((x, y) => (y[1].at || 0) - (x[1].at || 0))[0]?.[0] || null;
+  }
+  renderDups();
+};
+chrome.storage.onChanged.addListener((ch, area) => area === 'session' && ch.dups && renderDups());
 
 poll();
 setInterval(poll, 5000);
