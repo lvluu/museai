@@ -171,7 +171,7 @@ def main():
     # 3. audio: voice track, foley track, music ducked under voice
     def place(files, delays, out, pre=""):
         ins, fc = [], ""
-        for k, (f_, d_) in enumerate(zip(files, delays)):
+        for k, (f_, d_) in enumerate(zip(files, delays, strict=False)):
             ins += ["-i", str(f_)]
             fc += f"[{k}:a]aresample=48000,aformat=channel_layouts=stereo,{pre}adelay={int(d_ * 1000)}:all=1[a{k}];"
         fc += "".join(f"[a{k}]" for k in range(len(files))) + f"amix=inputs={len(files)}:normalize=0,apad,atrim=duration={total:.3f}[o]"
