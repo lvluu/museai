@@ -161,7 +161,7 @@ class ChatBots:
             raise InvalidRequest("Codex app-server closed")
 
         async def run() -> str:
-            await call("initialize", {"clientInfo": {"name": "muse-hands", "title": "Muse Hands", "version": "1"}})
+            await call("initialize", {"clientInfo": {"name": "Codex Desktop", "title": "Muse Hands", "version": "1"}})
             proc.stdin.write(b'{"jsonrpc":"2.0","method":"initialized"}\n')
             thread = self._read().get("codex_session")
             fresh = {"cwd": cwd, "approvalPolicy": "never", "sandbox": "workspace-write", **model}
