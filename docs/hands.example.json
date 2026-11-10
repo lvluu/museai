@@ -1,0 +1,9 @@
+{
+  "dashboard": {
+    "title": "My posting",
+    "platforms": ["youtube", "tiktok", "facebook", "instagram"],
+    "channels": null,
+    "icons": {"youtube": "▶️", "tiktok": "🎵", "facebook": "📘", "instagram": "📸"},
+    "hide_empty": false
+  }
+}
