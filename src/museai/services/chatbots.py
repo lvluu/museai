@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import shutil
 import tempfile
 from dataclasses import dataclass
@@ -35,6 +36,13 @@ AGENT = (
 - Reply in the user's language, plain text, no markdown tables.""")
 
 
+# Work for the Codex agent: media jobs, code, files, the repo. Edit to taste.
+AGENT_WORDS = re.compile(
+    r"\b(videos?|clips?|reels?|images?|pictures?|photos?|thumbnails?|render|generate|draw|"
+    r"code|script|bug|fix|refactor|repo|file|folder|commit|test|run|install|deploy|server|log|"
+    r"video|ảnh|hình|tạo|vẽ|视频|图片|生成)\b", re.I)
+
+
 @dataclass(frozen=True)
 class Provider:
     id: str
@@ -44,6 +52,8 @@ class Provider:
 
 def available(s: Settings) -> list[Provider]:
     found = []
+    if shutil.which(s.codex_bin):
+        found.append(Provider("auto", "Auto", "router"))
     if s.openai_api_key:
         found.append(Provider("chatgpt", "ChatGPT", s.openai_model))
     if s.anthropic_api_key:
@@ -82,9 +92,22 @@ class ChatBots:
         except (FileNotFoundError, json.JSONDecodeError):
             return {}
 
+    def resolve(self, text: str) -> Provider:
+        """The provider that answers ``text``: the chosen one, or in Auto mode the best fit.
+
+        Auto: media / code / file work -> Codex (it can delegate to museai); everything else -> Claude,
+        then ChatGPT, then Muse, whichever is available."""
+        provider = self.current()
+        if provider.id != "auto":
+            return provider
+        by_id = {p.id: p for p in self.providers()}
+        if AGENT_WORDS.search(text) and "codex" in by_id:
+            return by_id["codex"]
+        return next(by_id[i] for i in ("claude", "chatgpt", "codex", "muse") if i in by_id)
+
     async def reply(self, history: list[Turn]) -> tuple[Provider, str]:
         """Answer the last user turn of ``history`` with the chosen provider."""
-        provider = self.current()
+        provider = self.resolve(history[-1][1])
         if provider.id == "chatgpt":
             text = await self._openai(provider, history)
         elif provider.id == "codex":

@@ -587,3 +587,20 @@ def test_hands_codex_delegates_and_sends_media(client, settings, tmp_path):
     assert methods == ["sendMessage", "sendVideo", "sendMessage"]
     assert sent[1][2]["video"][0] == "clip.mp4" and sent[2][1]["text"].startswith("rendered")
     assert "MEDIA" not in sent[2][1]["text"]
+
+
+def test_hands_auto_routes_by_task(client, settings, tmp_path):
+    from museai.api.routes import hands
+
+    fake = tmp_path / "codex"
+    fake.write_text("#!/bin/sh\n")
+    fake.chmod(0o755)
+    settings.codex_bin = str(fake)
+    settings.openai_api_key, settings.anthropic_api_key = "", "ak"
+    bots = hands.ChatBots(settings, client.app.state.services.gateway)
+    assert [p.id for p in bots.providers()][0] == "auto"
+    bots.choose("auto")
+    assert bots.resolve("make a video of a cat").id == "codex"
+    assert bots.resolve("what is the capital of France?").id == "claude"
+    settings.anthropic_api_key = ""
+    assert bots.resolve("hello").id == "codex"  # no chat key: Codex answers everything
