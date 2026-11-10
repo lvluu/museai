@@ -17,7 +17,9 @@ import asyncio
 import contextlib
 import hashlib
 import logging
+import mimetypes
 import os
+import re
 import subprocess
 import sys
 from datetime import datetime
@@ -229,6 +231,10 @@ def alert_text(name: str, platform: str, result: str, svc: Services) -> tuple[st
     return f"{head}\n{title}\n{(job.get('error') or '')[:300]}".strip(), buttons
 
 
+def _size(path: Path) -> int:
+    return path.stat().st_size if path.is_file() else 0
+
+
 class Bot:
     def __init__(self, svc: Services, client: httpx.AsyncClient | None = None) -> None:
         self.svc = svc
@@ -239,6 +245,7 @@ class Bot:
         self.offset = 0
         self.ai = ChatBots(s, svc.gateway, self.http)
         self.history: dict[int, list[tuple[str, str]]] = {}
+        self.running: set[asyncio.Task] = set()
 
     async def call(self, method: str, **params) -> dict:
         r = await self.http.post(f"{self.base}/{method}", json=params)
@@ -321,6 +328,28 @@ class Bot:
         else:
             await self.call("sendMessage", **params)
 
+    async def send_media(self, chat: int, answer: str) -> str:
+        """Upload every ``MEDIA: <path>`` file the AI named; return the answer without those lines."""
+        keep = []
+        for line in answer.splitlines():
+            m = re.match(r"\s*MEDIA:\s*(.+?)\s*$", line)
+            if not m:
+                keep.append(line)
+                continue
+            path = Path(m.group(1))
+            size = await asyncio.to_thread(_size, path)
+            if not size or size > 50_000_000:
+                keep.append(f"(file not sent: {path.name})")
+                continue
+            kind = {"video": "sendVideo", "image": "sendPhoto"}.get(
+                (mimetypes.guess_type(path.name)[0] or "").split("/")[0], "sendDocument")
+            field = {"sendVideo": "video", "sendPhoto": "photo"}.get(kind, "document")
+            r = await self.http.post(f"{self.base}/{kind}", data={"chat_id": str(chat)},
+                                     files={field: (path.name, await asyncio.to_thread(path.read_bytes))}, timeout=300)
+            if not r.is_success:
+                keep.append(f"(upload failed: {path.name})")
+        return "\n".join(keep).strip()
+
     async def chat(self, chat: int, text: str) -> None:
         turns = self.history.setdefault(chat, [])
         turns.append(("user", text))
@@ -332,6 +361,10 @@ class Bot:
             answer, provider = f"⚠️ {getattr(exc, 'message', exc)}"[:900], None
         else:
             turns.append(("assistant", answer))
+            try:
+                answer = await self.send_media(chat, answer) or "✅ Done."
+            except Exception:  # noqa: BLE001 - the text answer still goes out
+                log.exception("telegram media upload failed")
         footer = f"\n\n— {provider.label}" if provider else ""
         for i in range(0, max(len(answer), 1), 3900):  # Telegram caps a message at 4096 characters
             last = i + 3900 >= len(answer)
@@ -366,9 +399,17 @@ class Bot:
                 await self.pick_model(chat)
             elif text.startswith("/new"):
                 self.history.pop(chat, None)
+                self.ai.new_session()
                 await self.call("sendMessage", chat_id=chat, text="New conversation.")
             elif text and not text.startswith("/"):
-                await self.chat(chat, text)
+                now = self.ai.current()
+                if now.agent:  # may run for minutes: keep the bot answering meanwhile
+                    await self.call("sendMessage", chat_id=chat, text=f"⏳ {now.label} is on it…")
+                    task = asyncio.create_task(self.chat(chat, text))
+                    self.running.add(task)
+                    task.add_done_callback(self.running.discard)
+                else:
+                    await self.chat(chat, text)
             else:
                 await self.call("sendMessage", chat_id=chat,
                                 text=HELP)

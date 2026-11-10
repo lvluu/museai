@@ -270,8 +270,8 @@ def _slots_from(now: datetime, channel: str):
 
 def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
     """Lay each channel's queue out back to back in its free slots. History is the slots of videos
-    posted or deleted (records) and of queued videos posted on a platform or planned for auto-posting;
-    those never move. Every other queued video takes a free upcoming slot, the gaps left before a video
+    posted or deleted (records), manually pinned, or queued videos posted on a platform or planned for
+    auto-posting; those never move. Every other queued video takes a free upcoming slot, the gaps left before a video
     ticked out of order included, in queue order: its current
     slot (a slot the user picks sets its place in line), then delivery. Kinds mix (``_kind``): each free
     slot takes the first video in line of a kind not yet posting that day nor in the slot before, else
@@ -299,7 +299,7 @@ def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
     for n, e in entries:
         auto = e.get("auto") if isinstance(e.get("auto"), dict) else {}
         planned = bool(auto) and not auto.get("off") and not auto.get("paused")  # auto-post keeps its slot
-        if e.get("slot") and (any((e.get("posted") or {}).values()) or planned):
+        if e.get("slot") and (e.get("slot_pinned") or any((e.get("posted") or {}).values()) or planned):
             history[_channel(n, e)][e["slot"]] = _kind(n)
         else:
             queue[_channel(n, e)].append((n, e))
