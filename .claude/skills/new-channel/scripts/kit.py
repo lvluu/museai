@@ -275,7 +275,7 @@ def cover_crop(img, w: int, h: int):
 
 
 def write_title(img, kit: dict, box_w: int, box_h: int):
-    from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageStat
+    from PIL import Image, ImageDraw, ImageFilter, ImageStat
     st = kit.get("style", {})
     title = channel_title(chosen(kit).get("display", "")) or kit.get("slug", "")
     line = strip_emoji(st.get("banner_line", ""))
