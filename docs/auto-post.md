@@ -232,4 +232,4 @@ Customize the look in `data/hands.json`:
 
 With Codex installed, `/model` also lists **Auto**: video / image / code / file requests go to Codex (which delegates to museai), everything else to Claude, then ChatGPT, then Codex, then Muse. Each answer ends with `— Auto → <model>`. Change the trigger words in `AGENT_WORDS` (`services/chatbots.py`).
 
-Codex runs are real sessions: the first message starts one (id kept in `data/hands.json`), later messages resume it, so they appear in `codex resume` / the Codex app history and keep their context. `/new` starts a fresh session.
+Codex runs as a normal thread of the local Codex app-server (the one the ChatGPT / Codex app uses): the first message starts a thread named "Muse Hands · Telegram" (id kept in `data/hands.json`), later messages continue it, so it shows in the app and in `codex resume`. `/new` starts a fresh thread. Model: `MUSE2API_CODEX_MODEL` (default `gpt-6-luna`; the ChatGPT free plan rejects some models).

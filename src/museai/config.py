@@ -62,7 +62,7 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
     openai_model: str = "gpt-4o"
     codex_bin: str = "codex"
-    codex_model: str = ""
+    codex_model: str = "gpt-6-luna"
     agent_cwd: str = ""
     agent_timeout: int = 2400
     anthropic_api_key: str = ""

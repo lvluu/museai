@@ -11,7 +11,6 @@ import asyncio
 import json
 import re
 import shutil
-import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -130,35 +129,73 @@ class ChatBots:
         return r.json()["choices"][0]["message"]["content"] or ""
 
     async def _codex(self, p: Provider, history: list[Turn]) -> str:
-        """Ask the local Codex CLI (signed in with your ChatGPT account, no API key) as an agent in the repo.
+        """Run the message as a thread of the local Codex app-server, the one the Codex app uses.
 
-        It may write inside the repo and reach the local museai server (workspace-write + network), so it
-        can delegate video and image jobs; only allow-listed Telegram chats ever reach it."""
-        session = self._read().get("codex_session")
-        # A saved session: it shows up in Codex's own history (`codex resume`, the app) and keeps the context.
-        prompt = history[-1][1] if session else f"[Muse Hands · Telegram]\n{AGENT}\n\nUser: {history[-1][1]}"
-        with tempfile.TemporaryDirectory() as work:
-            out = Path(work) / "answer.txt"
-            cmd = [self.settings.codex_bin, "exec"] + (["resume"] if session else []) + [
-                "-c", 'sandbox_mode="workspace-write"', "-c", "sandbox_workspace_write.network_access=true",
-                "--skip-git-repo-check", "--ignore-user-config", "-o", str(out)]
-            if self.settings.codex_model:
-                cmd += ["-m", self.settings.codex_model]
-            cmd += [session, "-"] if session else ["-"]
-            proc = await asyncio.create_subprocess_exec(
-                *cmd, stdin=asyncio.subprocess.PIPE, cwd=self.settings.agent_cwd or str(REPO),
-                stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
-            try:
-                _, err = await asyncio.wait_for(proc.communicate(prompt.encode()),
-                                                timeout=self.settings.agent_timeout)
-            except asyncio.TimeoutError:
+        The thread is a normal app thread named "Muse Hands · Telegram" (visible in the ChatGPT / Codex app and
+        `codex resume`); later messages continue it. Codex works as an agent in the repo (workspace-write,
+        network on) so it can delegate video / image jobs to museai; only allow-listed chats reach it."""
+        cwd = self.settings.agent_cwd or str(REPO)
+        model = {"model": self.settings.codex_model} if self.settings.codex_model else {}
+        proc = await asyncio.create_subprocess_exec(
+            self.settings.codex_bin, "app-server", stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL, limit=2**24)
+        ids = iter(range(1, 10**6))
+
+        async def send(method: str, params: dict) -> int:
+            i = next(ids)
+            proc.stdin.write((json.dumps({"jsonrpc": "2.0", "id": i, "method": method, "params": params}) + "\n").encode())
+            await proc.stdin.drain()
+            return i
+
+        async def messages():
+            while line := await proc.stdout.readline():
+                yield json.loads(line)
+
+        async def call(method: str, params: dict) -> dict:
+            i = await send(method, params)
+            async for m in messages():
+                if m.get("id") == i and "method" not in m:
+                    if "error" in m:
+                        raise InvalidRequest(f"Codex: {m['error'].get('message', m['error'])}")
+                    return m["result"]
+            raise InvalidRequest("Codex app-server closed")
+
+        async def run() -> str:
+            await call("initialize", {"clientInfo": {"name": "muse-hands", "title": "Muse Hands", "version": "1"}})
+            proc.stdin.write(b'{"jsonrpc":"2.0","method":"initialized"}\n')
+            thread = self._read().get("codex_session")
+            fresh = {"cwd": cwd, "approvalPolicy": "never", "sandbox": "workspace-write", **model}
+            if thread:
+                await call("thread/resume", {"threadId": thread, **fresh})
+            else:
+                thread = (await call("thread/start", {**fresh, "serviceName": "Muse Hands", "threadSource": "user", "developerInstructions": AGENT}))["thread"]["id"]
+                self.file.write_text(json.dumps({**self._read(), "codex_session": thread}))
+                await call("thread/name/set", {"threadId": thread, "name": "Muse Hands · Telegram"})
+            await call("turn/start", {"threadId": thread, "input": [{"type": "text", "text": history[-1][1]}],
+                                      "sandboxPolicy": {"type": "workspaceWrite", "networkAccess": True}, **model})
+            answer = ""
+            async for m in messages():
+                if "id" in m and "method" in m:  # an approval or tool request: we run with approvals off
+                    proc.stdin.write((json.dumps({"jsonrpc": "2.0", "id": m["id"], "error": {
+                        "code": -32601, "message": "not supported"}}) + "\n").encode())
+                    continue
+                if m.get("method") == "item/completed" and m["params"]["item"].get("type") == "agentMessage":
+                    answer = m["params"]["item"]["text"]
+                if m.get("method") == "turn/completed":
+                    turn = m["params"]["turn"]
+                    if turn.get("status") == "failed":
+                        raise InvalidRequest(f"Codex failed: {str(turn.get('error'))[:200]}")
+                    return answer
+            raise InvalidRequest("Codex app-server closed")
+
+        try:
+            return await asyncio.wait_for(run(), timeout=self.settings.agent_timeout)
+        except asyncio.TimeoutError:
+            raise InvalidRequest("Codex timed out") from None
+        finally:
+            if proc.returncode is None:
                 proc.kill()
-                raise InvalidRequest("Codex timed out") from None
-            if proc.returncode or not out.exists():
-                raise InvalidRequest(f"Codex failed: {err.decode()[-200:]}")
-            if not session and (m := re.search(r"session id: (\S+)", err.decode())):
-                self.file.write_text(json.dumps({**self._read(), "codex_session": m.group(1)}))
-            return out.read_text()
+            await proc.wait()
 
     def new_session(self) -> None:
         """/new: the next Codex message starts a fresh session."""
