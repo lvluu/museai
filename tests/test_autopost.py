@@ -555,3 +555,35 @@ def test_hands_codex_cli(client, settings, tmp_path):
     bots.choose("codex")
     provider, text = asyncio.run(bots.reply([("user", "hi")]))
     assert provider.id == "codex" and text == "from codex"
+
+
+def test_hands_codex_delegates_and_sends_media(client, settings, tmp_path):
+    from museai.api.routes import hands
+
+    video = tmp_path / "clip.mp4"
+    video.write_bytes(b"x")
+    fake = tmp_path / "codex"
+    fake.write_text('#!/bin/sh\nwhile [ "$1" != "-o" ]; do shift; done\ncat > /dev/null\n'
+                    f'printf "rendered\\nMEDIA: {video}\\n" > "$2"\n')
+    fake.chmod(0o755)
+    settings.codex_bin = str(fake)
+    settings.telegram_bot_token, settings.telegram_chat_ids = "T", "42"
+    settings.openai_api_key = settings.anthropic_api_key = ""
+    sent = []
+
+    class Http:
+        async def post(self, url, json=None, data=None, files=None, timeout=None):
+            sent.append((url.rsplit("/", 1)[1], json or data, files))
+            return httpx.Response(200, json={"ok": True, "result": []}, request=httpx.Request("POST", url))
+
+    async def run():
+        bot = hands.Bot(client.app.state.services, Http())
+        bot.ai.choose("codex")
+        await bot.handle({"message": {"chat": {"id": 42}, "text": "make a video of a cat"}})
+        await asyncio.gather(*bot.running)
+
+    asyncio.run(run())
+    methods = [m for m, *_ in sent]
+    assert methods == ["sendMessage", "sendVideo", "sendMessage"]
+    assert sent[1][2]["video"][0] == "clip.mp4" and sent[2][1]["text"].startswith("rendered")
+    assert "MEDIA" not in sent[2][1]["text"]

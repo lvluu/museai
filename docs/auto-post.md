@@ -226,4 +226,4 @@ Customize the look in `data/hands.json`:
 
 ### Chat with Codex (no API key)
 
-`/model` lists **Codex** when the `codex` CLI is installed and signed in (`codex login`, your ChatGPT account). Each message runs `codex exec` read-only in an empty temp dir, ignoring `~/.codex/config.toml`. Optional: `MUSE2API_CODEX_MODEL`, `MUSE2API_CODEX_BIN`.
+`/model` lists **Codex** when the `codex` CLI is installed and signed in (`codex login`, your ChatGPT account). Each message runs `codex exec` as an agent in the museai repo (workspace-write sandbox, network on, ignoring `~/.codex/config.toml`). Video/image requests are delegated to museai through the `muse-video` skill and the local API; finished files named on a `MEDIA: <path>` line are sent back to the chat (≤50 MB). The bot stays responsive while Codex works (`MUSE2API_CODEX_TIMEOUT`, default 2400 s; `MUSE2API_CODEX_CWD` to change the working dir). Only chats in `MUSE2API_TELEGRAM_CHAT_IDS` reach it. Optional: `MUSE2API_CODEX_MODEL`, `MUSE2API_CODEX_BIN`.

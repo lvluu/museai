@@ -23,6 +23,16 @@ from .gateway import Gateway
 
 Turn = tuple[str, str]  # ("user" | "assistant", text)
 SYSTEM = "You are Muse Hands, a concise assistant answering in a Telegram chat on a phone."
+REPO = Path(__file__).resolve().parents[3]
+AGENT = (
+    SYSTEM + """ You run inside the museai repo (your working directory) and can use its tools.
+- Plain questions: just answer, briefly.
+- Video or image requests: delegate to museai (muse.ai) - never invent files. For a video read and follow
+  .claude/skills/muse-video/SKILL.md (use its scripts, one render at a time); for an image POST
+  /v1/images/generations on the local server http://127.0.0.1:18610 (key in data/api_key; never print that file
+  or data/accounts.json). If the server is down, start it as the skill says.
+- When a finished video or image exists, end your answer with one line per file: MEDIA: <absolute path>.
+- Reply in the user's language, plain text, no markdown tables.""")
 
 
 @dataclass(frozen=True)
@@ -97,12 +107,17 @@ class ChatBots:
         return r.json()["choices"][0]["message"]["content"] or ""
 
     async def _codex(self, p: Provider, history: list[Turn]) -> str:
-        """Ask the local Codex CLI (signed in with your ChatGPT account, no API key), read-only."""
+        """Ask the local Codex CLI (signed in with your ChatGPT account, no API key) as an agent in the repo.
+
+        It may write inside the repo and reach the local museai server (workspace-write + network), so it
+        can delegate video and image jobs; only allow-listed Telegram chats ever reach it."""
         transcript = "\n".join(f"{'User' if r == 'user' else 'Assistant'}: {t}" for r, t in history)
         with tempfile.TemporaryDirectory() as work:
             out = Path(work) / "answer.txt"
-            cmd = [self.settings.codex_bin, "exec", "--sandbox", "read-only", "--skip-git-repo-check",
-                   "--ephemeral", "--ignore-user-config", "-C", work, "-o", str(out)]
+            cmd = [self.settings.codex_bin, "exec", "--sandbox", "workspace-write",
+                   "-c", "sandbox_workspace_write.network_access=true", "--skip-git-repo-check",
+                   "--ephemeral", "--ignore-user-config", "-C", self.settings.codex_cwd or str(REPO),
+                   "-o", str(out)]
             if self.settings.codex_model:
                 cmd += ["-m", self.settings.codex_model]
             proc = await asyncio.create_subprocess_exec(
@@ -110,7 +125,8 @@ class ChatBots:
                 stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
             try:
                 _, err = await asyncio.wait_for(
-                    proc.communicate(f"{SYSTEM}\n\n{transcript}\nAssistant:".encode()), timeout=300)
+                    proc.communicate(f"{AGENT}\n\n{transcript}\nAssistant:".encode()),
+                    timeout=self.settings.codex_timeout)
             except asyncio.TimeoutError:
                 proc.kill()
                 raise InvalidRequest("Codex timed out") from None
