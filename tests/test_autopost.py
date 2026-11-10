@@ -551,7 +551,7 @@ def test_hands_codex_cli(client, settings, tmp_path):
     settings.codex_bin = str(fake)
     settings.openai_api_key = settings.anthropic_api_key = ""
     bots = hands.ChatBots(settings, client.app.state.services.gateway)
-    assert [p.id for p in bots.providers()] == ["codex", "muse"]
+    assert [p.id for p in bots.providers()] == ["auto", "codex", "muse"]
     bots.choose("codex")
     provider, text = asyncio.run(bots.reply([("user", "hi")]))
     assert provider.id == "codex" and text == "from codex"
