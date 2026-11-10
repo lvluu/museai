@@ -1,0 +1,58 @@
+{
+ "slug": "cute-pets",
+ "idea": "cute pets: photoreal tiny baby animals (kittens, puppies, bunnies, ducklings, hamsters) small enough to sit in a palm, a teacup or a slipper, living one cozy everyday moment per short - first snow, bath time, a nap in a sock drawer, sharing a strawberry",
+ "audience": "US + worldwide English, 18-34, cozy / wholesome / animal-lover feeds",
+ "language": "en",
+ "niche": "wholesome AI pet shorts",
+ "promise": "one tiny, cozy pet moment to make your day softer, every day",
+ "ai_made": true,
+ "notes": "Niche leaders (real-pet compilations, AI 'tiny animal' reels) post 8-20 s loops with natural sound, no talking, close macro framing, a hook in the first second (paw touch, sleepy yawn). Gap: one consistent cozy world (same warm cottage, same palette) and tiny-scale props, so viewers recognise the channel by the first frame. Avoid 'teacup' in the name: it points at teacup-breeding controversy. Never show an animal in distress or danger (comment backlash, platform policy).",
+ "names": [
+  {"display": "Pocket Paws 🐾 tiny AI pets", "handle": "pocketpawsai", "why": "Says the hook (pets small enough for a pocket) in two words; ai says AI up front; 12 chars fits X."},
+  {"display": "Tiny Snuggles", "handle": "tinysnugglesai", "why": "Matches 'cute', 'cozy', 'snuggle' searches; softer, less specific to size."},
+  {"display": "Palm Pets", "handle": "palmpetsai", "why": "Shortest; every video framed with the pet in a palm or cup."}
+ ],
+ "chosen": 0,
+ "style": {
+  "look": "Photoreal macro photograph, 100 mm macro lens at f/2.8, shallow depth of field, warm soft window light from the left, cozy cottage interior in cream, honey wood and sage green, knitted wool and linen textures, real fur detail with individual hairs, gentle natural motion, calm and tender mood, slight warm film colour.",
+  "palette": ["#F6EBDD", "#E9B872", "#9CB58F", "#7A5236"],
+  "font": "SF Rounded",
+  "mood": "cozy, tender, playful",
+  "avatar_subject": "a tiny fluffy cream kitten with big round eyes peeking over the rim of a sage-green knitted mitten, one small paw resting on the edge",
+  "banner_scene": "a cozy cottage windowsill at golden hour seen wide: on the left a tiny bunny asleep in a teacup, in the centre a calm empty strip of warm wooden sill with soft bokeh window light, on the right a tiny puppy in a knitted slipper and a duckling beside a strawberry",
+  "banner_line": "tiny pets, cozy moments, daily"
+ },
+ "platforms": {
+  "youtube": {
+   "name": "Pocket Paws 🐾 tiny AI pets",
+   "handle": "pocketpawsai",
+   "description": "Welcome to Pocket Paws 🐾\n\nEvery Short is one tiny, cozy moment with a pet small enough to fit in your palm: a kitten's first snow, a bunny's bath in a teacup, a puppy napping in a slipper, a duckling sharing a strawberry.\n\nAll videos are made with AI (images, motion and sound) and edited by hand. No real animals were filmed, and no animal is ever shown in danger.\n\nA new tiny pet every day. Tell me in the comments which tiny pet you want to see next.",
+   "keywords": ["cute pets", "cute animals", "tiny animals", "kitten", "puppy", "bunny", "cozy", "wholesome", "AI animals", "relaxing"],
+   "category": "Pets & Animals"
+  },
+  "instagram": {
+   "name": "Pocket Paws 🐾 tiny AI pets",
+   "handle": "pocketpawsai",
+   "bio": "🐾 tiny pets, cozy moments\n🧶 AI-made · a new tiny pet every day\n💌 comment the pet you want next",
+   "category": "Digital creator"
+  },
+  "tiktok": {
+   "name": "Pocket Paws 🐾",
+   "handle": "pocketpawsai",
+   "bio": "tiny pets, cozy moments 🐾 AI-made · new one daily"
+  },
+  "facebook": {
+   "name": "Pocket Paws",
+   "handle": "pocketpawsai",
+   "bio": "Tiny pets in cozy little moments. AI-made, a new tiny pet every day. 🐾",
+   "category": "Digital creator"
+  }
+ },
+ "hashtags": ["#cutepets", "#cuteanimals", "#tinyanimals", "#cozy", "#aianimals"],
+ "pillars": [
+  {"name": "Tiny pet moment", "share": 75, "what": "one tiny animal, one cozy everyday moment, 8-15 s loop"},
+  {"name": "Which one is yours?", "share": 15, "what": "3-4 tiny pets side by side, question in the caption"},
+  {"name": "Seasonal cozy", "share": 10, "what": "first snow, pumpkin patch, spring blossom, a week before the peak"}
+ ],
+ "first_posts": ["kitten's first snowflake", "bunny bath in a teacup", "puppy nap in a slipper"]
+}
