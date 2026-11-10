@@ -358,3 +358,184 @@ async def test_instagram_reel_waits_for_processing(tmp_path):
     saved, save = saver()
     res = await pub.publish(job(tmp_path, "instagram", {"ig_user_id": "u", "access_token": "pt"}), {}, save)
     assert res.url == "https://www.instagram.com/reel/abc/" and saved[-1]["publishing"]
+
+
+# --- Muse Hands ---
+
+def test_hands_lists_and_posts_now(client, admin, settings):
+    from museai.api.routes import hands
+
+    drop(settings, CHINESE, captions={"youtube": "Đi chợ\nmore", "tiktok": "x"})
+    autopost.save_config(client.app.state.services, False, [autopost.Rule(**RULE)])
+    data = client.get("/dashboard/hands/data", headers=admin).json()
+    video = next(v for v in data["videos"] if v["name"] == CHINESE)
+    assert video["title"] == "Đi chợ" and video["planned"]
+    states = {p["id"]: p["state"] for p in video["platforms"]}
+    assert states["youtube"] == "scheduled" and states["facebook"] == "manual"
+
+    res = client.post("/dashboard/hands/post", json={"name": CHINESE, "platform": "youtube"}, headers=admin)
+    assert res.status_code == 200 and "youtube posting within" in res.json()["message"]
+    assert plan_of(client, admin, CHINESE)["jobs"][0]["state"] in ("retry", "scheduled")
+    assert client.post("/dashboard/hands/post", json={"name": "nope.mp4", "platform": "youtube"},
+                       headers=admin).status_code == 404
+
+    text, markup = hands.render(client.get("/dashboard/hands/data", headers=admin).json())
+    buttons = [b["callback_data"] for row in markup["inline_keyboard"] for b in row]
+    assert f"post:{video['id']}:youtube" in buttons and "list" in buttons
+    assert all(len(b.encode()) <= 64 for b in buttons)
+
+
+def test_hands_bot_ignores_strangers_and_triggers(client, admin, settings):
+    from museai.api.routes import hands
+
+    drop(settings, CHINESE, captions={"youtube": "t", "tiktok": "x"})
+    svc = client.app.state.services
+    autopost.save_config(svc, False, [autopost.Rule(**RULE)])
+    settings.telegram_bot_token, settings.telegram_chat_ids = "T", "42"
+    sent = []
+
+    class Http:
+        async def post(self, url, json):
+            sent.append((url.rsplit("/", 1)[1], json))
+            return httpx.Response(200, json={"ok": True, "result": []}, request=httpx.Request("POST", url))
+
+    bot = hands.Bot(svc, Http())
+    vid = next(v["id"] for v in client.get("/dashboard/hands/data", headers=admin).json()["videos"])
+    asyncio.run(bot.handle({"message": {"chat": {"id": 7}, "text": "/posts"}}))
+    assert [m for m, _ in sent] == ["sendMessage"] and "Not allowed" in sent[0][1]["text"]
+    sent.clear()
+    asyncio.run(bot.handle({"callback_query": {"id": "c", "data": f"post:{vid}:tiktok",
+                                               "message": {"chat": {"id": 42}, "message_id": 5}}}))
+    assert [m for m, _ in sent] == ["answerCallbackQuery", "editMessageText"]
+    assert "tiktok posting within" in sent[0][1]["text"]
+
+
+def test_hands_alerts_failure_with_buttons(client, admin, settings, monkeypatch):
+    from museai.api.routes import hands
+
+    drop(settings, CHINESE, captions={"youtube": "t", "tiktok": "x"})
+    svc = client.app.state.services
+    autopost.save_config(svc, False, [autopost.Rule(**RULE)])
+    settings.telegram_bot_token, settings.telegram_chat_ids = "T", "42"
+    sent = []
+
+    class Http:
+        async def post(self, url, json):
+            sent.append((url.rsplit("/", 1)[1], json))
+            return httpx.Response(200, json={"ok": True, "result": []}, request=httpx.Request("POST", url))
+
+    bot = hands.Bot(svc, Http())
+    client.get("/dashboard/hands/data", headers=admin)
+    autopost._job(svc, posting._key(CHINESE), "youtube", state="error", error="quota exceeded", attempts=6)
+    asyncio.run(bot.alert(svc, [(CHINESE, "youtube", "error"), (CHINESE, "tiktok", "waiting")]))
+    assert len(sent) == 1 and "quota exceeded" in sent[0][1]["text"]
+    data = [b["callback_data"] for row in sent[0][1]["reply_markup"]["inline_keyboard"] for b in row]
+    assert [d.split(":")[0] for d in data] == ["retry", "delete"]
+    assert all(len(d.encode()) <= 64 for d in data)
+
+    sent.clear()
+    def cb(d):
+        return {"callback_query": {"id": "c", "data": d,
+                                   "message": {"chat": {"id": 42}, "message_id": 5, "text": "❌"}}}
+
+    asyncio.run(bot.handle(cb(data[0])))
+    assert "youtube posting within" in sent[0][1]["text"] and sent[1][0] == "editMessageText"
+    trashed = []
+    monkeypatch.setattr(posting, "_trash", trashed.append)
+    asyncio.run(bot.handle(cb(data[1])))
+    assert trashed and trashed[-1].name == CHINESE  # loose in the posting folder: just the video
+
+    folder = settings.post_dir / "Episode 45"
+    folder.mkdir()
+    (folder / "45.mp4").write_bytes(b"v")
+    (folder / "notes.txt").write_text("x")
+    (folder / posting.FOLDER_MARK).write_text("")
+    os.utime(folder / "45.mp4", (time.time() - 3600,) * 2)
+    trashed.clear()
+    asyncio.run(bot.handle(cb(f"delete:{hands._short('45.mp4')}")))
+    assert len(trashed) == 1 and trashed[0].parent == settings.post_dir and trashed[0].name.endswith("· 45")
+
+
+def test_hands_chat_models(client, settings):
+    from museai.api.routes import hands
+
+    settings.telegram_bot_token, settings.telegram_chat_ids = "T", "42"
+    settings.openai_api_key, settings.anthropic_api_key = "ok", "ak"
+    svc = client.app.state.services
+    sent, calls = [], []
+
+    class Http:
+        async def post(self, url, json=None, headers=None):
+            calls.append((url, json))
+            if "api.telegram.org" in url:
+                sent.append((url.rsplit("/", 1)[1], json))
+                return httpx.Response(200, json={"ok": True, "result": []}, request=httpx.Request("POST", url))
+            body = ({"choices": [{"message": {"content": "from gpt"}}]} if "openai" in url
+                    else {"content": [{"type": "text", "text": "from claude"}]})
+            return httpx.Response(200, json=body, request=httpx.Request("POST", url))
+
+    bot = hands.Bot(svc, Http())
+    say = lambda t: asyncio.run(bot.handle({"message": {"chat": {"id": 42}, "text": t}}))  # noqa: E731
+    tap = lambda d: asyncio.run(bot.handle({"callback_query": {  # noqa: E731
+        "id": "c", "data": d, "message": {"chat": {"id": 42}, "message_id": 9, "text": "m"}}}))
+
+    say("/model")
+    labels = [b["text"] for b in sent[-1][1]["reply_markup"]["inline_keyboard"][0]]
+    assert labels == ["✅ ChatGPT", "Claude", "Muse"]  # nothing chosen yet: the first available is current
+    tap("model:claude")
+    say("hello")
+    assert sent[-1][1]["text"] == "from claude\n\n— Claude"
+    ai = [c for c in calls if "telegram" not in c[0]]
+    assert ai[-1][0].startswith("https://api.anthropic.com") and ai[-1][1]["messages"][-1]["content"] == "hello"
+    tap("model:chatgpt")
+    say("again")
+    assert sent[-1][1]["text"].startswith("from gpt")
+    ai = [c for c in calls if "telegram" not in c[0]]
+    assert [m["role"] for m in ai[-1][1]["messages"]] == ["system", "user", "assistant", "user"]
+    assert hands.ChatBots(settings, svc.gateway).current().id == "chatgpt"  # survives a restart
+    settings.openai_api_key = ""
+    tap("model:chatgpt")  # key gone: refused, not switched
+    assert bot.ai.current().id == "claude"
+
+
+def test_hands_status_dashboard_and_approve(client, admin, settings):
+    from museai.api.routes import hands
+
+    drop(settings, CHINESE, captions={"youtube": "t", "tiktok": "x"})
+    svc = client.app.state.services
+    autopost.save_config(svc, False, [autopost.Rule(**RULE)])
+    settings.telegram_bot_token, settings.telegram_chat_ids = "T", "42"
+    sent = []
+
+    class Http:
+        async def post(self, url, json):
+            sent.append((url.rsplit("/", 1)[1], json))
+            return httpx.Response(200, json={"ok": True, "result": []}, request=httpx.Request("POST", url))
+
+    bot = hands.Bot(svc, Http())
+
+    def msg(text):
+        asyncio.run(bot.handle({"message": {"chat": {"id": 42}, "text": text}}))
+
+    def tap(data):
+        asyncio.run(bot.handle({"callback_query": {"id": "c", "data": data,
+                                                   "message": {"chat": {"id": 42}, "message_id": 5}}}))
+
+    msg("/status")
+    text, markup = sent[-1][1]["text"], sent[-1][1]["reply_markup"]
+    buttons = [b["callback_data"] for row in markup["inline_keyboard"] for b in row]
+    assert "1 video left" in text and "apprq:all:all" in buttons and "status" in buttons
+    assert all(len(b.encode()) <= 64 for b in buttons)
+    tap(next(b for b in buttons if b.startswith("ch:")))
+    edits = [j for m, j in sent if m == "editMessageText"]
+    assert "left" in edits[-1]["text"]
+    tap("apprq:all:youtube")
+    assert "Post 1 job" in [j for m, j in sent if m == "editMessageText"][-1]["text"]
+    tap("appr:all:youtube")
+    assert any("1 queued" in j.get("text", "") for m, j in sent if m == "answerCallbackQuery")
+    msg("/postq")
+    assert "Auto-posting" in sent[-1][1]["text"]
+    msg("/tasks")
+    assert sent[-1][0] == "sendMessage"
+    msg("/approve bogus")
+    assert "channels:" in sent[-1][1]["text"]

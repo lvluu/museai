@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Muse Hands</title>
+<style>
+  :root { --bg:#fff; --fg:#1b1b1f; --mut:#6b6b76; --line:#e3e3e8; --card:#f6f6f9; --ok:#1a7f37; --bad:#c62828; --warn:#b26a00; --btn:#2f5bea; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#111114; --fg:#ececf1; --mut:#9a9aa6; --line:#2a2a31; --card:#1a1a1f; --ok:#4cc26a; --bad:#ff6b6b; --warn:#f0a940; --btn:#6b8cff; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.4 -apple-system, system-ui, sans-serif; }
+  header { position:sticky; top:0; background:var(--bg); border-bottom:1px solid var(--line); padding:12px 16px; display:flex; gap:12px; align-items:center; }
+  h1 { font-size:18px; margin:0; flex:1; } h1 small { color:var(--mut); font-weight:400; font-size:13px; margin-left:6px; }
+  header button { font:inherit; padding:6px 12px; border:1px solid var(--line); border-radius:8px; background:var(--card); color:var(--fg); }
+  main { padding:12px 16px 40px; max-width:720px; margin:0 auto; }
+  .banner { background:var(--card); border:1px solid var(--warn); color:var(--warn); padding:8px 12px; border-radius:8px; margin-bottom:12px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:12px; }
+  .title { font-weight:600; overflow-wrap:anywhere; }
+  .meta { color:var(--mut); font-size:13px; margin-bottom:8px; overflow-wrap:anywhere; }
+  .row { display:flex; align-items:center; gap:8px; padding:6px 0; border-top:1px solid var(--line); }
+  .row .p { flex:1; min-width:0; }
+  .state { font-size:13px; }
+  .state.posted { color:var(--ok); } .state.error,.state.missed { color:var(--bad); } .state.retry,.state.needs_account,.state.paused { color:var(--warn); }
+  .err { color:var(--bad); font-size:12px; overflow-wrap:anywhere; }
+  .row button { font:inherit; padding:8px 14px; border:0; border-radius:8px; background:var(--btn); color:#fff; }
+  .row button:disabled { opacity:.5; }
+  .row a { color:var(--btn); font-size:13px; }
+  #msg { position:fixed; left:16px; right:16px; bottom:16px; background:var(--fg); color:var(--bg); padding:10px 14px; border-radius:10px; display:none; }
+  .empty { color:var(--mut); text-align:center; padding:40px 0; }
+</style>
+</head>
+<body>
+<header><h1>Muse Hands <small id="count"></small></h1><button id="refresh">Refresh</button></header>
+<main><div id="list"></div></main>
+<div id="msg" role="status"></div>
+<script>
+const key = new URLSearchParams(location.hash.slice(1)).get("key") || "";
+const list = document.getElementById("list"), msg = document.getElementById("msg");
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; };
+
+async function api(path, body) {
+  const headers = key ? { Authorization: "Bearer " + key } : {};
+  const opts = body === undefined ? { headers } : { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify(body) };
+  const r = await fetch(path, opts);
+  if (r.status === 401) throw new Error("not local: open /dashboard/hands#key=<admin key>");
+  if (!r.ok) { const e = await r.json().catch(() => null); throw new Error(e?.error?.message || r.status + " " + r.statusText); }
+  return r.json();
+}
+function toast(text) { msg.textContent = text; msg.style.display = "block"; clearTimeout(toast.t); toast.t = setTimeout(() => msg.style.display = "none", 4000); }
+const when = (iso) => iso ? new Date(iso).toLocaleString([], { weekday: "short", hour: "2-digit", minute: "2-digit" }) : "";
+
+async function load() {
+  try {
+    const d = await api("/dashboard/hands/data");
+    list.replaceChildren();
+    const todo = d.videos.filter(v => v.platforms.some(p => p.can_post && p.state !== "manual")).length;
+    document.getElementById("count").textContent = d.videos.length + " left · " + todo + " to post";
+    if (d.paused) list.append(el("div", "banner", "Auto-posting is paused (Pause all on the dashboard). Post now will not run until it is resumed."));
+    if (!d.videos.length) list.append(el("div", "empty", "0 videos left. Watching: " + d.folder));
+    for (const v of d.videos) {
+      const card = el("div", "card");
+      card.append(el("div", "title", v.title || v.name), el("div", "meta", v.channel + " · " + v.name + (v.planned ? "" : " · not auto-planned")));
+      for (const p of v.platforms) {
+        if (p.state === "manual" && !p.time) continue;
+        const row = el("div", "row"), info = el("div", "p");
+        const st = el("div", "state " + p.state, p.name + " · " + p.state.replace("_", " ") + (p.time ? " · " + when(p.time) : ""));
+        info.append(st);
+        if (p.error) info.append(el("div", "err", p.error));
+        row.append(info);
+        if (p.url) { const a = el("a", "", "open"); a.href = p.url; a.target = "_blank"; row.append(a); }
+        if (p.can_post && v.planned) {
+          const b = el("button", "", "Post now");
+          b.onclick = async () => {
+            if (!confirm("Post " + p.name + " now?\n" + (v.title || v.name))) return;
+            b.disabled = true;
+            try { toast((await api("/dashboard/hands/post", { name: v.name, platform: p.id })).message); } catch (e) { toast(e.message); }
+            load();
+          };
+          row.append(b);
+        }
+        card.append(row);
+      }
+      list.append(card);
+    }
+  } catch (e) { list.replaceChildren(el("div", "empty", e.message)); }
+}
+document.getElementById("refresh").onclick = load;
+load(); setInterval(load, 20000);
+</script>
+</body>
+</html>

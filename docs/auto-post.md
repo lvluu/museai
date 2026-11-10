@@ -70,6 +70,31 @@ with YouTube Shorts only; tick more platforms on a rule when their accounts are 
 4. Watch the first video post: its tile turns `posted` with a youtube.com/shorts link. Uploads stay
    private until the API audit passes; send the audit once a few have gone through.
 
+## Muse Hands (post from your phone)
+
+`/dashboard/hands` lists every queued video with its state per platform and a **Post now** button
+(phone-sized; from outside the laptop open `/dashboard/hands#key=<admin key>`).
+The Telegram bot **Muse Hands** does the same from chat: `/posts` lists the videos, one button per
+platform presses **Post now**; the auto-post loop then posts it within `MUSE2API_AUTOPOST_INTERVAL`.
+
+1. Telegram → @BotFather → `/newbot` → copy the token.
+2. `.env`: `MUSE2API_TELEGRAM_BOT_TOKEN=…`, restart, message the bot once: it replies with your chat id (the bot starts with no ids listed and serves nobody until you add yours).
+3. `.env`: `MUSE2API_TELEGRAM_CHAT_IDS=<id>` (comma-separated for more), restart.
+
+The bot also messages you by itself after every auto-post pass: ✅ posted (with link), and for a failure
+(🔁 retrying, ❌ gave up, ⚠️ missed, 🔌 no account) two buttons instead of a question:
+**Retry** and **Delete post** (to the Trash). A tap answers in the same message.
+
+**Chat with an AI.** Any plain message to the bot is answered by the chosen model, with the last 20
+turns as context. `/model` shows buttons (✅ marks the current one) for **ChatGPT**, **Claude** and
+**Muse** (muse.ai through this gateway, no key); the choice is saved in `data/hands.json`. `/new`
+starts a fresh conversation. ChatGPT and Claude appear once `MUSE2API_OPENAI_API_KEY` /
+`MUSE2API_ANTHROPIC_API_KEY` are set (models: `MUSE2API_OPENAI_MODEL`, `MUSE2API_ANTHROPIC_MODEL`).
+
+The server polls Telegram outbound only (no tunnel, no open port). Only listed chats are answered.
+The laptop must be awake: while the bot runs, the server holds `caffeinate` (idle + system sleep on
+power; `MUSE2API_KEEP_AWAKE=false` turns it off). A closed lid on battery still sleeps.
+
 ## Developer apps (one-time, by you)
 
 Each platform needs a developer app of your own. Put its id and secret in `.env`, restart the
@@ -174,3 +199,25 @@ Nothing is posted until an account is connected: a due job without an account wa
 - `src/museai/services/oauth.py`: the three OAuth flows and token refresh.
 - `src/museai/services/publishers/`: one driver per platform plus `mock.py`.
 - `tests/test_autopost.py`: offline tests (mock driver and `httpx.MockTransport`).
+
+### Muse Hands commands (replaces the pager bot)
+
+Stop any other process polling the same token first (else Telegram `409 Conflict`).
+
+| Command | Does |
+|---|---|
+| `/status` | Dashboard: channels × platforms left, tap a channel to drill in, tap a platform to post, ✅ Approve (asks to confirm) |
+| `/approve <channel\|all> [platform]` | Post queued videos now (confirm button) |
+| `/posts` | Every video, tap to post |
+| `/postq` | Auto-post state counts |
+| `/tasks`, `/job [id]`, `/cancel [id]` | Video renders: list, detail, cancel (latest if no id) |
+| `/model`, `/new` | Pick chat AI, reset chat |
+
+Customize the look in `data/hands.json`:
+
+```json
+{"dashboard": {"title": "Posting", "platforms": ["youtube", "tiktok"], "channels": ["chinese"],
+               "icons": {"youtube": "▶️"}, "hide_empty": true}}
+```
+
+`/task <prompt>` (Claude sessions) is not implemented.
