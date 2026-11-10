@@ -148,14 +148,29 @@ class ChatBots:
             proc.stdin.write(b'{"jsonrpc":"2.0","method":"initialized"}\n')
             thread = self._read().get("codex_session")
             fresh = {"cwd": cwd, "approvalPolicy": "never", "sandbox": "workspace-write", **model}
-            if thread:
-                await call("thread/resume", {"threadId": thread, **fresh})
+            async def start() -> str:
+                t = (await call("thread/start", {**fresh, "serviceName": "Muse Hands", "threadSource": "user", "developerInstructions": AGENT}))["thread"]["id"]
+                self.file.write_text(json.dumps({**self._read(), "codex_session": t}))
+                await call("thread/name/set", {"threadId": t, "name": "Muse Hands · Telegram"})
+                return t
+
+            async def turn(t: str) -> None:
+                await call("turn/start", {"threadId": t, "input": [{"type": "text", "text": history[-1][1]}],
+                                          "sandboxPolicy": {"type": "workspaceWrite", "networkAccess": True}, **model})
+
+            if not thread:
+                thread = await start()
+                await turn(thread)
             else:
-                thread = (await call("thread/start", {**fresh, "serviceName": "Muse Hands", "threadSource": "user", "developerInstructions": AGENT}))["thread"]["id"]
-                self.file.write_text(json.dumps({**self._read(), "codex_session": thread}))
-                await call("thread/name/set", {"threadId": thread, "name": "Muse Hands · Telegram"})
-            await call("turn/start", {"threadId": thread, "input": [{"type": "text", "text": history[-1][1]}],
-                                      "sandboxPolicy": {"type": "workspaceWrite", "networkAccess": True}, **model})
+                try:
+                    await call("thread/resume", {"threadId": thread, **fresh})
+                except InvalidRequest:  # the app holds the thread (active writer): write to it anyway
+                    pass
+                try:
+                    await turn(thread)
+                except InvalidRequest:  # thread unusable: continue in a new one
+                    thread = await start()
+                    await turn(thread)
             answer = ""
             async for m in messages():
                 if "id" in m and "method" in m:  # an approval or tool request: we run with approvals off
