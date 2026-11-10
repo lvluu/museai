@@ -400,10 +400,11 @@ class Bot:
                 await self.pick_model(chat)
             elif text.startswith("/new"):
                 self.history.pop(chat, None)
+                self.ai.new_session()
                 await self.call("sendMessage", chat_id=chat, text="New conversation.")
             elif text and not text.startswith("/"):
                 if self.ai.resolve(text).id == "codex":  # may run for minutes: keep the bot answering meanwhile
-                    await self.call("sendMessage", chat_id=chat, text="⏳ Codex is on it…")
+                    await self.call("sendMessage", chat_id=chat, text="⏳ Codex is on it (see it in `codex resume`)…")
                     task = asyncio.create_task(self.chat(chat, text))
                     self.running.add(task)
                     task.add_done_callback(self.running.discard)

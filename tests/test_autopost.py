@@ -604,3 +604,24 @@ def test_hands_auto_routes_by_task(client, settings, tmp_path):
     assert bots.resolve("what is the capital of France?").id == "claude"
     settings.anthropic_api_key = ""
     assert bots.resolve("hello").id == "codex"  # no chat key: Codex answers everything
+
+
+def test_hands_codex_session_is_kept_and_resumed(client, settings, tmp_path):
+    from museai.api.routes import hands
+
+    log = tmp_path / "args.log"
+    fake = tmp_path / "codex"
+    fake.write_text(f'#!/bin/sh\necho "$*" >> {log}\necho "session id: abc-123" >&2\n'
+                    'while [ "$1" != "-o" ]; do shift; done\ncat > /dev/null\necho ok > "$2"\n')
+    fake.chmod(0o755)
+    settings.codex_bin = str(fake)
+    settings.openai_api_key = settings.anthropic_api_key = ""
+    bots = hands.ChatBots(settings, client.app.state.services.gateway)
+    bots.choose("codex")
+    asyncio.run(bots.reply([("user", "one")]))
+    asyncio.run(bots.reply([("user", "one"), ("assistant", "ok"), ("user", "two")]))
+    first, second = log.read_text().splitlines()
+    assert " resume " not in first and "exec resume" in second and "abc-123" in second
+    bots.new_session()
+    asyncio.run(bots.reply([("user", "three")]))
+    assert "resume" not in log.read_text().splitlines()[-1]

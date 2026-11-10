@@ -231,3 +231,5 @@ Customize the look in `data/hands.json`:
 ### Auto mode (right model per message)
 
 With Codex installed, `/model` also lists **Auto**: video / image / code / file requests go to Codex (which delegates to museai), everything else to Claude, then ChatGPT, then Codex, then Muse. Each answer ends with `— Auto → <model>`. Change the trigger words in `AGENT_WORDS` (`services/chatbots.py`).
+
+Codex runs are real sessions: the first message starts one (id kept in `data/hands.json`), later messages resume it, so they appear in `codex resume` / the Codex app history and keep their context. `/new` starts a fresh session.

@@ -134,28 +134,35 @@ class ChatBots:
 
         It may write inside the repo and reach the local museai server (workspace-write + network), so it
         can delegate video and image jobs; only allow-listed Telegram chats ever reach it."""
-        transcript = "\n".join(f"{'User' if r == 'user' else 'Assistant'}: {t}" for r, t in history)
+        session = self._read().get("codex_session")
+        # A saved session: it shows up in Codex's own history (`codex resume`, the app) and keeps the context.
+        prompt = history[-1][1] if session else f"[Muse Hands · Telegram]\n{AGENT}\n\nUser: {history[-1][1]}"
         with tempfile.TemporaryDirectory() as work:
             out = Path(work) / "answer.txt"
-            cmd = [self.settings.codex_bin, "exec", "--sandbox", "workspace-write",
-                   "-c", "sandbox_workspace_write.network_access=true", "--skip-git-repo-check",
-                   "--ephemeral", "--ignore-user-config", "-C", self.settings.codex_cwd or str(REPO),
-                   "-o", str(out)]
+            cmd = [self.settings.codex_bin, "exec"] + (["resume"] if session else []) + [
+                "-c", 'sandbox_mode="workspace-write"', "-c", "sandbox_workspace_write.network_access=true",
+                "--skip-git-repo-check", "--ignore-user-config", "-o", str(out)]
             if self.settings.codex_model:
                 cmd += ["-m", self.settings.codex_model]
+            cmd += [session, "-"] if session else ["-"]
             proc = await asyncio.create_subprocess_exec(
-                *cmd, "-", stdin=asyncio.subprocess.PIPE,
+                *cmd, stdin=asyncio.subprocess.PIPE, cwd=self.settings.agent_cwd or str(REPO),
                 stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
             try:
-                _, err = await asyncio.wait_for(
-                    proc.communicate(f"{AGENT}\n\n{transcript}\nAssistant:".encode()),
-                    timeout=self.settings.codex_timeout)
+                _, err = await asyncio.wait_for(proc.communicate(prompt.encode()),
+                                                timeout=self.settings.agent_timeout)
             except asyncio.TimeoutError:
                 proc.kill()
                 raise InvalidRequest("Codex timed out") from None
             if proc.returncode or not out.exists():
                 raise InvalidRequest(f"Codex failed: {err.decode()[-200:]}")
+            if not session and (m := re.search(r"session id: (\S+)", err.decode())):
+                self.file.write_text(json.dumps({**self._read(), "codex_session": m.group(1)}))
             return out.read_text()
+
+    def new_session(self) -> None:
+        """/new: the next Codex message starts a fresh session."""
+        self.file.write_text(json.dumps({k: v for k, v in self._read().items() if k != "codex_session"}))
 
     async def _anthropic(self, p: Provider, history: list[Turn]) -> str:
         r = await self.http.post(
