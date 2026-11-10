@@ -213,6 +213,8 @@ Stop any other process polling the same token first (else Telegram `409 Conflict
 | `/tasks`, `/job [id]`, `/cancel [id]` | Video renders: list, detail, cancel (latest if no id) |
 | `/model`, `/new` | Pick chat AI, reset chat |
 
+Make it yours: nothing personal is in the code. Your bot token, chat ids and AI keys live in `.env` (`MUSE2API_TELEGRAM_BOT_TOKEN`, `MUSE2API_TELEGRAM_CHAT_IDS`, ...), your look in `data/hands.json` (both untracked). Start from [hands.example.json](hands.example.json) (`cp docs/hands.example.json data/hands.json`); `channels` null = all channels in `posting.CHANNELS`.
+
 Customize the look in `data/hands.json`:
 
 ```json
