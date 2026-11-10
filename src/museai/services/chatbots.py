@@ -1,13 +1,16 @@
 """AI models Muse Hands can answer chat messages with: ChatGPT, Claude, and muse.ai itself.
 
-A provider is listed only when it can run: ChatGPT needs ``MUSE2API_OPENAI_API_KEY``, Claude needs
+A provider is listed only when it can run: Codex needs the ``codex`` CLI signed in (``codex login``), no key; ChatGPT needs ``MUSE2API_OPENAI_API_KEY``, Claude needs
 ``MUSE2API_ANTHROPIC_API_KEY``; ``muse`` goes through the local museai gateway and needs no key.
 The chosen provider is kept in ``data/hands.json``.
 """
 
 from __future__ import annotations
 
+import asyncio
 import json
+import shutil
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -35,6 +38,8 @@ def available(s: Settings) -> list[Provider]:
         found.append(Provider("chatgpt", "ChatGPT", s.openai_model))
     if s.anthropic_api_key:
         found.append(Provider("claude", "Claude", s.anthropic_model))
+    if shutil.which(s.codex_bin):
+        found.append(Provider("codex", "Codex", s.codex_model or "default"))
     found.append(Provider("muse", "Muse", "muse-chat"))
     return found
 
@@ -72,6 +77,8 @@ class ChatBots:
         provider = self.current()
         if provider.id == "chatgpt":
             text = await self._openai(provider, history)
+        elif provider.id == "codex":
+            text = await self._codex(provider, history)
         elif provider.id == "claude":
             text = await self._anthropic(provider, history)
         else:
@@ -88,6 +95,28 @@ class ChatBots:
                                                  *({"role": r, "content": t} for r, t in history)]})
         _raise(r, "ChatGPT")
         return r.json()["choices"][0]["message"]["content"] or ""
+
+    async def _codex(self, p: Provider, history: list[Turn]) -> str:
+        """Ask the local Codex CLI (signed in with your ChatGPT account, no API key), read-only."""
+        transcript = "\n".join(f"{'User' if r == 'user' else 'Assistant'}: {t}" for r, t in history)
+        with tempfile.TemporaryDirectory() as work:
+            out = Path(work) / "answer.txt"
+            cmd = [self.settings.codex_bin, "exec", "--sandbox", "read-only", "--skip-git-repo-check",
+                   "--ephemeral", "--ignore-user-config", "-C", work, "-o", str(out)]
+            if self.settings.codex_model:
+                cmd += ["-m", self.settings.codex_model]
+            proc = await asyncio.create_subprocess_exec(
+                *cmd, "-", stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE)
+            try:
+                _, err = await asyncio.wait_for(
+                    proc.communicate(f"{SYSTEM}\n\n{transcript}\nAssistant:".encode()), timeout=300)
+            except asyncio.TimeoutError:
+                proc.kill()
+                raise InvalidRequest("Codex timed out") from None
+            if proc.returncode or not out.exists():
+                raise InvalidRequest(f"Codex failed: {err.decode()[-200:]}")
+            return out.read_text()
 
     async def _anthropic(self, p: Provider, history: list[Turn]) -> str:
         r = await self.http.post(

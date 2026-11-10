@@ -61,6 +61,8 @@ class Settings(BaseSettings):
     # Models Muse Hands can chat with (/model): a provider shows up once its key is set; "muse" needs none.
     openai_api_key: str = ""
     openai_model: str = "gpt-4o"
+    codex_bin: str = "codex"
+    codex_model: str = ""
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-5-5"
     # Stop the laptop sleeping while the server runs (macOS caffeinate), so Muse Hands can post.

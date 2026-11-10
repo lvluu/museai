@@ -461,6 +461,7 @@ def test_hands_chat_models(client, settings):
 
     settings.telegram_bot_token, settings.telegram_chat_ids = "T", "42"
     settings.openai_api_key, settings.anthropic_api_key = "ok", "ak"
+    settings.codex_bin = "no-such-codex"
     svc = client.app.state.services
     sent, calls = [], []
 
@@ -539,3 +540,18 @@ def test_hands_status_dashboard_and_approve(client, admin, settings):
     assert sent[-1][0] == "sendMessage"
     msg("/approve bogus")
     assert "channels:" in sent[-1][1]["text"]
+
+
+def test_hands_codex_cli(client, settings, tmp_path):
+    from museai.api.routes import hands
+
+    fake = tmp_path / "codex"
+    fake.write_text('#!/bin/sh\nwhile [ "$1" != "-o" ]; do shift; done\ncat > /dev/null\necho "from codex" > "$2"\n')
+    fake.chmod(0o755)
+    settings.codex_bin = str(fake)
+    settings.openai_api_key = settings.anthropic_api_key = ""
+    bots = hands.ChatBots(settings, client.app.state.services.gateway)
+    assert [p.id for p in bots.providers()] == ["codex", "muse"]
+    bots.choose("codex")
+    provider, text = asyncio.run(bots.reply([("user", "hi")]))
+    assert provider.id == "codex" and text == "from codex"
