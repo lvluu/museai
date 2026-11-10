@@ -231,6 +231,19 @@ def caption_for(name: str, entry: dict, platform: str, rule: Rule | None) -> str
         return template.replace("{caption}", own).strip()
 
 
+def post_now(auto: dict, platform: str) -> bool:
+    """Make ``platform`` due now (also after an error or a missed time); the loop posts it on its next
+    pass. False when it is already posted."""
+    job = auto.setdefault("jobs", {}).setdefault(platform, {})
+    if job.get("state") == "posted":
+        return False
+    job.update(state="retry", attempts=0, next_try=0, error="")
+    auto.setdefault("times", {})[platform] = datetime.now(posting.TZ).isoformat()
+    if platform not in auto.get("platforms", []):
+        auto.setdefault("platforms", []).append(platform)
+    return True
+
+
 # --- publisher ---
 
 def _job(svc: Services, key: str, platform: str, **changes) -> dict:
@@ -284,6 +297,7 @@ async def tick(svc: Services, now: datetime | None = None) -> list[tuple[str, st
             if at < now - MISSED and job.get("state") in (None, "waiting", "needs_account"):
                 _job(svc, key, platform, state="missed",
                      error="its time passed while it could not post; press Post now or pick a new time")
+                done.append((path.name, platform, "missed"))
                 continue
             result = await post(svc, path, entry, platform, rules.get(auto.get("rule")), job, now)
             done.append((path.name, platform, result))
@@ -342,10 +356,19 @@ def _failed(svc: Services, key: str, platform: str, attempts: int, error: str, r
     return "error"
 
 
+# Called with tick()'s results after every pass (Muse Hands tells the phone).
+listeners: list = []
+
+
 async def loop(svc: Services) -> None:
     while True:
         try:
-            await tick(svc)
+            done = await tick(svc)
+            for listener in listeners:
+                try:
+                    await listener(svc, done)
+                except Exception:  # noqa: BLE001 - a broken notifier must not stop posting
+                    log.exception("auto-post listener failed")
         except Exception:  # noqa: BLE001 - one bad pass must not stop auto-posting
             log.exception("auto-post pass failed")
         await asyncio.sleep(svc.settings.autopost_interval)
@@ -456,12 +479,7 @@ def update_plan(name: str, body: dict, svc: Services = Depends(get_services)) ->
                 else:
                     auto.get("times", {}).pop(platform, None)
             if (platform := body.get("retry")) in AUTO_PLATFORMS:  # "Post now"
-                job = auto.setdefault("jobs", {}).setdefault(platform, {})
-                if job.get("state") != "posted":
-                    job.update(state="retry", attempts=0, next_try=0, error="")
-                    auto.setdefault("times", {})[platform] = datetime.now(posting.TZ).isoformat()
-                    if platform not in auto.get("platforms", []):
-                        auto.setdefault("platforms", []).append(platform)
+                post_now(auto, platform)
         elif any(k in body for k in ("paused", "platforms", "times", "retry")):
             raise InvalidRequest(f"'{name}' has no auto-post plan")
         posting._save(svc, state)

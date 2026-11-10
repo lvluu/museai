@@ -15,7 +15,7 @@ from fastapi.responses import JSONResponse
 
 from . import __version__
 from .accounts.keepalive import keepalive_loop
-from .api.routes import autopost, build_router
+from .api.routes import autopost, build_router, hands
 from .config import Settings, get_settings
 from .drivers.base import MuseDriver
 from .errors import Muse2APIError
@@ -51,15 +51,20 @@ def create_app(settings: Settings | None = None, driver: MuseDriver | None = Non
         watcher = asyncio.create_task(watch_loop(services.push, captions)) \
             if settings.push_enabled else None
         poster = asyncio.create_task(autopost.loop(services)) if settings.autopost_enabled else None
+        telegram = asyncio.create_task(hands.telegram_loop(services)) \
+            if settings.telegram_bot_token else None
+        awake = hands.keep_awake() if settings.keep_awake and telegram else None
         log.info("museai %s ready (driver=%s)", __version__, services.driver.name)
         try:
             yield
         finally:
-            for loop in (keepalive, watcher, poster):
+            for loop in (keepalive, watcher, poster, telegram):
                 if loop:
                     loop.cancel()
                     with contextlib.suppress(asyncio.CancelledError):
                         await loop
+            if awake:
+                awake.terminate()
             await services.tasks.shutdown(settings.shutdown_grace)
             await services.driver.shutdown()
 

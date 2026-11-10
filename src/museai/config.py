@@ -54,6 +54,17 @@ class Settings(BaseSettings):
     # Dry run: every platform posts through the mock driver (nothing leaves the machine).
     autopost_mock: bool = False
     autopost_interval: float = 60.0
+    # Muse Hands: Telegram bot (BotFather token) that lists the posting queue and presses "Post now".
+    # Only these chat ids are answered (comma-separated; message the bot, read the id from the log).
+    telegram_bot_token: str = ""
+    telegram_chat_ids: str = ""
+    # Models Muse Hands can chat with (/model): a provider shows up once its key is set; "muse" needs none.
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o"
+    anthropic_api_key: str = ""
+    anthropic_model: str = "claude-sonnet-5-5"
+    # Stop the laptop sleeping while the server runs (macOS caffeinate), so Muse Hands can post.
+    keep_awake: bool = True
     # Developer apps the user creates for auto-posting (docs/auto-post.md). Never logged or shown.
     google_client_id: str = ""
     google_client_secret: str = ""
