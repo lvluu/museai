@@ -1,6 +1,6 @@
 """AI models Muse Hands can answer chat messages with: ChatGPT, Claude, and muse.ai itself.
 
-A provider is listed only when it can run: Codex needs the ``codex`` CLI signed in (``codex login``), no key; ChatGPT needs ``MUSE2API_OPENAI_API_KEY``, Claude needs
+A provider is listed only when it can run: Codex and Claude Code (agents) need the ``codex`` / ``claude`` CLI signed in, no key; ChatGPT needs ``MUSE2API_OPENAI_API_KEY``, Claude needs
 ``MUSE2API_ANTHROPIC_API_KEY``; ``muse`` goes through the local museai gateway and needs no key.
 The chosen provider is kept in ``data/hands.json``.
 """
@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import asyncio
 import json
-import re
 import shutil
+import uuid
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -35,30 +35,24 @@ AGENT = (
 - Reply in the user's language, plain text, no markdown tables.""")
 
 
-# Work for the Codex agent: media jobs, code, files, the repo. Edit to taste.
-AGENT_WORDS = re.compile(
-    r"\b(videos?|clips?|reels?|images?|pictures?|photos?|thumbnails?|render|generate|draw|"
-    r"code|script|bug|fix|refactor|repo|file|folder|commit|test|run|install|deploy|server|log|"
-    r"video|ảnh|hình|tạo|vẽ|视频|图片|生成)\b", re.I)
-
-
 @dataclass(frozen=True)
 class Provider:
     id: str
     label: str
     model: str
+    agent: bool = False  # runs as a long-lived agent in the repo (can take minutes)
 
 
 def available(s: Settings) -> list[Provider]:
     found = []
-    if shutil.which(s.codex_bin):
-        found.append(Provider("auto", "Auto", "router"))
     if s.openai_api_key:
         found.append(Provider("chatgpt", "ChatGPT", s.openai_model))
     if s.anthropic_api_key:
         found.append(Provider("claude", "Claude", s.anthropic_model))
     if shutil.which(s.codex_bin):
-        found.append(Provider("codex", "Codex", s.codex_model or "default"))
+        found.append(Provider("codex", "Codex", s.codex_model or "default", agent=True))
+    if shutil.which(s.claude_bin):
+        found.append(Provider("claude-code", "Claude Code", s.claude_model or "default", agent=True))
     found.append(Provider("muse", "Muse", "muse-chat"))
     return found
 
@@ -91,26 +85,15 @@ class ChatBots:
         except (FileNotFoundError, json.JSONDecodeError):
             return {}
 
-    def resolve(self, text: str) -> Provider:
-        """The provider that answers ``text``: the chosen one, or in Auto mode the best fit.
-
-        Auto: media / code / file work -> Codex (it can delegate to museai); everything else -> Claude,
-        then ChatGPT, then Muse, whichever is available."""
-        provider = self.current()
-        if provider.id != "auto":
-            return provider
-        by_id = {p.id: p for p in self.providers()}
-        if AGENT_WORDS.search(text) and "codex" in by_id:
-            return by_id["codex"]
-        return next(by_id[i] for i in ("claude", "chatgpt", "codex", "muse") if i in by_id)
-
     async def reply(self, history: list[Turn]) -> tuple[Provider, str]:
         """Answer the last user turn of ``history`` with the chosen provider."""
-        provider = self.resolve(history[-1][1])
+        provider = self.current()
         if provider.id == "chatgpt":
             text = await self._openai(provider, history)
         elif provider.id == "codex":
             text = await self._codex(provider, history)
+        elif provider.id == "claude-code":
+            text = await self._claude(provider, history)
         elif provider.id == "claude":
             text = await self._anthropic(provider, history)
         else:
@@ -197,9 +180,39 @@ class ChatBots:
                 proc.kill()
             await proc.wait()
 
+    async def _claude(self, p: Provider, history: list[Turn]) -> str:
+        """Run the message with `claude -p` as a named session in the repo; later messages `--resume` it.
+
+        The session is named "Muse Hands · Telegram" (visible in `claude --resume`). Claude works as an agent
+        (permissions bypassed, headless) so it can delegate video / image jobs to museai; only allow-listed
+        chats reach it."""
+        session = self._read().get("claude_session")
+        cmd = [self.settings.claude_bin, "-p", history[-1][1], "--permission-mode", "bypassPermissions",
+               "--append-system-prompt", AGENT]
+        if self.settings.claude_model:
+            cmd += ["--model", self.settings.claude_model]
+        fresh = session is None
+        session = session or str(uuid.uuid4())
+        cmd += ["--session-id", session, "--name", "Muse Hands · Telegram"] if fresh else ["--resume", session]
+        proc = await asyncio.create_subprocess_exec(
+            *cmd, cwd=self.settings.agent_cwd or str(REPO), stdin=asyncio.subprocess.DEVNULL,
+            stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE)
+        try:
+            out, err = await asyncio.wait_for(proc.communicate(), timeout=self.settings.agent_timeout)
+        except asyncio.TimeoutError:
+            proc.kill()
+            await proc.wait()
+            raise InvalidRequest("Claude Code timed out") from None
+        if proc.returncode:
+            raise InvalidRequest(f"Claude Code failed: {(err or out).decode(errors='replace').strip()[:200]}")
+        if fresh:
+            self.file.write_text(json.dumps({**self._read(), "claude_session": session}))
+        return out.decode(errors="replace")
+
     def new_session(self) -> None:
-        """/new: the next Codex message starts a fresh session."""
-        self.file.write_text(json.dumps({k: v for k, v in self._read().items() if k != "codex_session"}))
+        """/new: the next agent message starts a fresh session."""
+        self.file.write_text(json.dumps({k: v for k, v in self._read().items()
+                                         if k not in ("codex_session", "claude_session")}))
 
     async def _anthropic(self, p: Provider, history: list[Turn]) -> str:
         r = await self.http.post(

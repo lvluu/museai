@@ -461,7 +461,7 @@ def test_hands_chat_models(client, settings):
 
     settings.telegram_bot_token, settings.telegram_chat_ids = "T", "42"
     settings.openai_api_key, settings.anthropic_api_key = "ok", "ak"
-    settings.codex_bin = "no-such-codex"
+    settings.codex_bin = settings.claude_bin = "no-such-cli"
     svc = client.app.state.services
     sent, calls = [], []
 
@@ -542,23 +542,6 @@ def test_hands_status_dashboard_and_approve(client, admin, settings):
     assert "channels:" in sent[-1][1]["text"]
 
 
-def test_hands_auto_routes_by_task(client, settings, tmp_path):
-    from museai.api.routes import hands
-
-    fake = tmp_path / "codex"
-    fake.write_text("#!/bin/sh\n")
-    fake.chmod(0o755)
-    settings.codex_bin = str(fake)
-    settings.openai_api_key, settings.anthropic_api_key = "", "ak"
-    bots = hands.ChatBots(settings, client.app.state.services.gateway)
-    assert [p.id for p in bots.providers()][0] == "auto"
-    bots.choose("auto")
-    assert bots.resolve("make a video of a cat").id == "codex"
-    assert bots.resolve("what is the capital of France?").id == "claude"
-    settings.anthropic_api_key = ""
-    assert bots.resolve("hello").id == "codex"  # no chat key: Codex answers everything
-
-
 FAKE_APP_SERVER = """#!/usr/bin/env python3
 import json, sys
 log = open(sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] != "app-server" else "/dev/null", "a")
@@ -591,10 +574,10 @@ def test_hands_codex_thread_is_kept_and_resumed(client, settings, tmp_path):
     from museai.api.routes import hands
 
     fake, log = fake_codex(tmp_path, "from codex")
-    settings.codex_bin = str(fake)
+    settings.codex_bin, settings.claude_bin = str(fake), "no-such-cli"
     settings.openai_api_key = settings.anthropic_api_key = ""
     bots = hands.ChatBots(settings, client.app.state.services.gateway)
-    assert [p.id for p in bots.providers()] == ["auto", "codex", "muse"]
+    assert [p.id for p in bots.providers()] == ["codex", "muse"]
     bots.choose("codex")
     provider, text = asyncio.run(bots.reply([("user", "one")]))
     assert provider.id == "codex" and text == "from codex"
@@ -604,6 +587,39 @@ def test_hands_codex_thread_is_kept_and_resumed(client, settings, tmp_path):
     bots.new_session()
     asyncio.run(bots.reply([("user", "three")]))
     assert log.read_text().split().count("thread/start") == 2
+
+
+FAKE_CLAUDE = """#!/usr/bin/env python3
+import json, sys
+open(__LOG__, "a").write(json.dumps(sys.argv[1:]) + "\\n")
+print("from claude code")
+"""
+
+
+def test_hands_claude_code_session_is_named_and_resumed(client, settings, tmp_path):
+    from museai.api.routes import hands
+
+    log = tmp_path / "claude.log"
+    fake = tmp_path / "claude"
+    fake.write_text(FAKE_CLAUDE.replace("__LOG__", repr(str(log))))
+    fake.chmod(0o755)
+    settings.claude_bin, settings.codex_bin = str(fake), "no-such-codex"
+    settings.openai_api_key = settings.anthropic_api_key = ""
+    bots = hands.ChatBots(settings, client.app.state.services.gateway)
+    assert [(p.id, p.agent) for p in bots.providers()] == [("claude-code", True), ("muse", False)]
+    bots.choose("claude-code")
+    provider, text = asyncio.run(bots.reply([("user", "one")]))
+    assert provider.agent and text == "from claude code"
+    asyncio.run(bots.reply([("user", "one"), ("assistant", "x"), ("user", "two")]))
+    first, second = (json.loads(line) for line in log.read_text().splitlines())
+    sid = bots._read()["claude_session"]
+    assert first[:2] == ["-p", "one"] and first[first.index("--session-id") + 1] == sid
+    assert first[first.index("--name") + 1] == "Muse Hands · Telegram"
+    assert second[second.index("--resume") + 1] == sid and "--session-id" not in second
+    bots.new_session()
+    assert "claude_session" not in bots._read()
+    asyncio.run(bots.reply([("user", "three")]))
+    assert bots._read()["claude_session"] != sid
 
 
 def test_hands_codex_delegates_and_sends_media(client, settings, tmp_path):

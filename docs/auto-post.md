@@ -228,8 +228,4 @@ Customize the look in `data/hands.json`:
 
 `/model` lists **Codex** when the `codex` CLI is installed and signed in (`codex login`, your ChatGPT account). Each message runs `codex exec` as an agent in the museai repo (workspace-write sandbox, network on, ignoring `~/.codex/config.toml`). Video/image requests are delegated to museai through the `muse-video` skill and the local API; finished files named on a `MEDIA: <path>` line are sent back to the chat (≤50 MB). The bot stays responsive while Codex works (`MUSE2API_CODEX_TIMEOUT`, default 2400 s; `MUSE2API_CODEX_CWD` to change the working dir). Only chats in `MUSE2API_TELEGRAM_CHAT_IDS` reach it. Optional: `MUSE2API_CODEX_MODEL`, `MUSE2API_CODEX_BIN`.
 
-### Auto mode (right model per message)
-
-With Codex installed, `/model` also lists **Auto**: video / image / code / file requests go to Codex (which delegates to museai), everything else to Claude, then ChatGPT, then Codex, then Muse. Each answer ends with `— Auto → <model>`. Change the trigger words in `AGENT_WORDS` (`services/chatbots.py`).
-
-Codex runs as a normal thread of the local Codex app-server (the one the ChatGPT / Codex app uses): the first message starts a thread named "Muse Hands · Telegram" (id kept in `data/hands.json`), later messages continue it, so it shows in the app and in `codex resume`. `/new` starts a fresh thread. Model: `MUSE2API_CODEX_MODEL` (default `gpt-6-luna`; the ChatGPT free plan rejects some models).
+`/model` also lists **Claude Code** when the `claude` CLI is installed and signed in. Each message runs `claude -p` in the museai repo (permissions bypassed, headless) as the session "Muse Hands · Telegram": the first message uses `--session-id`, later ones `--resume` it, so it shows in `claude --resume`. Same delegation, `MEDIA:` handling and timeout as Codex. Optional: `MUSE2API_CLAUDE_MODEL`, `MUSE2API_CLAUDE_BIN`. `/new` starts a fresh session for both agents.

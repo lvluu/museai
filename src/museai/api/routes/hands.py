@@ -365,8 +365,7 @@ class Bot:
                 answer = await self.send_media(chat, answer) or "✅ Done."
             except Exception:  # noqa: BLE001 - the text answer still goes out
                 log.exception("telegram media upload failed")
-        auto = "Auto → " if self.ai.current().id == "auto" else ""
-        footer = f"\n\n— {auto}{provider.label}" if provider else ""
+        footer = f"\n\n— {provider.label}" if provider else ""
         for i in range(0, max(len(answer), 1), 3900):  # Telegram caps a message at 4096 characters
             last = i + 3900 >= len(answer)
             await self.call("sendMessage", chat_id=chat, text=answer[i:i + 3900] + (footer if last else ""))
@@ -403,8 +402,9 @@ class Bot:
                 self.ai.new_session()
                 await self.call("sendMessage", chat_id=chat, text="New conversation.")
             elif text and not text.startswith("/"):
-                if self.ai.resolve(text).id == "codex":  # may run for minutes: keep the bot answering meanwhile
-                    await self.call("sendMessage", chat_id=chat, text="⏳ Codex is on it (see it in `codex resume`)…")
+                now = self.ai.current()
+                if now.agent:  # may run for minutes: keep the bot answering meanwhile
+                    await self.call("sendMessage", chat_id=chat, text=f"⏳ {now.label} is on it…")
                     task = asyncio.create_task(self.chat(chat, text))
                     self.running.add(task)
                     task.add_done_callback(self.running.discard)
