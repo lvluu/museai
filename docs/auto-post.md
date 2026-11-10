@@ -223,3 +223,7 @@ Customize the look in `data/hands.json`:
 ```
 
 `/task <prompt>` (Claude sessions) is not implemented.
+
+### Chat with Codex (no API key)
+
+`/model` lists **Codex** when the `codex` CLI is installed and signed in (`codex login`, your ChatGPT account). Each message runs `codex exec` read-only in an empty temp dir, ignoring `~/.codex/config.toml`. Optional: `MUSE2API_CODEX_MODEL`, `MUSE2API_CODEX_BIN`.
