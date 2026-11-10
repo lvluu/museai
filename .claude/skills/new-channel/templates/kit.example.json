@@ -1,0 +1,58 @@
+{
+ "slug": "dream-jobs",
+ "idea": "Short vertical videos of impossible, gentle jobs filmed as if ordinary: fishing fallen stars, baking clouds, drying rainbows.",
+ "audience": "US, 18-34, cottagecore / soft-life / aesthetic fans",
+ "language": "en",
+ "niche": "dreamy AI fantasy shorts",
+ "promise": "one magical little job from a dreamy life, every day",
+ "ai_made": true,
+ "notes": "Niche leaders post 1 calm 20-40 s reel a day, no talking, vintage music; gap = a recurring job series with one heroine.",
+ "names": [
+  {"display": "Dream Jobs ✨ AI daydreams", "handle": "dreamjobsai", "why": "The series in one word; ai says AI up front."},
+  {"display": "Soft Dream Life", "handle": "softdreamlife", "why": "Matches cottagecore / soft-life searches."},
+  {"display": "Tiny Magic Jobs", "handle": "tinymagicjobs", "why": "Funnier; fits animal jobs and rainbow laundry."}
+ ],
+ "chosen": 0,
+ "style": {
+  "look": "1950s Kodachrome candy-pastel film photograph, soft lavender and peach sky, warm golden-hour side light, 50 mm lens, gentle film halation, calm still composition, quiet and tender mood.",
+  "palette": ["#C9B6E4", "#F7C8A8", "#FFF4D6", "#5B4B8A"],
+  "font": "Avenir Next",
+  "mood": "calm, whimsical, tender",
+  "avatar_subject": "a young woman seen from behind holding a glowing star net against a lavender sky",
+  "banner_scene": "a wide pastel meadow at golden hour with three small vignettes: a star net, honey jars on a fence, a butterfly gown on a line",
+  "banner_line": "a new dream job every day"
+ },
+ "platforms": {
+  "youtube": {
+   "name": "Dream Jobs ✨ AI daydreams",
+   "handle": "dreamjobsai",
+   "description": "Welcome to Dream Jobs ✨\n\nEvery Short is a magical little job from a dreamy life: fishing for fallen stars, bottling sunlight honey, sewing gowns from butterflies, drying rainbows on a washing line.\n\nAll videos are made with AI (images, motion and music) and edited by hand. No real people appear.\n\nNew dream every day. Tell me in the comments which dream job you want to see next.",
+   "keywords": ["dream job", "cozy", "cottagecore", "fairytale", "magical", "soft life", "daydream", "AI art", "aesthetic"],
+   "category": "Film & Animation"
+  },
+  "instagram": {
+   "name": "Dream Jobs ✨ AI daydreams",
+   "handle": "dreamjobsai",
+   "bio": "✨ magical little jobs from a dreamy life\n🌙 AI-made daydreams · a new one every day\n💌 comment the dream job you want next",
+   "category": "Digital creator"
+  },
+  "tiktok": {
+   "name": "Dream Jobs ✨",
+   "handle": "dreamjobsai",
+   "bio": "magical little jobs from a dreamy life ✨ AI-made · new dream daily"
+  },
+  "facebook": {
+   "name": "Dream Jobs",
+   "handle": "dreamjobsai",
+   "bio": "Magical little jobs from a dreamy life. AI-made daydreams, a new one every day. ✨",
+   "category": "Digital creator"
+  }
+ },
+ "hashtags": ["#cottagecore", "#dreamjob", "#cozyvibes", "#fairytale", "#aiart"],
+ "pillars": [
+  {"name": "Dream jobs", "share": 80, "what": "one magical job per reel"},
+  {"name": "Which would you pick?", "share": 10, "what": "two jobs in one reel, question in the caption"},
+  {"name": "Seasonal dreams", "share": 10, "what": "first snow, harvest, blossom, a week before the peak"}
+ ],
+ "first_posts": ["butterfly tailor", "animal jobs", "star fisher"]
+}
