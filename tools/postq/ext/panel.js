@@ -214,10 +214,35 @@ let chanPicked = false;
 chanSel.onchange = () => { chanPicked = true; renderFilter(); };
 hideDone.onchange = renderFilter;
 
+// The popup follows the museai dashboard list: only videos the dashboard lists, only platforms not yet
+// ticked there, in the dashboard's slot order. Dashboard unreachable: the whole queue shows.
+const DASH = 'http://127.0.0.1:18610/dashboard/posts';
+async function followDashboard(items) {
+  let videos;
+  try {
+    const res = await fetch(DASH, { signal: AbortSignal.timeout(4000) });
+    videos = (await res.json()).videos;
+  } catch { return items; }
+  if (!Array.isArray(videos)) return items;
+  const byName = new Map(videos.map((v, n) => [v.name, { n, posted: v.posted || {} }]));
+  const dash = (i) => byName.get(i.video?.name);
+  return items
+    .filter((i) => {
+      const d = dash(i);
+      return d && (i.targets?.length ? i.targets : [i.platform]).some((box) => !d.posted[box]);
+    })
+    .sort((a, b) => dash(a).n - dash(b).n);
+}
+let orderSig = '';
 async function poll() {
   try {
-    const items = await (await fetch(`${QUEUE}/api/items`)).json();
+    const items = await followDashboard(await (await fetch(`${QUEUE}/api/items`)).json());
     for (const item of items) if (!cards.has(item.id)) render(item);
+    const sig = items.map((i) => i.id).join();
+    if (sig !== orderSig) {
+      orderSig = sig;
+      for (const i of items) { const c = cards.get(i.id); if (c) list.append(c.el); }
+    }
     // Posted (or discarded) items leave the queue: drop their cards, the dashboard has them ticked.
     const live = new Set(items.map((i) => i.id));
     for (const [id, c] of cards) if (!live.has(id) && !c.busy) { c.el.remove(); cards.delete(id); }
