@@ -127,3 +127,9 @@ When modifying the codebase, preserve these verified fixes:
 ## 6. VIDEO GENERATION SKILL
 
 Every video made through museai follows `.claude/skills/muse-video/SKILL.md`. `scripts/muse-video` there appends `prompt/quality.txt` (motion, continuity, lip sync, steady pace, composition rules) to every prompt, and `scripts/qa.py` is the quality gate before delivery. Change the rules in those files, not in individual prompts.
+
+## 7. DELIVERY WORKFLOW
+
+When a change is finished: branch from the latest `main`, commit, push the branch, open a PR, wait for the `CI` workflow
+(`.github/workflows/ci.yml`: secrets scan, `ruff check .`, `pytest -q` on Python 3.10 and 3.12), then squash-merge.
+Run `ruff check .` and `pytest -q` locally first. Any failing check: fix it, do not merge.

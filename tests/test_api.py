@@ -369,7 +369,7 @@ def test_posting_queue_fills_free_slots(tmp_path):
 
     # Sunday 2026-11-08 12:00: EP45 posted at slot 1, EP46 (posted on one platform) holds slot 2, and a
     # video posted early holds Tuesday slot 1. The queue fills every free slot, the gap before the early
-    # video included: nothing waits behind a day left empty.
+    # video excluded: the queue starts after the latest post.
     now = datetime(2026, 11, 8, 12, 0, tzinfo=posting.TZ)
     videos = []
     for i, name in enumerate(("ep46.mp4", "ep47.mp4", "ep48.mp4", "ep49.mp4")):
@@ -383,7 +383,7 @@ def test_posting_queue_fills_free_slots(tmp_path):
              "ep48.mp4": {"slot": "2026-11-12/1"}}
     assert posting._assign_slots(state, videos, now)
     assert [state[f"ep{n}.mp4"]["slot"] for n in (46, 47, 48, 49)] == [
-        "2026-11-08/2", "2026-11-09/2", "2026-11-09/1", "2026-11-10/2"]  # EP47 is pinned: it stays
+        "2026-11-08/2", "2026-11-09/2", "2026-11-10/2", "2026-11-11/1"]  # EP47 is pinned: it stays; nothing books before the latest post (the early one)
     assert not posting._assign_slots(state, videos, now)
 
 
@@ -495,13 +495,13 @@ def test_posting_slots(tmp_path):
     assert posting._forget_old(state, now) and "old.mp4" not in state
     assert posting._assign_slots(state, [*videos, tmp_path / "d.mp4", p], now)
     assert [state[n]["slot"] for n in ("b.mp4", "a.mp4", "c.mp4", "d.mp4", "e.mp4")] == [
-        "2026-10-29/2", "2026-10-30/1", "2026-10-31/1", "2026-10-31/2", "2026-11-01/1"]
+        "2026-10-31/1", "2026-10-31/2", "2026-11-01/1", "2026-11-01/2", "2026-11-02/1"]
     # The same name delivered again is a new video: the old record moves aside, staying in the history,
     # and the new one joins the end of the queue.
     (tmp_path / "gone.mp4").write_bytes(b"v")
     os.utime(tmp_path / "gone.mp4", (5000, 5000))
     assert posting._assign_slots(state, [*videos, tmp_path / "d.mp4", p, tmp_path / "gone.mp4"], now)
-    assert state["gone.mp4"]["slot"] == "2026-11-01/2" and "done" not in state["gone.mp4"]
+    assert state["gone.mp4"]["slot"] == "2026-11-02/2" and "done" not in state["gone.mp4"]
     assert state["(posted chinese 2026-10-30/2)"]["done"]  # kept for the next passes too
 
 
@@ -773,3 +773,31 @@ def test_projects_zip(client, auth):
 
     z = zipfile.ZipFile(io.BytesIO(build_zip({"index.html": "<h1>hi</h1>\n"})))
     assert z.namelist() == ["index.html"]
+
+
+def test_dream_list_starts_at_slot_one_today():
+    from datetime import datetime
+
+    from museai.api.routes import posting
+
+    now = datetime(2026, 11, 11, 15, 0, tzinfo=posting.TZ)  # slot 1 (07:00) has passed
+    assert next(posting._slots_from(now, "dream")) == "2026-11-11/1"
+
+
+def test_queue_starts_after_latest_post_and_schedule_history_logged(tmp_path):
+    import json
+    from datetime import datetime
+
+    from museai.api.routes import posting
+
+    now = datetime(2026, 11, 11, 15, 0, tzinfo=posting.TZ)
+    (v := tmp_path / "travel-x.mp4").write_bytes(b"v")
+    state = {"(last-post travel)": {"slot": "2026-11-19/2", "channel": "travel", "done": 1}}
+    assert posting._assign_slots(state, [v], now)
+    assert state["travel-x.mp4"]["slot"] == "2026-11-20/1"  # nothing books before the latest post
+    state = {"travel-x.mp4": state["travel-x.mp4"]}
+    path = tmp_path / "posts.json"
+    posting._log_schedule(path, state)
+    posting._log_schedule(path, state)  # unchanged: no second line
+    lines = (tmp_path / "schedule-history.jsonl").read_text().splitlines()
+    assert len(lines) == 1 and json.loads(lines[0])["schedule"] == {"travel": {"2026-11-20/1": "travel-x.mp4"}}

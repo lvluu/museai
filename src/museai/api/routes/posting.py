@@ -180,9 +180,28 @@ def _save(svc: Services, state: dict) -> None:
                 e["logged"] = True
                 log.write(json.dumps({"name": name, **{k: v for k, v in e.items() if k != "logged"}},
                                      ensure_ascii=False) + "\n")
+    _log_schedule(path, state)
     tmp = path.with_suffix(".tmp")
     tmp.write_text(json.dumps(state, indent=2, ensure_ascii=False))
     tmp.replace(path)
+
+
+def _log_schedule(path: Path, state: dict) -> None:
+    """Append the queued schedule (channel -> slot -> video) to schedule-history.jsonl whenever it
+    differs from the last one logged."""
+    now: dict[str, dict[str, str]] = {}
+    for n, e in state.items():
+        if e.get("slot") and not e.get("done") and not n.startswith("("):
+            now.setdefault(_channel(n, e), {})[e["slot"]] = n
+    log = path.with_name("schedule-history.jsonl")
+    try:
+        last = json.loads(log.read_text().splitlines()[-1])["schedule"]
+    except (FileNotFoundError, IndexError, KeyError, json.JSONDecodeError):
+        last = None
+    if now and now != last:
+        with log.open("a") as f:
+            f.write(json.dumps({"at": datetime.now(TZ).isoformat(timespec="seconds"), "schedule": now},
+                               ensure_ascii=False) + "\n")
 
 
 def _exists(svc: Services, key: str) -> bool:
@@ -258,12 +277,14 @@ def _slot_times(key: str, channel: str = "chinese") -> dict[str, datetime]:
 
 
 def _slots_from(now: datetime, channel: str):
-    """Slot keys of ``channel`` from today on whose YouTube time is still ahead of ``now``."""
-    d = now.astimezone(TZ).date()
+    """Slot keys of ``channel`` from today on whose YouTube time is still ahead of ``now``; Dream life's
+    list also counts today's first slot, so it starts at slot 1 of today even once its time has passed."""
+    d = today = now.astimezone(TZ).date()
+    first = min(CHANNELS[channel][1])
     while True:
         for n in CHANNELS[channel][1]:
             key = f"{d.isoformat()}/{n}"
-            if _slot_times(key, channel)["youtube"] > now:
+            if (channel == "dream" and d == today and n == first) or _slot_times(key, channel)["youtube"] > now:
                 yield key
         d += timedelta(days=1)
 
@@ -292,10 +313,13 @@ def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
     queued_names = {n for n, _ in entries}
     history: dict[str, dict[str, str]] = {ch: {} for ch in CHANNELS}  # slot -> kind of what posts there
     queue: dict[str, list[tuple[str, dict]]] = {ch: [] for ch in CHANNELS}
+    last_post: dict[str, str] = {}  # channel -> slot of its latest posted / deleted video
     for n, e in state.items():
         if n not in queued_names:
             if e.get("done") and e.get("slot"):
-                history[_channel(n, e)][e["slot"]] = _kind(n)
+                ch = _channel(n, e)
+                history[ch][e["slot"]] = _kind(n)
+                last_post[ch] = max(last_post.get(ch, ""), e["slot"])
     for n, e in entries:
         auto = e.get("auto") if isinstance(e.get("auto"), dict) else {}
         planned = bool(auto) and not auto.get("off") and not auto.get("paused")  # auto-post keeps its slot
@@ -306,7 +330,7 @@ def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
     for ch, line in queue.items():
         line.sort(key=lambda ne: ne[1].get("slot") or "~")  # stable: delivery order breaks ties
         taken = history[ch]
-        for slot in (k for k in _slots_from(now, ch) if k not in taken):  # gaps between posted slots too
+        for slot in (k for k in _slots_from(now, ch) if k not in taken and k > last_post.get(ch, "")):  # gaps between posted slots too
             if not line:
                 break
             day, n = slot.split("/")
