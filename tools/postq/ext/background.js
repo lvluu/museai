@@ -491,7 +491,12 @@ async function metaFlow(stored, pg) {
     await new Promise((r) => setTimeout(r, 2000));
   }
   if (up.failed) throw new Error(up.failed);
-  // No thumbnail on Meta: the reel keeps its video frame (setCover skipped, saves the upload).
+  // Thumbnail first: switching the thumbnail tab re-renders "Reel details" and drops typed captions.
+  if (item.cover) {
+    await say('Moving thumbnail into the tab…');
+    await pg.send('cover', item.cover, (p) => say(`Moving thumbnail into the tab ${p}%`));
+    await pg.step('setCover', item.cover.name, mimeOf(item.cover.file));
+  }
   const captions = await pg.step('fill', item);
   await pg.step('checkCaptions', item);
   await pg.step('toShare');
