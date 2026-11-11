@@ -323,6 +323,8 @@ def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
     for n, e in entries:
         auto = e.get("auto") if isinstance(e.get("auto"), dict) else {}
         planned = bool(auto) and not auto.get("off") and not auto.get("paused")  # auto-post keeps its slot
+        if e.get("long"):  # 16:9 long clip: posts the same day as the shorts, takes none of their slots
+            continue
         if e.get("slot") and (e.get("slot_pinned") or any((e.get("posted") or {}).values()) or planned):
             history[_channel(n, e)][e["slot"]] = _kind(n)
         else:
