@@ -270,7 +270,8 @@ class Bot:
 
     async def dashboard(self, chat: int, message: int | None = None) -> None:
         data = await asyncio.to_thread(overview, self.svc)
-        text, markup = handsboard.status(data, handsboard.config(self.svc))
+        cfg = handsboard.config(self.svc)
+        text, markup = handsboard.status(data, cfg)
         await self.edit(chat, message, text, markup)
 
     async def approve_cmd(self, chat: int, args: list[str]) -> None:
@@ -295,7 +296,37 @@ class Bot:
         cfg = handsboard.config(self.svc)
         cid, _, platform = rest.partition(":")
         if kind == "ch":
-            text, markup = handsboard.channel(data, cid, cfg)
+            text, markup = handsboard.channel(data, cid, cfg, int(platform) if platform.isdigit() else 0)
+            await self.edit(chat, message, text, markup)
+        elif kind == "pk":
+            vid, cid2, *mask = rest.split(":")
+            text, markup = handsboard.picker(data, vid, cid2, cfg, int(mask[0]) if mask else None)
+            await self.edit(chat, message, text, markup)
+        elif kind == "pp":
+            vid, cid2, mask = rest.split(":")
+            name, ids = handsboard.picked(data, vid, int(mask), cfg)
+            done = failed = 0
+            for pid in ids:
+                try:
+                    await asyncio.to_thread(trigger, self.svc, name, pid)
+                    done += 1
+                except Exception:  # noqa: BLE001 - count it, go on
+                    failed += 1
+            answer = (f"{done} queued" + (f", {failed} failed" if failed else "")) if ids else "nothing to post"
+            data = await asyncio.to_thread(overview, self.svc)
+            text, markup = handsboard.channel(data, cid2, cfg)
+            await self.edit(chat, message, text, markup)
+        elif kind == "delq":
+            text, markup = handsboard.confirm_delete(data, cid, platform)
+            await self.edit(chat, message, text, markup)
+        elif kind == "delc":
+            name = next((v["name"] for v in data["videos"] if v["id"] == cid), None)
+            try:
+                answer = await asyncio.to_thread(delete_post, self.svc, name) if name else "video is gone"
+            except Exception as exc:  # noqa: BLE001 - tell the phone, keep polling
+                answer = str(getattr(exc, "message", exc))[:190]
+            data = await asyncio.to_thread(overview, self.svc)
+            text, markup = handsboard.channel(data, platform, cfg)
             await self.edit(chat, message, text, markup)
         elif kind == "apprq":
             count = len(handsboard.targets(data, cid, platform, cfg))
@@ -311,7 +342,11 @@ class Bot:
                 except Exception:  # noqa: BLE001 - count it, go on
                     failed += 1
             answer = f"{done} queued" + (f", {failed} failed" if failed else "")
-            await self.dashboard(chat, message)
+            if cid == "all":
+                await self.dashboard(chat, message)
+            else:
+                text, markup = handsboard.channel(await asyncio.to_thread(overview, self.svc), cid, cfg)
+                await self.edit(chat, message, text, markup)
         else:
             await self.dashboard(chat, message)
         await self.call("answerCallbackQuery", callback_query_id=cb["id"], text=answer)
@@ -419,7 +454,7 @@ class Bot:
                 return
             kind, _, rest = cb["data"].partition(":")
             answer = ""
-            if kind in ("status", "ch", "apprq", "appr"):
+            if kind in ("status", "ch", "apprq", "appr", "delq", "delc", "pk", "pp"):
                 await self.board_tap(chat, cb, kind, rest)
                 return
             if kind == "model":

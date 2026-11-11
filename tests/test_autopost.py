@@ -461,7 +461,7 @@ def test_hands_chat_models(client, settings):
 
     settings.telegram_bot_token, settings.telegram_chat_ids = "T", "42"
     settings.openai_api_key, settings.anthropic_api_key = "ok", "ak"
-    settings.codex_bin = "no-such-codex"
+    settings.codex_bin = settings.claude_bin = "no-such-cli"
     svc = client.app.state.services
     sent, calls = [], []
 
@@ -499,7 +499,7 @@ def test_hands_chat_models(client, settings):
     assert bot.ai.current().id == "claude"
 
 
-def test_hands_status_dashboard_and_approve(client, admin, settings):
+def test_hands_status_dashboard_and_approve(client, admin, settings, monkeypatch):
     from museai.api.routes import hands
 
     drop(settings, CHINESE, captions={"youtube": "t", "tiktok": "x"})
@@ -522,16 +522,33 @@ def test_hands_status_dashboard_and_approve(client, admin, settings):
         asyncio.run(bot.handle({"callback_query": {"id": "c", "data": data,
                                                    "message": {"chat": {"id": 42}, "message_id": 5}}}))
 
-    msg("/status")
-    text, markup = sent[-1][1]["text"], sent[-1][1]["reply_markup"]
-    buttons = [b["callback_data"] for row in markup["inline_keyboard"] for b in row]
-    assert "1 video left" in text and "apprq:all:all" in buttons and "status" in buttons
-    assert all(len(b.encode()) <= 64 for b in buttons)
-    tap(next(b for b in buttons if b.startswith("ch:")))
-    edits = [j for m, j in sent if m == "editMessageText"]
-    assert "left" in edits[-1]["text"]
+    def last_edit():
+        return [j for m, j in sent if m == "editMessageText"][-1]
+
+    def btns(j):
+        return [b["callback_data"] for row in j["reply_markup"]["inline_keyboard"] for b in row]
+
+    msg("/status")  # one message: a button per channel, nothing else
+    assert [m for m, _ in sent] == ["sendMessage"]
+    buttons = btns(sent[-1][1])
+    assert "1 video to post" in sent[-1][1]["text"] and "ch:chinese" in buttons and "apprq:all:all" not in buttons
+    tap("ch:chinese")  # the posts: Post + Delete per video, post-all across platforms below
+    chan = last_edit()
+    chan_buttons = btns(chan)
+    vid = next(b.split(":")[1] for b in chan_buttons if b.startswith("pk:"))
+    assert chan_buttons[:2] == [f"pk:{vid}:chinese", f"delq:{vid}:chinese"]
+    assert "apprq:chinese:all" in chan_buttons and "apprq:chinese:youtube" in chan_buttons
+    assert all(len(b.encode()) <= 64 for b in chan_buttons)
+    tap(f"pk:{vid}:chinese")  # platform picker: every platform left is selected
+    pick = btns(last_edit())
+    assert pick[0].startswith(f"pk:{vid}:chinese:") and pick[-2].startswith(f"pp:{vid}:chinese:")
+    tap(pick[0])  # untick the first platform
+    assert btns(last_edit())[-2] != pick[-2]
+    tap(pick[-2])  # post the rest
+    assert any("queued" in j.get("text", "") for m, j in sent if m == "answerCallbackQuery")
+    assert last_edit()["text"].startswith("Chinese ·")
     tap("apprq:all:youtube")
-    assert "Post 1 job" in [j for m, j in sent if m == "editMessageText"][-1]["text"]
+    assert "Post 1 job" in last_edit()["text"]
     tap("appr:all:youtube")
     assert any("1 queued" in j.get("text", "") for m, j in sent if m == "answerCallbackQuery")
     msg("/postq")
@@ -541,17 +558,119 @@ def test_hands_status_dashboard_and_approve(client, admin, settings):
     msg("/approve bogus")
     assert "channels:" in sent[-1][1]["text"]
 
+    delq = f"delq:{vid}:chinese"
+    tap(delq)
+    assert "Yes, delete" in str([j for m, j in sent if m == "editMessageText"][-1]["reply_markup"])
+    trashed = []
+    monkeypatch.setattr(posting, "_trash", trashed.append)
+    tap(delq.replace("delq:", "delc:", 1))
+    assert trashed and trashed[-1].name == CHINESE
+    assert sent[-2][0] == "editMessageText" and sent[-2][1]["text"].startswith("Chinese ·")  # back on the list
 
-def test_hands_codex_cli(client, settings, tmp_path):
+
+FAKE_APP_SERVER = """#!/usr/bin/env python3
+import json, sys
+log = open(sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] != "app-server" else "/dev/null", "a")
+ANSWER = __ANSWER__
+for line in sys.stdin:
+    m = json.loads(line)
+    log.write(m.get("method", "") + "\\n"); log.flush()
+    if "id" not in m:
+        continue
+    out = {"initialize": {}, "thread/start": {"thread": {"id": "t-1"}}, "thread/resume": {}, "thread/name/set": {},
+           "turn/start": {}}[m["method"]]
+    print(json.dumps({"id": m["id"], "result": out}), flush=True)
+    if m["method"] == "turn/start":
+        item = {"type": "agentMessage", "text": ANSWER}
+        print(json.dumps({"method": "item/completed", "params": {"item": item}}), flush=True)
+        print(json.dumps({"method": "turn/completed", "params": {"turn": {"status": "completed"}}}), flush=True)
+"""
+
+
+def fake_codex(tmp_path, answer):
+    log = tmp_path / "calls.log"
+    fake = tmp_path / "codex"
+    fake.write_text(FAKE_APP_SERVER.replace("__ANSWER__", repr(answer)).replace(
+        'sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] != "app-server" else "/dev/null"', repr(str(log))))
+    fake.chmod(0o755)
+    return fake, log
+
+
+def test_hands_codex_thread_is_kept_and_resumed(client, settings, tmp_path):
     from museai.api.routes import hands
 
-    fake = tmp_path / "codex"
-    fake.write_text('#!/bin/sh\nwhile [ "$1" != "-o" ]; do shift; done\ncat > /dev/null\necho "from codex" > "$2"\n')
-    fake.chmod(0o755)
-    settings.codex_bin = str(fake)
+    fake, log = fake_codex(tmp_path, "from codex")
+    settings.codex_bin, settings.claude_bin = str(fake), "no-such-cli"
     settings.openai_api_key = settings.anthropic_api_key = ""
     bots = hands.ChatBots(settings, client.app.state.services.gateway)
     assert [p.id for p in bots.providers()] == ["codex", "muse"]
     bots.choose("codex")
-    provider, text = asyncio.run(bots.reply([("user", "hi")]))
+    provider, text = asyncio.run(bots.reply([("user", "one")]))
     assert provider.id == "codex" and text == "from codex"
+    asyncio.run(bots.reply([("user", "one"), ("assistant", "x"), ("user", "two")]))
+    calls = log.read_text().split()
+    assert calls.count("thread/start") == 1 and calls.count("thread/resume") == 1 and "thread/name/set" in calls
+    bots.new_session()
+    asyncio.run(bots.reply([("user", "three")]))
+    assert log.read_text().split().count("thread/start") == 2
+
+
+FAKE_CLAUDE = """#!/usr/bin/env python3
+import json, sys
+open(__LOG__, "a").write(json.dumps(sys.argv[1:]) + "\\n")
+print("from claude code")
+"""
+
+
+def test_hands_claude_code_session_is_named_and_resumed(client, settings, tmp_path):
+    from museai.api.routes import hands
+
+    log = tmp_path / "claude.log"
+    fake = tmp_path / "claude"
+    fake.write_text(FAKE_CLAUDE.replace("__LOG__", repr(str(log))))
+    fake.chmod(0o755)
+    settings.claude_bin, settings.codex_bin = str(fake), "no-such-codex"
+    settings.openai_api_key = settings.anthropic_api_key = ""
+    bots = hands.ChatBots(settings, client.app.state.services.gateway)
+    assert [(p.id, p.agent) for p in bots.providers()] == [("claude-code", True), ("muse", False)]
+    bots.choose("claude-code")
+    provider, text = asyncio.run(bots.reply([("user", "one")]))
+    assert provider.agent and text == "from claude code"
+    asyncio.run(bots.reply([("user", "one"), ("assistant", "x"), ("user", "two")]))
+    first, second = (json.loads(line) for line in log.read_text().splitlines())
+    sid = bots._read()["claude_session"]
+    assert first[:2] == ["-p", "one"] and first[first.index("--session-id") + 1] == sid
+    assert first[first.index("--name") + 1] == "Muse Hands · Telegram"
+    assert second[second.index("--resume") + 1] == sid and "--session-id" not in second
+    bots.new_session()
+    assert "claude_session" not in bots._read()
+    asyncio.run(bots.reply([("user", "three")]))
+    assert bots._read()["claude_session"] != sid
+
+
+def test_hands_codex_delegates_and_sends_media(client, settings, tmp_path):
+    from museai.api.routes import hands
+
+    video = tmp_path / "clip.mp4"
+    video.write_bytes(b"x")
+    fake, _ = fake_codex(tmp_path, f"rendered\nMEDIA: {video}")
+    settings.codex_bin = str(fake)
+    settings.telegram_bot_token, settings.telegram_chat_ids = "T", "42"
+    settings.openai_api_key = settings.anthropic_api_key = ""
+    sent = []
+
+    class Http:
+        async def post(self, url, json=None, data=None, files=None, timeout=None):
+            sent.append((url.rsplit("/", 1)[1], json or data, files))
+            return httpx.Response(200, json={"ok": True, "result": []}, request=httpx.Request("POST", url))
+
+    async def run():
+        bot = hands.Bot(client.app.state.services, Http())
+        bot.ai.choose("codex")
+        await bot.handle({"message": {"chat": {"id": 42}, "text": "make a video of a cat"}})
+        await asyncio.gather(*bot.running)
+
+    asyncio.run(run())
+    assert [m for m, *_ in sent] == ["sendMessage", "sendVideo", "sendMessage"]
+    assert sent[1][2]["video"][0] == "clip.mp4" and sent[2][1]["text"].startswith("rendered")
+    assert "MEDIA" not in sent[2][1]["text"]

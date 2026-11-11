@@ -383,7 +383,7 @@ def test_posting_queue_fills_free_slots(tmp_path):
              "ep48.mp4": {"slot": "2026-11-12/1"}}
     assert posting._assign_slots(state, videos, now)
     assert [state[f"ep{n}.mp4"]["slot"] for n in (46, 47, 48, 49)] == [
-        "2026-11-08/2", "2026-11-09/1", "2026-11-09/2", "2026-11-10/2"]
+        "2026-11-08/2", "2026-11-09/2", "2026-11-09/1", "2026-11-10/2"]  # EP47 is pinned: it stays
     assert not posting._assign_slots(state, videos, now)
 
 
@@ -662,7 +662,7 @@ def test_posting_move_slot(client, admin, settings, monkeypatch, clock):
     assert r["video"]["slot"] == a["slot"]
     after = {v["name"]: v["slot"] for v in client.get("/dashboard/posts", headers=admin).json()["videos"]}
     assert after["a.mp4"] == a["slot"]
-    assert after["b.mp4"] == next(posting._slots_from(now, "chinese"))  # alone in Chinese: first slot, no gap
+    assert after["b.mp4"] == a["slot"]  # the slot the user picked is pinned: it stays
     assert client.post("/dashboard/posts/a.mp4", headers=admin, json={"channel": "nope"}).status_code == 400
 
 
