@@ -187,7 +187,18 @@ const chanSel = document.getElementById('chan');
 let brands = [];
 const brandOf = (a) => brands.find((b) => a === b || a?.startsWith(b + ' ')) || a;
 const hideDone = document.getElementById('hide');
+const platSel = document.getElementById('plat');
+// Filter choices survive closing the popup (chrome.storage.local); saved.chan is applied once, when the channel list is built.
+const saved = { chan: null };
+const saveFilter = () => chrome.storage.local.set({ popupFilter: { chan: chanSel.value, plat: platSel.value, hide: hideDone.checked } }).catch(() => {});
+const filterLoaded = chrome.storage.local.get('popupFilter').then(({ popupFilter: f }) => {
+  if (!f) return;
+  platSel.value = f.plat || '';
+  hideDone.checked = !!f.hide;
+  if (typeof f.chan === 'string') saved.chan = f.chan;
+}).catch(() => {});
 const shown = (c) => (!chanSel.value || brandOf(c.item.account) === chanSel.value)
+  && (!platSel.value || c.item.platform === platSel.value)
   && !(hideDone.checked && ['approved', 'posting', 'done'].includes(c.state));
 function renderFilter() {
   const names = [...new Set([...cards.values()].map((c) => c.item.account).filter(Boolean))]
@@ -198,7 +209,9 @@ function renderFilter() {
   const accounts = Object.keys(count).filter(Boolean).sort();
   const want = ['', ...accounts].map((a) => `${a}|${a ? count[a] : cards.size}`).join();
   if (chanSel.dataset.sig !== want) {
-    const cur = chanSel.value;
+    const cur = saved.chan ?? chanSel.value;
+    if (saved.chan === '') chanPicked = true;
+    saved.chan = null;
     chanSel.replaceChildren(new Option(`All channels (${cards.size})`, ''),
       ...accounts.map((a) => new Option(`${a} (${count[a]})`, a)));
     // Opens on ONE channel (the Dream series first), never "All": the user picks All on purpose.
@@ -211,8 +224,9 @@ function renderFilter() {
   renderSummary();
 }
 let chanPicked = false;
-chanSel.onchange = () => { chanPicked = true; renderFilter(); };
-hideDone.onchange = renderFilter;
+chanSel.onchange = () => { chanPicked = true; saveFilter(); renderFilter(); };
+platSel.onchange = () => { saveFilter(); renderFilter(); };
+hideDone.onchange = () => { saveFilter(); renderFilter(); };
 
 // The popup follows the museai dashboard list: only videos the dashboard lists, only platforms not yet
 // ticked there, slots within the dashboard's 7-day calendar, in slot order. Dashboard unreachable: the whole queue shows.
@@ -395,5 +409,5 @@ $id('dups').onclick = async () => {
 };
 chrome.storage.onChanged.addListener((ch, area) => area === 'session' && ch.dups && renderDups());
 
-poll();
+filterLoaded.then(poll);
 setInterval(poll, 5000);
