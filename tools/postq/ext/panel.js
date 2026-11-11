@@ -215,7 +215,7 @@ chanSel.onchange = () => { chanPicked = true; renderFilter(); };
 hideDone.onchange = renderFilter;
 
 // The popup follows the museai dashboard list: only videos the dashboard lists, only platforms not yet
-// ticked there, in the dashboard's slot order. Dashboard unreachable: the whole queue shows.
+// ticked there, slots within the dashboard's 7-day calendar, in slot order. Dashboard unreachable: the whole queue shows.
 const DASH = 'http://127.0.0.1:18610/dashboard/posts';
 async function followDashboard(items) {
   let videos;
@@ -224,12 +224,14 @@ async function followDashboard(items) {
     videos = (await res.json()).videos;
   } catch { return items; }
   if (!Array.isArray(videos)) return items;
-  const byName = new Map(videos.map((v, n) => [v.name, { n, posted: v.posted || {} }]));
+  // Same 7-day window as the dashboard calendar (today + 6, GMT+7, the dashboard's zone).
+  const last = new Date(Date.now() + (7 + 6 * 24) * 3600000).toISOString().slice(0, 10);
+  const byName = new Map(videos.map((v, n) => [v.name, { n, posted: v.posted || {}, ok: !v.slot || v.slot.slice(0, 10) <= last }]));
   const dash = (i) => byName.get(i.video?.name);
   return items
     .filter((i) => {
       const d = dash(i);
-      return d && (i.targets?.length ? i.targets : [i.platform]).some((box) => !d.posted[box]);
+      return d && d.ok && (i.targets?.length ? i.targets : [i.platform]).some((box) => !d.posted[box]);
     })
     .sort((a, b) => dash(a).n - dash(b).n);
 }
