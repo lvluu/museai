@@ -224,9 +224,13 @@ async function followDashboard(items) {
     videos = (await res.json()).videos;
   } catch { return items; }
   if (!Array.isArray(videos)) return items;
-  // Same 7-day window as the dashboard calendar (today + 6, GMT+7, the dashboard's zone).
-  const last = new Date(Date.now() + (7 + 6 * 24) * 3600000).toISOString().slice(0, 10);
-  const byName = new Map(videos.map((v, n) => [v.name, { n, posted: v.posted || {}, ok: !v.slot || v.slot.slice(0, 10) <= last }]));
+  // 7-day window per channel, counted from the channel's first unposted slot (a series that starts
+  // later, like Chinese on 18-11, still shows its first week).
+  const day = (v) => v.slot?.slice(0, 10);
+  const first = {};
+  for (const v of videos) if (day(v) && !(first[v.channel] <= day(v))) first[v.channel] = day(v);
+  const end = (ch) => new Date(Date.parse(first[ch]) + 6 * 86400000).toISOString().slice(0, 10);
+  const byName = new Map(videos.map((v, n) => [v.name, { n, posted: v.posted || {}, ok: !day(v) || day(v) <= end(v.channel) }]));
   const dash = (i) => byName.get(i.video?.name);
   return items
     .filter((i) => {
