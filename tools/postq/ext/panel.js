@@ -230,14 +230,16 @@ async function followDashboard(items) {
   const first = {};
   for (const v of videos) if (day(v) && !(first[v.channel] <= day(v))) first[v.channel] = day(v);
   const end = (ch) => new Date(Date.parse(first[ch]) + 6 * 86400000).toISOString().slice(0, 10);
-  const byName = new Map(videos.map((v, n) => [v.name, { n, posted: v.posted || {}, ok: !day(v) || day(v) <= end(v.channel) }]));
+  const byName = new Map(videos.map((v, n) => [v.name, { n, posted: v.posted || {}, schedule: v.schedule || {}, ok: !day(v) || day(v) <= end(v.channel) }]));
   const dash = (i) => byName.get(i.video?.name);
   return items
     .filter((i) => {
       const d = dash(i);
       return d && d.ok && (i.targets?.length ? i.targets : [i.platform]).some((box) => !d.posted[box]);
     })
-    .sort((a, b) => dash(a).n - dash(b).n);
+    .sort((a, b) => dash(a).n - dash(b).n)
+    // The time is the dashboard's current slot time (slots move; the queued schedule_at goes stale).
+    .map((i) => ({ ...i, schedule_at: dash(i).schedule[i.platform === 'meta' ? 'facebook' : i.platform] || i.schedule_at }));
 }
 let orderSig = '';
 async function poll() {
