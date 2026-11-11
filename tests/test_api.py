@@ -801,3 +801,17 @@ def test_queue_starts_after_latest_post_and_schedule_history_logged(tmp_path):
     posting._log_schedule(path, state)  # unchanged: no second line
     lines = (tmp_path / "schedule-history.jsonl").read_text().splitlines()
     assert len(lines) == 1 and json.loads(lines[0])["schedule"] == {"travel": {"2026-11-20/1": "travel-x.mp4"}}
+
+
+def test_long_clip_takes_no_short_slot(tmp_path):
+    from datetime import datetime
+
+    from museai.api.routes import posting
+
+    now = datetime(2026, 11, 11, 15, 0, tzinfo=posting.TZ)
+    (a := tmp_path / "healing-long.mp4").write_bytes(b"v")
+    (b := tmp_path / "healing-short.mp4").write_bytes(b"v")
+    state = {"healing-long.mp4": {"slot": "2026-11-11/1", "long": True, "posted": {"youtube": True}}}
+    posting._assign_slots(state, [a, b], now)
+    assert state["healing-long.mp4"]["slot"] == "2026-11-11/1"
+    assert state["healing-short.mp4"]["slot"] == "2026-11-11/2"  # the long clip did not use a short slot
