@@ -65,6 +65,8 @@ HOT_BUBBLE_LIMIT = 16
 TEXT_ONLY_GRACE = 90.0
 MEDIA_NUDGES = 2
 REVEAL_WAIT = 3.0
+STATE_POLL_TIMEOUT = 60.0  # one tab poll may not hang longer than this
+STALL_LIMIT = 900.0  # a tab silent this long (15 min) fails the job so it moves to another account
 # Short final replies meaning muse's generator lost the clip ("Video not found"), not a refusal.
 LOST_MEDIA = re.compile(r"\b(not found|went wrong|failed|error)\b", re.I)
 
@@ -637,14 +639,22 @@ class BrowserDriver(MuseDriver):
     ) -> dict:
         seen = tab.media_srcs | {a.get("src") for a in base.get("attachments", [])}
         base_count = base.get("agentCount", 0)
-        started = time.monotonic()
+        started = last_ok = time.monotonic()
         text_only_since: float | None = None
         last_text, nudges, revealed = "", 0, False
         while time.monotonic() - started < timeout:
             if cancel and cancel.is_set():
                 raise asyncio.CancelledError
             await asyncio.sleep(0.6)
-            st = await self._state(tab)
+            try:
+                st = await asyncio.wait_for(self._state(tab), STATE_POLL_TIMEOUT)
+                last_ok = time.monotonic()
+            except asyncio.TimeoutError:  # the tab stopped answering
+                if time.monotonic() - last_ok > STALL_LIMIT:
+                    raise UpstreamTimeout(
+                        f"{kind} tab unresponsive for {STALL_LIMIT:.0f}s; retrying on another account"
+                    ) from None
+                continue
             atts = st.get("attachments", [])
             fresh = [
                 a for a in atts if a.get("src") and a.get("kind") == kind and a["src"] not in seen
