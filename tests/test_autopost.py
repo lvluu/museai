@@ -499,7 +499,7 @@ def test_hands_chat_models(client, settings):
     assert bot.ai.current().id == "claude"
 
 
-def test_hands_status_dashboard_and_approve(client, admin, settings):
+def test_hands_status_dashboard_and_approve(client, admin, settings, monkeypatch):
     from museai.api.routes import hands
 
     drop(settings, CHINESE, captions={"youtube": "t", "tiktok": "x"})
@@ -522,16 +522,33 @@ def test_hands_status_dashboard_and_approve(client, admin, settings):
         asyncio.run(bot.handle({"callback_query": {"id": "c", "data": data,
                                                    "message": {"chat": {"id": 42}, "message_id": 5}}}))
 
-    msg("/status")
-    text, markup = sent[-1][1]["text"], sent[-1][1]["reply_markup"]
-    buttons = [b["callback_data"] for row in markup["inline_keyboard"] for b in row]
-    assert "1 video left" in text and "apprq:all:all" in buttons and "status" in buttons
-    assert all(len(b.encode()) <= 64 for b in buttons)
-    tap(next(b for b in buttons if b.startswith("ch:")))
-    edits = [j for m, j in sent if m == "editMessageText"]
-    assert "left" in edits[-1]["text"]
+    def last_edit():
+        return [j for m, j in sent if m == "editMessageText"][-1]
+
+    def btns(j):
+        return [b["callback_data"] for row in j["reply_markup"]["inline_keyboard"] for b in row]
+
+    msg("/status")  # one message: a button per channel, nothing else
+    assert [m for m, _ in sent] == ["sendMessage"]
+    buttons = btns(sent[-1][1])
+    assert "1 video to post" in sent[-1][1]["text"] and "ch:chinese" in buttons and "apprq:all:all" not in buttons
+    tap("ch:chinese")  # the posts: Post + Delete per video, post-all across platforms below
+    chan = last_edit()
+    chan_buttons = btns(chan)
+    vid = next(b.split(":")[1] for b in chan_buttons if b.startswith("pk:"))
+    assert chan_buttons[:2] == [f"pk:{vid}:chinese", f"delq:{vid}:chinese"]
+    assert "apprq:chinese:all" in chan_buttons and "apprq:chinese:youtube" in chan_buttons
+    assert all(len(b.encode()) <= 64 for b in chan_buttons)
+    tap(f"pk:{vid}:chinese")  # platform picker: every platform left is selected
+    pick = btns(last_edit())
+    assert pick[0].startswith(f"pk:{vid}:chinese:") and pick[-2].startswith(f"pp:{vid}:chinese:")
+    tap(pick[0])  # untick the first platform
+    assert btns(last_edit())[-2] != pick[-2]
+    tap(pick[-2])  # post the rest
+    assert any("queued" in j.get("text", "") for m, j in sent if m == "answerCallbackQuery")
+    assert last_edit()["text"].startswith("Chinese ·")
     tap("apprq:all:youtube")
-    assert "Post 1 job" in [j for m, j in sent if m == "editMessageText"][-1]["text"]
+    assert "Post 1 job" in last_edit()["text"]
     tap("appr:all:youtube")
     assert any("1 queued" in j.get("text", "") for m, j in sent if m == "answerCallbackQuery")
     msg("/postq")
@@ -540,6 +557,15 @@ def test_hands_status_dashboard_and_approve(client, admin, settings):
     assert sent[-1][0] == "sendMessage"
     msg("/approve bogus")
     assert "channels:" in sent[-1][1]["text"]
+
+    delq = f"delq:{vid}:chinese"
+    tap(delq)
+    assert "Yes, delete" in str([j for m, j in sent if m == "editMessageText"][-1]["reply_markup"])
+    trashed = []
+    monkeypatch.setattr(posting, "_trash", trashed.append)
+    tap(delq.replace("delq:", "delc:", 1))
+    assert trashed and trashed[-1].name == CHINESE
+    assert sent[-2][0] == "editMessageText" and sent[-2][1]["text"].startswith("Chinese ·")  # back on the list
 
 
 FAKE_APP_SERVER = """#!/usr/bin/env python3
