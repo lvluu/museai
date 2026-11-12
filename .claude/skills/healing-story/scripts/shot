@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Usage: [SEASON=christmas] shot "brief" out.mp4
+# Renders one healing-story shot through muse-video (16:9, 6 s, QUALITY=0) with ../prompt/$SEASON.txt
+# appended (look, the girl, her friend, light, sound). One line per shot in a jobs file for
+# ../../muse-video/scripts/render-queue -j 3.
+# Env passed through to muse-video: IMAGE=first_frame.png SIZE= DURATION=
+set -euo pipefail
+SKILL_DIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+MUSE_VIDEO="$SKILL_DIR/../muse-video/scripts/muse-video"
+season=${SEASON:-christmas}
+rules="$SKILL_DIR/prompt/$season.txt"
+[[ -f $rules ]] || { echo "shot: no prompt/$season.txt" >&2; exit 2; }
+# AI-look bait words make muse stack props and an orange glow (healing-video "Real look"). The season's
+# own decor (string lights, a tree, a wreath) is named in prompt/<season>.txt, so briefs say "the tree".
+# Crying and face-to-face talking looked fake (user 2026-11-12). BRIEF_OK=1 skips the check.
+bait=$(grep -oiE '\b(cos[yi]e?|cozy|magical|dreamy|cinematic|enchant[a-z]*|fairy lights?|glow(ing)?|candle(s|light)?|bokeh|sparkl[a-z]*|glitter[a-z]*|tripod|phone on|cry(ing)?|cries|tears?|sob[a-z]*|face to face|talking to each other)\b' <<<"$1" | sort -fu | paste -sd, - || true)
+if [[ -n $bait && -z ${BRIEF_OK:-} ]]; then
+  echo "shot: brief has bait words ($bait); see healing-story SKILL.md Shots" >&2
+  exit 2
+fi
+out=$(cd "$(dirname "$2")" && pwd)/$(basename "$2")
+prompt="NO TEXT ON SCREEN. $1
+
+$(cat "$rules")"
+QUALITY=0 SIZE=${SIZE:-16:9} DURATION=${DURATION:-6} OUT_NAME=$(basename "$out") NO_OPEN=1 \
+  "$MUSE_VIDEO" "$prompt" "$(dirname "$out")"
