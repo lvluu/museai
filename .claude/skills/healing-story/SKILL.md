@@ -1,0 +1,46 @@
+---
+name: healing-story
+description: Make a 16:9 narrated healing story video (~3-4 min) through museai where a first-person voice tells a real, meaningful life story (a friendship, a family moment) while the picture shows calm home cooking and baking actions that echo each line, never narrating the recipe. Seasonal looks live in prompt/<season>.txt (christmas first: a snowy city apartment, a small tree, a best friend called Mia). Use for "healing story", "Christmas story video", "story while cooking", "tell a story over cooking", "best friend story", "meaningful story video", or the next episode of these.
+---
+
+# healing-story
+
+Paths are relative to this folder (`.claude/skills/healing-story/`). Server, render queue, voice, music, compose, QA and delivery come from `../healing-video/SKILL.md` (Story mode) and `../muse-video/SKILL.md`; this skill changes what the story says and what the shots show. Name everything `healing-<slug>`; the work folder is `~/Movies/museai/healing-<slug>/`.
+
+## The format (user 2026-11-12)
+The user found Story mode videos that narrate the recipe less meaningful: "don't need to say anything related to cooking, just show cooking actions, but tell the real story".
+- **The voice tells a life story, not the recipe.** First person, one real-feeling story with one turn and one lesson (a stranger who became a best friend, a parent's small habit, a letter never sent). At most two lines mention the food, and only as part of the story ("She's the reason I'm baking tonight", "Gingerbread, a little burnt, the way she likes it").
+- **The picture shows calm cooking and home actions that RHYME with each line** (the line and the shot mean the same thing without saying it):
+  | line | shot |
+  |---|---|
+  | alone in a new city | one egg cracked into a big empty bowl |
+  | "she just kept showing up" | two mugs set down side by side |
+  | she moved away | hands taping a moving box |
+  | the friendship grows | two pairs of hands kneading one dough |
+  | the first knock (hook) | a hand knocking on a door; the last beats knock on a new door (bookend) |
+  Memories are cutaways in the same home (a stairwell, a window, a doorway); the present day is her baking for the person in the story, so the cooking leads to the ending (the friend arrives, two mugs).
+- **Story arc** (~35 beats, 400-600 words, 3-4 min): hook (a confession or promise, the first sentence) → present-day frame in one line ("she lands in two hours, so let me tell you how we met") → the lonely before → the small moment that changed it → the friendship in three quick images → a quiet loss or distance → the present day → the lesson as an action the viewer can take ("If you know someone who's alone this Christmas, knock") → a two-word close ("Merry Christmas.").
+- **English**: natural, casual, native spoken English: short sentences, contractions, everyday words, a little humour ("a fridge with one jar of mustard"), 1-2 sentences per beat. Dialogue goes into the voice-over as reported speech ("And she said, hey, are you doing anything tonight?"). No poetic words.
+- **Restrained emotion**: the voice may say "I cried"; the picture never shows it. Sad beats are calm shots from behind, hands still, eyes on the thing. Big moments (meeting, reunion) are hands or two people side by side from behind.
+
+## Shots
+`scripts/shot "<brief>" sN.mp4` appends `prompt/$SEASON.txt` (default `christmas`): the plain real look, the girl's fixed look (same as healing-video), the friend's fixed look, one light source, no face-to-face talking, close-miked sound. It refuses bait words (cosy, glow, candle, fairy lights, bokeh, glitter, crying, tears, face to face; `BRIEF_OK=1` overrides) and renders 16:9 at 6 s.
+- One shot per beat; each brief names who (the girl / Mia / both / hands), what the hands do, the light ("bright soft daylight from a snowy window", or "Evening." first for dusk shots), and the sound of the action.
+- A close task: "seen from the side, head bowed, eyes on X" (healing-video "Shots must make sense"). Two people: "seen from behind side by side" or "two pairs of hands". Never write a face, a smile, a look between them, or talking.
+- Food keeps its colour in every shot (orange carrot soup, dark-edged gingerbread). The decor stays small: name "the small tree's warm-white string lights" or "a small simple wreath", never a list of decorations.
+- Hook shot (beat 1) starts mid-action with a sound you can see (a knock, a cutter in dough, a pour).
+
+## Steps
+1. **Story**: write `story.json` (`{"title", "season", "lesson", "beats": [{"vo", "shot"}]}`) in the work folder; keep a copy in `stories/<slug>.json` (the bank of told stories: never retell one; `ls stories/`). Show the user the title, hook and lesson; render after a yes unless they asked to just make it.
+2. **Voice** (background, ~2 min): `uv run --no-project --python 3.11 --with "kokoro>=0.9" --with soundfile --with "misaki[en]" python ../place-story/scripts/vo.py story.json --speed 0.92` → `vo/bN.wav`.
+3. **Shots**: one jobs line per beat with a retry, `../muse-video/scripts/render-queue -j 3 jobs.txt` in ONE background call:
+   ```bash
+   for t in 1 2 3 4; do scripts/shot '<brief>' ~/Movies/museai/healing-<slug>/sN.mp4; [ -f ~/Movies/museai/healing-<slug>/sN.mp4 ] && break; sleep 45; done
+   ```
+4. **Music**: `../healing-video/scripts/music "<season> piano lullaby, tender" p1.m4a <story seconds + 10> <seed>`; it must pass the calm gate (exit 3 → next seed). Christmas: "winter christmas piano lullaby, tender, warm"; no bells or jingles.
+5. **QA**: contact sheet of all clips (`ffmpeg -i sN.mp4 -vf "fps=1,scale=320:-1,tile=6x1"`); re-render any shot with a face to camera, two faces turned to each other, crying, warped hands, a changed hair/sweater/scarf, wrong food colour, or decor clutter.
+6. **Compose**: `python3 ../healing-video/scripts/story169.py story.json --music p1.m4a --out healing-<slug>.mp4` (small bottom subtitles, dissolves, ducked piano, -16 LUFS).
+7. **Deliver**: 16:9 + 9:16 covers from a raw clip (`--at sN.mp4@auto`, never the composed video: subtitles burn in), captions via `../social-captions` (no `#Shorts`), record with `../healing-video/scripts/ideas.py record custom ...`, then `FINAL=1 THUMB_DIR=thumbs CAPTIONS_FILE=captions.json ../muse-video/scripts/deliver.sh healing-<slug>.mp4 <work dir> healing-<slug>` (it trashes the work folder: record first).
+
+## Seasons
+`prompt/<season>.txt` holds the full shot rules for one season and its cast. To add one (spring, Lunar New Year, autumn), copy `christmas.txt`, change the place, light, decor and sound lines, keep the girl's paragraph word for word, and run with `SEASON=<name>`.
