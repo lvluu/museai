@@ -43,7 +43,7 @@ def luma(p, start):
     return sum(v) / len(v) if v else 135
 
 
-def chunks(text, maxc=60):
+def chunks(text, maxc=84):
     """Subtitle pages of at most 2 lines of ~maxc chars, split on sentence/phrase bounds."""
     words, lines, cur = text.split(), [], ""
     for w in words:
@@ -57,28 +57,29 @@ def chunks(text, maxc=60):
 
 
 def sub_png(text, path):
+    # small text hugging the bottom edge so it takes little of the scene (user 2026-11-12); a slim dark band
+    # and an outline keep it readable on bright sky or light walls
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    font = ImageFont.truetype(FONT, 50)
+    font = ImageFont.truetype(FONT, 38)
     lines = text.split("\n")
-    y0 = H - 100 - 64 * len(lines)
-    # soft dark band behind the text so it reads on bright sky or light walls (user: hard to read)
-    top = y0 - 90
+    lh, bottom = 48, 40
+    y0 = H - bottom - lh * len(lines)
+    top = y0 - 36
     band = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     bd = ImageDraw.Draw(band)
     for y in range(top, H):
-        a = int(175 * min(1.0, (y - top) / 110))
-        bd.line([(0, y), (W, y)], fill=(0, 0, 0, a))
+        bd.line([(0, y), (W, y)], fill=(0, 0, 0, int(150 * min(1.0, (y - top) / 50))))
     img = Image.alpha_composite(img, band)
     sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
     ds = ImageDraw.Draw(sh)
     for k, ln in enumerate(lines):
         tw = ds.textlength(ln, font=font)
-        ds.text(((W - tw) / 2, y0 + 64 * k + 3), ln, font=font, fill=(0, 0, 0, 255))
-    img = Image.alpha_composite(img, sh.filter(ImageFilter.GaussianBlur(4)))
+        ds.text(((W - tw) / 2, y0 + lh * k + 2), ln, font=font, fill=(0, 0, 0, 255))
+    img = Image.alpha_composite(img, sh.filter(ImageFilter.GaussianBlur(3)))
     d = ImageDraw.Draw(img)
     for k, ln in enumerate(lines):
         tw = d.textlength(ln, font=font)
-        d.text(((W - tw) / 2, y0 + 64 * k), ln, font=font, fill=(255, 255, 255, 255),
+        d.text(((W - tw) / 2, y0 + lh * k), ln, font=font, fill=(255, 255, 255, 255),
                stroke_width=2, stroke_fill=(0, 0, 0, 230))
     img.save(path)
 
