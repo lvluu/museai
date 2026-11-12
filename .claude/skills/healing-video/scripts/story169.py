@@ -175,7 +175,8 @@ def main():
             ins += ["-i", str(f_)]
             fc += f"[{k}:a]aresample=48000,aformat=channel_layouts=stereo,{pre}adelay={int(d_ * 1000)}:all=1[a{k}];"
         fc += "".join(f"[a{k}]" for k in range(len(files))) + f"amix=inputs={len(files)}:normalize=0,apad,atrim=duration={total:.3f}[o]"
-        run(["ffmpeg", "-y", "-hide_banner", *ins, "-filter_complex", fc, "-map", "[o]", str(out)])
+        # -t caps the output: apad is infinite and a 37-input foley mix once ran past atrim, writing 700 GB of WAV
+        run(["ffmpeg", "-y", "-hide_banner", *ins, "-filter_complex", fc, "-map", "[o]", "-t", f"{total:.3f}", str(out)])
 
     voice = tmp / "voice.wav"
     place([p["vo"] for p in plan], [p["T"] + p["lead"] + (XF / 2 if p["i"] > 1 else 0) for p in plan], voice,
