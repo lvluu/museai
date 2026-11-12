@@ -65,6 +65,23 @@ def _local_or_admin(request: Request) -> None:
     require_admin_key(request)
 
 
+@router.post("/dashboard/accounts", include_in_schema=False,
+             dependencies=[Depends(_local_or_admin)])
+async def add_account(request: Request, label: str = "muse",
+                      svc: Services = Depends(get_services)) -> dict:
+    """Add an account from a browser cookie export, then check the cookies upstream."""
+    try:
+        cookies, expires = muse.parse_cookie_export(await request.json())
+    except ValueError as exc:
+        raise InvalidRequest(f"not a cookie export: {exc}") from exc
+    if missing := muse.missing_session_cookies(cookies):
+        raise InvalidRequest(f"export is missing session cookies: {', '.join(missing)}")
+    acc = Account(label=label.strip()[:100] or "muse", cookies=cookies, cookie_expires=expires)
+    await svc.pool.upsert(acc)
+    check = await renew_account(svc.pool, svc.driver, acc.id)
+    return {"account": svc.pool.get(acc.id).public(), "check": check}
+
+
 @router.post("/dashboard/accounts/{account_id}/cookies", include_in_schema=False,
              dependencies=[Depends(_local_or_admin)])
 async def upload_cookies(account_id: str, request: Request,
