@@ -172,6 +172,19 @@ def test_dashboard_cookie_upload(client, admin):
     assert "hatch_sess" in r.json()["error"]["message"]
 
 
+def test_dashboard_add_account(client, admin):
+    export = {"cookies": [
+        {"name": "hatch_sess", "value": "s", "domain": ".muse.ai"},
+        {"name": "hatch_native_auth_device", "value": "d", "domain": "muse.ai"},
+    ]}
+    assert client.post("/dashboard/accounts", json=export).status_code == 401
+    r = client.post("/dashboard/accounts?label=me", headers=admin, json=export)
+    assert r.status_code == 200
+    assert r.json()["account"]["label"] == "me"
+    r = client.post("/dashboard/accounts", headers=admin, json=[{"name": "datr", "value": "x"}])
+    assert r.status_code == 400
+
+
 def test_dashboard_rename(client, admin):
     acc = client.post("/admin/accounts", headers=admin, json={
         "label": "a1", "cookies": {"hatch_sess": "s", "hatch_native_auth_device": "d"},
