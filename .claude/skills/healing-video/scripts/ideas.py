@@ -24,7 +24,7 @@ import sys
 from pathlib import Path
 
 SKILL = Path(__file__).resolve().parent.parent
-BANK = SKILL / "ideas.json"
+BANKS = [SKILL / "ideas.json", SKILL / "ideas-garden.json"]
 HIST = Path.home() / ".config/museai/healing-history.json"
 MONTH_SEASON = {12: "winter", 1: "winter", 2: "winter", 3: "spring", 4: "spring", 5: "spring",
                 6: "summer", 7: "summer", 8: "summer", 9: "autumn", 10: "autumn", 11: "autumn"}
@@ -70,6 +70,7 @@ def main():
     n.add_argument("--animal")
     n.add_argument("--no-animal", action="store_true")
     n.add_argument("--n", type=int, default=1)
+    n.add_argument("--style", help="garden = montage bank (gm-*); default: the original bank")
     sub.add_parser("show").add_argument("id")
     for name in ("check", "record"):
         p = sub.add_parser(name)
@@ -81,9 +82,10 @@ def main():
             p.add_argument(f"--{f}")
     sub.add_parser("list").add_argument("--last", type=int, default=20)
     sub.add_parser("stats")
+    sub.add_parser("style")
     a = ap.parse_args()
 
-    bank = load(BANK, [])
+    bank = [i for b in BANKS for i in load(b, [])]
     by_id = {i["id"]: i for i in bank}
     hist = load(HIST, [])
 
@@ -91,6 +93,8 @@ def main():
         season = MONTH_SEASON[datetime.date.today().month] if a.season == "now" else a.season
         out = []
         for idea in bank:
+            if (idea.get("style") == "garden") != (a.style == "garden"):
+                continue
             if season and norm(idea["season"]) != norm(season):
                 continue
             if a.home and norm(a.home) not in norm(idea["home"]):
@@ -124,7 +128,7 @@ def main():
         code, why = verdict(idea, hist)
         if code == 1:
             print(f"warning: recording a duplicate ({why})", file=sys.stderr)
-        entry = {k: idea.get(k) for k in ("id", "title", "home", "season", "task", "animal", "caption")}
+        entry = {k: idea.get(k) for k in ("id", "title", "home", "season", "task", "animal", "caption", "style")}
         entry["shots"] = json.loads(Path(a.shots).read_text()) if a.shots else idea.get("shots", [])
         entry["video"] = str(Path(a.video).expanduser().resolve())
         entry["date"] = datetime.date.today().isoformat()
@@ -137,6 +141,10 @@ def main():
             print(f"{h['date']}  {h['id'] or 'custom':9}  {h['title']}  → {h['video']}")
         if not hist:
             print("no videos yet")
+    elif a.cmd == "style":
+        # rotation: the style used longest ago (never used = first); postcard/ode/story count as "classic"
+        last = [h.get("style") or "classic" for h in hist][::-1]
+        print(max(["classic", "garden"], key=lambda st: last.index(st) if st in last else 99))
     elif a.cmd == "stats":
         used = {h["id"] for h in hist if h.get("id")}
         print(f"{len(hist)} videos delivered, {len(used)}/{len(bank)} bank ideas used, "

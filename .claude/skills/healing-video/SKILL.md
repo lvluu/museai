@@ -1,13 +1,28 @@
 ---
 name: healing-video
-description: Make a short vertical "healing" slow-living video through museai - calm 1-2 s shots of a cosy country home (a girl baking or making tea in the kitchen, seen from behind or as hands, beautiful corners of the house, a garden of flowers, a cat, dog or bird resting, rain on the window, a river, birdsong, the view from an open window), soft muted grade, a small serif text line, gentle instrumental music over the real ambience. Two concepts from the user's reference reels - "postcard" (8 shots under one line like "the way I want to live:") and "ode" (one sentence split over 6 shots, each shot showing the subject act: "a love letter to the wind that / lifts the curtains / ..."). Picks from a 1000-idea bank and keeps a history so no video repeats an earlier one. Use for "healing video", "slow living video", "cottagecore", "cosy home video", "the way I want to live", "love letter to the rain/wind", "video like the cottage one", or "next healing video".
+description: Make a short vertical "healing" slow-living video through museai - calm 1-2 s shots of a cosy country home (a girl baking or making tea in the kitchen, seen from behind or as hands, beautiful corners of the house, a garden of flowers, a cat, dog or bird resting, rain on the window, a river, birdsong, the view from an open window), soft muted grade, a small serif text line, gentle instrumental music over the real ambience. Two concepts from the user's reference reels - "postcard" (8 shots under one line like "the way I want to live:") and "ode" (one sentence split over 6 shots, each shot showing the subject act: "a love letter to the wind that / lifts the curtains / ..."). Picks from a 1000-idea bank and keeps a history so no video repeats an earlier one. Has rotating styles (classic kitchen/home, garden montage "if a boring life looks like this"): run `scripts/ideas.py style` to pick the one not used lately. Use for "healing video", "slow living video", "cottagecore", "cosy home video", "the way I want to live", "love letter to the rain/wind", "video like the cottage one", or "next healing video".
 ---
 
 # healing-video
 
 Paths are relative to this folder (`.claude/skills/healing-video/`). Server, retries, QA and delivery come from `../muse-video/SKILL.md` (Server, "Format skills" shared steps 3-7). Name everything `healing-<slug>`; the work folder is `~/Movies/museai/healing-<slug>/`.
 
-## The two concepts (measured on the user's reference reels, both 9:16, ~9.8 s)
+## Styles: rotate so content never repeats (user 2026-11-12)
+Every healing video belongs to a style; mix them. `python3 scripts/ideas.py style` prints the style used longest ago (history `style` field; videos without one count as `classic`). Pick that style unless the user names one; never the same style twice in a row.
+| style | concepts | bank | look |
+|---|---|---|---|
+| classic | postcard, ode, story | `ideas.json` (hv-*) | indoor kitchen/home, muted, serif caption, `prompt/healing.txt` |
+| garden | montage | `ideas-garden.json` (gm-*, `scripts/gen_garden.py`) | outdoor harvest garden, vivid sun, thin sans caption, `prompt/garden.txt` |
+Next idea of a style: `python3 scripts/ideas.py next --style garden --season now`. Record with `--style` implied by the bank idea.
+
+### garden montage (reference 5, "If a boring life looks like this", 9:16, 10.0 s, measured 2026-11-12)
+- 10 hard cuts of ~1.0 s, ONE caption on every shot, thin white sans (Helvetica Neue Light), ~3.4 % of width, upper third (33 % down), soft shadow. The caption is a contrast hook ("If a boring life looks like this", "Tell me this isn't enough"); `CAPTIONS` in `gen_garden.py`, never reuse one from the last 3 videos.
+- Subject: a real country home outdoors in strong sun, vivid but natural colour. Formula: 1 girl in a patterned dress holding a fresh pick (shot 1 = sound you can see: the stem snaps) → sky/field → harvest basket top-down with an animal wandering in → garden arch/path → fruit platter on flowers → animal beats (wide, then close) → flower meadow → house window with flowers → sunset through trees. Slots 2-9 are shuffled per idea so two videos never share an order.
+- Sound: ambience plus the shot's own sound; music = the reference's own track at `~/.config/museai/music/ref5-boring-life-music.m4a` (user 2026-11-12: "using this music exactly for this kind of video"), `compose.py --music` as is, 10 s. It is someone else's recording: a post can be muted or claimed; keep the original piano option (step 4) as fallback.
+- Render: `HV_STYLE=garden DURATION=4 scripts/shot "<brief>" sN.mp4` per shot in a `render-queue` jobs file; compose: `python3 scripts/compose.py --idea idea.json --music ~/.config/museai/music/ref5-boring-life-music.m4a --out healing-<slug>.mp4 s1.mp4@1.0 ...` (concept `montage` sets 1.0 s per shot, sans caption).
+- Different from classic: outdoors not kitchen, saturated sun not muted, 1.0 s not 1.2-2 s, caption on top not centre, harvest and animals not baking.
+
+## The two classic concepts (measured on the user's reference reels, both 9:16, ~9.8 s)
 | | postcard (reference 1) | ode (reference 2) |
 |---|---|---|
 | shots | 8 hard cuts, ~1.2 s each (cuts 1.5, 2.8, 3.9, 5.1, 6.3, 7.5, 8.7 s) | 6 hard cuts, ~1.6 s each (2.1, 3.7, 5.3, 6.6, 8.3 s) |
