@@ -143,8 +143,11 @@ def main():
             print("no videos yet")
     elif a.cmd == "style":
         # rotation: the style used longest ago (never used = first); postcard/ode/story count as "classic"
-        last = [h.get("style") or "classic" for h in hist][::-1]
-        print(max(["classic", "garden"], key=lambda st: last.index(st) if st in last else 99))
+        def style_of(h):
+            cap = h.get("caption") or ""
+            return h.get("style") or (cap[6:] if cap.startswith("style:") else "classic")
+        last = [style_of(h) for h in hist][::-1]
+        print(max(["classic", "garden", "harvest-asmr"], key=lambda st: last.index(st) if st in last else 99))
     elif a.cmd == "stats":
         used = {h["id"] for h in hist if h.get("id")}
         print(f"{len(hist)} videos delivered, {len(used)}/{len(bank)} bank ideas used, "

@@ -8,10 +8,11 @@ description: Make a short vertical "healing" slow-living video through museai - 
 Paths are relative to this folder (`.claude/skills/healing-video/`). Server, retries, QA and delivery come from `../muse-video/SKILL.md` (Server, "Format skills" shared steps 3-7). Name everything `healing-<slug>`; the work folder is `~/Movies/museai/healing-<slug>/`.
 
 ## Styles: rotate so content never repeats (user 2026-11-12)
-Every healing video belongs to a style; mix them. `python3 scripts/ideas.py style` prints the style used longest ago (history `style` field; videos without one count as `classic`). Pick that style unless the user names one; never the same style twice in a row.
+Every healing video belongs to a style; mix them. `python3 scripts/ideas.py style` prints the style used longest ago (history `style` field or `style:<name>` caption; videos without one count as `classic`). Pick that style unless the user names one; never the same style twice in a row.
 | style | concepts | bank | look |
 |---|---|---|---|
 | classic | postcard, ode, story | `ideas.json` (hv-*) | indoor kitchen/home, muted, serif caption, `prompt/healing.txt` |
+| harvest-asmr | hands-only montage | `scripts/harvest_ideas.py`, `styles/harvest-asmr.md` | hands picking crops, ~1 s, no text |
 | garden | montage | `ideas-garden.json` (gm-*, `scripts/gen_garden.py`) | outdoor harvest garden, vivid sun, thin sans caption, `prompt/garden.txt` |
 Next idea of a style: `python3 scripts/ideas.py next --style garden --season now`. Record with `--style` implied by the bank idea.
 
