@@ -72,6 +72,9 @@ A longer narrated variant: she cooks while a voice tells a meaningful life story
 - **Look rules for every shot** (`prompt/healing.txt`): the same girl (hair, cardigan, apron), beautiful young hands, clean tidy kitchen. Judge the contact sheet for hand/face warping and clutter; re-render any shot that fails.
 - **Deliver**: 16:9 + 9:16 covers (`THUMB_DIR` needs both for a horizontal video; `deliver.sh` exits silently when one is missing), captions without `#Shorts` (4 min horizontal is not a Short; `captions.py` only WARNs).
 
+## More styles
+- `styles/harvest-asmr.md` (user reference 2, 2026-11-12): hands-only garden harvest montage, ~1 s per crop shot, no text, real picking sound. Ideas: `scripts/harvest_ideas.py next`. Record with `--caption style:harvest-asmr`; never two videos of one style in a row.
+
 ## Hook: hold viewers past 5 s (insights 2026-11-05)
 The user's insights: many viewers swipe away at ~2 s, others stay 6 s+, and the ones that hold are soft, gentle music over the REAL sound of a real action (a cat's meow, birdsong, a pie being cut, tea being poured). So every video is built for the first 2 s:
 - **Shot 1 = a sound you can see**: a close-up of one action with a crisp sound that the viewer hears as it happens, started MID-action (the tea is already pouring, the knife is already in the crust, the cat is already meowing at her). Never an empty room, a landscape or a slow window reveal first. Pick from: pouring (tea, milk, honey, water over fruit), cutting / cracking (pie crust, bread, an egg into a bowl), sizzling (butter, pancakes), an animal sound (cat meow / purr, hens, birds at a feeder, a dog lapping water), kneading / slapping dough, rain on the window with sun.
