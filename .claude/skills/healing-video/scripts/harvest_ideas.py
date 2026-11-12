@@ -214,7 +214,7 @@ def build():
             seq = [c[0] for c in pick]
             opener = rng.choice([c for c in pick if c[1] != "pluck"])[0]
             shots = [OPEN.format(crop=opener, animal=animal)]
-            for crop, verb, plant in pick:
+            for _crop, verb, plant in pick:
                 shots.append(MID.format(verb_phrase=VERB[verb], plant=plant, sound=SOUND[verb]))
             shots.append(CLOSE.format(crops=", ".join(seq[:4]), animal=animal))
             key = hashlib.sha1("|".join(seq).encode()).hexdigest()[:4]
