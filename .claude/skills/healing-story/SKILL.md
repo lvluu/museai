@@ -17,18 +17,19 @@ The user found Story mode videos that narrate the recipe less meaningful: "don't
   | "she just kept showing up" | two mugs set down side by side |
   | she moved away | hands taping a moving box |
   | the friendship grows | two pairs of hands kneading one dough |
-  | the first knock (hook) | a hand knocking on a door; the last beats knock on a new door (bookend) |
+  | the first knock (hook) | the friend at the door, face visible, a plate in her hands, smiling as it opens; the last beats: she stands at a new door (bookend) |
   Memories are cutaways in the same home (a stairwell, a window, a doorway); the present day is her baking for the person in the story, so the cooking leads to the ending (the friend arrives, two mugs).
 - **Story arc** (~35 beats, 400-600 words, 3-4 min): hook (a confession or promise, the first sentence) → present-day frame in one line ("she lands in two hours, so let me tell you how we met") → the lonely before → the small moment that changed it → the friendship in three quick images → a quiet loss or distance → the present day → the lesson as an action the viewer can take ("If you know someone who's alone this Christmas, knock") → a two-word close ("Merry Christmas.").
 - **English**: natural, casual, native spoken English: short sentences, contractions, everyday words, a little humour ("a fridge with one jar of mustard"), 1-2 sentences per beat. Dialogue goes into the voice-over as reported speech ("And she said, hey, are you doing anything tonight?"). No poetic words.
 - **Restrained emotion**: the voice may say "I cried"; the picture never shows it. Sad beats are calm shots from behind, hands still, eyes on the thing. Big moments (meeting, reunion) are hands or two people side by side from behind.
 
 ## Shots
-`scripts/shot "<brief>" sN.mp4` appends `prompt/$SEASON.txt` (default `christmas`): the plain real look, the girl's fixed look (same as healing-video), the friend's fixed look, one light source, no face-to-face talking, close-miked sound. It refuses bait words (cosy, glow, candle, fairy lights, bokeh, glitter, crying, tears, face to face; `BRIEF_OK=1` overrides) and renders 16:9 at 6 s.
+`scripts/shot "<brief>" sN.mp4` appends `prompt/$SEASON.txt` (default `christmas`): the plain real look, the girl's fixed look (same as healing-video), the friend's fixed look, faces shown naturally, one light source, close-miked sound. It refuses bait words (cosy, glow, candle, fairy lights, bokeh, glitter, crying, tears, knife, knuckles, door handle; `BRIEF_OK=1` overrides) and renders 16:9 at 6 s.
 - One shot per beat; each brief names who (the girl / Mia / both / hands), what the hands do, the light ("bright soft daylight from a snowy window", or "Evening." first for dusk shots), and the sound of the action.
-- A close task: "seen from the side, head bowed, eyes on X" (healing-video "Shots must make sense"). Two people: "seen from behind side by side" or "two pairs of hands". Never write a face, a smile, a look between them, or talking.
+- **People act like people (user 2026-11-12, second cut)**: "two girls should talk to each other and laugh freely, show Mia's face", "many scenes look awkward, not like human". Moments between people are medium shots with both faces visible: talking across a counter, laughing at the same thing, one nudging the other. Name the feeling and the small natural gesture ("both laughing, Mia covers her mouth with the back of her hand"). Nobody looks into the lens. A task alone stays "seen from the side, eyes on X". Never shoot a person only from behind for a whole shot when the line is about them.
+- **Doors, knocks and sharp tools look fake in close-up** (that cut: a disembodied fist knocking, a hand pressing a handle, a door swinging by itself, a knife passed handle first). Show the whole person at the door in a medium shot (standing in the stairwell with the plate, the door already open), never a hand on a handle or a knocking fist. Never hand over or hold up a knife; give the hands something soft (a bowl of potatoes, an apron, a mug).
 - Food keeps its colour in every shot (orange carrot soup, dark-edged gingerbread). The decor stays small: name "the small tree's warm-white string lights" or "a small simple wreath", never a list of decorations.
-- Hook shot (beat 1) starts mid-action with a sound you can see (a knock, a cutter in dough, a pour).
+- Hook shot (beat 1) starts mid-action with a sound you can see (a cutter in dough, a pour) or a person already in the moment (the friend smiling at the open door).
 
 ## Steps
 1. **Story**: write `story.json` (`{"title", "season", "lesson", "beats": [{"vo", "shot"}]}`) in the work folder; keep a copy in `stories/<slug>.json` (the bank of told stories: never retell one; `ls stories/`). Show the user the title, hook and lesson; render after a yes unless they asked to just make it.
@@ -38,7 +39,7 @@ The user found Story mode videos that narrate the recipe less meaningful: "don't
    for t in 1 2 3 4; do scripts/shot '<brief>' ~/Movies/museai/healing-<slug>/sN.mp4; [ -f ~/Movies/museai/healing-<slug>/sN.mp4 ] && break; sleep 45; done
    ```
 4. **Music**: `../healing-video/scripts/music "<season> piano lullaby, tender" p1.m4a <story seconds + 10> <seed>`; it must pass the calm gate (exit 3 → next seed). Christmas: "winter christmas piano lullaby, tender, warm"; no bells or jingles.
-5. **QA**: contact sheet of all clips (`ffmpeg -i sN.mp4 -vf "fps=1,scale=320:-1,tile=6x1"`); re-render any shot with a face to camera, two faces turned to each other, crying, warped hands, a changed hair/sweater/scarf, wrong food colour, or decor clutter.
+5. **QA**: contact sheet of all clips (`ffmpeg -i sN.mp4 -vf "fps=1,scale=320:-1,tile=6x1"`); re-render any shot with a face to camera, a stiff pose or frozen smile, a person who doesn't move like a person, crying, warped hands, a changed hair/sweater/scarf, wrong food colour, or decor clutter.
 6. **Compose**: `python3 ../healing-video/scripts/story169.py story.json --music p1.m4a --out healing-<slug>.mp4` (small bottom subtitles, dissolves, ducked piano, -16 LUFS).
 7. **Deliver**: 16:9 + 9:16 covers from a raw clip (never the composed video: subtitles burn in), title centred on the frame, style rotated from the cover history (`--style auto`, see healing-video step 7):
    ```bash
