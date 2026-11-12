@@ -113,6 +113,7 @@ def main():
                     "sync with its shot (0 = off)")
     ap.add_argument("--music-in", type=float, default=0.8, help="seconds of action sound alone before the music "
                     "fades in (the hook)")
+    ap.add_argument("--music-lufs", type=float, help="bring the music to this loudness first (a quiet reference track, e.g. -29.6 LUFS, is drowned by the action sound at -22; try -20)")
     ap.add_argument("--size", default="1080x1920")
     ap.add_argument("--dissolve", type=float, default=0, help="cross-dissolve seconds between shots (reference 4: 0.5); 0 = hard cuts")
     a = ap.parse_args()
@@ -229,10 +230,12 @@ def main():
                   f"afade=out:st={total - 1.0:.3f}:d=1.0[fol]")
         mixes.append("[fol]")
     mus_in = max(0.0, min(a.music_in, total / 3))
+    mus_lu = loudness(a.music, 0, total - mus_in) if a.music_lufs is not None else None
+    mus_gain = f"volume={a.music_lufs - mus_lu:.1f}dB," if mus_lu is not None else ""
     graph = vf + af + [
         # no fade from black: frame 0 is already the action (the hook)
         f"{chain}fade=t=out:st={total - 0.5:.3f}:d=0.5,format=yuv420p[vout]",
-        f"[{mi}:a]atrim=duration={total - mus_in:.3f},asetpts=PTS-STARTPTS,afade=in:d=1.2,"
+        f"[{mi}:a]atrim=duration={total - mus_in:.3f},asetpts=PTS-STARTPTS,{mus_gain}afade=in:d=1.2,"
         f"afade=out:st={total - mus_in - 1.2:.3f}:d=1.2,adelay={int(mus_in * 1000)}:all=1,"
         f"apad=whole_dur={total:.3f}[mus]",
         f"{''.join(mixes)}amix=inputs={len(mixes)}:normalize=0,atrim=duration={total:.3f}[aout]",
