@@ -40,7 +40,12 @@ The user found Story mode videos that narrate the recipe less meaningful: "don't
 4. **Music**: `../healing-video/scripts/music "<season> piano lullaby, tender" p1.m4a <story seconds + 10> <seed>`; it must pass the calm gate (exit 3 → next seed). Christmas: "winter christmas piano lullaby, tender, warm"; no bells or jingles.
 5. **QA**: contact sheet of all clips (`ffmpeg -i sN.mp4 -vf "fps=1,scale=320:-1,tile=6x1"`); re-render any shot with a face to camera, two faces turned to each other, crying, warped hands, a changed hair/sweater/scarf, wrong food colour, or decor clutter.
 6. **Compose**: `python3 ../healing-video/scripts/story169.py story.json --music p1.m4a --out healing-<slug>.mp4` (small bottom subtitles, dissolves, ducked piano, -16 LUFS).
-7. **Deliver**: 16:9 + 9:16 covers from a raw clip (`--at sN.mp4@auto`, never the composed video: subtitles burn in), captions via `../social-captions` (no `#Shorts`), record with `../healing-video/scripts/ideas.py record custom ...`, then `FINAL=1 THUMB_DIR=thumbs CAPTIONS_FILE=captions.json ../muse-video/scripts/deliver.sh healing-<slug>.mp4 <work dir> healing-<slug>` (it trashes the work folder: record first).
+7. **Deliver**: 16:9 + 9:16 covers from a raw clip (never the composed video: subtitles burn in), title centred on the frame, style rotated from the cover history (`--style auto`, see healing-video step 7):
+   ```bash
+   python3 ../healing-video/scripts/cover.py --size 16:9 --at sN.mp4@auto --eyebrow "<season story>" --title "<hook>" --out thumbs/healing-<slug>_16x9.jpg
+   python3 ../healing-video/scripts/cover.py --at sN.mp4@auto --eyebrow "<season story>" --title "<hook>" --out thumbs/healing-<slug>_9x16.jpg
+   ```
+   captions via `../social-captions` (no `#Shorts`), record with `../healing-video/scripts/ideas.py record custom ...`, then `FINAL=1 THUMB_DIR=thumbs CAPTIONS_FILE=captions.json ../muse-video/scripts/deliver.sh healing-<slug>.mp4 <work dir> healing-<slug>` (it trashes the work folder: record first).
 
 ## Seasons
 `prompt/<season>.txt` holds the full shot rules for one season and its cast. To add one (spring, Lunar New Year, autumn), copy `christmas.txt`, change the place, light, decor and sound lines, keep the girl's paragraph word for word, and run with `SEASON=<name>`.
