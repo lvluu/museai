@@ -81,6 +81,67 @@ The end-card teaser must name an episode in this table that will really be made.
 | 73 | German | B1 | Home Tech | A2 Crafts | made, not posted |
 | 74 | German | A2 | Crafts | A2 Weather | made, not posted |
 | 75 | German | A2 | Weather | | planned |
+| F1 | French | A1 | Travel | A1 Food | made, not posted |
+| F2 | French | A1 | Food | A1 City | made, not posted |
+| F3 | French | A1 | City | A1 Home | made, not posted |
+| F4 | French | A1 | Home | A1 Furniture | made, not posted |
+| F5 | French | A1 | Furniture | A1 Drinks | made, not posted |
+| F6 | French | A1 | Drinks | A1 Clothes | made, not posted |
+| F7 | French | A1 | Clothes | A1 Family | made, not posted |
+| F8 | French | A1 | Family | A1 Everyday Things | made, not posted |
+| F9 | French | A1 | Everyday Things | A1 Groceries | made, not posted |
+| F10 | French | A1 | Groceries | A1 Nature | made, not posted |
+| F11 | French | A1 | Nature | A1 Getting Around | made, not posted |
+| F12 | French | A1 | Getting Around | A1 Body | made, not posted |
+| F13 | French | A1 | Body | A1 Kitchen | made, not posted |
+| F14 | French | A1 | Kitchen | A1 Animals | made, not posted |
+| F15 | French | A1 | Animals | A1 Fruit | made, not posted |
+| F16 | French | A1 | Fruit | A1 Weather | made, not posted |
+| F17 | French | A1 | Weather | A1 School | made, not posted |
+| F18 | French | A1 | School | A1 Breakfast | made, not posted |
+| F19 | French | A1 | Breakfast | A1 Vegetables | made, not posted |
+| F20 | French | A1 | Vegetables | A1 Bathroom | made, not posted |
+| F21 | French | A1 | Bathroom | A1 Shopping | made, not posted |
+| F22 | French | A1 | Shopping | A1 Beach | made, not posted |
+| F23 | French | A1 | Beach | A1 Countryside | made, not posted |
+| F24 | French | A1 | Countryside | A1 Desserts | made, not posted |
+| F25 | French | A1 | Desserts | A1 Living Room | made, not posted |
+| F26 | French | A1 | Living Room | A1 Bedroom | made, not posted |
+| F27 | French | A1 | Bedroom | A1 Sports | made, not posted |
+| F28 | French | A1 | Sports | A1 Music | made, not posted |
+| F29 | French | A1 | Music | A1 Café | made, not posted |
+| F30 | French | A1 | Café | A1 Jobs | made, not posted |
+| F31 | French | A1 | Jobs | A1 Train Station | made, not posted |
+| F32 | French | A1 | Train Station | A1 Garden | made, not posted |
+| F33 | French | A1 | Garden | A1 Office | made, not posted |
+| F34 | French | A1 | Office | A1 Sights | made, not posted |
+| F35 | French | A1 | Sights | A1 Celebrations | made, not posted |
+| F36 | French | A1 | Celebrations | A2 Health | made, not posted |
+| F37 | French | A2 | Health | A2 Appliances | made, not posted |
+| F38 | French | A2 | Appliances | A2 Tools | made, not posted |
+| F39 | French | A2 | Tools | A2 Accessories | made, not posted |
+| F40 | French | A2 | Accessories | A2 Clothes | made, not posted |
+| F41 | French | A2 | Clothes | A2 Wild Animals | made, not posted |
+| F42 | French | A2 | Wild Animals | A2 Farm Animals | made, not posted |
+| F43 | French | A2 | Farm Animals | A2 Sea Life | made, not posted |
+| F44 | French | A2 | Sea Life | A2 Small Creatures | made, not posted |
+| F45 | French | A2 | Small Creatures | A2 Market | made, not posted |
+| F46 | French | A2 | Market | A2 Fruit | made, not posted |
+| F47 | French | A2 | Fruit | A2 Cooking | made, not posted |
+| F48 | French | A2 | Cooking | A2 Airport | made, not posted |
+| F49 | French | A2 | Airport | A2 Hotel | made, not posted |
+| F50 | French | A2 | Hotel | A2 Car | made, not posted |
+| F51 | French | A2 | Car | A2 Streets | made, not posted |
+| F52 | French | A2 | Streets | A2 Hiking | made, not posted |
+| F53 | French | A2 | Hiking | A2 Housework | made, not posted |
+| F54 | French | A2 | Housework | A2 Hobbies | made, not posted |
+| F55 | French | A2 | Hobbies | A2 Restaurant | made, not posted |
+| F56 | French | A2 | Restaurant | A2 Sky and Earth | made, not posted |
+| F57 | French | A2 | Sky and Earth | A2 Electronics | made, not posted |
+| F58 | French | A2 | Electronics | A2 Post Office | made, not posted |
+| F59 | French | A2 | Post Office | A2 Bakery | made, not posted |
+| F60 | French | A2 | Bakery | A2 Family | made, not posted |
+| F61 | French | A2 | Family | | planned |
 
 ## 2. Design system
 
