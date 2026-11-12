@@ -12,8 +12,9 @@ rules="$SKILL_DIR/prompt/$season.txt"
 [[ -f $rules ]] || { echo "shot: no prompt/$season.txt" >&2; exit 2; }
 # AI-look bait words make muse stack props and an orange glow (healing-video "Real look"). The season's
 # own decor (string lights, a tree, a wreath) is named in prompt/<season>.txt, so briefs say "the tree".
-# Crying and face-to-face talking looked fake (user 2026-11-12). BRIEF_OK=1 skips the check.
-bait=$(grep -oiE '\b(cos[yi]e?|cozy|magical|dreamy|cinematic|enchant[a-z]*|fairy lights?|glow(ing)?|candle(s|light)?|bokeh|sparkl[a-z]*|glitter[a-z]*|tripod|phone on|cry(ing)?|cries|tears?|sob[a-z]*|face to face|talking to each other)\b' <<<"$1" | sort -fu | paste -sd, - || true)
+# Crying looked fake; knocking fists, hands on door handles and passed knives looked weird (user 2026-11-12).
+# Talking and laughing faces are wanted (second cut). BRIEF_OK=1 skips the check.
+bait=$(grep -oiE '\b(cos[yi]e?|cozy|magical|dreamy|cinematic|enchant[a-z]*|fairy lights?|glow(ing)?|candle(s|light)?|bokeh|sparkl[a-z]*|glitter[a-z]*|tripod|phone on|cry(ing)?|cries|tears?|sob[a-z]*|knife|knives|knuckles?|door handle)\b' <<<"$1" | sort -fu | paste -sd, - || true)
 if [[ -n $bait && -z ${BRIEF_OK:-} ]]; then
   echo "shot: brief has bait words ($bait); see healing-story SKILL.md Shots" >&2
   exit 2
