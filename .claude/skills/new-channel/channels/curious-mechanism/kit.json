@@ -1,0 +1,107 @@
+{
+ "slug": "curious-mechanism",
+ "idea": "Faceless illustrated mini-documentaries on the hidden engineering, design decisions and strange history of everyday things (The Curious Mechanism playbook).",
+ "audience": "Global, English-speaking, 18-44, curious adults who watch engineering, design and history explainers",
+ "language": "en",
+ "niche": "illustrated everyday-engineering explainers",
+ "promise": "one everyday object, one question, the hidden engineering behind it",
+ "ai_made": true,
+ "notes": "Source: the-curious-mechanism.zip playbook (PLAYBOOK.md, brand/style-guide.md). Niche leaders (Half as Interesting, Practical Engineering, Jared Owen, Steve Mould, Primal Space) share: a question-title (Why/How), a 15-20 s hook with no intro, one clean diagram look, 8-15 min long-form plus Shorts cut from it. Gap: none uses a 19th-century engraving / patent-drawing look; that is the brand. Long-form 8-12 min weekly on YouTube; 2-3 Shorts a week (30-55 s, 9:16, complete mini-story) on every platform. Brand font is Libre Baskerville (Google Fonts); kit uses DejaVu Serif because kit.py renders with locally installed fonts. Handle 'curiousmechanism' is 16 chars, over the 15-char X limit, so handles are shortened.",
+ "names": [
+  {
+   "display": "The Curious Mechanism",
+   "handle": "curiousmechai",
+   "why": "Playbook name kept; ai suffix says AI-made up front; 13 chars fits X."
+  },
+  {
+   "display": "The Curious Mechanism",
+   "handle": "thecuriousmech",
+   "why": "Closest to the full name; 14 chars; AI disclosure stays in the bio."
+  },
+  {
+   "display": "The Curious Mechanism",
+   "handle": "curiousmech",
+   "why": "Shortest, easiest to spell after hearing it once."
+  }
+ ],
+ "chosen": 0,
+ "style": {
+  "look": "19th-century engineering encyclopedia illustration: detailed hand-engraved ink drawing on antique ivory paper, fine cross-hatching and precise linework, muted navy blue and charcoal ink with an occasional muted red accent and brass tones on metal parts, subtle vintage paper imperfections, scientifically plausible proportions, museum-quality technical drawing, clear central subject, calm and curious mood. No photography, no photorealism, no cartoon characters, no labels or text in the image.",
+  "palette": [
+   "#EFE6D2",
+   "#1F3A5F",
+   "#2B2B2B",
+   "#A63D32",
+   "#B08D57"
+  ],
+  "font": "DejaVu Serif",
+  "mood": "curious, precise, warm",
+  "avatar_subject": "a single engraved brass gear seen through a round magnifying glass, ink blue linework on antique ivory paper, centered, no text",
+  "banner_scene": "a wide engraved encyclopedia plate on antique ivory paper: in the centre band, a cutaway of a ballpoint pen, an airplane window and a pocket-watch gear train side by side; calm empty paper towards the edges",
+  "banner_line": "the hidden engineering of everyday things"
+ },
+ "platforms": {
+  "youtube": {
+   "name": "The Curious Mechanism",
+   "handle": "curiousmechai",
+   "description": "Welcome to The Curious Mechanism.\n\nEvery video answers one question about an everyday thing: why airplane windows are round, what is inside a ballpoint pen, how GPS knows where you are. We look at the hidden engineering, the design decisions and the strange history behind ordinary objects.\n\nHow it's made: every topic is researched from at least two reliable sources, listed in each description. Illustrations and narration are made with AI tools; research, script and editing are done by a person.\n\nA new mini-documentary every week, Shorts in between.\n\nNothing is ordinary when you understand how it works. Tell us in the comments which everyday object we should open up next.",
+   "keywords": [
+    "how it works",
+    "engineering",
+    "everyday engineering",
+    "design history",
+    "why is",
+    "mechanism",
+    "explained",
+    "documentary",
+    "science",
+    "invention"
+   ],
+   "category": "Education"
+  },
+  "instagram": {
+   "name": "The Curious Mechanism",
+   "handle": "curiousmechai",
+   "bio": "The hidden engineering of everyday things\nNew explainer every week, AI-illustrated\nComment the object we should open up next",
+   "category": "Education"
+  },
+  "tiktok": {
+   "name": "The Curious Mechanism",
+   "handle": "curiousmechai",
+   "bio": "Hidden engineering of everyday things. AI-illustrated. New every week."
+  },
+  "facebook": {
+   "name": "The Curious Mechanism",
+   "handle": "curiousmechai",
+   "bio": "The hidden engineering of everyday things. AI-illustrated mini-docs, every week.",
+   "category": "Education website"
+  }
+ },
+ "hashtags": [
+  "#howitworks",
+  "#engineering",
+  "#designhistory"
+ ],
+ "pillars": [
+  {
+   "name": "Everyday Engineering + Invisible Systems",
+   "share": 80,
+   "what": "how an everyday object or hidden system works and why it is built that way"
+  },
+  {
+   "name": "Strange Origins",
+   "share": 15,
+   "what": "the odd history of a standard, invention or habit (QWERTY, A4, time zones)"
+  },
+  {
+   "name": "Forgotten Mechanisms",
+   "share": 5,
+   "what": "a lost invention or failed experiment"
+  }
+ ],
+ "first_posts": [
+  "Why are airplane windows round?",
+  "The tiny hole in your airplane window (Short)",
+  "The hidden engineering inside a ballpoint pen"
+ ]
+}
