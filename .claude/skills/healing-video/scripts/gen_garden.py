@@ -168,7 +168,7 @@ def build():
             ideas.append({
                 "id": f"gm-{n:04d}",
                 "title": f"{season.capitalize()} garden montage: {home}",
-                "home": home, "season": season, "task": f"{season} harvest montage",
+                "home": home, "season": season, "task": harvest,
                 "animal": animal, "caption": CAPTIONS[n % len(CAPTIONS)],
                 "sound": "birdsong, a breeze in the leaves and soft small animal sounds",
                 "outfit": outfit, "concept": "montage", "style": "garden", "shots": shots,
