@@ -1,0 +1,32 @@
+{
+ "id": "",
+ "title": "",
+ "format": "long",
+ "question": "the one central question this video answers",
+ "answer": "the answer in one sentence, from verified research only",
+ "pillar": "Everyday Engineering",
+ "thumbnail": {"text": "two to four words", "scene": "S01"},
+ "music": {"file": "", "licence": ""},
+ "claims": {
+  "c1": {"text": "a fact the narration states", "sources": ["source 1 (title, publisher, URL)", "source 2"], "verified": false}
+ },
+ "scenes": [
+  {
+   "id": "S01",
+   "section": "hook",
+   "say": "Narration for this picture, written for the ear. Short sentences.",
+   "image": {"subject": "the object or mechanism", "show": "the specific visual detail", "variant": "main"},
+   "move": "push_in",
+   "labels": [],
+   "claims": ["c1"]
+  },
+  {
+   "id": "S02",
+   "section": "hook",
+   "say": "A second line over the same illustration, framed differently.",
+   "image": "S01",
+   "move": "pan_left",
+   "labels": ["PART NAME"]
+  }
+ ]
+}
