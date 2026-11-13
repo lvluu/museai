@@ -68,6 +68,8 @@ REVEAL_WAIT = 3.0
 STATE_POLL_TIMEOUT = 60.0  # one tab poll may not hang longer than this
 STALL_LIMIT = 900.0  # a tab silent this long (15 min) fails the job so it moves to another account
 # Short final replies meaning muse's generator lost the clip ("Video not found"), not a refusal.
+# The agent answers in text when the account's rolling video limit is used up.
+VIDEO_LIMIT = re.compile(r"\b(video|daily|usage|24[- ]hour)\s+limit\b|\blimit for the last 24 hours\b", re.I)
 LOST_MEDIA = re.compile(r"\b(not found|went wrong|failed|error)\b", re.I)
 
 
@@ -688,6 +690,8 @@ class BrowserDriver(MuseDriver):
             if nudges >= MEDIA_NUDGES:
                 if LOST_MEDIA.search(text) and len(text) < 200:
                     raise UpstreamMediaLost(f"upstream lost the {kind}: {text[:200]}")
+                if VIDEO_LIMIT.search(text):
+                    raise UpstreamQuotaError(f"muse.ai video limit reached: {text[:200]}")
                 raise UpstreamRefused(f"upstream replied with text only: {text[:200]}")
             nudges += 1
             log.info(
