@@ -170,3 +170,32 @@ async def test_renew_closes_busy_tab_only_after_its_job(driver, account, monkeyp
     await driver._release(busy)
     assert busy.session.closed
     assert (await driver.health())["tabs"] == 0
+
+
+def test_cdp_send_timeout_is_upstream_timeout():
+    import asyncio
+
+    import pytest
+
+    from museai.drivers.browser.cdp import CDPSession
+    from museai.errors import UpstreamTimeout
+
+    class WS:
+        async def send(self, _):
+            return None
+
+        def __aiter__(self):
+            return self
+
+        async def __anext__(self):
+            await asyncio.sleep(3600)
+
+    async def go():
+        s = CDPSession(WS())
+        try:
+            await s.send("Page.navigate", timeout=0.01)
+        finally:
+            s._reader.cancel()
+
+    with pytest.raises(UpstreamTimeout):
+        asyncio.run(go())
