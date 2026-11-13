@@ -404,8 +404,11 @@ class BrowserDriver(MuseDriver):
     async def _state(self, tab: _Tab) -> dict:
         state = await tab.session.evaluate(dom.CHAT_STATE) or {}
         tail = state.get("tail", "")
-        if any(h in tail.lower() for h in dom.QUOTA_HINTS):
-            raise UpstreamQuotaError("muse.ai reports the account is out of quota")
+        low = tail.lower()
+        if hint := next((h for h in dom.QUOTA_HINTS if h in low), None):
+            at = low.index(hint)
+            seen = " ".join(tail[max(0, at - 60):at + len(hint) + 60].split())
+            raise UpstreamQuotaError(f"muse.ai reports the account is out of quota (page says: ...{seen}...)")
         return state
 
     async def _prepare(self, account: Account, prompt: str, images: list[InputImage]):
