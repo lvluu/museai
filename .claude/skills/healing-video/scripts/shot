@@ -4,7 +4,8 @@
 # appended (calm handheld, real gentle motion, ambience only, no music, no text). One line per shot
 # in a jobs file for ../../muse-video/scripts/render-queue (one shot at a time, the next when one
 # finishes; never every shot in its own background call: that overloads the CPU).
-# HV_STYLE=garden uses prompt/garden.txt (outdoor garden montage) instead of prompt/healing.txt.
+# HV_STYLE=garden uses prompt/garden.txt (outdoor garden montage), HV_STYLE=ritual prompt/ritual.txt
+# (pov-ritual style), instead of prompt/healing.txt.
 # Env passed through to muse-video: IMAGE=first_frame.png SIZE= DURATION=
 set -euo pipefail
 SKILL_DIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)

@@ -14,6 +14,8 @@ Concepts (idea["concept"]):
   postcard (reference 1): 8 shots x 1.2 s, ONE caption on every shot ("the way I want to live:").
   ode      (reference 2): 6 shots x 1.6 s, one phrase of idea["lines"] per shot, the sentence runs on.
   montage  (reference 5): 10 shots x 1.0 s, ONE thin sans caption in the upper third on every shot.
+  ritual   (reference 7): 12 shots x 0.75 s, ONE two-line bold serif "POV : All you need is / A and B"
+           caption, left-aligned high on every shot, 0.15 s dissolves (the reference hard-cuts).
 --shot overrides the seconds per shot (3-4 s for a slower, longer video). clip@start picks where in
 the clip the window starts (default 1.0 s: muse's first second often settles). Hard cuts like both
 references; the last shot fades out 0.5 s so the loop back to shot 1 is soft.
@@ -31,6 +33,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 FONT = "/System/Library/Fonts/Supplemental/Georgia.ttf"
 SANS = "/System/Library/Fonts/HelveticaNeue.ttc"
 SANS_INDEX = 7  # Helvetica Neue Light
+SERIF_BOLD = "/System/Library/Fonts/Supplemental/Times New Roman Bold.ttf"  # reference 7's caption
 XF = 0.35  # ambience cross-fade between shots (s)
 AMB_LUFS = -30  # every clip's ambience is levelled to this before --ambience scales the bed
 FOLEY_LUFS = -22  # each shot's own action sound (pour, sizzle, meow, birds): clearly heard next to the music
@@ -53,19 +56,26 @@ BEDS = {  # name: (words in idea["sound"], built-in file, usable start, usable e
 BED_XF = 1.0  # cross-fade when a recording loops to cover a longer video
 
 
-def text_png(text, w, h, path, montage=False):
+def text_png(text, w, h, path, montage=False, ritual=False):
     """Small white serif line slightly below centre with a soft shadow (both references). montage
-    (reference 5): a thin sans line in the upper third."""
+    (reference 5): a thin sans line in the upper third. ritual (reference 7): bold serif, two lines
+    ("\\n" in the caption), left-aligned at 15 % from the left, 18 % down."""
     img = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    font = (ImageFont.truetype(SANS, int(w * 0.034), index=SANS_INDEX) if montage and Path(SANS).exists()
-            else ImageFont.truetype(FONT, int(w * 0.036)))
+    if ritual:
+        font = ImageFont.truetype(SERIF_BOLD if Path(SERIF_BOLD).exists() else FONT, int(w * 0.042))
+    elif montage and Path(SANS).exists():
+        font = ImageFont.truetype(SANS, int(w * 0.034), index=SANS_INDEX)
+    else:
+        font = ImageFont.truetype(FONT, int(w * 0.036))
     d = ImageDraw.Draw(img)
-    tw = d.textlength(text, font=font)
-    x, y = (w - tw) / 2, h * (0.33 if montage else 0.55)
+    if ritual:
+        x, y = w * 0.15, h * 0.18
+    else:
+        x, y = (w - d.textlength(text, font=font)) / 2, h * (0.33 if montage else 0.55)
     shadow = Image.new("RGBA", (w, h), (0, 0, 0, 0))
-    ImageDraw.Draw(shadow).text((x, y + 2), text, font=font, fill=(0, 0, 0, 150))
+    ImageDraw.Draw(shadow).multiline_text((x, y + 2), text, font=font, fill=(0, 0, 0, 150), spacing=4)
     img = Image.alpha_composite(img, shadow.filter(ImageFilter.GaussianBlur(4)))
-    ImageDraw.Draw(img).text((x, y), text, font=font, fill=(255, 255, 255, 240))
+    ImageDraw.Draw(img).multiline_text((x, y), text, font=font, fill=(255, 255, 255, 240), spacing=4)
     img.save(path)
 
 
@@ -115,13 +125,16 @@ def main():
                     "fades in (the hook)")
     ap.add_argument("--music-lufs", type=float, help="bring the music to this loudness first (a quiet reference track, e.g. -29.6 LUFS, is drowned by the action sound at -22; try -20)")
     ap.add_argument("--size", default="1080x1920")
-    ap.add_argument("--dissolve", type=float, default=0.4, help="cross-dissolve seconds between shots (default 0.4: soft, natural; user 2026-11-13 found hard cuts too strong); 0 = hard cuts")
+    ap.add_argument("--dissolve", type=float, help="cross-dissolve seconds between shots (default 0.4: soft, natural; user 2026-11-13 found hard cuts too strong; ritual 0.15, a 0.4 s blend would eat half of a 0.75 s shot); 0 = hard cuts")
     a = ap.parse_args()
 
     idea = json.loads(Path(a.idea).read_text())
     ode = idea.get("concept") == "ode"
     montage = idea.get("concept") == "montage"  # reference 5: 10 x 1.0 s, one caption, garden life
-    shot = a.shot or (1.6 if ode else 1.0 if montage else 1.2)
+    ritual = idea.get("concept") == "ritual"  # reference 7: 12 x 0.75 s, one ritual told in order
+    shot = a.shot or (1.6 if ode else 1.0 if montage else 0.75 if ritual else 1.2)
+    if a.dissolve is None:
+        a.dissolve = 0.15 if ritual else 0.4
     w, h = map(int, a.size.split("x"))
     n = len(a.clips)
     total = shot * n
@@ -164,7 +177,7 @@ def main():
     for i, t in enumerate(texts):
         if t:
             p = tmp / f"t{i}.png"
-            text_png(t, w, h, p, montage)
+            text_png(t, w, h, p, montage, ritual)
             pngs.append(len([x for x in args if x == "-i"]))
             args += ["-i", str(p)]
         else:
