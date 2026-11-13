@@ -414,3 +414,12 @@ async def test_gateway_lists_image_jobs_per_account(tmp_path):
     await gw.generate_image(ImageRequest(prompt="a red bike", model="muse-image"))
     assert [[(j["kind"], j["prompt"]) for j in jobs] for jobs in seen] == [[("image", "a red bike")]]
     assert all(not jobs for jobs in gw.jobs.values())
+
+
+async def test_quota_cooldown_is_configurable(tmp_path):
+    pool = await _pool(tmp_path, n=1, quota_cooldown=300.0)
+    with pytest.raises(UpstreamQuotaError):
+        async with pool.lease():
+            raise UpstreamQuotaError("Out of usage")
+    left = pool.get("a0").cooldown_until - time.time()
+    assert 290 < left <= 300

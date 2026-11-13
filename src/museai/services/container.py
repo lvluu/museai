@@ -42,6 +42,7 @@ class Services:
             strategy=settings.pool_strategy,
             max_concurrency=settings.account_max_concurrency,
             cooldown=settings.account_cooldown,
+            quota_cooldown=settings.account_quota_cooldown,
             acquire_timeout=settings.pool_acquire_timeout,
         )
         gateway = Gateway(
