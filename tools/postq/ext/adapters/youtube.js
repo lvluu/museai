@@ -530,8 +530,13 @@ async function setRelated(want) {
         return !isNaN(d) && d.getFullYear() === when.getFullYear() && d.getMonth() === when.getMonth() && d.getDate() === when.getDate();
       };
       const readSchedule = async () => {
-        (await waitFor(SEL.visibilityOpen)).click();
-        const pop = await waitFor(SEL.visibilityPopover, { what: 'visibility popover' });
+        // A click can land while Studio still re-renders after Save: retry before giving up.
+        let pop;
+        for (let n = 1; !pop; n++) {
+          (await waitFor(SEL.visibilityOpen)).click();
+          try { pop = await waitFor(SEL.visibilityPopover, { what: 'visibility popover', timeout: 10000 }); }
+          catch (e) { if (n >= 4) throw e; await sleep(2000); }
+        }
         await sleep(1200);
         const date = text(await waitFor(SEL.dateTrigger, { what: 'scheduled date' }));
         const time = (await waitFor(SEL.timeInput, { what: 'scheduled time' })).value;
