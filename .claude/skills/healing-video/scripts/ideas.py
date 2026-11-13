@@ -17,7 +17,7 @@ season (northern hemisphere). check exits 1 (DUPLICATE) when an earlier video ha
 season + task, or the same task + animal in the same home; 2 (SIMILAR) on the same home or task in
 the last 10.
 """
-import argparse
+import argparse, re
 import datetime
 import json
 import sys
@@ -59,6 +59,37 @@ def verdict(idea, hist):
         if idea.get("caption") and norm(h.get("caption")) == norm(idea["caption"]):
             return 2, f"caption used in the last 3 videos ({h['date']} {h['title']})"
     return 0, "fresh"
+
+
+OUTFITS = [
+    "a red gingham cotton sundress with puff sleeves", "a pale blue linen pinafore dress over a white blouse",
+    "a yellow cotton sundress with small white flowers", "a sage-green linen dress with rolled sleeves",
+    "a white broderie-anglaise dress", "a faded pink striped cotton dress",
+    "a mustard-yellow knit sweater over a cream skirt", "a navy and white striped breton top with linen trousers",
+    "a terracotta linen shirt-dress with the sleeves rolled", "denim dungarees over a white t-shirt",
+    "a dusty-blue cotton blouse with a long floral skirt", "an oatmeal wool cardigan over a green linen dress",
+    "a rust-orange corduroy pinafore over a cream blouse", "a lavender gingham shirt tucked into a long cotton skirt",
+    "a forest-green knit jumper with the sleeves pushed up", "a soft pink linen smock dress",
+    "a rose-print prairie dress with a ribbon at the waist", "a charcoal fisherman sweater with jeans",
+    "a butter-yellow cardigan over a white tee and a denim skirt", "an olive utility shirt dress with a belt",
+]
+
+
+def with_outfit(idea):
+    import random
+    old = idea.get("outfit")
+    new = random.choice([o for o in OUTFITS if o != old])
+    idea["outfit"] = new
+    pat = re.compile(r"\b(girl|woman)\b", re.I)
+    shots = []
+    for sh in idea.get("shots", []):
+        if old and old in sh:
+            sh = sh.replace(old, new)
+        elif pat.search(sh) and new not in sh:
+            sh = sh.rstrip() + f" She wears {new}."
+        shots.append(sh)
+    idea["shots"] = shots
+    return idea
 
 
 def main():
@@ -109,6 +140,7 @@ def main():
                 break
         if not out:
             sys.exit("no fresh idea matches; loosen the filters or add homes/tasks to gen_ideas.py")
+        out = [with_outfit(dict(i)) for i in out]
         print(json.dumps(out if a.n > 1 else out[0], ensure_ascii=False, indent=1))
     elif a.cmd == "show":
         print(json.dumps(by_id.get(a.id) or sys.exit(f"no idea {a.id}"), ensure_ascii=False, indent=1))
