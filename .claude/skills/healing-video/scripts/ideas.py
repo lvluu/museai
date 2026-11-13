@@ -25,7 +25,8 @@ import sys
 from pathlib import Path
 
 SKILL = Path(__file__).resolve().parent.parent
-BANKS = [SKILL / "ideas.json", SKILL / "ideas-garden.json"]
+BANKS = [SKILL / "ideas.json", SKILL / "ideas-garden.json", SKILL / "ideas-ritual.json"]
+STYLES = ["classic", "garden", "harvest-asmr", "pov-ritual"]  # rotation order for `style`
 HIST = Path.home() / ".config/museai/healing-history.json"
 MONTH_SEASON = {12: "winter", 1: "winter", 2: "winter", 3: "spring", 4: "spring", 5: "spring",
                 6: "summer", 7: "summer", 8: "summer", 9: "autumn", 10: "autumn", 11: "autumn"}
@@ -102,7 +103,8 @@ def main():
     n.add_argument("--animal")
     n.add_argument("--no-animal", action="store_true")
     n.add_argument("--n", type=int, default=1)
-    n.add_argument("--style", help="garden = montage bank (gm-*); default: the original bank")
+    n.add_argument("--style", help="garden = montage bank (gm-*), pov-ritual = ritual bank (pr-*); "
+                   "default: the original bank")
     sub.add_parser("show").add_argument("id")
     for name in ("check", "record"):
         p = sub.add_parser(name)
@@ -125,7 +127,7 @@ def main():
         season = MONTH_SEASON[datetime.date.today().month] if a.season == "now" else a.season
         out = []
         for idea in bank:
-            if (idea.get("style") == "garden") != (a.style == "garden"):
+            if (idea.get("style") or "classic") != (a.style or "classic"):
                 continue
             if season and norm(idea["season"]) != norm(season):
                 continue
@@ -180,7 +182,7 @@ def main():
             cap = h.get("caption") or ""
             return h.get("style") or (cap[6:] if cap.startswith("style:") else "classic")
         last = [style_of(h) for h in hist][::-1]
-        print(max(["classic", "garden", "harvest-asmr"], key=lambda st: last.index(st) if st in last else 99))
+        print(max(STYLES, key=lambda st: last.index(st) if st in last else 99))
     elif a.cmd == "stats":
         used = {h["id"] for h in hist if h.get("id")}
         print(f"{len(hist)} videos delivered, {len(used)}/{len(bank)} bank ideas used, "
