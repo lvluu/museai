@@ -1,0 +1,18 @@
+{
+ "key": "MIA",
+ "version": 1,
+ "name": "Mia Han",
+ "age": 27,
+ "sex": "F",
+ "origin": "Korean-American",
+ "build": "slim, 5 ft 4 in",
+ "identity": "a 27-year-old Korean-American woman with a round friendly face: light warm-tan skin, warm dark-brown almond eyes, straight dark brows, a small soft nose, full natural lips, a wide easy smile that shows her teeth, a small mole under her LEFT eye. A short glossy black bob cut at the jaw, side part on her RIGHT, no fringe. A thin silver ring on her RIGHT index finger.",
+ "voice": "bright, quick, warm American English, laughs easily",
+ "base_wardrobe": "a dark forest-green chunky knit sweater and a long red wool scarf",
+ "used_by": [
+  "healing-story"
+ ],
+ "views": {
+  "hero": "hero.jpg"
+ }
+}
