@@ -76,7 +76,7 @@ class CDPSession:
         await self._ws.send(json.dumps({"id": msg_id, "method": method, "params": params or {}}))
         try:
             return await asyncio.wait_for(fut, timeout)
-        except TimeoutError as exc:
+        except asyncio.TimeoutError as exc:  # the builtin TimeoutError only from Python 3.11
             # Browser tab hung: a typed error lets the job fail over to another account.
             raise UpstreamTimeout(f"browser did not answer {method} within {timeout:.0f}s") from exc
         finally:
