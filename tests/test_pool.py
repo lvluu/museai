@@ -423,3 +423,12 @@ async def test_quota_cooldown_is_configurable(tmp_path):
             raise UpstreamQuotaError("Out of usage")
     left = pool.get("a0").cooldown_until - time.time()
     assert 290 < left <= 300
+
+
+async def test_zero_quota_cooldown_keeps_account_usable(tmp_path):
+    pool = await _pool(tmp_path, n=1, cooldown=120.0, quota_cooldown=0.0)
+    with pytest.raises(UpstreamQuotaError):
+        async with pool.lease():
+            raise UpstreamQuotaError("Out of usage")
+    async with pool.lease() as lease:
+        assert lease.account.id == "a0"
