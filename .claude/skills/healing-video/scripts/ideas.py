@@ -17,9 +17,10 @@ season (northern hemisphere). check exits 1 (DUPLICATE) when an earlier video ha
 season + task, or the same task + animal in the same home; 2 (SIMILAR) on the same home or task in
 the last 10.
 """
-import argparse, re
+import argparse
 import datetime
 import json
+import re
 import sys
 from pathlib import Path
 
