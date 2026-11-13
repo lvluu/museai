@@ -96,12 +96,14 @@ class AccountPool:
         strategy: str = "lru",
         max_concurrency: int = 1,
         cooldown: float = 120.0,
+        quota_cooldown: float = 3600.0,
         acquire_timeout: float = 60.0,
     ) -> None:
         self.store = store
         self.strategy: Strategy = STRATEGIES[strategy]()
         self.max_concurrency = max(1, max_concurrency)
         self.cooldown = cooldown
+        self.quota_cooldown = quota_cooldown
         self.acquire_timeout = acquire_timeout
         self._accounts: dict[str, Account] = {}
         self._inflight: dict[str, int] = defaultdict(int)
@@ -265,7 +267,7 @@ class AccountPool:
             log.warning("account %s marked invalid: %s", acc.id, error)
         elif isinstance(error, UpstreamQuotaError):
             acc.status = AccountStatus.COOLING
-            acc.cooldown_until = time.time() + max(self.cooldown, 3600)
+            acc.cooldown_until = time.time() + max(self.cooldown, self.quota_cooldown)
             acc.quota_hits = [*acc.quota_hits, time.time()][-QUOTA_HISTORY:]
             log.warning("account %s out of quota, cooling down", acc.id)
         elif getattr(error, "retryable", False) and getattr(error, "cools_account", True):

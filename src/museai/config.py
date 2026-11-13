@@ -119,6 +119,8 @@ class Settings(BaseSettings):
     media_queue_timeout: float = 0.0
     account_max_concurrency: int = 6
     account_cooldown: float = 120.0
+    # How long an account rests after muse.ai reports it out of quota.
+    account_quota_cooldown: float = 3600.0
     max_failover: int = 2
     # On stop/restart, how long running image/video jobs may still finish before they are cancelled.
     shutdown_grace: float = 900.0
