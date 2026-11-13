@@ -162,7 +162,7 @@ def build():
             mid = list(SLOTS)
             rnd.shuffle(mid)
             hero = (f"The young woman in {outfit}, seen from behind and the side, standing in the sunlit garden of {house}, "
-                    f"holding up a freshly picked bunch from the beds; she snaps one stem off with a crisp sound as she picks; {flowers} around her, "
+                    f"holding up a freshly picked bunch from the beds; she slowly and gently lifts one stem with a soft rustle as she picks, unhurried, no sudden movement; {flowers} around her, "
                     f"{land} behind, {season} sunshine.")
             shots = [hero] + [SLOTS[k].format(**ctx) for k in mid] + [f"{dusk.capitalize()} seen through trees above the roof of {house}; leaves move slightly, birds cross the sky, the camera is held still."]
             ideas.append({
