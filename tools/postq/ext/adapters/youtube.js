@@ -77,6 +77,10 @@ async function setRelated(want) {
     for (let attempt = 1; attempt <= 3 && !opened; attempt++) {
       (await waitFor(SEL.relatedTrigger, { what: 'Related video field' })).click();
       opened = await waitFor([SEL.relatedCards], { timeout: 12000, what: 'related video list' }).then(() => true, () => false);
+      // Dialog in the DOM but cards not laid out yet (slow channel list): give it time instead of closing it.
+      if (!opened && document.querySelector('ytcp-video-pick-dialog')) {
+        opened = await waitFor([SEL.relatedCards], { timeout: 45000, what: 'related video list (slow)' }).then(() => true, () => false);
+      }
       if (!opened) { $(SEL.relatedClose)?.click(); key(document.body, 'Escape'); await sleep(1500); }
     }
     if (!opened) {
