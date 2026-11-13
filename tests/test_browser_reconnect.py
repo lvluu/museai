@@ -199,3 +199,11 @@ def test_cdp_send_timeout_is_upstream_timeout():
 
     with pytest.raises(UpstreamTimeout):
         asyncio.run(go())
+
+
+def test_video_limit_reply_is_quota():
+    from museai.drivers.browser.driver import VIDEO_LIMIT
+
+    assert VIDEO_LIMIT.search("your video limit for the last 24 hours is still in effect")
+    assert VIDEO_LIMIT.search("Still blocked by the 24-hour video limit")
+    assert not VIDEO_LIMIT.search("Done, the clip is attached below")
