@@ -292,7 +292,11 @@
 
     async setCover(name, type) {
       // Meta labels the thumbnail entry point differently by state (new reel / cover already set / other layout)
-      (await Promise.any(['Upload image', 'Change image', 'Add cover', 'Edit cover'].map((l) => waitButton(l, { timeout: 30000 })))).click();
+      const entry = await Promise.any(['Upload image', 'Change image', 'Add cover', 'Edit cover'].map((l) => waitButton(l, { timeout: 30000 }))).catch(() => {
+        const labels = [...document.querySelectorAll('[role=button],button')].map((b) => (b.innerText || b.getAttribute('aria-label') || '').trim().replace(/\s+/g, ' ')).filter((t) => t && t.length < 40);
+        throw new Error(`no thumbnail button; visible: ${[...new Set(labels)].slice(0, 40).join(' | ')}`);
+      });
+      entry.click();
       await sleep(800);
       const before = [...document.querySelectorAll(SEL.hooked)];
       (await waitButton('Upload Image', { timeout: 10000 }).catch(() => waitButton('Change Image', { timeout: 2000 }))).click();

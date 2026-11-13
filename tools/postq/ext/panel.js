@@ -238,18 +238,20 @@ async function followDashboard(items) {
     videos = (await res.json()).videos;
   } catch { return items; }
   if (!Array.isArray(videos)) return items;
-  // 7-day window per channel, counted from the channel's first unposted slot (a series that starts
-  // later, like Chinese on 18-11, still shows its first week).
+  // 7-day window per channel and platform, counted from that list's first unposted slot (a series that
+  // starts later, like Chinese on 18-11, or YouTube already done for the first weeks, still shows a week).
   const day = (v) => v.slot?.slice(0, 10);
+  const open = (v, p) => (p === 'meta' ? !(v.posted?.facebook && v.posted?.instagram) : !v.posted?.[p]);
   const first = {};
-  for (const v of videos) if (day(v) && !(first[v.channel] <= day(v))) first[v.channel] = day(v);
-  const end = (ch) => new Date(Date.parse(first[ch]) + 6 * 86400000).toISOString().slice(0, 10);
-  const byName = new Map(videos.map((v, n) => [v.name, { n, posted: v.posted || {}, schedule: v.schedule || {}, ok: !day(v) || day(v) <= end(v.channel) }]));
+  for (const p of ['youtube', 'meta', 'x', 'tiktok'])
+    for (const v of videos) if (day(v) && open(v, p) && !(first[v.channel + '|' + p] <= day(v))) first[v.channel + '|' + p] = day(v);
+  const within = (v, p) => !day(v) || first[v.channel + '|' + p] === undefined || day(v) <= new Date(Date.parse(first[v.channel + '|' + p]) + 6 * 86400000).toISOString().slice(0, 10);
+  const byName = new Map(videos.map((v, n) => [v.name, { n, v, posted: v.posted || {}, schedule: v.schedule || {} }]));
   const dash = (i) => byName.get(i.video?.name);
   return items
     .filter((i) => {
       const d = dash(i);
-      return d && d.ok && (i.targets?.length ? i.targets : [i.platform]).some((box) => !d.posted[box]);
+      return d && within(d.v, i.platform) && (i.targets?.length ? i.targets : [i.platform]).some((box) => !d.posted[box]);
     })
     .sort((a, b) => dash(a).n - dash(b).n)
     // The time is the dashboard's current slot time (slots move; the queued schedule_at goes stale).
@@ -259,6 +261,11 @@ let orderSig = '';
 async function poll() {
   try {
     const items = await followDashboard(await (await fetch(`${QUEUE}/api/items`)).json());
+    // An item whose approval was withdrawn (auto cleared in the queue) must not stay a stuck 'approved' card.
+    for (const item of items) {
+      const c = cards.get(item.id);
+      if (c && c.queued && !item.auto && !c.busy && c.state !== 'posting') { c.el.remove(); cards.delete(item.id); }
+    }
     for (const item of items) if (!cards.has(item.id)) render(item);
     const sig = items.map((i) => i.id).join();
     if (sig !== orderSig) {

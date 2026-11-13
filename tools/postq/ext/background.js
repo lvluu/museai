@@ -495,7 +495,11 @@ async function metaFlow(stored, pg) {
   if (item.cover) {
     await say('Moving thumbnail into the tab…');
     await pg.send('cover', item.cover, (p) => say(`Moving thumbnail into the tab ${p}%`));
-    await pg.step('setCover', item.cover.name, mimeOf(item.cover.file));
+    try {
+      await pg.step('setCover', item.cover.name, mimeOf(item.cover.file));
+    } catch (e) {
+      await say(`Thumbnail skipped (Meta default used): ${e.message}`.slice(0, 300));
+    }
   }
   const captions = await pg.step('fill', item);
   await pg.step('checkCaptions', item);
