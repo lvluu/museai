@@ -115,7 +115,7 @@ def main():
                     "fades in (the hook)")
     ap.add_argument("--music-lufs", type=float, help="bring the music to this loudness first (a quiet reference track, e.g. -29.6 LUFS, is drowned by the action sound at -22; try -20)")
     ap.add_argument("--size", default="1080x1920")
-    ap.add_argument("--dissolve", type=float, default=0, help="cross-dissolve seconds between shots (reference 4: 0.5); 0 = hard cuts")
+    ap.add_argument("--dissolve", type=float, default=0.4, help="cross-dissolve seconds between shots (default 0.4: soft, natural; user 2026-11-13 found hard cuts too strong); 0 = hard cuts")
     a = ap.parse_args()
 
     idea = json.loads(Path(a.idea).read_text())
