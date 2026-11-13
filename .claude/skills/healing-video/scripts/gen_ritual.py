@@ -67,7 +67,7 @@ RITUALS = {
         {"spring": ("tulips and narcissus in the garden bed", "a flat wicker basket of cut tulips and narcissus"),
          "summer": ("tall yellow snapdragons and sweet peas", "a flat wicker basket of snapdragons and sweet peas"),
          "autumn": ("tall yellow snapdragons and rust dahlias in low sun", "a flat wicker basket of dahlias, snapdragons and dried grasses")},
-        "puts the jar of fresh flowers in the middle of the table",
+        "takes the flowers from the wicker basket and arranges them in a jar in the middle of the table",
         "opens the glass door of the china cupboard", "lifts out a white china teapot",
         "pulls open a drawer of small tea tins in a wicker tray", "pours amber tea from the teapot into a blue-and-white cup on a saucer, steam rising",
         "the table laid with the flowers and cups; she stands at the far end sipping her tea",
@@ -162,7 +162,7 @@ def shots(house, ritual, season, outfit, animal):
         f"Close-up of her hand as she {action}, on the linen-covered table.",
         f"Wide view from inside {room} toward {door}: {at_door}, sunny garden behind.",
         f"Low view inside {room}: {walking_in}, natural speed, sunlight on the floor.",
-        f"Wide view of {room}: {final}. {her[0].upper() + her[1:]}, seen from the side, face turned away.",
+        f"Wide view of {room}: {final}; she is the only person in the room, in {outfit}, seen from the side, face turned away.",
     ]
 
 
