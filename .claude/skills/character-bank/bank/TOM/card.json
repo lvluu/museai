@@ -1,0 +1,18 @@
+{
+ "key": "TOM",
+ "version": 1,
+ "name": "Tom Brooks",
+ "age": 30,
+ "sex": "M",
+ "origin": "English",
+ "build": "lean, 5 ft 10 in",
+ "identity": "a 30-year-old English man with a squarish face: fair skin, light dark-brown stubble along the jaw, warm brown eyes, straight dark-brown brows with a small pale scar through his LEFT eyebrow, a straight nose. Short dark-brown hair, cropped at the sides and a little tousled on top. No glasses, no jewellery.",
+ "voice": "easy, cheerful English voice",
+ "base_wardrobe": "an olive-green cotton crew-neck sweatshirt",
+ "used_by": [
+  "healing-story"
+ ],
+ "views": {
+  "hero": "hero.jpg"
+ }
+}

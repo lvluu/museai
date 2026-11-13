@@ -1,0 +1,18 @@
+{
+ "key": "RICHARD",
+ "version": 1,
+ "name": "Richard Brooks",
+ "age": 60,
+ "sex": "M",
+ "origin": "English",
+ "build": "tall and a little broad, 5 ft 11 in",
+ "identity": "a 60-year-old English man with a long oval face: fair skin with ruddy cheeks, deep laugh lines at the corners of his eyes, kind light-blue eyes, thick grey brows, a slightly broad nose. Short neat grey hair, receding a little at the temples, and a short trimmed grey beard. Plain thin silver wire-framed glasses. A plain gold wedding band on his left ring finger.",
+ "voice": "low, warm English voice, dry humour",
+ "base_wardrobe": "a navy wool crew-neck jumper over a light-blue collared shirt",
+ "used_by": [
+  "healing-story"
+ ],
+ "views": {
+  "hero": "hero.jpg"
+ }
+}
