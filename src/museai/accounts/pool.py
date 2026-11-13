@@ -267,7 +267,7 @@ class AccountPool:
             log.warning("account %s marked invalid: %s", acc.id, error)
         elif isinstance(error, UpstreamQuotaError):
             acc.status = AccountStatus.COOLING
-            acc.cooldown_until = time.time() + max(self.cooldown, self.quota_cooldown)
+            acc.cooldown_until = time.time() + self.quota_cooldown
             acc.quota_hits = [*acc.quota_hits, time.time()][-QUOTA_HISTORY:]
             log.warning("account %s out of quota, cooling down", acc.id)
         elif getattr(error, "retryable", False) and getattr(error, "cools_account", True):
