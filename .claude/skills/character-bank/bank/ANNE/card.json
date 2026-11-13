@@ -1,0 +1,19 @@
+{
+ "key": "ANNE",
+ "version": 1,
+ "name": "Anne Brooks",
+ "age": 57,
+ "sex": "F",
+ "origin": "English",
+ "build": "slight, 5 ft 4 in",
+ "identity": "a 57-year-old English woman with a soft oval face: fair skin with faded freckles across the nose, fine laugh lines at the corners of her eyes, soft lines beside the mouth, light-hazel eyes, thin natural light-brown brows, a straight slim nose, thin natural lips, no makeup look. Chin-length soft light-brown hair streaked with grey, a side part on her LEFT, tucked behind her RIGHT ear. Small plain gold stud earrings. A thin gold wedding band on her left ring finger.",
+ "voice": "soft, quiet, warm English voice, few words",
+ "base_wardrobe": "a soft oatmeal cotton cardigan over a pale-blue cotton blouse",
+ "used_by": [
+  "healing-story"
+ ],
+ "views": {
+  "hero": "hero.jpg",
+  "full": "full.jpg"
+ }
+}
