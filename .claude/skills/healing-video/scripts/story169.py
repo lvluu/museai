@@ -104,7 +104,7 @@ def main():
         lead = HOOK_LEAD if i == 1 else LEAD
         L = lead + vd + GAP + (TAIL if i == len(beats) else 0)
         plan.append(dict(i=i, clip=root / b.get("clip", f"s{i}.mp4"), start_clip=b.get("start", 0.8), vo=vo, vd=vd,
-                         lead=lead, L=L, T=t, text=b["vo"]))
+                         lead=lead, L=L, T=t, text=b["vo"], foley_db=float(b.get("foley_db", 0))))
         t += L
     total = t + XF * 0  # last segment carries no extra XF
     print(f"{len(plan)} beats, {total:.1f} s ({total / 60:.2f} min)")
@@ -158,6 +158,9 @@ def main():
             atempo = 1 / f
             run(["ffmpeg", "-y", "-hide_banner", "-ss", f"{st:.3f}", "-i", str(p["clip"]), "-af",
                  f"atempo={max(atempo, 0.5):.4f},atrim=duration={need:.3f},highpass=f=80,lowpass=f=9000,"
+                 # beat's own gain (a clip whose people talk: "foley_db": -15), then a limiter so a shout or
+                 # laugh in the clip never pokes out of the bed (sixth Christmas cut: clip voices too loud)
+                 f"volume={p['foley_db']:.1f}dB,acompressor=threshold=0.05:ratio=8:attack=5:release=200,"
                  f"afade=in:d=0.3,afade=out:st={max(0, need - 0.5):.3f}:d=0.5", "-ar", "48000", "-ac", "2", str(fol)])
         else:
             run(["ffmpeg", "-y", "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-t", f"{need:.3f}", str(fol)])
@@ -206,8 +209,10 @@ def main():
              "aformat=channel_layouts=stereo", str(music)])
         run(["python3", LNORM, str(music), str(music.with_suffix(".n.m4a")), "-25"])
     mix = tmp / "mix.wav"
-    fc = ("[1:a]asplit=2[vsc][vmix];[2:a][vsc]sidechaincompress=threshold=0.03:ratio=4:attack=80:release=900[mduck];"
-          "[0:a][vmix][mduck]amix=inputs=3:normalize=0[o]")
+    # the voice ducks both the piano and the clips' own sound (their generated speech fought the narration)
+    fc = ("[1:a]asplit=3[vsc][vsc2][vmix];[2:a][vsc]sidechaincompress=threshold=0.03:ratio=4:attack=80:release=900[mduck];"
+          "[0:a][vsc2]sidechaincompress=threshold=0.03:ratio=3:attack=60:release=700[fduck];"
+          "[fduck][vmix][mduck]amix=inputs=3:normalize=0[o]")
     run(["ffmpeg", "-y", "-hide_banner", "-i", str(foley.with_suffix(".n.m4a")), "-i", str(voice.with_suffix(".n.m4a")),
          "-i", str(music.with_suffix(".n.m4a")), "-filter_complex", fc, "-map", "[o]", str(mix)])
     final_a = tmp / "final.m4a"
