@@ -256,7 +256,7 @@ async function followDashboard(items) {
   missing = [];
   for (const v of videos)
     for (const p of ['youtube', 'meta'])
-      if (day(v) && open(v, p) && within(v, p) && !queued.has(p + '|' + v.name)) missing.push(`${v.slot} ${v.channel} ${p}: ${v.name.replace(/\.mp4$/, '')}`);
+      if (day(v) && open(v, p) && within(v, p) && !queued.has(p + '|' + v.name) && items.some((i) => i.platform === p && dash(i)?.v.channel === v.channel)) missing.push(`${v.slot} ${v.channel} ${p}: ${v.name.replace(/\.mp4$/, '')}`);
   return items
     .filter((i) => {
       const d = dash(i);
