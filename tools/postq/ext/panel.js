@@ -231,13 +231,16 @@ hideDone.onchange = () => { saveFilter(); renderFilter(); };
 // The popup follows the museai dashboard list: only videos the dashboard lists, only platforms not yet
 // ticked there, slots within the dashboard's 7-day calendar, in slot order. Dashboard unreachable: the whole queue shows.
 const DASH = 'http://127.0.0.1:18610/dashboard/posts';
+let lastVideos = null;
+let missing = [];
 async function followDashboard(items) {
   let videos;
   try {
     const res = await fetch(DASH, { signal: AbortSignal.timeout(4000) });
     videos = (await res.json()).videos;
-  } catch { return items; }
+  } catch { videos = lastVideos; }
   if (!Array.isArray(videos)) return items;
+  lastVideos = videos;
   // 7-day window per channel and platform, counted from that list's first unposted slot (a series that
   // starts later, like Chinese on 18-11, or YouTube already done for the first weeks, still shows a week).
   const day = (v) => v.slot?.slice(0, 10);
@@ -248,6 +251,12 @@ async function followDashboard(items) {
   const within = (v, p) => !day(v) || first[v.channel + '|' + p] === undefined || day(v) <= new Date(Date.parse(first[v.channel + '|' + p]) + 6 * 86400000).toISOString().slice(0, 10);
   const byName = new Map(videos.map((v, n) => [v.name, { n, v, posted: v.posted || {}, schedule: v.schedule || {} }]));
   const dash = (i) => byName.get(i.video?.name);
+  // Dashboard videos still open on a platform but with no queue item: the popup cannot post them, say so.
+  const queued = new Set(items.map((i) => i.platform + '|' + i.video?.name));
+  missing = [];
+  for (const v of videos)
+    for (const p of ['youtube', 'meta'])
+      if (day(v) && open(v, p) && within(v, p) && !queued.has(p + '|' + v.name)) missing.push(`${v.slot} ${v.channel} ${p}: ${v.name.replace(/\.mp4$/, '')}`);
   return items
     .filter((i) => {
       const d = dash(i);
@@ -267,6 +276,14 @@ async function poll() {
       if (c && c.queued && !item.auto && !c.busy && c.state !== 'posting') { c.el.remove(); cards.delete(item.id); }
     }
     for (const item of items) if (!cards.has(item.id)) render(item);
+    // Slots move on the dashboard: refresh the shown time of cards the user is not editing.
+    for (const item of items) {
+      const c = cards.get(item.id);
+      const at = c && !c.busy && !c.queued && c.el.querySelector('[name=at]');
+      if (at && document.activeElement !== at && item.schedule_at) { const v = toLocalInput(item.schedule_at); if (at.value !== v) at.value = v; }
+    }
+    const mb = document.getElementById('missing');
+    if (mb) { mb.hidden = !missing.length; mb.textContent = missing.length ? `On the dashboard but not queued (${missing.length}): ${missing.slice(0, 6).join(' · ')}${missing.length > 6 ? ' …' : ''}` : ''; }
     const sig = items.map((i) => i.id).join();
     if (sig !== orderSig) {
       orderSig = sig;
