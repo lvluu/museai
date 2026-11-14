@@ -209,6 +209,21 @@ async def test_stuck_account_still_takes_jobs_when_it_is_the_only_one(tmp_path):
     assert [acc for acc, _ in driver.calls] == ["a0", "a0"]
 
 
+async def test_stuck_account_takes_job_when_the_healthy_one_is_full(tmp_path):
+    pool = await _pool(tmp_path, n=2, strategy="round_robin")
+    pool.max_concurrency = 1
+    driver = _StuckOnDriver(set())
+    gw = Gateway(pool, driver, max_failover=2, stuck_video_cooldown=1800)
+    gw._stuck_until["a0"] = time.monotonic() + 1800
+    # a1 is busy with a job that does not finish during this test.
+    held = await pool.acquire(exclude=["a0"])
+    assert held.id == "a1"
+    got = await asyncio.wait_for(gw.generate_video(VideoRequest(prompt="p", model="m")), 2)
+    assert got.data
+    assert [acc for acc, _ in driver.calls] == ["a0"]
+    await pool.release(held)
+
+
 async def test_new_video_job_skips_account_at_its_video_limit(tmp_path):
     pool = await _pool(tmp_path, n=2, strategy="round_robin")
     pool.quota_cooldown = 0

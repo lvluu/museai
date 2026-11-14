@@ -191,17 +191,20 @@ class AccountPool:
         hint: str | None = None,
         timeout: float | None = None,
         owner: str | None = None,
+        avoid: Iterable[str] = (),
     ) -> Account:
         """Wait for a free account. ``timeout`` defaults to ``acquire_timeout``; ``math.inf``
         waits as long as it takes. Busy and cooling accounts are waited for; only a pool
-        with nothing that can ever become free fails at once."""
+        with nothing that can ever become free fails at once. An ``avoid`` account is taken
+        only when no other account is free right now: it never makes the caller wait."""
         exclude = tuple(exclude)
+        avoid = frozenset(avoid)
         deadline = time.monotonic() + (self.acquire_timeout if timeout is None else timeout)
         seq = next(self._seq)
         async with self._cond:
             self._waiters[seq] = (owner, exclude)
             try:
-                return await self._wait_turn(seq, exclude, hint, deadline, owner)
+                return await self._wait_turn(seq, exclude, hint, deadline, owner, avoid)
             finally:
                 del self._waiters[seq]
                 # Waiters this one stood in front of may take a free account now.
@@ -209,12 +212,12 @@ class AccountPool:
 
     async def _wait_turn(
         self, seq: int, exclude: tuple[str, ...], hint: str | None, deadline: float,
-        owner: str | None,
+        owner: str | None, avoid: frozenset[str] = frozenset(),
     ) -> Account:
         while True:
             free, busy, next_ready = self._candidates(exclude)
             if free and self._my_turn(seq):
-                acc = self.strategy.choose(free, hint)
+                acc = self.strategy.choose([a for a in free if a.id not in avoid] or free, hint)
                 self._inflight[acc.id] += 1
                 if owner:
                     self._owner_load[owner] += 1
@@ -282,8 +285,10 @@ class AccountPool:
         hint: str | None = None,
         timeout: float | None = None,
         owner: str | None = None,
+        avoid: Iterable[str] = (),
     ) -> AsyncIterator[Lease]:
-        acc = await self.acquire(exclude=exclude, hint=hint, timeout=timeout, owner=owner)
+        acc = await self.acquire(exclude=exclude, hint=hint, timeout=timeout, owner=owner,
+                                 avoid=avoid)
         lease = Lease(acc, owner)
         try:
             yield lease
