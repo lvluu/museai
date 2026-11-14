@@ -21,7 +21,7 @@ sys.path.insert(0, str(HV))
 from story169 import FPS, LNORM, H, W, chunks, dur, has_audio, luma, run, sub_png  # noqa: E402
 
 XF = 1.0  # dissolve: longer than story mode's 0.6 s, the long form never hurries
-LEAD, HOOK_LEAD, GAP, HOLD, TAIL = 1.0, 0.4, 1.8, 6.5, 4.0
+LEAD, HOOK_LEAD, GAP, HOLD, TAIL = 1.4, 0.4, 2.6, 8.0, 4.0
 CARD_IN, CARD_HOLD = 0.9, 4.2  # chapter card fades in after 0.9 s and stays 4.2 s
 ITALIC = "/System/Library/Fonts/Supplemental/Georgia Italic.ttf"
 REGULAR = "/System/Library/Fonts/Supplemental/Georgia.ttf"

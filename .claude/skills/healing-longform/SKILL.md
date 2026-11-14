@@ -24,9 +24,9 @@ A whole slow day in five minutes. Nothing big happens: she picks what is ripe, c
 
 **Narration.** First person, past-tense-free, plain spoken American English, 1-3 short sentences a line, 18-22 lines in five minutes (about one in every two shots). Kokoro af_heart at speed 0.88 (`../place-story/scripts/vo.py`). Every line shows something the picture does not: the thread, a memory, a dry joke. Never narrate the recipe or the action on screen. The humour is understated and self-aware ("We negotiated. He kept the basket.", "The good side faces out. That's called presentation."). One sentence of meaning at the end, said simply, then a two-word close. Subtitles at the bottom in the healing-video Story-mode style.
 
-**Breathing shots.** One beat in three has no voice: a wide of the garden, rain on the glass, the cat asleep, steam over a pot. They hold 6.5 s and carry the film's calm; never cut them to save time.
+**Breathing shots.** One beat in three has no voice: a wide of the garden, rain on the glass, the cat asleep, steam over a pot. They hold 8 s and carry the film's calm; never cut them to save time.
 
-**Shot rhythm.** Beats run 4-8 s (lead 1.0 s + voice + 1.8 s gap; voiceless beats 6.5 s), joined by 1.0 s dissolves. Each clip is 10 s of muse footage, so the slow rhythm comes from long-held shots, not from cutting fast. One action per shot. Alternate scale: wide (place) - medium (her at work, from behind or the side) - close (hands, food, the cat) - wide. Stills animate as a slow 1.00 to 1.05 push-in.
+**Shot rhythm.** Beats run 7-11 s (lead 1.4 s + voice + 2.6 s gap; voiceless beats 8 s; 34 beats come to ~5 min), joined by 1.0 s dissolves. Each clip is 10 s of muse footage, so the slow rhythm comes from long-held shots, not from cutting fast. One action per shot. Alternate scale: wide (place) - medium (her at work, from behind or the side) - close (hands, food, the cat) - wide. Stills animate as a slow 1.00 to 1.05 push-in.
 
 **Camera.** Locked off, always (`CAMERA` sentence in every clip brief): muse's camera moves read as fake in long form. The motion is in the frame: her hands, steam, rain, leaves, the cat's ear.
 
@@ -68,3 +68,5 @@ Writing the shots: follow `../healing-story/SKILL.md` continuity rules (containe
 - `prompt/look.txt` describes the girl, so muse drew her face into every shot, even "nobody" and hands-only beats. `plan.py framing()` adds who is in frame to each brief from `cast` and the shot text ("her hand(s)" = hands only, else nobody). Write "her hands" in a hands-only shot.
 - The garden ref came back framed through a doorway; stills of that place may inherit a door frame. Check step 5.
 - Clips are 10 s and most beats use 4-8 s of them: write the `move` so the motion happens in the first 6 s.
+- Wide shots of a small subject (the cat in the basket, a robin on the wall, a mug on the table) came back as tiny details in the whole garden: start those shots with "Close-up" so `plan.py` drops the place reference.
+- The first video took ~2.5 h of clip rendering (29 clips, 2 at a time, 4-10 min each) and hit the 24-hour limit on clip 27: 3 beats shipped as still push-ins, which read fine between clips.
