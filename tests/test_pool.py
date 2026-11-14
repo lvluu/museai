@@ -19,6 +19,7 @@ from museai.errors import (
     UpstreamError,
     UpstreamQuotaError,
     UpstreamRefused,
+    VideoLimitReached,
 )
 from museai.services.gateway import Gateway
 from museai.services.tasks import Task, TaskStatus
@@ -206,6 +207,25 @@ async def test_stuck_account_still_takes_jobs_when_it_is_the_only_one(tmp_path):
         with pytest.raises(GenerationTimeout):
             await gw.generate_video(VideoRequest(prompt="p", model="m"))
     assert [acc for acc, _ in driver.calls] == ["a0", "a0"]
+
+
+async def test_new_video_job_skips_account_at_its_video_limit(tmp_path):
+    pool = await _pool(tmp_path, n=2, strategy="round_robin")
+    pool.quota_cooldown = 0
+
+    class Limited(_StuckOnDriver):
+        async def generate_video(self, account, req):
+            if account.id in self.stuck:
+                self.calls.append((account.id, req.timeout))
+                raise VideoLimitReached("24-hour video limit")
+            return await MockDriver.generate_video(self, account, req)
+
+    driver = Limited({"a0"})
+    gw = Gateway(pool, driver, max_failover=2, video_limit_cooldown=3600)
+    for _ in range(3):
+        assert (await gw.generate_video(VideoRequest(prompt="p", model="m"))).data
+    # a0 hit its limit once; later jobs went straight to a1 instead of trying a0 first.
+    assert [acc for acc, _ in driver.calls] == ["a0"]
 
 
 async def test_video_job_render_time_is_capped_across_failovers(tmp_path, monkeypatch):

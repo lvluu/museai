@@ -110,6 +110,9 @@ class Settings(BaseSettings):
     # An account whose render timed out gets no new video job for this long while another
     # account can take it.
     stuck_video_cooldown: float = 1800.0
+    # An account that replied with its 24-hour video limit gets no new video job for this long
+    # while another account can take it (it still takes them when it is the only one left).
+    video_limit_cooldown: float = 3600.0
 
     # --- account pool ---
     pool_strategy: PoolStrategyName = "affinity"

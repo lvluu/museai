@@ -36,6 +36,7 @@ from ...errors import (
     UpstreamQuotaError,
     UpstreamRefused,
     UpstreamTimeout,
+    VideoLimitReached,
 )
 from ...upstream import muse
 from ..base import (
@@ -700,7 +701,7 @@ class BrowserDriver(MuseDriver):
                 if LOST_MEDIA.search(text) and len(text) < 200:
                     raise UpstreamMediaLost(f"upstream lost the {kind}: {text[:200]}")
                 if VIDEO_LIMIT.search(text):
-                    raise UpstreamQuotaError(f"muse.ai video limit reached: {text[:200]}")
+                    raise VideoLimitReached(f"muse.ai video limit reached: {text[:200]}")
                 raise UpstreamRefused(f"upstream replied with text only: {text[:200]}")
             nudges += 1
             log.info(
