@@ -9,8 +9,8 @@ Each line is a complete command, e.g. `IMAGE=s1.png scripts/shot "brief" clips/s
 At most N run at once (N = -j, else $JOBS, else 1): the next starts when one finishes, so the whole
 queue needs one background call and the Mac never runs every muse tab, ffmpeg check and poll loop at
 once (user rule 2026-11-04: one at a time per ready muse account, never a burst). Each job's output
-goes to <out>.log when its line names an `OUT_NAME=`/last `.mp4` argument, else to queue-<n>.log in the
-current folder. Exit 0 when every job passed; a failed job is reported and the rest still run.
+goes to <out>.log when its line names an `OUT_NAME=`/last `.mp4` argument, else to <jobs file stem>-<n>.log (queue-<n>.log
+for stdin) in the current folder. Exit 0 when every job passed; a failed job is reported and the rest still run.
 """
 import os
 import re
@@ -28,12 +28,14 @@ def main(argv):
     if args[:1] == ["-j"]:
         jobs_n = int(args[1])
         args = args[2:]
+    tag = "queue"
     if args[:1] == ["--"]:
         lines = [" ".join(shlex.quote(a) for a in args[1:])]
     elif not args or args[0] == "-":
         lines = sys.stdin.read().splitlines()
     else:
         lines = Path(args[0]).read_text().splitlines()
+        tag = Path(args[0]).stem  # two queues in one folder must not share queue-1.log
     lines = [ln.strip() for ln in lines if ln.strip() and not ln.lstrip().startswith("#")]
     if not lines:
         sys.exit("render-queue: no jobs")
@@ -41,7 +43,7 @@ def main(argv):
 
     def log_for(i, line):
         m = re.search(r"OUT_NAME=(\S+)", line) or re.search(r"(\S+\.mp4)\b(?!.*\.mp4)", line)
-        stem = Path(m.group(1).strip("'\"")).with_suffix("") if m else Path(f"queue-{i}")
+        stem = Path(m.group(1).strip("'\"")).with_suffix("") if m else Path(f"{tag}-{i}")
         return Path(f"{stem}.log")
 
     def say(msg):
