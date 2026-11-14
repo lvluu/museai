@@ -17,6 +17,7 @@ HERE = Path(__file__).resolve().parent.parent
 CFG = json.loads((HERE / "styles.json").read_text())
 HIST = Path(CFG["history"]).expanduser()
 SHOT_S, MAX_S, MIN_S = 7, 36, 21
+XF = 0.7
 
 
 def main():
@@ -39,12 +40,19 @@ def main():
         fit = [k for k in pool if any(a.setting and a.setting in f for f in styles[k]["fits"])]
         sid = random.choice(fit or pool)
     s = styles[sid]
-    n = a.shots or random.choice([3, 4, 5])
-    n = max(MIN_S // SHOT_S, min(n, MAX_S // SHOT_S))
-    shots = [{"n": i + 1, "duration": SHOT_S, "light": s["light"], "move": s["moves"][i % len(s["moves"])]}
+    cut = s.get("cut_s")
+    if cut:  # energetic style: cuts on the beat, shots render only as long as the cut needs; the camera stays slow
+        n = a.shots or random.choice([6, 7, 8])
+        dur = round(cut + XF + 0.6)
+    else:
+        n = a.shots or random.choice([3, 4, 5])
+        n = max(MIN_S // SHOT_S, min(n, MAX_S // SHOT_S))
+        dur = SHOT_S
+    shots = [{"n": i + 1, "duration": dur, "light": s["light"], "move": s["moves"][i % len(s["moves"])]}
              for i in range(n)]
-    total = n * SHOT_S - (n - 1) * 0.7
-    plan = {"place": a.place, "style": sid, "name": s["name"], "shots": shots, "seconds": round(total, 1),
+    total = n * (cut + XF if cut else SHOT_S) - (n - 1) * XF - (0 if cut else 0)
+    secs = (cut or SHOT_S - XF)
+    plan = {"place": a.place, "style": sid, "name": s["name"], "shots": shots, "seconds": round(total, 1), "beat_secs": round(secs, 1),
             "music": s["music"], "bpm": s["bpm"], "grade": s["grade"], "audio_search": s["audio_search"],
             "body_beats": int(total * s["bpm"] / 60) + 4}
     if not a.no_record:

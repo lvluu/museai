@@ -6,9 +6,22 @@
       "bpm": 70,
       "light": "Soft clear morning light, sun well above the horizon",
       "grade": "natural, slightly airy",
-      "moves": ["a slow forward glide", "a slow rise", "a slow sideways drift"],
-      "audio_search": ["peaceful piano", "calm cinematic", "emotional piano"],
-      "fits": ["lake", "forest", "meadow", "fjord"]
+      "moves": [
+        "a slow forward glide",
+        "a slow rise",
+        "a slow sideways drift"
+      ],
+      "audio_search": [
+        "peaceful piano",
+        "calm cinematic",
+        "emotional piano"
+      ],
+      "fits": [
+        "lake",
+        "forest",
+        "meadow",
+        "fjord"
+      ]
     },
     "epic-orchestral": {
       "name": "Epic orchestral",
@@ -16,9 +29,22 @@
       "bpm": 76,
       "light": "Bright clear day, sun high, a few sculpted white clouds",
       "grade": "clean vivid, natural",
-      "moves": ["a slow forward glide toward the peak", "a slow rise revealing the valley", "a slow wide reveal"],
-      "audio_search": ["epic cinematic", "inspiring orchestral", "adventure"],
-      "fits": ["mountain", "canyon", "glacier", "waterfall"]
+      "moves": [
+        "a slow forward glide toward the peak",
+        "a slow rise revealing the valley",
+        "a slow wide reveal"
+      ],
+      "audio_search": [
+        "epic cinematic",
+        "inspiring orchestral",
+        "adventure"
+      ],
+      "fits": [
+        "mountain",
+        "canyon",
+        "glacier",
+        "waterfall"
+      ]
     },
     "indie-folk": {
       "name": "Indie folk road trip",
@@ -26,9 +52,22 @@
       "bpm": 92,
       "light": "Warm friendly afternoon sun, sun well above the horizon, soft long shadows",
       "grade": "warm natural",
-      "moves": ["a slow forward glide along the road or river", "a slow sideways drift", "a slow rise"],
-      "audio_search": ["acoustic feel good", "happy folk", "travel vlog"],
-      "fits": ["valley", "coast road", "river", "meadow"]
+      "moves": [
+        "a slow forward glide along the road or river",
+        "a slow sideways drift",
+        "a slow rise"
+      ],
+      "audio_search": [
+        "acoustic feel good",
+        "happy folk",
+        "travel vlog"
+      ],
+      "fits": [
+        "valley",
+        "coast road",
+        "river",
+        "meadow"
+      ]
     },
     "ambient-drift": {
       "name": "Ambient drift",
@@ -36,9 +75,23 @@
       "bpm": 64,
       "light": "Blue hour glow before sunrise, sky bright enough to see every detail, calm mist",
       "grade": "cool teal, gentle",
-      "moves": ["a very slow forward glide", "a very slow rise", "a very slow orbit"],
-      "audio_search": ["ambient chill", "dreamy", "lofi nature"],
-      "fits": ["fjord", "glacier", "dunes", "mist forest", "night sky"]
+      "moves": [
+        "a very slow forward glide",
+        "a very slow rise",
+        "a very slow orbit"
+      ],
+      "audio_search": [
+        "ambient chill",
+        "dreamy",
+        "lofi nature"
+      ],
+      "fits": [
+        "fjord",
+        "glacier",
+        "dunes",
+        "mist forest",
+        "night sky"
+      ]
     },
     "chill-house": {
       "name": "Chill house",
@@ -46,9 +99,22 @@
       "bpm": 100,
       "light": "Bright golden-white sunny day, sun high, saturated natural colour",
       "grade": "vivid, natural",
-      "moves": ["a smooth forward glide", "a smooth rise", "a smooth sideways drift"],
-      "audio_search": ["chill house", "summer vibes", "upbeat travel"],
-      "fits": ["coast", "island", "lagoon", "waterfall"]
+      "moves": [
+        "a smooth forward glide",
+        "a smooth rise",
+        "a smooth sideways drift"
+      ],
+      "audio_search": [
+        "chill house",
+        "summer vibes",
+        "upbeat travel"
+      ],
+      "fits": [
+        "coast",
+        "island",
+        "lagoon",
+        "waterfall"
+      ]
     },
     "tribal-earth": {
       "name": "Earth and drums",
@@ -56,9 +122,76 @@
       "bpm": 80,
       "light": "Clear low-contrast daylight, sun well above the horizon, warm earth tones",
       "grade": "warm earthy",
-      "moves": ["a slow forward glide", "a slow rise", "a slow sideways drift"],
-      "audio_search": ["world cinematic", "ethnic flute", "ambient drums"],
-      "fits": ["desert", "canyon", "savanna", "red rock"]
+      "moves": [
+        "a slow forward glide",
+        "a slow rise",
+        "a slow sideways drift"
+      ],
+      "audio_search": [
+        "world cinematic",
+        "ethnic flute",
+        "ambient drums"
+      ],
+      "fits": [
+        "desert",
+        "canyon",
+        "savanna",
+        "red rock"
+      ]
+    },
+    "uplift-edm": {
+      "name": "Uplift dance",
+      "music": "uplifting melodic house, driving four-on-the-floor kick, bright arpeggio synths, big clap build, festival summer energy, instrumental",
+      "bpm": 124,
+      "cut_s": 3.4,
+      "light": "Bright sunny day, sun high, vivid natural colour, deep blue sky",
+      "grade": "vivid, natural",
+      "moves": [
+        "a smooth steady forward glide",
+        "a smooth steady rise",
+        "a smooth steady sideways drift"
+      ],
+      "audio_search": [
+        "upbeat travel",
+        "summer dance",
+        "feel good house",
+        "trending travel"
+      ],
+      "fits": [
+        "coast",
+        "island",
+        "lagoon",
+        "mountain",
+        "waterfall",
+        "fjord"
+      ]
+    },
+    "pop-drive": {
+      "name": "Pop drive",
+      "music": "bright modern pop beat, punchy claps, plucky guitar, energetic feel-good road-trip groove, instrumental",
+      "bpm": 112,
+      "cut_s": 3.8,
+      "light": "Bright sunny day, sun high, warm clear light",
+      "grade": "warm vivid",
+      "moves": [
+        "a smooth steady forward glide",
+        "a smooth steady sideways drift",
+        "a smooth steady rise"
+      ],
+      "audio_search": [
+        "feel good pop",
+        "road trip",
+        "happy upbeat",
+        "trending reels"
+      ],
+      "fits": [
+        "valley",
+        "river",
+        "meadow",
+        "coast",
+        "lake",
+        "forest"
+      ]
     }
   },
   "history": "~/.config/nature-reel/history.json"
