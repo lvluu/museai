@@ -99,7 +99,13 @@ CHAT_STATE = f"""(() => {{
       h: m ? (m.videoHeight || m.naturalHeight || 0) : 0,
     }};
   }});
+  // The chat-history sidebar lists old titles ("token limit video issue", "daily limit
+  // reached 4:42 pm") that are not a quota message: hide it while reading the tail.
+  const side = [...document.querySelectorAll('aside, nav, [role="navigation"], [class*="sidebar" i]')];
+  const shown = side.map(e => e.style.display);
+  side.forEach(e => {{ e.style.display = 'none'; }});
   const tail = document.body ? document.body.innerText.slice(-600) : '';
+  side.forEach((e, i) => {{ e.style.display = shown[i]; }});
   return {{ agentCount: bubbles.length, lastText: last,
             generating: !!document.querySelector({q(STOP_BUTTON)}),
             attachments: atts, tail }};
