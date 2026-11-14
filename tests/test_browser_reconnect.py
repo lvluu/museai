@@ -236,8 +236,8 @@ async def test_quota_text_already_on_page_is_not_quota(driver):
         await driver._state(_TailTab(old + " Out of credits"), base)
 
 
-def test_chat_state_tail_skips_the_history_sidebar():
+def test_chat_state_tail_is_reply_and_alerts_only():
     from museai.drivers.browser import dom
 
-    assert "aside, nav" in dom.CHAT_STATE
-    assert dom.CHAT_STATE.index("display = 'none'") < dom.CHAT_STATE.index("innerText.slice(-600)")
+    assert "document.body.innerText.slice(-600)" not in dom.CHAT_STATE
+    assert "(last + ' ' + alerts).slice(-600)" in dom.CHAT_STATE
