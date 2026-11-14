@@ -451,8 +451,7 @@ function renderCards() {
     const failed = list.filter((t) => t.status === "failed").length;
     const u = usage[acc.id];
     const left = u && u.cap != null
-      ? `<div class="acc-nums" title="Estimate from past “Out of usage” hits"><span><b>~${u.left}</b> videos left (est.)</span></div>
-         <div class="meter"><i style="width:${Math.min(100, u.left / Math.max(u.cap, 1) * 100)}%"></i></div>` : "";
+      ? `<div class="acc-nums" title="Estimate from past “Out of usage” hits"><span><b>~${u.left}</b> videos left (est.)</span></div>` : "";
     const bad = acc.status === "invalid";
     const exp = cookieExpiry(acc);
     const daysLeft = exp ? Math.floor((exp - Date.now() / 1000) / 86400) : null;
