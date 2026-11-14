@@ -115,7 +115,13 @@ def main():
 
     # 1. video segments with grade + subtitles; foley segments
     for p in plan:
-        if (tmp / f"seg{p['i']}.mp4").exists() and (tmp / f"fol{p['i']}.wav").exists():
+        # reuse a built segment only while its inputs are unchanged: a re-rendered clip or new voice
+        # line kept the old segment (moms-first-cake seventh cut shipped the old door scenes)
+        key = json.dumps([p["clip"].stat().st_mtime_ns, p["clip"].stat().st_size, p["vo"].stat().st_mtime_ns,
+                          p["text"], p["foley_db"], round(p["L"], 3), p["start_clip"]])
+        kf = tmp / f"seg{p['i']}.key"
+        if (tmp / f"seg{p['i']}.mp4").exists() and (tmp / f"fol{p['i']}.wav").exists() and kf.exists() \
+                and kf.read_text() == key:
             p["seg"], p["fol"] = tmp / f"seg{p['i']}.mp4", tmp / f"fol{p['i']}.wav"
             continue
         need = p["L"] + (XF if p["i"] < len(plan) else 0)
@@ -165,6 +171,7 @@ def main():
         else:
             run(["ffmpeg", "-y", "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-t", f"{need:.3f}", str(fol)])
         p["seg"], p["fol"] = seg, fol
+        kf.write_text(key)
         print(f"seg {p['i']} ok (speed x{1 / f:.2f}, gamma {gamma:.2f})", flush=True)
 
     # 2. join video with dissolves
