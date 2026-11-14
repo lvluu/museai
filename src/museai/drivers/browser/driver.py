@@ -338,7 +338,7 @@ class BrowserDriver(MuseDriver):
                 return False
             if "Connecting..." in (page.get("head") or ""):
                 return False
-            state = await self._state(tab)
+            state = await self._state(tab, check=False)
         except CDPError:
             return False
         if state.get("generating"):
@@ -403,11 +403,20 @@ class BrowserDriver(MuseDriver):
         if not await tab.session.evaluate(dom.INPUT_EMPTY):
             raise UpstreamError("send button not found and Enter did not submit")
 
-    async def _state(self, tab: _Tab) -> dict:
+    async def _state(self, tab: _Tab, base: dict | None = None, check: bool = True) -> dict:
+        """Page state; raises on a quota message that appeared after ``base`` was taken.
+
+        Text already on the page before the job (old chat titles such as "daily limit
+        reached") is no proof the account is out of quota, so base snapshots skip the
+        check and later polls ignore hints that were already in the base tail.
+        """
         state = await tab.session.evaluate(dom.CHAT_STATE) or {}
+        if not check:
+            return state
         tail = state.get("tail", "")
         low = tail.lower()
-        if hint := next((h for h in dom.QUOTA_HINTS if h in low), None):
+        old = ((base or {}).get("tail") or "").lower()
+        if hint := next((h for h in dom.QUOTA_HINTS if h in low and h not in old), None):
             at = low.index(hint)
             seen = " ".join(tail[max(0, at - 60):at + len(hint) + 60].split())
             raise UpstreamQuotaError(f"muse.ai reports the account is out of quota (page says: ...{seen}...)")
@@ -421,7 +430,7 @@ class BrowserDriver(MuseDriver):
             raise UpstreamError(f"browser error: {exc}") from exc
         try:
             await self._new_thread(tab)
-            base = await self._state(tab)
+            base = await self._state(tab, check=False)
             await self._attach(tab, images)
             await self._send(tab, prompt)
         except CDPError as exc:
@@ -442,7 +451,7 @@ class BrowserDriver(MuseDriver):
             page = await tab.session.evaluate(dom.PAGE_STATE) or {}
             if not page.get("hasInput"):
                 return False
-            state = await self._state(tab)
+            state = await self._state(tab, check=False)
             present = await tab.session.evaluate(
                 f"!!(document.body && document.body.innerText.includes({dom.q(last_user[:80])}))"
             )
@@ -489,7 +498,7 @@ class BrowserDriver(MuseDriver):
                 log.info("opening a new thread")
                 account.meta.pop("hot_page", None)
                 await self._new_thread(tab)
-            base = await self._state(tab)
+            base = await self._state(tab, check=False)
             await self._attach(tab, images)
             await self._send(tab, prompt)
             return tab, base
@@ -517,7 +526,7 @@ class BrowserDriver(MuseDriver):
                 if not got_first and elapsed > req.first_token_timeout:
                     raise UpstreamTimeout("no first token from assistant")
                 await asyncio.sleep(POLL_INTERVAL)
-                st = await self._state(tab)
+                st = await self._state(tab, base)
                 text = st.get("lastText", "")
                 is_new = st.get("agentCount", 0) > base_count or (text and text != base_text)
                 if not is_new or not text:
@@ -572,7 +581,7 @@ class BrowserDriver(MuseDriver):
                 if not got_first and elapsed > req.first_token_timeout:
                     raise UpstreamTimeout("no first token from assistant")
                 await asyncio.sleep(POLL_INTERVAL)
-                st = await self._state(tab)
+                st = await self._state(tab, base)
                 text = st.get("lastText", "")
                 is_new = st.get("agentCount", 0) > base_count or (text and text != base_text)
                 if not is_new or not text:
@@ -652,7 +661,7 @@ class BrowserDriver(MuseDriver):
                 raise asyncio.CancelledError
             await asyncio.sleep(0.6)
             try:
-                st = await asyncio.wait_for(self._state(tab), STATE_POLL_TIMEOUT)
+                st = await asyncio.wait_for(self._state(tab, base), STATE_POLL_TIMEOUT)
                 last_ok = time.monotonic()
             except asyncio.TimeoutError:  # the tab stopped answering
                 if time.monotonic() - last_ok > STALL_LIMIT:
