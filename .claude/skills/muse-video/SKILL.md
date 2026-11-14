@@ -136,6 +136,7 @@ The format skills are templates on top of this skill. They take the same brief, 
 |---|---|---|
 | `../scenic-drop-reel/` | any place request by default: beat-cut aerial montage, random template, sung AI track | zoominview when nobody should be on screen; travel when the user wants cuts, not one shot |
 | `../zoominview/` | the user wants a person's reaction, then the view ("zoominview", "reaction reveal") | scenic-drop-reel when the place deserves one emotional reveal instead of a montage |
+| `../nature-reel/` | breathtaking nature views, slow sharp camera, 6 music styles, 21-35 s, little text; keeps a travel profile watchable | scenic-drop-reel when the user wants calm and natural beauty instead of beat cuts |
 | `../place-story/` | the user wants the place explained: history, records, legends, "facts about X", a longer 45-60 s video that keeps viewers (hook question on the wow view, one fact card per shot, answer mid-video, save/follow end card) | scenic-drop-reel when the user wants a short beat-cut montage with no information |
 | `../scenery-director/` | a calm cinematic scenery episode: one camera idea, 1-3 long shots, instrumental score, no text, the six-part director's brief / a ready-to-paste prompt, series variety | scenic-drop-reel when the user wants cinematic calm instead of beat cuts; travel when they want the director's plan, music and series rotation |
 | travel (this skill, below) | one continuous documentary shot, a calm/locked view, 16:9 | the reels when the user asks for one shot or "documentary mode" |
