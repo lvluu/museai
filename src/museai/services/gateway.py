@@ -13,7 +13,7 @@ from typing import TypeVar
 from ..accounts.model import Account, AccountStatus
 from ..accounts.pool import AccountPool, Lease
 from ..drivers.base import ChatRequest, ImageRequest, MediaResult, MuseDriver, VideoRequest
-from ..errors import GenerationTimeout, UpstreamError
+from ..errors import GenerationTimeout, UpstreamError, VideoLimitReached
 
 log = logging.getLogger(__name__)
 T = TypeVar("T")
@@ -34,6 +34,7 @@ class Gateway:
         media_queue_timeout: float | None = None,
         video_deadline: float = math.inf,
         stuck_video_cooldown: float = 0.0,
+        video_limit_cooldown: float = 0.0,
     ) -> None:
         self.pool = pool
         self.driver = driver
@@ -46,6 +47,9 @@ class Gateway:
         # An account whose render timed out gets no new video job for this long while another
         # account can take it: one stuck account once timed out five clips in a row, 12 min each.
         self.stuck_video_cooldown = stuck_video_cooldown
+        # Same skip for an account that replied with its 24-hour video limit: with no quota
+        # cooldown, every new video job would otherwise lose a minute on it before failing over.
+        self.video_limit_cooldown = video_limit_cooldown
         self._stuck_until: dict[str, float] = {}
         # What each account is doing right now (chat, image, video), for the dashboard cards:
         # tasks only record videos, so an account busy with an image used to look idle.
@@ -137,6 +141,9 @@ class Gateway:
                     if kind == "video" and isinstance(exc, GenerationTimeout):
                         self._stuck_until[lease.account.id] = (
                             time.monotonic() + self.stuck_video_cooldown)
+                    elif kind == "video" and isinstance(exc, VideoLimitReached):
+                        self._stuck_until[lease.account.id] = (
+                            time.monotonic() + self.video_limit_cooldown)
                     if not self._should_retry(exc, attempt, tried):
                         raise
                     if time_left() < MIN_VIDEO_ATTEMPT:
