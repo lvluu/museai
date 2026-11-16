@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import hashlib
+import json
 import logging
 import mimetypes
 import os
@@ -121,15 +122,32 @@ def postq_episode(folder: str, platform: str) -> str:
     (``postq episode DIR --platforms P --auto``); returns a one-line result for the phone."""
     if not folder:
         return "not an episode folder: post it from the dashboard"
+    # Queued before (e.g. by `postq episodes` without --auto): the tap approves that item instead,
+    # so the extension posts it now; postq never queues a second copy.
+    if queued := postq_pending(folder, platform):
+        cmd, ok = [str(POSTQ), "approve", *queued], f"{platform} approved in postq, the extension posts it"
+    else:
+        cmd, ok = [str(POSTQ), "episode", folder, "--platforms", platform, "--auto"], f"{platform} queued in postq"
     try:
-        run = subprocess.run([str(POSTQ), "episode", folder, "--platforms", platform, "--auto"],
-                             capture_output=True, text=True, timeout=600)
+        run = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
     except subprocess.TimeoutExpired:
         return f"{platform}: postq timed out"
     out = (run.stdout.strip() or run.stderr.strip() or f"exit {run.returncode}").splitlines()
-    if run.returncode == 0 and run.stdout.strip():
-        return f"{platform} queued in postq"
+    if run.returncode == 0 and run.stdout.strip() and not out[-1].startswith("skipped"):
+        return ok
     return f"{platform}: {out[-1][:150]}"
+
+
+def postq_pending(folder: str, platform: str) -> list[str]:
+    """Ids of postq items still waiting for ``platform`` whose video comes from ``folder``."""
+    root = Path(os.environ.get("POSTQ_DIR", Path.home() / ".local" / "state" / "postq" / "queue"))
+    ids = []
+    for p in root.glob("*.json"):
+        with contextlib.suppress(OSError, ValueError):
+            item = json.loads(p.read_text())
+            if item.get("platform") == platform and Path(item.get("source") or "/").parent == Path(folder):
+                ids.append(item["id"])
+    return sorted(ids)
 
 
 @router.get("/dashboard/hands", include_in_schema=False)
