@@ -535,8 +535,12 @@ def test_hands_status_dashboard_and_approve(client, admin, settings, monkeypatch
     tap("ch:chinese")  # the posts: Post + Delete per video, post-all across platforms below
     chan = last_edit()
     chan_buttons = btns(chan)
-    vid = next(b.split(":")[1] for b in chan_buttons if b.startswith("pp:"))
-    assert chan_buttons[0].startswith(f"pp:{vid}:chinese:") and f"delq:{vid}:chinese" in chan_buttons[:3]
+    vid = next(b.split(":")[1] for b in chan_buttons if b.startswith("px:"))
+    assert chan_buttons[:5] == [f"px:{vid}:chinese:{p}" for p in ("youtube", "tiktok", "meta", "x")] + [f"delq:{vid}:chinese"]
+    queued = []
+    monkeypatch.setattr(hands, "postq_episode", lambda folder, p: queued.append(p) or f"{p} queued in postq")
+    tap(f"px:{vid}:chinese:meta")  # one tap: postq posts it through the extension
+    assert queued == ["meta"] and any("meta queued in postq" in j.get("text", "") for m, j in sent if m == "answerCallbackQuery")
     assert "apprq:chinese:all" in chan_buttons and "apprq:chinese:youtube" in chan_buttons
     assert all(len(b.encode()) <= 64 for b in chan_buttons)
     tap(f"pk:{vid}:chinese")  # platform picker (still reachable): every platform left is selected

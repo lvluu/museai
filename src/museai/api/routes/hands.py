@@ -80,7 +80,9 @@ def overview(svc: Services) -> dict:
         rows.append({"name": path.name, "id": _short(path.name), "title": title.split("\n")[0],
                      "channel_id": posting._channel(path.name, entry),
                      "channel": posting.CHANNELS[posting._channel(path.name, entry)][0],
-                     "slot": entry.get("slot"), "planned": planned, "platforms": platforms})
+                     "slot": entry.get("slot"), "planned": planned, "platforms": platforms,
+                     "posted": sorted(entry.get("posted", {})),
+                     "folder": str(path.parent) if (path.parent / posting.FOLDER_MARK).is_file() else ""})
     rows.sort(key=lambda r: r["slot"] or "~")
     return {"paused": paused_all, "folder": str(svc.settings.post_dir), "videos": rows}
 
@@ -109,6 +111,25 @@ def trigger(svc: Services, name: str, platform: str) -> str:
     if autopost.load_config(svc)["paused"]:
         return f"{platform} queued, but auto-posting is paused (Pause all): resume it first"
     return f"{platform} posting within {int(svc.settings.autopost_interval)} s"
+
+
+POSTQ = Path(__file__).resolve().parents[4] / "tools" / "postq" / "postq"
+
+
+def postq_episode(folder: str, platform: str) -> str:
+    """Queue one platform of an episode folder in the postq Chrome extension and post it without a click
+    (``postq episode DIR --platforms P --auto``); returns a one-line result for the phone."""
+    if not folder:
+        return "not an episode folder: post it from the dashboard"
+    try:
+        run = subprocess.run([str(POSTQ), "episode", folder, "--platforms", platform, "--auto"],
+                             capture_output=True, text=True, timeout=600)
+    except subprocess.TimeoutExpired:
+        return f"{platform}: postq timed out"
+    out = (run.stdout.strip() or run.stderr.strip() or f"exit {run.returncode}").splitlines()
+    if run.returncode == 0 and run.stdout.strip():
+        return f"{platform} queued in postq"
+    return f"{platform}: {out[-1][:150]}"
 
 
 @router.get("/dashboard/hands", include_in_schema=False)
@@ -316,6 +337,13 @@ class Bot:
             data = await asyncio.to_thread(overview, self.svc)
             text, markup = handsboard.channel(data, cid2, cfg)
             await self.edit(chat, message, text, markup)
+        elif kind == "px":
+            vid, cid2, pid = rest.split(":")
+            v = next((v for v in data["videos"] if v["id"] == vid), None)
+            answer = await asyncio.to_thread(postq_episode, v["folder"], pid) if v else "video is gone"
+            data = await asyncio.to_thread(overview, self.svc)
+            text, markup = handsboard.channel(data, cid2, cfg)
+            await self.edit(chat, message, text, markup)
         elif kind == "delq":
             text, markup = handsboard.confirm_delete(data, cid, platform)
             await self.edit(chat, message, text, markup)
@@ -454,7 +482,7 @@ class Bot:
                 return
             kind, _, rest = cb["data"].partition(":")
             answer = ""
-            if kind in ("status", "ch", "apprq", "appr", "delq", "delc", "pk", "pp"):
+            if kind in ("status", "ch", "apprq", "appr", "delq", "delc", "pk", "pp", "px"):
                 await self.board_tap(chat, cb, kind, rest)
                 return
             if kind == "model":
