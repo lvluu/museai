@@ -96,23 +96,26 @@ def channel(data: dict, cid: str, cfg: dict, page: int = 0) -> tuple[str, Keyboa
                         (posting.CHANNELS.get(cid, (cid,))[0], []))
     pages = max(1, -(-len(videos) // PER_PAGE))
     page = min(max(page, 0), pages - 1)
-    lines = [f"{name} · {len(videos)} video{'s' * (len(videos) != 1)}" + (f" · page {page + 1}/{pages}" if pages > 1 else "")]
+    lines = [f"{name} · {len(videos)} video{'s' * (len(videos) != 1)}" + (f" · page {page + 1}/{pages}" if pages > 1 else ""),
+             "Tap a platform icon to post there now · 🗑 to delete"]
     keyboard = []
     for i, v in enumerate(videos[page * PER_PAGE:(page + 1) * PER_PAGE], page * PER_PAGE + 1):
         todo = pending(v, cfg["platforms"])
-        marks = " ".join(f"{cfg['icons'][p['id']]}{STATE.get(p['state'], '•')}" for p in v["platforms"]
-                         if p["id"] in cfg["platforms"] and p["state"] != "manual")
+        marks = "  ".join(f"{cfg['icons'][p['id']]}{STATE.get(p['state'], '•')}" for p in v["platforms"]
+                          if p["id"] in cfg["platforms"] and p["state"] != "manual")
         when = next((_when(p["time"]) for p in todo if p["time"]), "")
         lines.append(f"\n{i}. {(v['title'] or v['name'])[:60]}")
-        lines.append("   " + (marks or "✋ nothing to auto-post") + (f" · {when}" if when else ""))
+        lines.append("    " + (marks or "✋ nothing to auto-post") + (f"   🕒 {when}" if when else ""))
         if bad := next((p for p in todo if p["error"]), None):
-            lines.append(f"   ⚠️ {bad['error'][:70]}")
+            lines.append(f"    ⚠️ {bad['error'][:70]}")
         if todo and not v["planned"]:
-            lines.append("   ✋ not auto-planned: plan it on the dashboard")
+            lines.append("    ✋ not auto-planned: plan it on the dashboard")
+        todo_ids = {p["id"] for p in todo if p["state"] != "posting"}
         row = []
-        if todo and v["planned"]:
-            row.append({"text": f"▶ Post {i}", "callback_data": f"pk:{v['id']}:{cid}"})
-        row.append({"text": f"🗑 Delete {i}", "callback_data": f"delq:{v['id']}:{cid}"})
+        if v["planned"]:
+            row = [{"text": f"{i} {cfg['icons'][pid]}", "callback_data": f"pp:{v['id']}:{cid}:{1 << k}"}
+                   for k, pid in enumerate(cfg["platforms"]) if pid in todo_ids]
+        row.append({"text": f"{i} 🗑", "callback_data": f"delq:{v['id']}:{cid}"})
         keyboard.append(row)
     if not videos:
         lines.append("\n📭 No videos.")
