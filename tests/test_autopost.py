@@ -536,11 +536,17 @@ def test_hands_status_dashboard_and_approve(client, admin, settings, monkeypatch
     chan = last_edit()
     chan_buttons = btns(chan)
     vid = next(b.split(":")[1] for b in chan_buttons if b.startswith("px:"))
-    assert chan_buttons[:5] == [f"px:{vid}:chinese:{p}" for p in ("youtube", "tiktok", "meta", "x")] + [f"delq:{vid}:chinese"]
+    assert chan_buttons[:6] == ["noop"] + [f"px:{vid}:chinese:{p}" for p in ("youtube", "tiktok", "meta", "x")] + [f"delq:{vid}:chinese"]
     queued = []
     monkeypatch.setattr(hands, "postq_episode", lambda folder, p: queued.append(p) or f"{p} queued in postq")
-    tap(f"px:{vid}:chinese:meta")  # one tap: postq posts it through the extension
-    assert queued == ["meta"] and any("meta queued in postq" in j.get("text", "") for m, j in sent if m == "answerCallbackQuery")
+    async def tap_and_wait(data):  # px answers at once and runs postq in the background
+        await bot.handle({"callback_query": {"id": "c", "data": data, "message": {"chat": {"id": 42}, "message_id": 5}}})
+        await asyncio.gather(*bot.running)
+
+    asyncio.run(tap_and_wait(f"px:{vid}:chinese:meta"))  # one tap: postq posts it through the extension
+    answers = [j.get("text", "") for m, j in sent if m == "answerCallbackQuery"]
+    assert queued == ["meta"] and "sending to postq" in answers[-1]
+    assert any("meta queued in postq" in j.get("text", "") for m, j in sent if m == "sendMessage")
     assert "apprq:chinese:all" in chan_buttons and "apprq:chinese:youtube" in chan_buttons
     assert all(len(b.encode()) <= 64 for b in chan_buttons)
     tap(f"pk:{vid}:chinese")  # platform picker (still reachable): every platform left is selected

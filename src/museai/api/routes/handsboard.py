@@ -103,10 +103,10 @@ def channel(data: dict, cid: str, cfg: dict, page: int = 0) -> tuple[str, Keyboa
              "Tap a platform to post it there (postq extension) · posted ones disappear"]
     keyboard = []
     for i, v in enumerate(videos[page * PER_PAGE:(page + 1) * PER_PAGE], page * PER_PAGE + 1):
-        lines.append(f"\n{i}. {(v['title'] or v['name'])[:60]}")
         row = [{"text": f"{icon} {i}", "callback_data": f"px:{v['id']}:{cid}:{pid}"}
                for pid, (icon, _, boxes) in POSTQ_PLATFORMS.items() if not set(boxes) <= set(v.get("posted", []))]
-        if row:
+        if row:  # title row, then its platform buttons right below it (a message can't hold buttons in its text)
+            keyboard.append([{"text": f"{i}. {(v['title'] or v['name'])[:60]}", "callback_data": "noop"}])
             row.append({"text": f"🗑 {i}", "callback_data": f"delq:{v['id']}:{cid}"})
             keyboard.append(row)
     if not videos:
