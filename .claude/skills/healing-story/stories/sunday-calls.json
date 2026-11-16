@@ -1,0 +1,319 @@
+{
+ "title": "My dad called every Sunday at six",
+ "season": "dad",
+ "lesson": "If someone keeps calling you about nothing, it's never about nothing. It's them saying they love you. So pick up. Or better, call them first.",
+ "outfits": {
+  "then": {
+   "ELLIE": "an oversized oatmeal cotton hoodie",
+   "RICHARD": "a navy wool crew-neck jumper over a light-blue collared shirt"
+  },
+  "november": {
+   "ELLIE": "a cream wool roll-neck jumper",
+   "RICHARD": "a grey-brown wool cardigan over a blue-and-grey checked flannel shirt, his right forearm in a navy-blue arm sling with a white cast on the wrist"
+  },
+  "week": {
+   "ELLIE": "a navy-and-white striped Breton long-sleeve top",
+   "RICHARD": "a dark-green wool crew-neck jumper, his right forearm in a navy-blue arm sling with a white cast on the wrist"
+  },
+  "today": {
+   "ELLIE": "a sage-green cotton jumper with the sleeves pushed to the forearm",
+   "RICHARD": "an olive quilted gilet over a red-and-navy checked flannel shirt"
+  }
+ },
+ "beats": [
+  {
+   "vo": "For two years, my dad called me every Sunday at six. And for two years, I mostly let it ring.",
+   "time": "then",
+   "shot": "Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Close-up on the pale wood worktop: a black phone lies face down beside a cream ceramic mixing bowl, buzzing and shuffling a little on the wood. Her hand (slender young hands, short natural pale-pink nails, no rings) in an oversized oatmeal hoodie sleeve rests on the worktop beside it, still, then slowly draws back out of the frame. In real time. The sharp buzz of a phone against the wood, rain on the window."
+  },
+  {
+   "vo": "It's Sunday. Ten to six. I'm making his stew. And I want to tell you why I never miss that call now.",
+   "time": "today",
+   "shot": "Evening, soft fading blue daylight at the window and one plain ceiling lamp on. Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a sage-green cotton jumper with the sleeves pushed to the forearm, stands at the hob seen from the side, head bowed, eyes on a dark-red cast-iron pot of dark-brown beef stew with orange carrot chunks, slowly stirring it with a wooden spoon, steam rising. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. The soft bubble of stew, a wooden spoon on cast iron, rain.",
+   "still": "Evening, soft fading blue daylight at the window and one plain ceiling lamp on. Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a sage-green cotton jumper with the sleeves pushed to the forearm, standing at the hob seen from the side, head bowed, eyes on a dark-red cast-iron pot of dark-brown beef stew with orange carrot chunks, a wooden spoon in her hand, steam rising, a calm ordinary face, mouth closed. Medium shot, her face at medium size.",
+   "cast": [
+    "ELLIE"
+   ],
+   "pep": false
+  },
+  {
+   "vo": "My dad's not a talker. Ask how he is, he says fine. Ask about the weather, you get twenty minutes.",
+   "time": "then",
+   "shot": "Soft bright grey November daylight. Her dad's small back garden: a small glass greenhouse with tall tomato plants tied to canes, a dry-stone wall, a wet grey stone patio with three stone steps, green fells and low grey cloud beyond. Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in a navy wool crew-neck jumper over a light-blue collared shirt, stands still on the stone patio beside the greenhouse, hands in his trouser pockets, seen from the side, looks up slowly at the low grey cloud over the fells, then gives a small thoughtful nod to himself. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. Wind, distant sheep, a blackbird.",
+   "still": "Soft bright grey November daylight. Her dad's small back garden: a small glass greenhouse with tall tomato plants tied to canes, a dry-stone wall, a wet grey stone patio with three stone steps, green fells and low grey cloud beyond. Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in a navy wool crew-neck jumper over a light-blue collared shirt, standing on the stone patio beside the greenhouse, hands in his trouser pockets, seen from the side, eyes on the low grey cloud over the fells, a calm ordinary face, mouth closed. Medium-wide shot, a whole person.",
+   "cast": [
+    "RICHARD"
+   ],
+   "pep": false
+  },
+  {
+   "vo": "Since Mum died, it's just been him, his garden, and an old dog called Pepper.",
+   "time": "then",
+   "shot": "Soft bright grey November daylight. Her dad's small back garden: a small glass greenhouse with tall tomato plants tied to canes, a dry-stone wall, a wet grey stone patio with three stone steps, green fells and low grey cloud beyond. Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in a navy wool crew-neck jumper over a light-blue collared shirt, sits on the weathered wooden bench by the dry-stone wall; Pepper, the old black-and-white border collie (grey muzzle, narrow white blaze, white chest and paws, her left ear folded over) lies on the stone at his feet. He lowers one hand and rests it gently on her head; she lifts her nose a little toward his hand. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. Wind, birdsong.",
+   "still": "Soft bright grey November daylight. Her dad's small back garden: a small glass greenhouse with tall tomato plants tied to canes, a dry-stone wall, a wet grey stone patio with three stone steps, green fells and low grey cloud beyond. Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in a navy wool crew-neck jumper over a light-blue collared shirt, sitting on a weathered wooden bench by the dry-stone wall, Pepper, the old black-and-white border collie (grey muzzle, narrow white blaze, white chest and paws, her left ear folded over) lying on the stone at his feet, his eyes on the dog, a calm ordinary face, mouth closed. Medium-wide shot, a whole person and the whole dog.",
+   "cast": [
+    "RICHARD"
+   ],
+   "pep": true
+  },
+  {
+   "vo": "When I moved to London for work, he started calling. Every Sunday, six o'clock. You could set a clock by it.",
+   "time": "then",
+   "shot": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in a navy wool crew-neck jumper over a light-blue collared shirt, stands by the cream corded telephone on the wall, the receiver already at his ear, the curly cord hanging, seen from the side, eyes down at the floor, waiting patiently, one slow blink. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. A clock ticking, the soft room.",
+   "still": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in a navy wool crew-neck jumper over a light-blue collared shirt, standing by the cream corded telephone on the wall, holding the receiver at his ear, the curly cord hanging, seen from the side, eyes down at the floor, a calm ordinary face, mouth closed. Medium shot, his face at medium size.",
+   "cast": [
+    "RICHARD"
+   ],
+   "pep": false
+  },
+  {
+   "vo": "And the calls were always the same. The tomatoes. Pepper's hip. What the neighbour's cat got up to.",
+   "time": "then",
+   "shot": "Soft bright daylight inside a small glass greenhouse. Close-up of her dad's hands (a 60-year-old man's hands, a plain gold wedding band on the left ring finger) in navy wool jumper sleeves gently turning a cluster of ripe red tomatoes on the vine to look at them, then letting go; the tall green tomato plants tied to canes. In real time. Leaves rustle, rain ticking on the glass roof."
+  },
+  {
+   "vo": "I was twenty-four. New job, new friends. Sundays were for brunch and sleeping in.",
+   "time": "then",
+   "shot": "Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Soft bright grey daylight. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in an oversized oatmeal cotton hoodie, sits at the small round pale wood table, seen from the side, eyes on an open laptop, typing a little, then reaches for her coffee mug and takes a sip. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. Keys tapping, a mug set on wood, rain.",
+   "still": "Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Soft bright grey daylight. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in an oversized oatmeal cotton hoodie, sitting at the small round pale wood table, seen from the side, eyes on an open laptop, a white coffee mug beside it, a calm ordinary face, mouth closed. Medium shot, her face at medium size.",
+   "cast": [
+    "ELLIE"
+   ],
+   "pep": false
+  },
+  {
+   "vo": "So I'd say, Dad, can I call you back? And then I just... didn't.",
+   "time": "then",
+   "shot": "Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Soft bright grey daylight. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in an oversized oatmeal cotton hoodie, sits at the small round table seen from the side, a black phone held at her ear; she lowers it and lays it face down on the table beside the laptop, eyes going back to the laptop screen. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. A phone set down on wood, rain.",
+   "still": "Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Soft bright grey daylight. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in an oversized oatmeal cotton hoodie, sitting at the small round table seen from the side, a black phone held at her ear, eyes on the open laptop, a calm ordinary face, mouth closed. Medium shot, her face at medium size.",
+   "cast": [
+    "ELLIE"
+   ],
+   "pep": false
+  },
+  {
+   "vo": "After a while, I stopped picking up at all. I'd watch his name light up and think, next week.",
+   "time": "then",
+   "shot": "Evening, one plain lamp. Close-up: a black phone lies face down on a soft grey sofa cushion, buzzing; beside it her hand (slender young hands, short natural pale-pink nails, no rings) in an oversized oatmeal hoodie sleeve rests on her knee and does not move; the buzzing stops. In real time. A muffled buzz on fabric, rain on a window."
+  },
+  {
+   "vo": "He never complained. He'd just leave a short message. Hi love. Just me. Nothing important.",
+   "time": "then",
+   "shot": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in a navy wool crew-neck jumper over a light-blue collared shirt, stands by the cream corded telephone on the wall and slowly hangs the receiver back on its hook, then stays still a moment with his hand resting on it, seen from the side, eyes down. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. The click of a receiver, a clock ticking.",
+   "still": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in a navy wool crew-neck jumper over a light-blue collared shirt, standing by the cream corded telephone on the wall, his hand on the receiver as he hangs it on its hook, seen from the side, eyes down, a calm ordinary face, mouth closed. Medium shot, his face at medium size.",
+   "cast": [
+    "RICHARD"
+   ],
+   "pep": false
+  },
+  {
+   "vo": "That's how two years went. A hundred Sundays, give or take.",
+   "time": "then",
+   "shot": "Evening, soft fading blue daylight. A white sash window of a small London flat, rain running down the glass, wet grey slate rooftops and chimney pots beyond, two small pots of herbs on the sill, no person. In real time. Rain on glass."
+  },
+  {
+   "vo": "Then one Sunday in November, six o'clock came. And my phone didn't ring.",
+   "time": "november",
+   "shot": "Evening, soft fading blue daylight at the window and one plain ceiling lamp on. Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a cream wool roll-neck jumper, stands at the worktop with a mug in both hands, seen from the side; she glances down at the black phone lying face down by the kettle, holds the look a moment, then looks back to her mug. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. Rain, the quiet room.",
+   "still": "Evening, soft fading blue daylight at the window and one plain ceiling lamp on. Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a cream wool roll-neck jumper, standing at the worktop holding a white mug in both hands, seen from the side, eyes on the black phone lying face down by the kettle, a calm ordinary face, mouth closed. Medium shot, her face at medium size.",
+   "cast": [
+    "ELLIE"
+   ],
+   "pep": false
+  },
+  {
+   "vo": "Six fifteen. Six thirty. Nothing. I'd ignored that call a hundred times. But the quiet scared me.",
+   "time": "november",
+   "shot": "Evening, soft fading blue daylight at the window and one plain ceiling lamp on. Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Close-up: her hands (slender young hands, short natural pale-pink nails, no rings) in cream wool roll-neck sleeves wrapped around a white mug on the pale wood worktop, still, her thumb moving once on the mug; a black phone lies face down beside it. In real time. Rain on the window, a clock ticking."
+  },
+  {
+   "vo": "I called him. No answer. I called again.",
+   "time": "november",
+   "shot": "Evening, soft fading blue daylight at the window and one plain ceiling lamp on. Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a cream wool roll-neck jumper, stands by the rainy sash window, a black phone held at her ear, seen from the side, waiting, eyes on the rain, then slowly lowers the phone, looks at it, and lifts it to her ear again. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. Rain on glass.",
+   "still": "Evening, soft fading blue daylight at the window and one plain ceiling lamp on. Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a cream wool roll-neck jumper, standing by the rainy sash window, a black phone held at her ear, seen from the side, eyes on the rain, a calm ordinary face, mouth closed. Medium shot, her face at medium size.",
+   "cast": [
+    "ELLIE"
+   ],
+   "pep": false
+  },
+  {
+   "vo": "Finally, his neighbour picked up. Dad had slipped on the wet steps that morning.",
+   "time": "november",
+   "shot": "Dusk, soft grey light, rain falling. Her dad's small back garden: three wet grey stone patio steps glistening with rain, a green garden glove lying on the bottom step, the greenhouse and dry-stone wall behind, no person. In real time. Steady rain on stone."
+  },
+  {
+   "vo": "He was okay. A broken wrist and a bruised pride. But he'd sat in A and E all afternoon, alone.",
+   "time": "november",
+   "shot": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. The kitchen is empty. Pepper, the old black-and-white border collie (grey muzzle, narrow white blaze, white chest and paws, her left ear folded over) lies in her worn tartan dog bed by the cream range, head on her paws, eyes open, looking at the closed back door; she breathes slowly and her folded ear twitches once. In real time. The soft room, rain outside.",
+   "still": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. The kitchen is empty. Pepper, the old black-and-white border collie (grey muzzle, narrow white blaze, white chest and paws, her left ear folded over) lies in her worn tartan dog bed by the cream range, head on her paws, eyes open, looking toward the closed back door. Medium shot.",
+   "cast": [],
+   "pep": true
+  },
+  {
+   "vo": "I drove up that night. Three hours in the rain.",
+   "time": "november",
+   "shot": "Night, in rain. The inside of her small car: the wipers moving across the wet windscreen, wet road and red tail lights ahead, the dashboard's faint light. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a dark-green waxed jacket over a cream wool roll-neck jumper, drives, seen from the passenger seat in profile, both hands on the wheel, eyes on the road, perfectly still and calm. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. Wipers thumping, rain on the roof, road hiss.",
+   "still": "Night, in rain. The inside of her small car: the wipers moving across the wet windscreen, wet road and red tail lights ahead, the dashboard's faint light. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a dark-green waxed jacket over a cream wool roll-neck jumper, driving, seen from the passenger seat in profile, both hands on the wheel, eyes on the road, a calm ordinary face, mouth closed. Medium shot, her face at medium size.",
+   "cast": [
+    "ELLIE"
+   ],
+   "pep": false
+  },
+  {
+   "vo": "When I opened his kitchen door, Pepper got up first.",
+   "time": "november",
+   "shot": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. The back door stands open in its frame, the door leaf visible and still, dark rain beyond. Pepper, the old black-and-white border collie (grey muzzle, narrow white blaze, white chest and paws, her left ear folded over) lies in her tartan bed by the range, lifts her head toward the door, then gets up stiffly and takes two slow steps toward it, her tail swaying low. In real time. Claws on stone, rain at the open door.",
+   "still": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. The back door stands open in its frame, the door leaf visible, dark rain beyond. Pepper, the old black-and-white border collie (grey muzzle, narrow white blaze, white chest and paws, her left ear folded over) lies in her tartan bed by the range, her head lifted toward the open door. Medium-wide shot, the whole dog and the whole door.",
+   "cast": [],
+   "pep": true
+  },
+  {
+   "vo": "Then Dad, his arm in a sling. And he said, you didn't have to come.",
+   "time": "november",
+   "shot": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Over Ellie's shoulder (her chestnut braid and dark-green waxed jacket soft in the foreground): Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in a grey-brown wool cardigan over a blue-and-grey checked flannel shirt, his right forearm in a navy-blue arm sling with a white cast on the wrist, stands by the pine table looking at her, says something short and quiet, then a small tired smile comes slowly. Only his mouth moves, softly, no words heard. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. The soft room, rain.",
+   "still": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Over Ellie's shoulder (her chestnut braid and dark-green waxed jacket soft in the foreground): Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in a grey-brown wool cardigan over a blue-and-grey checked flannel shirt, his right forearm in a navy-blue arm sling with a white cast on the wrist, standing by the pine table looking at her, a calm ordinary face, mouth closed. Over-the-shoulder medium shot, his face at medium size.",
+   "cast": [
+    "RICHARD",
+    "ELLIE"
+   ],
+   "pep": false,
+   "foley_db": -15
+  },
+  {
+   "vo": "I made us tea. Because that's what you do.",
+   "time": "november",
+   "shot": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Close-up on the scrubbed pine table: two plain cream mugs side by side, her hand (slender young hands, short natural pale-pink nails, no rings) in a cream wool roll-neck sleeve already pouring hot water from a steel kettle into the first mug, steam rising. In real time. The soft pour of water into a mug."
+  },
+  {
+   "vo": "And that's when I saw it. Stuck to his fridge, in his messy handwriting. Things to tell Ellie.",
+   "time": "november",
+   "shot": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a cream wool roll-neck jumper, stands still in front of the small plain white fridge, seen from the side, eyes on a small paper note held by a magnet at eye level, its handwriting soft and unreadable from here; she leans in very slightly. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. The fridge hum, rain.",
+   "still": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a cream wool roll-neck jumper, standing in front of the small plain white fridge, seen from the side, eyes on a small paper note held by a magnet at eye level, its handwriting soft and unreadable, a calm ordinary face, mouth closed. Medium shot, her face at medium size.",
+   "cast": [
+    "ELLIE"
+   ],
+   "pep": false
+  },
+  {
+   "vo": "Tomatoes did well. Pepper's hip is better. Ask about her job.",
+   "time": "november",
+   "shot": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Close-up, a little out of focus: a small paper note on a white fridge door held by a plain round magnet, lines of soft unreadable blue handwriting; her fingertip (slender young hands, short natural pale-pink nails, no rings) slowly comes in and rests on the edge of the note. In real time. The fridge hum."
+  },
+  {
+   "vo": "And at the bottom: Tell her I'm proud of her. That line had been there for months. He never got to say it, because I never picked up.",
+   "time": "november",
+   "shot": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Ellie, her chestnut braid over her left shoulder, in a cream wool roll-neck jumper, seen from behind standing at the small white fridge, her head lowers slightly and her hand drops slowly from the note to her side; she stays where she is, perfectly calm. In real time. The fridge hum, rain."
+  },
+  {
+   "vo": "I stood by the kettle and cried. Quietly, so he wouldn't hear.",
+   "time": "november",
+   "shot": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Ellie, her chestnut braid over her left shoulder, in a cream wool roll-neck jumper, seen from behind at the deep white stone sink, both hands resting on its edge, shoulders lowered, a steel kettle steaming softly beside her, perfectly still and calm. In real time. A kettle starting to boil, rain on the small window."
+  },
+  {
+   "vo": "Those calls were never about tomatoes. That was him saying, I miss you, the only way he knew.",
+   "time": "november",
+   "shot": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in a grey-brown wool cardigan over a blue-and-grey checked flannel shirt, his right forearm in a navy-blue arm sling with a white cast on the wrist, sits at the pine table; Pepper, the old black-and-white border collie (grey muzzle, narrow white blaze, white chest and paws, her left ear folded over) stands beside him and rests her chin on his knee. With his good left hand he slowly strokes her head, eyes on the dog. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. The soft room, the dog's breath.",
+   "still": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in a grey-brown wool cardigan over a blue-and-grey checked flannel shirt, his right forearm in a navy-blue arm sling with a white cast on the wrist, sitting at the pine table, Pepper, the old black-and-white border collie (grey muzzle, narrow white blaze, white chest and paws, her left ear folded over) standing beside him with her chin on his knee, his left hand on her head, his eyes on the dog, a calm ordinary face, mouth closed. Medium shot, his face at medium size.",
+   "cast": [
+    "RICHARD"
+   ],
+   "pep": true
+  },
+  {
+   "vo": "I stayed the week. He couldn't cook with one hand, so I made his beef stew. The one he made every Sunday when I was little.",
+   "time": "week",
+   "shot": "Soft bright grey November daylight from the small window. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a navy-and-white striped Breton long-sleeve top, stands at the old cream range seen from the side, head bowed, eyes on a dark-red cast-iron pot of dark-brown beef stew with orange carrot chunks, slowly stirring with a wooden spoon, steam rising. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. The soft bubble of stew, a spoon on cast iron.",
+   "still": "Soft bright grey November daylight from the small window. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a navy-and-white striped Breton long-sleeve top, standing at the old cream range seen from the side, head bowed, eyes on a dark-red cast-iron pot of dark-brown beef stew with orange carrot chunks, a wooden spoon in her hand, a calm ordinary face, mouth closed. Medium shot, her face at medium size.",
+   "cast": [
+    "ELLIE"
+   ],
+   "pep": false
+  },
+  {
+   "vo": "He sat at the table and gave orders. More carrots. No, more than that.",
+   "time": "week",
+   "shot": "Soft bright grey November daylight from the small window. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Over Ellie's shoulder (her chestnut braid and striped Breton top soft in the foreground at the range): Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in a dark-green wool crew-neck jumper, his right forearm in a navy-blue arm sling with a white cast on the wrist, sits at the pine table looking at her, says something short and dry, and nods once at the pot with a small dry smile. Only his mouth moves, softly, no words heard. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. The soft room, the stew bubbling.",
+   "still": "Soft bright grey November daylight from the small window. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Over Ellie's shoulder (her chestnut braid and striped Breton top soft in the foreground at the range): Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in a dark-green wool crew-neck jumper, his right forearm in a navy-blue arm sling with a white cast on the wrist, sitting at the pine table looking at her, a calm ordinary face, mouth closed. Over-the-shoulder medium shot, his face at medium size.",
+   "cast": [
+    "RICHARD",
+    "ELLIE"
+   ],
+   "pep": false,
+   "foley_db": -15
+  },
+  {
+   "vo": "So, more carrots. And he was right. He's always annoyingly right about stew.",
+   "time": "week",
+   "shot": "Soft bright grey November daylight from the small window. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Close-up over a cream ceramic bowl: her hands (slender young hands, short natural pale-pink nails, no rings) in navy-and-white striped sleeves peel a long orange carrot with a plain vegetable peeler, orange peel ribbons falling into the bowl beside two peeled carrots. In real time. The crisp scrape of a peeler on a carrot."
+  },
+  {
+   "vo": "We talked more that week than in the two years before.",
+   "time": "week",
+   "shot": "Evening, one plain ceiling lamp on, the small window dark blue. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Over Dad's shoulder (his grey hair and dark-green jumper soft in the foreground): Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a navy-and-white striped Breton long-sleeve top, sits across the pine table with a cream mug in both hands, looking at him, says something short, then a small quiet smile. Only her mouth moves, softly, no words heard. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. The soft room, a mug set on wood.",
+   "still": "Evening, one plain ceiling lamp on, the small window dark blue. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Over Dad's shoulder (his grey hair and dark-green jumper soft in the foreground): Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a navy-and-white striped Breton long-sleeve top, sitting across the pine table with a cream mug in both hands, looking at him, a calm ordinary face, mouth closed. Over-the-shoulder medium shot, her face at medium size.",
+   "cast": [
+    "ELLIE",
+    "RICHARD"
+   ],
+   "pep": false,
+   "foley_db": -15
+  },
+  {
+   "vo": "Now it's Sunday again. The stew's nearly ready.",
+   "time": "today",
+   "shot": "Evening, soft fading blue daylight at the window and one plain ceiling lamp on. Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Close-up: a dark-red cast-iron pot with its lid already off, standing on the small white hob, full of dark-brown beef stew with orange carrot chunks, softly bubbling, a thin wisp of steam rising. No hands, no person, nothing else moves. A completely still locked-off frame: the camera never moves, every edge of the window and tiles stays in the same place from the first frame to the last. In real time. The soft bubble of stew, rain on the window."
+  },
+  {
+   "vo": "His wrist healed fine. Pepper's still slow. The tomatoes are done for the year. I know all that, because I listen now.",
+   "time": "today",
+   "shot": "Evening, soft fading blue daylight at the window and one plain ceiling lamp on. Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a sage-green cotton jumper with the sleeves pushed to the forearm, stands at the worktop seen from the side and sets a black phone face up on the pale wood next to the hob, its dark screen plain, then rests her hand beside it, eyes on it. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. A phone set down against wood, the stew bubbling, rain.",
+   "still": "Evening, soft fading blue daylight at the window and one plain ceiling lamp on. Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a sage-green cotton jumper with the sleeves pushed to the forearm, standing at the worktop seen from the side, setting a black phone face up on the pale wood next to the hob, eyes on it, a calm ordinary face, mouth closed. Medium shot, her face at medium size.",
+   "cast": [
+    "ELLIE"
+   ],
+   "pep": false
+  },
+  {
+   "vo": "And it's six o'clock.",
+   "time": "today",
+   "shot": "Evening, soft fading blue daylight at the window and one plain ceiling lamp on. Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Close-up: one single black phone lying face down on the pale wood worktop, the only phone anywhere; it buzzes and trembles slightly on the wood. After a moment her hand (slender young hands, short natural pale-pink nails, no rings) in a sage-green sleeve comes in from the side and rests on the phone, still face down. A completely still locked-off frame: the camera never moves, every edge of the window and tiles stays in the same place from the first frame to the last. In real time. The sharp buzz of a phone against the wood."
+  },
+  {
+   "vo": "Hi, Dad.",
+   "time": "today",
+   "shot": "Evening, soft fading blue daylight at the window and one plain ceiling lamp on. Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a sage-green cotton jumper with the sleeves pushed to the forearm, stands by the rainy sash window, a black phone at her ear, seen from the side at a slight angle, says something short and soft, then a small quiet smile comes. Only her mouth moves, softly, no words heard. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. Rain on glass.",
+   "still": "Evening, soft fading blue daylight at the window and one plain ceiling lamp on. Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a sage-green cotton jumper with the sleeves pushed to the forearm, standing by the rainy sash window, a black phone at her ear, seen from the side at a slight angle, a calm ordinary face, mouth closed. Medium shot, her face at medium size.",
+   "cast": [
+    "ELLIE"
+   ],
+   "pep": false,
+   "foley_db": -15
+  },
+  {
+   "vo": "If someone keeps calling you about nothing, it's never about nothing. It's them saying they love you.",
+   "time": "today",
+   "shot": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in an olive quilted gilet over a red-and-navy checked flannel shirt, sits on a wooden chair by the cream range, the cream wall phone's receiver at his ear, the curly cord hanging, Pepper, the old black-and-white border collie (grey muzzle, narrow white blaze, white chest and paws, her left ear folded over) lying at his feet; he listens, and a small slow smile comes. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. The soft room, a clock ticking.",
+   "still": "Evening, soft fading blue daylight at the small window and one plain ceiling lamp on. Her dad's small old stone cottage kitchen in the Yorkshire Dales: dark wooden beams, cream painted walls, an old cream enamel range cooker, a scrubbed pine table, a cream corded telephone on the wall by the back door. Dad (short neat grey hair receding a little at the temples, a short trimmed grey beard, thin silver wire-framed glasses, kind light-blue eyes), in an olive quilted gilet over a red-and-navy checked flannel shirt, sitting on a wooden chair by the cream range, the cream wall phone's receiver at his ear, the curly cord hanging, Pepper, the old black-and-white border collie (grey muzzle, narrow white blaze, white chest and paws, her left ear folded over) lying at his feet, eyes down, listening, a calm ordinary face, mouth closed. Medium shot, his face at medium size.",
+   "cast": [
+    "RICHARD"
+   ],
+   "pep": true,
+   "foley_db": -15
+  },
+  {
+   "vo": "So pick up. Or better, call them first.",
+   "time": "today",
+   "shot": "Evening, soft fading blue daylight at the window and one plain ceiling lamp on. Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a sage-green cotton jumper with the sleeves pushed to the forearm, sits at the small round pale wood table by the rainy window, a black phone at her ear, a bowl of dark-brown beef stew with orange carrots steaming in front of her, seen from the side, listening, one slow nod. Ordinary everyday movement at real-life speed, a small pause, one small head movement at most, the face stays the same; the camera stays locked off, it does not follow anyone. Rain, the soft room.",
+   "still": "Evening, soft fading blue daylight at the window and one plain ceiling lamp on. Her small London flat kitchen: white metro tiles, a pale wood worktop, a small white two-ring hob, a white sash window with November rain running down the glass onto wet grey slate rooftops. Ellie (long chestnut-brown hair in a loose low braid over her left shoulder, light freckles across the nose and cheeks, light-hazel eyes), in a sage-green cotton jumper with the sleeves pushed to the forearm, sitting at the small round pale wood table by the rainy window, a black phone at her ear, a bowl of dark-brown beef stew with orange carrots in front of her, seen from the side, a calm ordinary face, mouth closed. Medium-wide shot, a whole person.",
+   "cast": [
+    "ELLIE"
+   ],
+   "pep": false
+  },
+  {
+   "vo": "Call home.",
+   "time": "today",
+   "shot": "Evening, soft fading blue light. A white sash window of a small London flat, rain running down the glass, wet slate rooftops beyond and one warm lit window across the street, two small pots of herbs on the sill, no person. A completely still locked-off frame: the camera never moves, every edge of the window and tiles stays in the same place from the first frame to the last. Only the rain moves. In real time. Rain on glass."
+  }
+ ]
+}

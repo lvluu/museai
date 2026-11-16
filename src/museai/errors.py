@@ -79,6 +79,11 @@ class UpstreamQuotaError(UpstreamError):
     code = "upstream_quota_exhausted"
 
 
+class VideoLimitReached(UpstreamQuotaError):
+    """muse's agent replied that the account hit its rolling 24-hour video limit. Only videos are
+    blocked, so new video jobs skip the account for a while instead of each losing a minute on it."""
+
+
 class UpstreamTimeout(UpstreamError):
     status_code = 504
     code = "upstream_timeout"

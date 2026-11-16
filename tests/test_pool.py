@@ -19,6 +19,7 @@ from museai.errors import (
     UpstreamError,
     UpstreamQuotaError,
     UpstreamRefused,
+    VideoLimitReached,
 )
 from museai.services.gateway import Gateway
 from museai.services.tasks import Task, TaskStatus
@@ -206,6 +207,40 @@ async def test_stuck_account_still_takes_jobs_when_it_is_the_only_one(tmp_path):
         with pytest.raises(GenerationTimeout):
             await gw.generate_video(VideoRequest(prompt="p", model="m"))
     assert [acc for acc, _ in driver.calls] == ["a0", "a0"]
+
+
+async def test_stuck_account_takes_job_when_the_healthy_one_is_full(tmp_path):
+    pool = await _pool(tmp_path, n=2, strategy="round_robin")
+    pool.max_concurrency = 1
+    driver = _StuckOnDriver(set())
+    gw = Gateway(pool, driver, max_failover=2, stuck_video_cooldown=1800)
+    gw._stuck_until["a0"] = time.monotonic() + 1800
+    # a1 is busy with a job that does not finish during this test.
+    held = await pool.acquire(exclude=["a0"])
+    assert held.id == "a1"
+    got = await asyncio.wait_for(gw.generate_video(VideoRequest(prompt="p", model="m")), 2)
+    assert got.data
+    assert [acc for acc, _ in driver.calls] == ["a0"]
+    await pool.release(held)
+
+
+async def test_new_video_job_skips_account_at_its_video_limit(tmp_path):
+    pool = await _pool(tmp_path, n=2, strategy="round_robin")
+    pool.quota_cooldown = 0
+
+    class Limited(_StuckOnDriver):
+        async def generate_video(self, account, req):
+            if account.id in self.stuck:
+                self.calls.append((account.id, req.timeout))
+                raise VideoLimitReached("24-hour video limit")
+            return await MockDriver.generate_video(self, account, req)
+
+    driver = Limited({"a0"})
+    gw = Gateway(pool, driver, max_failover=2, video_limit_cooldown=3600)
+    for _ in range(3):
+        assert (await gw.generate_video(VideoRequest(prompt="p", model="m"))).data
+    # a0 hit its limit once; later jobs went straight to a1 instead of trying a0 first.
+    assert [acc for acc, _ in driver.calls] == ["a0"]
 
 
 async def test_video_job_render_time_is_capped_across_failovers(tmp_path, monkeypatch):
@@ -414,3 +449,21 @@ async def test_gateway_lists_image_jobs_per_account(tmp_path):
     await gw.generate_image(ImageRequest(prompt="a red bike", model="muse-image"))
     assert [[(j["kind"], j["prompt"]) for j in jobs] for jobs in seen] == [[("image", "a red bike")]]
     assert all(not jobs for jobs in gw.jobs.values())
+
+
+async def test_quota_cooldown_is_configurable(tmp_path):
+    pool = await _pool(tmp_path, n=1, quota_cooldown=300.0)
+    with pytest.raises(UpstreamQuotaError):
+        async with pool.lease():
+            raise UpstreamQuotaError("Out of usage")
+    left = pool.get("a0").cooldown_until - time.time()
+    assert 290 < left <= 300
+
+
+async def test_zero_quota_cooldown_keeps_account_usable(tmp_path):
+    pool = await _pool(tmp_path, n=1, cooldown=120.0, quota_cooldown=0.0)
+    with pytest.raises(UpstreamQuotaError):
+        async with pool.lease():
+            raise UpstreamQuotaError("Out of usage")
+    async with pool.lease() as lease:
+        assert lease.account.id == "a0"

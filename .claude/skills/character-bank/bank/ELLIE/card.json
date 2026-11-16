@@ -1,0 +1,18 @@
+{
+ "key": "ELLIE",
+ "version": 1,
+ "name": "Ellie Brooks",
+ "age": 26,
+ "sex": "F",
+ "origin": "English",
+ "build": "slim, 5 ft 6 in",
+ "identity": "a 26-year-old English woman with a soft oval face: fair skin with light freckles across the nose and cheeks, light-hazel eyes, natural light-brown brows, a straight slim nose, soft natural pink lips, no makeup look. Long chestnut-brown hair in a loose low braid over her LEFT shoulder with a few soft strands at the temples. No rings.",
+ "voice": "soft, calm, warm American English (the narrator, af_heart)",
+ "base_wardrobe": "a cream chunky-knit cardigan with the sleeves pushed to the forearm over a white linen blouse",
+ "used_by": [
+  "healing-story"
+ ],
+ "views": {
+  "hero": "hero.jpg"
+ }
+}

@@ -187,7 +187,18 @@ const chanSel = document.getElementById('chan');
 let brands = [];
 const brandOf = (a) => brands.find((b) => a === b || a?.startsWith(b + ' ')) || a;
 const hideDone = document.getElementById('hide');
+const platSel = document.getElementById('plat');
+// Filter choices survive closing the popup (chrome.storage.local); saved.chan is applied once, when the channel list is built.
+const saved = { chan: null };
+const saveFilter = () => chrome.storage.local.set({ popupFilter: { chan: chanSel.value, plat: platSel.value, hide: hideDone.checked } }).catch(() => {});
+const filterLoaded = chrome.storage.local.get('popupFilter').then(({ popupFilter: f }) => {
+  if (!f) return;
+  platSel.value = f.plat || '';
+  hideDone.checked = !!f.hide;
+  if (typeof f.chan === 'string') saved.chan = f.chan;
+}).catch(() => {});
 const shown = (c) => (!chanSel.value || brandOf(c.item.account) === chanSel.value)
+  && (!platSel.value || c.item.platform === platSel.value)
   && !(hideDone.checked && ['approved', 'posting', 'done'].includes(c.state));
 function renderFilter() {
   const names = [...new Set([...cards.values()].map((c) => c.item.account).filter(Boolean))]
@@ -198,7 +209,9 @@ function renderFilter() {
   const accounts = Object.keys(count).filter(Boolean).sort();
   const want = ['', ...accounts].map((a) => `${a}|${a ? count[a] : cards.size}`).join();
   if (chanSel.dataset.sig !== want) {
-    const cur = chanSel.value;
+    const cur = saved.chan ?? chanSel.value;
+    if (saved.chan === '') chanPicked = true;
+    saved.chan = null;
     chanSel.replaceChildren(new Option(`All channels (${cards.size})`, ''),
       ...accounts.map((a) => new Option(`${a} (${count[a]})`, a)));
     // Opens on ONE channel (the Dream series first), never "All": the user picks All on purpose.
@@ -211,13 +224,54 @@ function renderFilter() {
   renderSummary();
 }
 let chanPicked = false;
-chanSel.onchange = () => { chanPicked = true; renderFilter(); };
-hideDone.onchange = renderFilter;
+chanSel.onchange = () => { chanPicked = true; saveFilter(); renderFilter(); };
+platSel.onchange = () => { saveFilter(); renderFilter(); };
+hideDone.onchange = () => { saveFilter(); renderFilter(); };
 
+// The popup follows the museai dashboard list: only videos the dashboard lists, only platforms not yet
+// ticked there, slots within the dashboard's 7-day calendar, in slot order. Dashboard unreachable: the whole queue shows.
+const DASH = 'http://127.0.0.1:18610/dashboard/posts';
+async function followDashboard(items) {
+  let videos;
+  try {
+    const res = await fetch(DASH, { signal: AbortSignal.timeout(4000) });
+    videos = (await res.json()).videos;
+  } catch { return items; }
+  if (!Array.isArray(videos)) return items;
+  // 7-day window per channel and platform, counted from that list's first unposted slot (a series that
+  // starts later, like Chinese on 18-11, or YouTube already done for the first weeks, still shows a week).
+  const day = (v) => v.slot?.slice(0, 10);
+  const open = (v, p) => (p === 'meta' ? !(v.posted?.facebook && v.posted?.instagram) : !v.posted?.[p]);
+  const first = {};
+  for (const p of ['youtube', 'meta', 'x', 'tiktok'])
+    for (const v of videos) if (day(v) && open(v, p) && !(first[v.channel + '|' + p] <= day(v))) first[v.channel + '|' + p] = day(v);
+  const within = (v, p) => !day(v) || first[v.channel + '|' + p] === undefined || day(v) <= new Date(Date.parse(first[v.channel + '|' + p]) + 6 * 86400000).toISOString().slice(0, 10);
+  const byName = new Map(videos.map((v, n) => [v.name, { n, v, posted: v.posted || {}, schedule: v.schedule || {} }]));
+  const dash = (i) => byName.get(i.video?.name);
+  return items
+    .filter((i) => {
+      const d = dash(i);
+      return d && within(d.v, i.platform) && (i.targets?.length ? i.targets : [i.platform]).some((box) => !d.posted[box]);
+    })
+    .sort((a, b) => dash(a).n - dash(b).n)
+    // The time is the dashboard's current slot time (slots move; the queued schedule_at goes stale).
+    .map((i) => ({ ...i, schedule_at: dash(i).schedule[i.platform === 'meta' ? 'facebook' : i.platform] || i.schedule_at }));
+}
+let orderSig = '';
 async function poll() {
   try {
-    const items = await (await fetch(`${QUEUE}/api/items`)).json();
+    const items = await followDashboard(await (await fetch(`${QUEUE}/api/items`)).json());
+    // An item whose approval was withdrawn (auto cleared in the queue) must not stay a stuck 'approved' card.
+    for (const item of items) {
+      const c = cards.get(item.id);
+      if (c && c.queued && !item.auto && !c.busy && c.state !== 'posting') { c.el.remove(); cards.delete(item.id); }
+    }
     for (const item of items) if (!cards.has(item.id)) render(item);
+    const sig = items.map((i) => i.id).join();
+    if (sig !== orderSig) {
+      orderSig = sig;
+      for (const i of items) { const c = cards.get(i.id); if (c) list.append(c.el); }
+    }
     // Posted (or discarded) items leave the queue: drop their cards, the dashboard has them ticked.
     const live = new Set(items.map((i) => i.id));
     for (const [id, c] of cards) if (!live.has(id) && !c.busy) { c.el.remove(); cards.delete(id); }
@@ -362,5 +416,5 @@ $id('dups').onclick = async () => {
 };
 chrome.storage.onChanged.addListener((ch, area) => area === 'session' && ch.dups && renderDups());
 
-poll();
+filterLoaded.then(poll);
 setInterval(poll, 5000);

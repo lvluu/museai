@@ -17,41 +17,55 @@ rec = os.environ.get("REC")
 if rec:
     print("recording:", start_recording(rec, title=f"vocab quiz {rec}"), flush=True)
 
-# Never activate the tab: parallel runs would take the window from each other.
-new_tab("https://muse.ai/thread/new")
-for _ in range(3):
+resume = os.environ.get(
+    "CHAT_URL"
+)  # collect the video from an existing chat instead of sending again
+if resume:
+    new_tab(resume)
     wait_for_load()
-    time.sleep(3)
-    if page_info()["url"].endswith("/thread/new"):
-        break
-    goto_url("https://muse.ai/thread/new")  # under load muse.ai sometimes lands on its home page
+    time.sleep(5)
+    activate_tab(
+        current_tab()
+    )  # a chat reopened in a never-shown background tab renders no messages
+    time.sleep(5)
 else:
-    raise SystemExit(f"not a new chat: {page_info()['url']}")
+    # Never activate the tab: parallel runs would take the window from each other.
+    new_tab("https://muse.ai/thread/new")
+    for _ in range(3):
+        wait_for_load()
+        time.sleep(3)
+        if page_info()["url"].endswith("/thread/new"):
+            break
+        goto_url(
+            "https://muse.ai/thread/new"
+        )  # under load muse.ai sometimes lands on its home page
+    else:
+        raise SystemExit(f"not a new chat: {page_info()['url']}")
 
-# Focus the box through CDP as well as clicking: with several runs in one window the click
-# alone sometimes leaves focus elsewhere and nothing is typed.
-typed = ""
-for _ in range(3):
-    time.sleep(2)
-    box = next(
-        n
-        for n in cdp("Accessibility.getFullAXTree")["nodes"]
-        if n.get("role", {}).get("value") == "textbox"
-        and n.get("name", {}).get("value") == "Message"
-    )
-    cdp("DOM.focus", backendNodeId=box["backendDOMNodeId"])
-    q = cdp("DOM.getBoxModel", backendNodeId=box["backendDOMNodeId"])["model"]["content"]
-    click_at_xy(sum(q[0::2]) / 4, sum(q[1::2]) / 4)
-    press_key("ctrl+a")
-    press_key("Delete")
-    cdp("Input.insertText", text=prompt)
-    time.sleep(1)
-    typed = js("(document.activeElement.value ?? document.activeElement.innerText)") or ""
-    if len(typed) == len(prompt):
-        break
-assert len(typed) == len(prompt), f"prompt not typed fully: {len(typed)} of {len(prompt)}"
-press_key("Enter")
-time.sleep(5)
+    # Focus the box through CDP as well as clicking: with several runs in one window the click
+    # alone sometimes leaves focus elsewhere and nothing is typed.
+    typed = ""
+    for _ in range(3):
+        time.sleep(2)
+        box = next(
+            n
+            for n in cdp("Accessibility.getFullAXTree")["nodes"]
+            if n.get("role", {}).get("value") == "textbox"
+            and n.get("name", {}).get("value") == "Message"
+        )
+        cdp("DOM.focus", backendNodeId=box["backendDOMNodeId"])
+        q = cdp("DOM.getBoxModel", backendNodeId=box["backendDOMNodeId"])["model"]["content"]
+        click_at_xy(sum(q[0::2]) / 4, sum(q[1::2]) / 4)
+        press_key("ctrl+a")
+        press_key("Delete")
+        cdp("Input.insertText", text=prompt)
+        time.sleep(1)
+        typed = js("(document.activeElement.value ?? document.activeElement.innerText)") or ""
+        if len(typed) == len(prompt):
+            break
+    assert len(typed) == len(prompt), f"prompt not typed fully: {len(typed)} of {len(prompt)}"
+    press_key("Enter")
+    time.sleep(5)
 print("chat:", page_info()["url"], flush=True)
 
 
@@ -75,6 +89,22 @@ def download(src: str, path: pathlib.Path) -> None:
 
 
 def seconds(path: pathlib.Path) -> float:
+    """MP4 length from the mvhd box (no ffprobe needed); ffprobe only as a fallback."""
+    import shutil
+    import struct
+
+    data = path.read_bytes()
+    i = data.find(b"mvhd")
+    if i > 4:
+        ver = data[i + 4]
+        if ver == 1:
+            scale, dur = struct.unpack(">IQ", data[i + 24 : i + 36])
+        else:
+            scale, dur = struct.unpack(">II", data[i + 16 : i + 24])
+        if scale:
+            return dur / scale
+    if not shutil.which("ffprobe"):
+        return 0.0
     r = subprocess.run(
         ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(path)],
         capture_output=True,

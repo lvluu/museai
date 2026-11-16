@@ -1,0 +1,18 @@
+{
+ "key": "NORA",
+ "version": 1,
+ "name": "Nora Bell",
+ "age": 33,
+ "sex": "F",
+ "origin": "British, of Italian descent",
+ "build": "slim, 5 ft 5 in",
+ "identity": "a 33-year-old British woman of Italian descent with a heart-shaped face: warm olive skin with a few faint sun freckles, calm dark-brown eyes, straight dark-brown brows, a straight nose with a soft tip, natural rosy-brown lips, faint fine lines at the outer corners of her eyes, a small beauty mark beside the RIGHT corner of her mouth. Dark-brown wavy hair to just below the shoulders, a side part on her LEFT, tucked behind her RIGHT ear. Small plain gold hoop earrings. No rings.",
+ "voice": "calm, low, warm British English",
+ "base_wardrobe": "a soft camel-coloured crew-neck jumper over plain dark-blue jeans",
+ "used_by": [
+  "healing-story"
+ ],
+ "views": {
+  "hero": "hero.jpg"
+ }
+}

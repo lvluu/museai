@@ -77,6 +77,10 @@ async function setRelated(want) {
     for (let attempt = 1; attempt <= 3 && !opened; attempt++) {
       (await waitFor(SEL.relatedTrigger, { what: 'Related video field' })).click();
       opened = await waitFor([SEL.relatedCards], { timeout: 12000, what: 'related video list' }).then(() => true, () => false);
+      // Dialog in the DOM but cards not laid out yet (slow channel list): give it time instead of closing it.
+      if (!opened && document.querySelector('ytcp-video-pick-dialog')) {
+        opened = await waitFor([SEL.relatedCards], { timeout: 45000, what: 'related video list (slow)' }).then(() => true, () => false);
+      }
       if (!opened) { $(SEL.relatedClose)?.click(); key(document.body, 'Escape'); await sleep(1500); }
     }
     if (!opened) {
@@ -441,31 +445,15 @@ async function setRelated(want) {
           ok.push('description fixed');
         }
       }
-      const kids = $(SEL.kids(item.made_for_kids));
-      if (kids && !kids.hasAttribute('checked')) { kids.click(); ok.push('made-for-kids fixed'); }
-      if (item.playlist) {
-        if (!fold(text($(SEL.playlistTrigger))).includes(fold(item.playlist))) {
-          await addToPlaylist(item.playlist);
-          ok.push('playlist ticked');
-        }
-        ok.push(`playlist ✓ ${item.playlist}`);
-      }
-      if (item.related) {
-        if (!$(SEL.relatedTrigger)) ok.push('no Related video field (not a Short?)');
-        else {
-          const want = fold(item.related.replace(/^latest:/, ''));
-          const shown = fold(text($(SEL.relatedShown)));
-          // "latest:" has no name to compare against, so it is always (re)picked.
-          ok.push(`related ✓ ${want && shown.includes(want) ? text($(SEL.relatedShown)).split('\n').pop() : await setRelated(item.related)}`);
-        }
-      }
-      const save = $(SEL.save);
-      const dirty = () => save && save.getAttribute('aria-disabled') !== 'true' && !save.hasAttribute('disabled');
+      // Thumbnail first: it is the step that must not be lost behind a slow playlist / related-video dialog.
+      const dirty = () => { const save = $(SEL.save); return save && save.getAttribute('aria-disabled') !== 'true' && !save.hasAttribute('disabled'); };
       const thumbSrc = () => $(SEL.thumbShown, { hidden: true })?.src || '';
       const thumbWas = thumbSrc();
       let thumbLater = false;
       if (item.cover) {
-        const input = $(SEL.thumbInput, { hidden: true });
+        // Studio renders the thumbnail uploader lazily: wait for it instead of treating a slow page as "no upload".
+        let input = $(SEL.thumbInput, { hidden: true });
+        for (const end = Date.now() + 25000; !input && Date.now() < end;) { await sleep(500); input = $(SEL.thumbInput, { hidden: true }); }
         // A channel that restricts custom thumbnails still posts, with YouTube's default frame; the cover
         // stays in the covers folder to set by hand later.
         if (!input) {
@@ -489,6 +477,10 @@ async function setRelated(want) {
           }
           await sleep(500);
         }
+        if (!thumbLater && !took()) {
+          attach(input, takeFile('cover', item.cover.name, item.cover.type));
+          for (const end = Date.now() + 30000; !took() && Date.now() < end;) await sleep(500);
+        }
         if (!thumbLater) {
           if (!took()) {
             thumbLater = true;
@@ -496,15 +488,33 @@ async function setRelated(want) {
           } else ok.push('thumbnail uploaded');
         }
       }
+      const kids = $(SEL.kids(item.made_for_kids));
+      if (kids && !kids.hasAttribute('checked')) { kids.click(); ok.push('made-for-kids fixed'); }
+      if (item.playlist) {
+        if (!fold(text($(SEL.playlistTrigger))).includes(fold(item.playlist))) {
+          await addToPlaylist(item.playlist);
+          ok.push('playlist ticked');
+        }
+        ok.push(`playlist ✓ ${item.playlist}`);
+      }
+      if (item.related) {
+        if (!$(SEL.relatedTrigger)) ok.push('no Related video field (not a Short?)');
+        else {
+          const want = fold(item.related.replace(/^latest:/, ''));
+          const shown = fold(text($(SEL.relatedShown)));
+          // "latest:" has no name to compare against, so it is always (re)picked.
+          ok.push(`related ✓ ${want && shown.includes(want) ? text($(SEL.relatedShown)).split('\n').pop() : await setRelated(item.related)}`);
+        }
+      }
       if (dirty()) {
-        save.click();
+        $(SEL.save).click();
         for (const end = Date.now() + 240000; dirty() && Date.now() < end;) await sleep(500); // slow under machine load
         if (dirty()) throw new Error('edit page: Save did not finish within 240 s');
         ok.push('saved');
       }
       if (item.cover && !thumbLater) {
         // Studio bumps the thumbnail's ?v= once the new image is stored.
-        for (const end = Date.now() + 120000; thumbSrc() === thumbWas && Date.now() < end;) await sleep(500);
+        for (const end = Date.now() + 60000; thumbSrc() === thumbWas && Date.now() < end;) await sleep(500);
         if (thumbSrc() === thumbWas) ok.push('thumbnail skipped: did not change after Save, set it later');
       }
 
@@ -524,8 +534,13 @@ async function setRelated(want) {
         return !isNaN(d) && d.getFullYear() === when.getFullYear() && d.getMonth() === when.getMonth() && d.getDate() === when.getDate();
       };
       const readSchedule = async () => {
-        (await waitFor(SEL.visibilityOpen)).click();
-        const pop = await waitFor(SEL.visibilityPopover, { what: 'visibility popover' });
+        // A click can land while Studio still re-renders after Save: retry before giving up.
+        let pop;
+        for (let n = 1; !pop; n++) {
+          (await waitFor(SEL.visibilityOpen)).click();
+          try { pop = await waitFor(SEL.visibilityPopover, { what: 'visibility popover', timeout: 10000 }); }
+          catch (e) { if (n >= 4) throw e; await sleep(2000); }
+        }
         await sleep(1200);
         const date = text(await waitFor(SEL.dateTrigger, { what: 'scheduled date' }));
         const time = (await waitFor(SEL.timeInput, { what: 'scheduled time' })).value;

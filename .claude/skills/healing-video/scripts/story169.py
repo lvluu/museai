@@ -43,7 +43,7 @@ def luma(p, start):
     return sum(v) / len(v) if v else 135
 
 
-def chunks(text, maxc=60):
+def chunks(text, maxc=84):
     """Subtitle pages of at most 2 lines of ~maxc chars, split on sentence/phrase bounds."""
     words, lines, cur = text.split(), [], ""
     for w in words:
@@ -57,20 +57,30 @@ def chunks(text, maxc=60):
 
 
 def sub_png(text, path):
+    # small text hugging the bottom edge so it takes little of the scene (user 2026-11-12); a slim dark band
+    # and an outline keep it readable on bright sky or light walls
     img = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    font = ImageFont.truetype(FONT, 46)
+    font = ImageFont.truetype(FONT, 38)
     lines = text.split("\n")
+    lh, bottom = 48, 40
+    y0 = H - bottom - lh * len(lines)
+    top = y0 - 36
+    band = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    bd = ImageDraw.Draw(band)
+    for y in range(top, H):
+        bd.line([(0, y), (W, y)], fill=(0, 0, 0, int(150 * min(1.0, (y - top) / 50))))
+    img = Image.alpha_composite(img, band)
     sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
-    ds, d = ImageDraw.Draw(sh), None
-    y0 = H - 90 - 60 * len(lines)
+    ds = ImageDraw.Draw(sh)
     for k, ln in enumerate(lines):
         tw = ds.textlength(ln, font=font)
-        ds.text(((W - tw) / 2, y0 + 60 * k + 2), ln, font=font, fill=(0, 0, 0, 200))
-    img = Image.alpha_composite(img, sh.filter(ImageFilter.GaussianBlur(5)))
+        ds.text(((W - tw) / 2, y0 + lh * k + 2), ln, font=font, fill=(0, 0, 0, 255))
+    img = Image.alpha_composite(img, sh.filter(ImageFilter.GaussianBlur(3)))
     d = ImageDraw.Draw(img)
     for k, ln in enumerate(lines):
         tw = d.textlength(ln, font=font)
-        d.text(((W - tw) / 2, y0 + 60 * k), ln, font=font, fill=(255, 255, 255, 245))
+        d.text(((W - tw) / 2, y0 + lh * k), ln, font=font, fill=(255, 255, 255, 255),
+               stroke_width=2, stroke_fill=(0, 0, 0, 230))
     img.save(path)
 
 
@@ -94,7 +104,7 @@ def main():
         lead = HOOK_LEAD if i == 1 else LEAD
         L = lead + vd + GAP + (TAIL if i == len(beats) else 0)
         plan.append(dict(i=i, clip=root / b.get("clip", f"s{i}.mp4"), start_clip=b.get("start", 0.8), vo=vo, vd=vd,
-                         lead=lead, L=L, T=t, text=b["vo"]))
+                         lead=lead, L=L, T=t, text=b["vo"], foley_db=float(b.get("foley_db", 0))))
         t += L
     total = t + XF * 0  # last segment carries no extra XF
     print(f"{len(plan)} beats, {total:.1f} s ({total / 60:.2f} min)")
@@ -148,6 +158,9 @@ def main():
             atempo = 1 / f
             run(["ffmpeg", "-y", "-hide_banner", "-ss", f"{st:.3f}", "-i", str(p["clip"]), "-af",
                  f"atempo={max(atempo, 0.5):.4f},atrim=duration={need:.3f},highpass=f=80,lowpass=f=9000,"
+                 # beat's own gain (a clip whose people talk: "foley_db": -15), then a limiter so a shout or
+                 # laugh in the clip never pokes out of the bed (sixth Christmas cut: clip voices too loud)
+                 f"volume={p['foley_db']:.1f}dB,acompressor=threshold=0.05:ratio=8:attack=5:release=200,"
                  f"afade=in:d=0.3,afade=out:st={max(0, need - 0.5):.3f}:d=0.5", "-ar", "48000", "-ac", "2", str(fol)])
         else:
             run(["ffmpeg", "-y", "-f", "lavfi", "-i", "anullsrc=r=48000:cl=stereo", "-t", f"{need:.3f}", str(fol)])
@@ -175,7 +188,8 @@ def main():
             ins += ["-i", str(f_)]
             fc += f"[{k}:a]aresample=48000,aformat=channel_layouts=stereo,{pre}adelay={int(d_ * 1000)}:all=1[a{k}];"
         fc += "".join(f"[a{k}]" for k in range(len(files))) + f"amix=inputs={len(files)}:normalize=0,apad,atrim=duration={total:.3f}[o]"
-        run(["ffmpeg", "-y", "-hide_banner", *ins, "-filter_complex", fc, "-map", "[o]", str(out)])
+        # -t caps the output: apad is infinite and a 37-input foley mix once ran past atrim, writing 700 GB of WAV
+        run(["ffmpeg", "-y", "-hide_banner", *ins, "-filter_complex", fc, "-map", "[o]", "-t", f"{total:.3f}", str(out)])
 
     voice = tmp / "voice.wav"
     place([p["vo"] for p in plan], [p["T"] + p["lead"] + (XF / 2 if p["i"] > 1 else 0) for p in plan], voice,
@@ -195,8 +209,10 @@ def main():
              "aformat=channel_layouts=stereo", str(music)])
         run(["python3", LNORM, str(music), str(music.with_suffix(".n.m4a")), "-25"])
     mix = tmp / "mix.wav"
-    fc = ("[1:a]asplit=2[vsc][vmix];[2:a][vsc]sidechaincompress=threshold=0.03:ratio=4:attack=80:release=900[mduck];"
-          "[0:a][vmix][mduck]amix=inputs=3:normalize=0[o]")
+    # the voice ducks both the piano and the clips' own sound (their generated speech fought the narration)
+    fc = ("[1:a]asplit=3[vsc][vsc2][vmix];[2:a][vsc]sidechaincompress=threshold=0.03:ratio=4:attack=80:release=900[mduck];"
+          "[0:a][vsc2]sidechaincompress=threshold=0.03:ratio=3:attack=60:release=700[fduck];"
+          "[fduck][vmix][mduck]amix=inputs=3:normalize=0[o]")
     run(["ffmpeg", "-y", "-hide_banner", "-i", str(foley.with_suffix(".n.m4a")), "-i", str(voice.with_suffix(".n.m4a")),
          "-i", str(music.with_suffix(".n.m4a")), "-filter_complex", fc, "-map", "[o]", str(mix)])
     final_a = tmp / "final.m4a"

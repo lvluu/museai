@@ -170,3 +170,74 @@ async def test_renew_closes_busy_tab_only_after_its_job(driver, account, monkeyp
     await driver._release(busy)
     assert busy.session.closed
     assert (await driver.health())["tabs"] == 0
+
+
+def test_cdp_send_timeout_is_upstream_timeout():
+    import asyncio
+
+    import pytest
+
+    from museai.drivers.browser.cdp import CDPSession
+    from museai.errors import UpstreamTimeout
+
+    class WS:
+        async def send(self, _):
+            return None
+
+        def __aiter__(self):
+            return self
+
+        async def __anext__(self):
+            await asyncio.sleep(3600)
+
+    async def go():
+        s = CDPSession(WS())
+        try:
+            await s.send("Page.navigate", timeout=0.01)
+        finally:
+            s._reader.cancel()
+
+    with pytest.raises(UpstreamTimeout):
+        asyncio.run(go())
+
+
+def test_video_limit_reply_is_quota():
+    from museai.drivers.browser.driver import VIDEO_LIMIT
+
+    assert VIDEO_LIMIT.search("your video limit for the last 24 hours is still in effect")
+    assert VIDEO_LIMIT.search("Still blocked by the 24-hour video limit")
+    assert not VIDEO_LIMIT.search("Done, the clip is attached below")
+
+
+class _TailSession:
+    def __init__(self, tail: str):
+        self.tail = tail
+
+    async def evaluate(self, _js):
+        return {"tail": self.tail}
+
+
+class _TailTab:
+    def __init__(self, tail: str):
+        self.session = _TailSession(tail)
+
+
+async def test_quota_text_already_on_page_is_not_quota(driver):
+    from museai.errors import UpstreamQuotaError
+
+    old = "Failed to generate knocking video daily limit reached 4:42 pm"
+    tab = _TailTab(old)
+    assert (await driver._state(tab, check=False))["tail"] == old
+    base = {"tail": old}
+    assert (await driver._state(tab, base))["tail"] == old
+    with pytest.raises(UpstreamQuotaError):
+        await driver._state(tab)
+    with pytest.raises(UpstreamQuotaError):
+        await driver._state(_TailTab(old + " Out of credits"), base)
+
+
+def test_chat_state_tail_is_reply_and_alerts_only():
+    from museai.drivers.browser import dom
+
+    assert "document.body.innerText.slice(-600)" not in dom.CHAT_STATE
+    assert "(last + ' ' + alerts).slice(-600)" in dom.CHAT_STATE

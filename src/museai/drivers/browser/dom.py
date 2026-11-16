@@ -99,7 +99,12 @@ CHAT_STATE = f"""(() => {{
       h: m ? (m.videoHeight || m.naturalHeight || 0) : 0,
     }};
   }});
-  const tail = document.body ? document.body.innerText.slice(-600) : '';
+  // The page body ends with a chat-history panel full of old titles ("token limit video
+  // issue", "daily limit reached"), so the quota tail is only the latest agent reply plus
+  // any alert or toast.
+  const alerts = [...document.querySelectorAll('[role="alert"], [role="status"], [data-sonner-toast]')]
+    .map(e => e.innerText || '').join(' ');
+  const tail = (last + ' ' + alerts).slice(-600);
   return {{ agentCount: bubbles.length, lastText: last,
             generating: !!document.querySelector({q(STOP_BUTTON)}),
             attachments: atts, tail }};

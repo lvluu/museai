@@ -36,6 +36,7 @@ from ...errors import (
     UpstreamQuotaError,
     UpstreamRefused,
     UpstreamTimeout,
+    VideoLimitReached,
 )
 from ...upstream import muse
 from ..base import (
@@ -65,7 +66,11 @@ HOT_BUBBLE_LIMIT = 16
 TEXT_ONLY_GRACE = 90.0
 MEDIA_NUDGES = 2
 REVEAL_WAIT = 3.0
+STATE_POLL_TIMEOUT = 60.0  # one tab poll may not hang longer than this
+STALL_LIMIT = 900.0  # a tab silent this long (15 min) fails the job so it moves to another account
 # Short final replies meaning muse's generator lost the clip ("Video not found"), not a refusal.
+# The agent answers in text when the account's rolling video limit is used up.
+VIDEO_LIMIT = re.compile(r"\b(video|daily|usage|24[- ]hour)\s+limit\b|\blimit for the last 24 hours\b", re.I)
 LOST_MEDIA = re.compile(r"\b(not found|went wrong|failed|error)\b", re.I)
 
 
@@ -334,7 +339,7 @@ class BrowserDriver(MuseDriver):
                 return False
             if "Connecting..." in (page.get("head") or ""):
                 return False
-            state = await self._state(tab)
+            state = await self._state(tab, check=False)
         except CDPError:
             return False
         if state.get("generating"):
@@ -399,11 +404,23 @@ class BrowserDriver(MuseDriver):
         if not await tab.session.evaluate(dom.INPUT_EMPTY):
             raise UpstreamError("send button not found and Enter did not submit")
 
-    async def _state(self, tab: _Tab) -> dict:
+    async def _state(self, tab: _Tab, base: dict | None = None, check: bool = True) -> dict:
+        """Page state; raises on a quota message that appeared after ``base`` was taken.
+
+        Text already on the page before the job (old chat titles such as "daily limit
+        reached") is no proof the account is out of quota, so base snapshots skip the
+        check and later polls ignore hints that were already in the base tail.
+        """
         state = await tab.session.evaluate(dom.CHAT_STATE) or {}
+        if not check:
+            return state
         tail = state.get("tail", "")
-        if any(h in tail.lower() for h in dom.QUOTA_HINTS):
-            raise UpstreamQuotaError("muse.ai reports the account is out of quota")
+        low = tail.lower()
+        old = ((base or {}).get("tail") or "").lower()
+        if hint := next((h for h in dom.QUOTA_HINTS if h in low and h not in old), None):
+            at = low.index(hint)
+            seen = " ".join(tail[max(0, at - 60):at + len(hint) + 60].split())
+            raise UpstreamQuotaError(f"muse.ai reports the account is out of quota (page says: ...{seen}...)")
         return state
 
     async def _prepare(self, account: Account, prompt: str, images: list[InputImage]):
@@ -414,7 +431,7 @@ class BrowserDriver(MuseDriver):
             raise UpstreamError(f"browser error: {exc}") from exc
         try:
             await self._new_thread(tab)
-            base = await self._state(tab)
+            base = await self._state(tab, check=False)
             await self._attach(tab, images)
             await self._send(tab, prompt)
         except CDPError as exc:
@@ -435,7 +452,7 @@ class BrowserDriver(MuseDriver):
             page = await tab.session.evaluate(dom.PAGE_STATE) or {}
             if not page.get("hasInput"):
                 return False
-            state = await self._state(tab)
+            state = await self._state(tab, check=False)
             present = await tab.session.evaluate(
                 f"!!(document.body && document.body.innerText.includes({dom.q(last_user[:80])}))"
             )
@@ -482,7 +499,7 @@ class BrowserDriver(MuseDriver):
                 log.info("opening a new thread")
                 account.meta.pop("hot_page", None)
                 await self._new_thread(tab)
-            base = await self._state(tab)
+            base = await self._state(tab, check=False)
             await self._attach(tab, images)
             await self._send(tab, prompt)
             return tab, base
@@ -510,7 +527,7 @@ class BrowserDriver(MuseDriver):
                 if not got_first and elapsed > req.first_token_timeout:
                     raise UpstreamTimeout("no first token from assistant")
                 await asyncio.sleep(POLL_INTERVAL)
-                st = await self._state(tab)
+                st = await self._state(tab, base)
                 text = st.get("lastText", "")
                 is_new = st.get("agentCount", 0) > base_count or (text and text != base_text)
                 if not is_new or not text:
@@ -565,7 +582,7 @@ class BrowserDriver(MuseDriver):
                 if not got_first and elapsed > req.first_token_timeout:
                     raise UpstreamTimeout("no first token from assistant")
                 await asyncio.sleep(POLL_INTERVAL)
-                st = await self._state(tab)
+                st = await self._state(tab, base)
                 text = st.get("lastText", "")
                 is_new = st.get("agentCount", 0) > base_count or (text and text != base_text)
                 if not is_new or not text:
@@ -637,14 +654,22 @@ class BrowserDriver(MuseDriver):
     ) -> dict:
         seen = tab.media_srcs | {a.get("src") for a in base.get("attachments", [])}
         base_count = base.get("agentCount", 0)
-        started = time.monotonic()
+        started = last_ok = time.monotonic()
         text_only_since: float | None = None
         last_text, nudges, revealed = "", 0, False
         while time.monotonic() - started < timeout:
             if cancel and cancel.is_set():
                 raise asyncio.CancelledError
             await asyncio.sleep(0.6)
-            st = await self._state(tab)
+            try:
+                st = await asyncio.wait_for(self._state(tab, base), STATE_POLL_TIMEOUT)
+                last_ok = time.monotonic()
+            except asyncio.TimeoutError:  # the tab stopped answering
+                if time.monotonic() - last_ok > STALL_LIMIT:
+                    raise UpstreamTimeout(
+                        f"{kind} tab unresponsive for {STALL_LIMIT:.0f}s; retrying on another account"
+                    ) from None
+                continue
             atts = st.get("attachments", [])
             fresh = [
                 a for a in atts if a.get("src") and a.get("kind") == kind and a["src"] not in seen
@@ -675,6 +700,8 @@ class BrowserDriver(MuseDriver):
             if nudges >= MEDIA_NUDGES:
                 if LOST_MEDIA.search(text) and len(text) < 200:
                     raise UpstreamMediaLost(f"upstream lost the {kind}: {text[:200]}")
+                if VIDEO_LIMIT.search(text):
+                    raise VideoLimitReached(f"muse.ai video limit reached: {text[:200]}")
                 raise UpstreamRefused(f"upstream replied with text only: {text[:200]}")
             nudges += 1
             log.info(

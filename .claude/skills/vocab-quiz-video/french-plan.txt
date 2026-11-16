@@ -1,0 +1,61 @@
+# French run 2026-11-05: episode | level | topic | 6 words "English = answer = IPA" separated by ;
+1|A1|Travel|bridge=le pont=/pɔ̃/;train=le train=/tʁɛ̃/;suitcase=la valise=/va.liz/;train station=la gare=/ɡaʁ/;boat=le bateau=/ba.to/;beach=la plage=/plaʒ/
+2|A1|Food|bread=le pain=/pɛ̃/;cheese=le fromage=/fʁɔ.maʒ/;apple=la pomme=/pɔm/;cake=le gâteau=/ɡɑ.to/;soup=la soupe=/sup/;chicken=le poulet=/pu.lɛ/
+3|A1|City|street=la rue=/ʁy/;market=le marché=/maʁ.ʃe/;fountain=la fontaine=/fɔ̃.tɛn/;bakery=la boulangerie=/bu.lɑ̃ʒ.ʁi/;tower=la tour=/tuʁ/;bus=le bus=/bys/
+4|A1|Home|house=la maison=/mɛ.zɔ̃/;door=la porte=/pɔʁt/;window=la fenêtre=/fə.nɛtʁ/;roof=le toit=/twa/;garden=le jardin=/ʒaʁ.dɛ̃/;kitchen=la cuisine=/kɥi.zin/
+5|A1|Furniture|table=la table=/tabl/;chair=la chaise=/ʃɛz/;bed=le lit=/li/;sofa=le canapé=/ka.na.pe/;lamp=la lampe=/lɑ̃p/;mirror=le miroir=/mi.ʁwaʁ/
+6|A1|Drinks|coffee=le café=/ka.fe/;tea=le thé=/te/;milk=le lait=/lɛ/;wine=le vin=/vɛ̃/;juice=le jus=/ʒy/;beer=la bière=/bjɛʁ/
+7|A1|Clothes|dress=la robe=/ʁɔb/;shirt=la chemise=/ʃə.miz/;hat=le chapeau=/ʃa.po/;skirt=la jupe=/ʒyp/;coat=le manteau=/mɑ̃.to/;shoe=la chaussure=/ʃo.syʁ/
+8|A1|Family|mother=la mère=/mɛʁ/;father=le père=/pɛʁ/;brother=le frère=/fʁɛʁ/;sister=la sœur=/sœʁ/;baby=le bébé=/be.be/;grandmother=la grand-mère=/ɡʁɑ̃.mɛʁ/
+9|A1|Everyday Things|key=la clé=/kle/;phone=le téléphone=/te.le.fɔn/;bag=le sac=/sak/;book=le livre=/livʁ/;pen=le stylo=/sti.lo/;watch=la montre=/mɔ̃tʁ/
+10|A1|Groceries|butter=le beurre=/bœʁ/;rice=le riz=/ʁi/;sugar=le sucre=/sykʁ/;potato=la pomme de terre=/pɔm də tɛʁ/;tomato=la tomate=/tɔ.mat/;carrot=la carotte=/ka.ʁɔt/
+11|A1|Nature|mountain=la montagne=/mɔ̃.taɲ/;lake=le lac=/lak/;river=la rivière=/ʁi.vjɛʁ/;forest=la forêt=/fɔ.ʁɛ/;flower=la fleur=/flœʁ/;sea=la mer=/mɛʁ/
+12|A1|Getting Around|car=la voiture=/vwa.tyʁ/;bicycle=le vélo=/ve.lo/;taxi=le taxi=/tak.si/;motorbike=la moto=/mɔ.to/;subway=le métro=/me.tʁo/;road=la route=/ʁut/
+13|A1|Body|head=la tête=/tɛt/;hand=la main=/mɛ̃/;foot=le pied=/pje/;nose=le nez=/ne/;mouth=la bouche=/buʃ/;leg=la jambe=/ʒɑ̃b/
+14|A1|Kitchen|knife=le couteau=/ku.to/;fork=la fourchette=/fuʁ.ʃɛt/;spoon=la cuillère=/kɥi.jɛʁ/;glass=le verre=/vɛʁ/;cup=la tasse=/tas/;frying pan=la poêle=/pwal/
+15|A1|Animals|dog=le chien=/ʃjɛ̃/;cat=le chat=/ʃa/;horse=le cheval=/ʃə.val/;cow=la vache=/vaʃ/;fish=le poisson=/pwa.sɔ̃/;rabbit=le lapin=/la.pɛ̃/
+16|A1|Fruit|banana=la banane=/ba.nan/;pear=la poire=/pwaʁ/;strawberry=la fraise=/fʁɛz/;grapes=le raisin=/ʁɛ.zɛ̃/;lemon=le citron=/si.tʁɔ̃/;cherry=la cerise=/sə.ʁiz/
+17|A1|Weather|sun=le soleil=/sɔ.lɛj/;rain=la pluie=/plɥi/;snow=la neige=/nɛʒ/;cloud=le nuage=/nɥaʒ/;wind=le vent=/vɑ̃/;fog=le brouillard=/bʁu.jaʁ/
+18|A1|School|notebook=le cahier=/ka.je/;pencil=le crayon=/kʁɛ.jɔ̃/;school bag=le cartable=/kaʁ.tabl/;eraser=la gomme=/ɡɔm/;pencil case=la trousse=/tʁus/;dictionary=le dictionnaire=/dik.sjɔ.nɛʁ/
+19|A1|Breakfast|croissant=le croissant=/kʁwa.sɑ̃/;jam=la confiture=/kɔ̃.fi.tyʁ/;honey=le miel=/mjɛl/;yogurt=le yaourt=/ja.uʁt/;hot chocolate=le chocolat chaud=/ʃɔ.kɔ.la ʃo/;baguette=la baguette=/ba.ɡɛt/
+20|A1|Vegetables|cucumber=le concombre=/kɔ̃.kɔ̃bʁ/;bell pepper=le poivron=/pwa.vʁɔ̃/;mushroom=le champignon=/ʃɑ̃.pi.ɲɔ̃/;cabbage=le chou=/ʃu/;corn=le maïs=/ma.is/;zucchini=la courgette=/kuʁ.ʒɛt/
+21|A1|Bathroom|soap=le savon=/sa.vɔ̃/;toothbrush=la brosse à dents=/bʁɔs a dɑ̃/;shower=la douche=/duʃ/;bathtub=la baignoire=/bɛ.ɲwaʁ/;sink=le lavabo=/la.va.bo/;toothpaste=le dentifrice=/dɑ̃.ti.fʁis/
+22|A1|Shopping|shop=le magasin=/ma.ɡa.zɛ̃/;basket=le panier=/pa.nje/;wallet=le portefeuille=/pɔʁ.tə.fœj/;checkout=la caisse=/kɛs/;shopping cart=le chariot=/ʃa.ʁjo/;gift=le cadeau=/ka.do/
+23|A1|Beach|sand=le sable=/sabl/;wave=la vague=/vaɡ/;seashell=le coquillage=/kɔ.ki.jaʒ/;beach umbrella=le parasol=/pa.ʁa.sɔl/;lighthouse=le phare=/faʁ/;harbor=le port=/pɔʁ/
+24|A1|Countryside|farm=la ferme=/fɛʁm/;field=le champ=/ʃɑ̃/;sheep=le mouton=/mu.tɔ̃/;pig=le cochon=/kɔ.ʃɔ̃/;tractor=le tracteur=/tʁak.tœʁ/;hill=la colline=/kɔ.lin/
+25|A1|Desserts|ice cream=la glace=/ɡlas/;pie=la tarte=/taʁt/;crepe=la crêpe=/kʁɛp/;macaron=le macaron=/ma.ka.ʁɔ̃/;cookie=le biscuit=/bis.kɥi/;candy=le bonbon=/bɔ̃.bɔ̃/
+26|A1|Living Room|television=la télévision=/te.le.vi.zjɔ̃/;rug=le tapis=/ta.pi/;cushion=le coussin=/ku.sɛ̃/;fireplace=la cheminée=/ʃə.mi.ne/;curtain=le rideau=/ʁi.do/;clock=la pendule=/pɑ̃.dyl/
+27|A1|Bedroom|blanket=la couverture=/ku.vɛʁ.tyʁ/;alarm clock=le réveil=/ʁe.vɛj/;bed sheet=le drap=/dʁa/;pajamas=le pyjama=/pi.ʒa.ma/;chest of drawers=la commode=/kɔ.mɔd/;bedside table=la table de nuit=/tabl də nɥi/
+28|A1|Sports|ball=le ballon=/ba.lɔ̃/;tennis=le tennis=/te.nis/;swimming pool=la piscine=/pi.sin/;racket=la raquette=/ʁa.kɛt/;ski=le ski=/ski/;stadium=le stade=/stad/
+29|A1|Music|guitar=la guitare=/ɡi.taʁ/;piano=le piano=/pja.no/;violin=le violon=/vjɔ.lɔ̃/;drum=le tambour=/tɑ̃.buʁ/;trumpet=la trompette=/tʁɔ̃.pɛt/;flute=la flûte=/flyt/
+30|A1|Café|waiter=le serveur=/sɛʁ.vœʁ/;terrace=la terrasse=/tɛ.ʁas/;sandwich=le sandwich=/sɑ̃d.witʃ/;straw=la paille=/paj/;teapot=la théière=/te.jɛʁ/;napkin=la serviette=/sɛʁ.vjɛt/
+31|A1|Jobs|doctor=le médecin=/med.sɛ̃/;baker=le boulanger=/bu.lɑ̃.ʒe/;police officer=le policier=/pɔ.li.sje/;cook=le cuisinier=/kɥi.zi.nje/;firefighter=le pompier=/pɔ̃.pje/;mail carrier=le facteur=/fak.tœʁ/
+32|A1|Train Station|platform=le quai=/ke/;locomotive=la locomotive=/lɔ.kɔ.mɔ.tiv/;seat=le siège=/sjɛʒ/;train car=le wagon=/va.ɡɔ̃/;bench=le banc=/bɑ̃/;backpack=le sac à dos=/sak a do/
+33|A1|Garden|rose=la rose=/ʁoz/;plant=la plante=/plɑ̃t/;leaf=la feuille=/fœj/;butterfly=le papillon=/pa.pi.jɔ̃/;tulip=la tulipe=/ty.lip/;path=le chemin=/ʃə.mɛ̃/
+34|A1|Office|desk=le bureau=/by.ʁo/;paper=le papier=/pa.pje/;keyboard=le clavier=/kla.vje/;computer mouse=la souris=/su.ʁi/;calendar=le calendrier=/ka.lɑ̃.dʁi.je/;letter=la lettre=/lɛtʁ/
+35|A1|Sights|museum=le musée=/my.ze/;castle=le château=/ʃa.to/;park=le parc=/paʁk/;cathedral=la cathédrale=/ka.te.dʁal/;statue=la statue=/sta.ty/;palace=le palais=/pa.lɛ/
+36|A1|Celebrations|Christmas tree=le sapin=/sa.pɛ̃/;candle=la bougie=/bu.ʒi/;party=la fête=/fɛt/;fireworks=le feu d'artifice=/fø daʁ.ti.fis/;mask=le masque=/mask/;garland=la guirlande=/ɡiʁ.lɑ̃d/
+37|A2|Health|pharmacy=la pharmacie=/faʁ.ma.si/;medicine=le médicament=/me.di.ka.mɑ̃/;bandage=le pansement=/pɑ̃s.mɑ̃/;thermometer=le thermomètre=/tɛʁ.mɔ.mɛtʁ/;wheelchair=le fauteuil roulant=/fo.tœj ʁu.lɑ̃/;crutch=la béquille=/be.kij/
+38|A2|Appliances|fridge=le réfrigérateur=/ʁe.fʁi.ʒe.ʁa.tœʁ/;oven=le four=/fuʁ/;microwave=le micro-ondes=/mi.kʁo.ɔ̃d/;kettle=la bouilloire=/bu.jwaʁ/;dishwasher=le lave-vaisselle=/lav.vɛ.sɛl/;toaster=le grille-pain=/ɡʁij.pɛ̃/
+39|A2|Tools|hammer=le marteau=/maʁ.to/;nail=le clou=/klu/;saw=la scie=/si/;screwdriver=le tournevis=/tuʁ.nə.vis/;rope=la corde=/kɔʁd/;paintbrush=le pinceau=/pɛ̃.so/
+40|A2|Accessories|belt=la ceinture=/sɛ̃.tyʁ/;tie=la cravate=/kʁa.vat/;necklace=le collier=/kɔ.lje/;ring=la bague=/baɡ/;umbrella=le parapluie=/pa.ʁa.plɥi/;glove=le gant=/ɡɑ̃/
+41|A2|Clothes|sweater=le pull=/pyl/;trousers=le pantalon=/pɑ̃.ta.lɔ̃/;boot=la botte=/bɔt/;jacket=la veste=/vɛst/;cap=la casquette=/kas.kɛt/;sock=la chaussette=/ʃo.sɛt/
+42|A2|Wild Animals|wolf=le loup=/lu/;fox=le renard=/ʁə.naʁ/;deer=le cerf=/sɛʁ/;owl=la chouette=/ʃwɛt/;hedgehog=le hérisson=/e.ʁi.sɔ̃/;wild boar=le sanglier=/sɑ̃.ɡli.je/
+43|A2|Farm Animals|goat=la chèvre=/ʃɛvʁ/;hen=la poule=/pul/;duck=le canard=/ka.naʁ/;rooster=le coq=/kɔk/;bull=le taureau=/tɔ.ʁo/;chick=le poussin=/pu.sɛ̃/
+44|A2|Sea Life|crab=le crabe=/kʁab/;shark=le requin=/ʁə.kɛ̃/;dolphin=le dauphin=/do.fɛ̃/;whale=la baleine=/ba.lɛn/;seagull=la mouette=/mwɛt/;jellyfish=la méduse=/me.dyz/
+45|A2|Small Creatures|ant=la fourmi=/fuʁ.mi/;ladybug=la coccinelle=/kɔk.si.nɛl/;fly=la mouche=/muʃ/;mosquito=le moustique=/mus.tik/;frog=la grenouille=/ɡʁə.nuj/;dragonfly=la libellule=/li.be.lyl/
+46|A2|Market|meat=la viande=/vjɑ̃d/;sausage=la saucisse=/so.sis/;ham=le jambon=/ʒɑ̃.bɔ̃/;shrimp=la crevette=/kʁə.vɛt/;melon=le melon=/mə.lɔ̃/;walnut=la noix=/nwa/
+47|A2|Fruit|watermelon=la pastèque=/pas.tɛk/;plum=la prune=/pʁyn/;raspberry=la framboise=/fʁɑ̃.bwaz/;fig=la figue=/fiɡ/;kiwi=le kiwi=/ki.wi/;mango=la mangue=/mɑ̃ɡ/
+48|A2|Cooking|salt=le sel=/sɛl/;black pepper=le poivre=/pwavʁ/;flour=la farine=/fa.ʁin/;cooking pot=la marmite=/maʁ.mit/;whisk=le fouet=/fwɛ/;rolling pin=le rouleau à pâtisserie=/ʁu.lo a pɑ.tis.ʁi/
+49|A2|Airport|passport=le passeport=/pas.pɔʁ/;pilot=le pilote=/pi.lɔt/;runway=la piste=/pist/;plane window=le hublot=/y.blo/;baggage belt=le tapis roulant=/ta.pi ʁu.lɑ̃/;handbag=le sac à main=/sak a mɛ̃/
+50|A2|Hotel|room=la chambre=/ʃɑ̃bʁ/;reception=la réception=/ʁe.sɛp.sjɔ̃/;balcony=le balcon=/bal.kɔ̃/;hallway=le couloir=/ku.lwaʁ/;mattress=le matelas=/mat.la/;bathrobe=le peignoir=/pɛ.ɲwaʁ/
+51|A2|Car|wheel=la roue=/ʁu/;tire=le pneu=/pnø/;steering wheel=le volant=/vɔ.lɑ̃/;car trunk=le coffre=/kɔfʁ/;gas station=la station-service=/sta.sjɔ̃ sɛʁ.vis/;garage=le garage=/ɡa.ʁaʒ/
+52|A2|Streets|traffic light=le feu rouge=/fø ʁuʒ/;crosswalk=le passage piéton=/pa.saʒ pje.tɔ̃/;sidewalk=le trottoir=/tʁɔ.twaʁ/;roundabout=le rond-point=/ʁɔ̃.pwɛ̃/;streetlamp=le lampadaire=/lɑ̃.pa.dɛʁ/;trash can=la poubelle=/pu.bɛl/
+53|A2|Hiking|summit=le sommet=/sɔ.mɛ/;valley=la vallée=/va.le/;cave=la grotte=/ɡʁɔt/;waterfall=la cascade=/kas.kad/;tent=la tente=/tɑ̃t/;rock=le rocher=/ʁɔ.ʃe/
+54|A2|Housework|broom=le balai=/ba.lɛ/;bucket=le seau=/so/;washing machine=la machine à laver=/ma.ʃin a la.ve/;iron=le fer à repasser=/fɛʁ a ʁə.pa.se/;clothespin=la pince à linge=/pɛ̃s a lɛ̃ʒ/;mop=la serpillière=/sɛʁ.pi.jɛʁ/
+55|A2|Hobbies|painting=la peinture=/pɛ̃.tyʁ/;kite=le cerf-volant=/sɛʁ.vɔ.lɑ̃/;jigsaw puzzle=le puzzle=/pœzl/;fishing rod=la canne à pêche=/kan a pɛʃ/;knitting=le tricot=/tʁi.ko/;doll=la poupée=/pu.pe/
+56|A2|Restaurant|steak=le steak=/stɛk/;salad=la salade=/sa.lad/;bottle=la bouteille=/bu.tɛj/;tablecloth=la nappe=/nap/;carafe=la carafe=/ka.ʁaf/;quiche=la quiche=/kiʃ/
+57|A2|Sky and Earth|moon=la lune=/lyn/;sky=le ciel=/sjɛl/;volcano=le volcan=/vɔl.kɑ̃/;stone=la pierre=/pjɛʁ/;branch=la branche=/bʁɑ̃ʃ/;sunset=le coucher de soleil=/ku.ʃe də sɔ.lɛj/
+58|A2|Electronics|tablet=la tablette=/ta.blɛt/;headphones=le casque=/kask/;remote control=la télécommande=/te.le.kɔ.mɑ̃d/;charger=le chargeur=/ʃaʁ.ʒœʁ/;radio=la radio=/ʁa.djo/;loudspeaker=le haut-parleur=/o.paʁ.lœʁ/
+59|A2|Post Office|stamp=le timbre=/tɛ̃bʁ/;mailbox=la boîte aux lettres=/bwat o lɛtʁ/;parcel=le colis=/kɔ.li/;glue=la colle=/kɔl/;cardboard box=le carton=/kaʁ.tɔ̃/;string=la ficelle=/fi.sɛl/
+60|A2|Bakery|chocolate croissant=le pain au chocolat=/pɛ̃ o ʃɔ.kɔ.la/;sweet bun=la brioche=/bʁi.jɔʃ/;apple turnover=le chausson aux pommes=/ʃo.sɔ̃ o pɔm/;madeleine=la madeleine=/mad.lɛn/;meringue=la meringue=/mə.ʁɛ̃ɡ/;mille-feuille=le millefeuille=/mil.fœj/

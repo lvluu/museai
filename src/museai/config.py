@@ -110,6 +110,9 @@ class Settings(BaseSettings):
     # An account whose render timed out gets no new video job for this long while another
     # account can take it.
     stuck_video_cooldown: float = 1800.0
+    # An account that replied with its 24-hour video limit gets no new video job for this long
+    # while another account can take it (it still takes them when it is the only one left).
+    video_limit_cooldown: float = 3600.0
 
     # --- account pool ---
     pool_strategy: PoolStrategyName = "affinity"
@@ -119,6 +122,8 @@ class Settings(BaseSettings):
     media_queue_timeout: float = 0.0
     account_max_concurrency: int = 6
     account_cooldown: float = 120.0
+    # How long an account rests after muse.ai reports it out of quota.
+    account_quota_cooldown: float = 3600.0
     max_failover: int = 2
     # On stop/restart, how long running image/video jobs may still finish before they are cancelled.
     shutdown_grace: float = 900.0

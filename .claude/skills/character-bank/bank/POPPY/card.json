@@ -1,0 +1,18 @@
+{
+ "key": "POPPY",
+ "version": 1,
+ "name": "Poppy Bell",
+ "age": 7,
+ "sex": "F",
+ "origin": "British, of Italian descent",
+ "build": "small, slight 7-year-old",
+ "identity": "a 7-year-old British girl of Italian descent with a round child's face: warm light-olive skin with soft rosy cheeks, big dark-brown eyes, thin dark brows, a small button nose, small natural lips. Straight dark-brown hair in one plait down her back with a short straight fringe across the forehead. A small plain yellow hair clip on the RIGHT side of her fringe.",
+ "voice": "small, bright British child's voice",
+ "base_wardrobe": "a mustard-yellow cotton cardigan over a white long-sleeved T-shirt",
+ "used_by": [
+  "healing-story"
+ ],
+ "views": {
+  "hero": "hero.jpg"
+ }
+}

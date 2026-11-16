@@ -6,7 +6,9 @@
   bank.py render KEY VIEW OUT [N]               render N takes (default 2) -> OUT/KEY_VIEW_1.png ...
   bank.py keep KEY VIEW TAKE.png                store a picked take as bank/KEY/VIEW.jpg, record it in card.json
   bank.py scene OUT "SCENE TEXT" KEY [KEY ...]  a still of bank characters in a new scene, their views attached
-        [--look FILE] [--size 1080x1920] [--n 2]
+        [--look FILE] [--size 1080x1920] [--n 2] [--prop "the cake=cake.jpg" ...]
+        --prop attaches a picture of an object that must look the same in every scene (a cake, a car, a
+        dress): the scene keeps that object exactly as in its picture.
 
 Views: hero (front head-and-shoulders, the identity anchor), three_quarter, full (full-length).
 hero renders from text alone; three_quarter, full and scene attach the stored views as reference images,
@@ -75,7 +77,8 @@ def view_body(key: str, view: str, n: int = 2) -> dict:
     return body
 
 
-def scene_body(scene: str, keys: list[str], look: str, size: str, n: int) -> dict:
+def scene_body(scene: str, keys: list[str], look: str, size: str, n: int,
+               props: list[tuple[str, Path]] = ()) -> dict:
     images, binds, people = [], [], []
     for k in keys:
         c = card(k)
@@ -93,6 +96,10 @@ def scene_body(scene: str, keys: list[str], look: str, size: str, n: int) -> dic
     lead = ("Reference images: " + "; ".join(binds) + ". Keep each face, age, skin tone, hair and jewellery exactly "
             "as in their reference images; the references show identity only, take the clothes, place, light and "
             "framing from this description, not from the references.")
+    for name, path in props:
+        images.append(data_url(path))
+        lead += (f" {name[0].upper() + name[1:]} is the object in image {len(images)}: keep it exactly as in that image "
+                 "(shape, size, colours, every decoration in the same place); only the angle and light follow this description.")
     prompt = " ".join([lead, scene, "People: " + " ".join(people), REAL, look]).strip()
     return {"prompt": prompt, "n": n, "size": size, "response_format": "b64_json", "image": images}
 
@@ -142,16 +149,19 @@ def main(a: list[str]) -> None:
         keep(a[1], a[2], Path(a[3]).expanduser())
     elif cmd == "scene":
         opts = {"--look": "", "--size": "1080x1920", "--n": "2"}
-        rest = []
+        rest, props = [], []
         it = iter(a[1:])
         for x in it:
-            if x in opts:
+            if x == "--prop":
+                name, _, path = next(it).partition("=")
+                props.append((name, Path(path).expanduser()))
+            elif x in opts:
                 opts[x] = next(it)
             else:
                 rest.append(x)
         out, scene, keys = Path(rest[0]).expanduser(), rest[1], rest[2:]
         look = Path(opts["--look"]).read_text().strip() if opts["--look"] else ""
-        post(scene_body(scene, keys, look, opts["--size"], int(opts["--n"])), out, "scene-" + "-".join(keys))
+        post(scene_body(scene, keys, look, opts["--size"], int(opts["--n"]), props), out, "scene-" + "-".join(keys))
     else:
         sys.exit(__doc__)
 
