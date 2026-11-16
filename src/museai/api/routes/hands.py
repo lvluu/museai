@@ -338,12 +338,19 @@ class Bot:
             text, markup = handsboard.channel(data, cid2, cfg)
             await self.edit(chat, message, text, markup)
         elif kind == "px":
+            # postq can take minutes and Telegram drops a tap not answered within ~15 s: answer now,
+            # run postq in the background, then report and redraw the channel
             vid, cid2, pid = rest.split(":")
             v = next((v for v in data["videos"] if v["id"] == vid), None)
-            answer = await asyncio.to_thread(postq_episode, v["folder"], pid) if v else "video is gone"
-            data = await asyncio.to_thread(overview, self.svc)
-            text, markup = handsboard.channel(data, cid2, cfg)
-            await self.edit(chat, message, text, markup)
+            if not v:
+                answer = "video is gone"
+            else:
+                icon, label, _ = handsboard.POSTQ_PLATFORMS.get(pid, ("", pid, []))
+                await self.call("answerCallbackQuery", callback_query_id=cb["id"], text=f"{icon} {label}: sending to postq…")
+                task = asyncio.create_task(self.postq_tap(chat, message, v, cid2, pid))
+                self.running.add(task)
+                task.add_done_callback(self.running.discard)
+                return
         elif kind == "delq":
             text, markup = handsboard.confirm_delete(data, cid, platform)
             await self.edit(chat, message, text, markup)
@@ -377,7 +384,18 @@ class Bot:
                 await self.edit(chat, message, text, markup)
         else:
             await self.dashboard(chat, message)
-        await self.call("answerCallbackQuery", callback_query_id=cb["id"], text=answer)
+        with contextlib.suppress(httpx.HTTPStatusError):  # "query is too old" after a slow step
+            await self.call("answerCallbackQuery", callback_query_id=cb["id"], text=answer[:190])
+
+    async def postq_tap(self, chat: int, message: int, video: dict, cid: str, pid: str) -> None:
+        try:
+            result = await asyncio.to_thread(postq_episode, video["folder"], pid)
+        except Exception as exc:  # noqa: BLE001 - tell the phone, keep polling
+            result = f"{pid}: {exc}"
+        log.info("postq %s %s: %s", pid, video["name"], result)
+        await self.call("sendMessage", chat_id=chat, text=f"{(video['title'] or video['name'])[:80]}\n{result}")
+        text, markup = handsboard.channel(await asyncio.to_thread(overview, self.svc), cid, handsboard.config(self.svc))
+        await self.edit(chat, message, text, markup)
 
     async def pick_model(self, chat: int, message: int | None = None) -> None:
         now = self.ai.current()
@@ -482,6 +500,9 @@ class Bot:
                 return
             kind, _, rest = cb["data"].partition(":")
             answer = ""
+            if kind == "noop":
+                await self.call("answerCallbackQuery", callback_query_id=cb["id"])
+                return
             if kind in ("status", "ch", "apprq", "appr", "delq", "delc", "pk", "pp", "px"):
                 await self.board_tap(chat, cb, kind, rest)
                 return
