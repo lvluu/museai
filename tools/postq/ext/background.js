@@ -79,6 +79,10 @@ async function autoPost(items) {
   const isPrio = (i) => priorityChannel && i.channel === priorityChannel;
   // A held lane (Meta gap) is waited out; a long pause (block page) lets the next platform go.
   const waitOk = (p) => (laneNext[p] || 0) - now < 15 * 60000;
+  // A rush item (a "post now" tap) starts at once: past the Meta gap and the platform being drained.
+  for (const item of items.filter((i) => i.rush && LANES[i.platform] && ready(i, i.platform))) {
+    if (!laneBusy[item.platform]) start(item, item.platform); // an idle lane only: no account switch mid-run
+  }
   const busy = Object.keys(LANES).find((p) => (laneBusy[p] || 0) > 0);
   if (busy) curPlatform = busy;
   else if (!curPlatform || !items.some((i) => ready(i, curPlatform)) || !waitOk(curPlatform)) {
@@ -100,19 +104,23 @@ async function autoPost(items) {
     const acct = [...ytActive.values()][0] ?? pool[0]?.account ?? (queue.some((i) => i.account === last) ? last : undefined);
     const item = queue.find((i) => acct === undefined || i.account === acct);
     if (!item) break;
-    laneBusy[platform] = (laneBusy[platform] || 0) + 1;
-    starting.add(item.id);
-    ytActive.set(item.id, item.account);
-    lastAcct[platform] = item.account;
-    const gap = GAP_MS[platform];
-    if (gap) holdLane(platform, gap[0] + Math.random() * (gap[1] - gap[0]));
-    approve(item, {})
-      .catch((e) => {
-        log('auto failed', item.id, e.message);
-        if (/Already being posted/.test(e.message)) skipUntil.set(item.id, Date.now() + 120000);
-      })
-      .finally(() => { laneBusy[platform] -= 1; starting.delete(item.id); ytActive.delete(item.id); });
+    start(item, platform);
   }
+}
+
+function start(item, platform) {
+  laneBusy[platform] = (laneBusy[platform] || 0) + 1;
+  starting.add(item.id);
+  ytActive.set(item.id, item.account);
+  lastAcct[platform] = item.account;
+  const gap = GAP_MS[platform];
+  if (gap) holdLane(platform, gap[0] + Math.random() * (gap[1] - gap[0]));
+  approve(item, {})
+    .catch((e) => {
+      log('auto failed', item.id, e.message);
+      if (/Already being posted/.test(e.message)) skipUntil.set(item.id, Date.now() + 120000);
+    })
+    .finally(() => { laneBusy[platform] -= 1; starting.delete(item.id); ytActive.delete(item.id); });
 }
 
 const starting = new Set();
