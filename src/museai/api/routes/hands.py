@@ -119,15 +119,17 @@ POSTQ = Path(__file__).resolve().parents[4] / "tools" / "postq" / "postq"
 
 def postq_episode(folder: str, platform: str) -> str:
     """Queue one platform of an episode folder in the postq Chrome extension and post it without a click
-    (``postq episode DIR --platforms P --auto``); returns a one-line result for the phone."""
+    right away, not at its captions.txt slot (``postq episode DIR --platforms P --auto --now``);
+    returns a one-line result for the phone."""
     if not folder:
         return "not an episode folder: post it from the dashboard"
     # Queued before (e.g. by `postq episodes` without --auto): the tap approves that item instead,
     # so the extension posts it now; postq never queues a second copy.
     if queued := postq_pending(folder, platform):
-        cmd, ok = [str(POSTQ), "approve", *queued], f"{platform} approved in postq, the extension posts it"
+        cmd, ok = [str(POSTQ), "approve", "--now", *queued], f"{platform}: approved, the extension posts it now"
     else:
-        cmd, ok = [str(POSTQ), "episode", folder, "--platforms", platform, "--auto"], f"{platform} queued in postq"
+        cmd, ok = ([str(POSTQ), "episode", folder, "--platforms", platform, "--auto", "--now"],
+                   f"{platform}: queued, the extension posts it now")
     try:
         run = subprocess.run(cmd, capture_output=True, text=True, timeout=600)
     except subprocess.TimeoutExpired:

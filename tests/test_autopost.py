@@ -700,6 +700,6 @@ def test_postq_tap_approves_an_already_queued_item(tmp_path, monkeypatch):
     runs = []
     monkeypatch.setattr(hands.subprocess, "run", lambda cmd, **_: runs.append(cmd[1:]) or
                         types.SimpleNamespace(returncode=0, stdout="approved a1\n", stderr=""))
-    assert hands.postq_episode(str(folder), "meta") == "meta approved in postq, the extension posts it"
-    assert hands.postq_episode(str(folder), "tiktok") == "tiktok queued in postq"
-    assert runs == [["approve", "a1"], ["episode", str(folder), "--platforms", "tiktok", "--auto"]]
+    assert hands.postq_episode(str(folder), "meta") == "meta: approved, the extension posts it now"
+    assert hands.postq_episode(str(folder), "tiktok") == "tiktok: queued, the extension posts it now"
+    assert runs == [["approve", "--now", "a1"], ["episode", str(folder), "--platforms", "tiktok", "--auto", "--now"]]

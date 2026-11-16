@@ -583,7 +583,7 @@ def cmd_episode(a):
             continue
         if platform in ("x", "tiktok") and "YouTube Shorts" in sections:
             day, hhmm = sections["YouTube Shorts"][:2]  # X and TikTok go out in the series' YouTube slot
-        at = a.at or episode_when(day, hhmm, series["tz"])
+        at = None if getattr(a, "now", False) else a.at or episode_when(day, hhmm, series["tz"])
         if platform == "meta":
             # One Business Suite post for both; Instagram gets its own caption when it differs.
             p = plan.setdefault("meta", {"targets": [], "caption": body, "at": at})
@@ -688,6 +688,8 @@ def cmd_approve(a):
                 continue
             tmp = p.with_suffix(".tmp")
             extra = {"video_id": a.video} if a.video else {}
+            if a.now:
+                extra["schedule_at"] = None  # post on approve, not at its slot
             tmp.write_text(json.dumps(json.loads(p.read_text()) | {"auto": True, "last_error": None} | extra,
                                       indent=2, ensure_ascii=False))
             tmp.replace(p)
@@ -905,6 +907,7 @@ def main():
     ep.add_argument("--related", help='youtube related video: "Tập 36" or a full title (default: the series\' rule)')
     ep.add_argument("--dry-run", action="store_true")
     ep.add_argument("--auto", action="store_true")
+    ep.add_argument("--now", action="store_true", help="post right away, ignore the captions.txt time")
     ep.add_argument("--no-render", action="store_true", help="no thumbnail in the folder: queue without one "
                     "instead of rendering it with muse")
     eps = sub.add_parser("episodes", help="queue every episode folder of a series (e.g. all Chinese ones on the Desktop)")
@@ -914,6 +917,7 @@ def main():
         eps._add_action(act)
     ap_ = sub.add_parser("approve")
     ap_.add_argument("ids", nargs="+")
+    ap_.add_argument("--now", action="store_true", help="post right away instead of at its scheduled time")
     ap_.add_argument("--video", help="already uploaded as this YouTube video id: schedule and check it, no new upload")
     sub.add_parser("list")
     sub.add_parser("results")
