@@ -51,7 +51,7 @@ COVERS_DIR = Path(os.environ.get("POSTQ_COVERS_DIR", Path.home() / "Desktop" / "
 PLATFORMS = {
     "youtube": {"title": 100, "caption": 5000, "tags": 500, "schedule": (timedelta(minutes=15), timedelta(days=365)),
                 "forbidden": "<>"},
-    "meta": {"title": 255, "title_line": True, "caption": 2200, "tags": 0, "schedule": (timedelta(minutes=20), timedelta(days=29)),
+    "meta": {"title": 255, "title_line": True, "caption": 2200, "tags": 0, "schedule": (timedelta(minutes=20), timedelta(days=29) - timedelta(hours=1)),
              "targets": {"facebook", "instagram"}},
     # TikTok Studio web (checked 2026-11): description counter 4000, date picker open 30 days ahead.
     "tiktok": {"title": 150, "title_line": True, "caption": 4000, "tags": 0,
