@@ -6,6 +6,7 @@ import asyncio
 import json
 import os
 import time
+import types
 from datetime import datetime, timedelta
 
 import httpx
@@ -684,3 +685,21 @@ def test_hands_codex_delegates_and_sends_media(client, settings, tmp_path):
     assert [m for m, *_ in sent] == ["sendMessage", "sendVideo", "sendMessage"]
     assert sent[1][2]["video"][0] == "clip.mp4" and sent[2][1]["text"].startswith("rendered")
     assert "MEDIA" not in sent[2][1]["text"]
+
+
+def test_postq_tap_approves_an_already_queued_item(tmp_path, monkeypatch):
+    from museai.api.routes import hands
+
+    folder = tmp_path / "Healing 01 · ep"
+    folder.mkdir()
+    queue = tmp_path / "queue"
+    queue.mkdir()
+    (queue / "a1.json").write_text(json.dumps({"id": "a1", "platform": "meta", "source": str(folder / "v.mp4")}))
+    (queue / "b2.json").write_text(json.dumps({"id": "b2", "platform": "x", "source": str(folder / "v.mp4")}))
+    monkeypatch.setenv("POSTQ_DIR", str(queue))
+    runs = []
+    monkeypatch.setattr(hands.subprocess, "run", lambda cmd, **_: runs.append(cmd[1:]) or
+                        types.SimpleNamespace(returncode=0, stdout="approved a1\n", stderr=""))
+    assert hands.postq_episode(str(folder), "meta") == "meta approved in postq, the extension posts it"
+    assert hands.postq_episode(str(folder), "tiktok") == "tiktok queued in postq"
+    assert runs == [["approve", "a1"], ["episode", str(folder), "--platforms", "tiktok", "--auto"]]
