@@ -703,3 +703,27 @@ def test_postq_tap_approves_an_already_queued_item(tmp_path, monkeypatch):
     assert hands.postq_episode(str(folder), "meta") == "meta: approved, the extension posts it now"
     assert hands.postq_episode(str(folder), "tiktok") == "tiktok: queued, the extension posts it now"
     assert runs == [["approve", "--now", "a1"], ["episode", str(folder), "--platforms", "tiktok", "--auto", "--now"]]
+
+
+def test_hands_claude_code_hands_over_to_codex_only_at_its_usage_limit(client, settings, tmp_path):
+    from museai.api.routes import hands
+
+    fake_cx, _ = fake_codex(tmp_path, "from codex")
+    claude = tmp_path / "claude"
+    claude.write_text("#!/bin/sh\necho \"$MODE\"\n[ \"$MODE\" = ok ] || exit 1\n")
+    claude.chmod(0o755)
+    settings.claude_bin, settings.codex_bin = str(claude), str(fake_cx)
+    settings.openai_api_key = settings.anthropic_api_key = ""
+    bots = hands.ChatBots(settings, client.app.state.services.gateway)
+    assert bots.current().id == "claude-code"  # the default agent
+    os.environ["MODE"] = "ok"
+    try:
+        assert asyncio.run(bots.reply([("user", "hi")])) [0].id == "claude-code"
+        os.environ["MODE"] = "Claude AI usage limit reached|1763290800"
+        provider, text = asyncio.run(bots.reply([("user", "hi")]))
+        assert provider.id == "codex" and text.endswith("from codex")
+        os.environ["MODE"] = "some other failure"
+        with pytest.raises(hands.InvalidRequest):
+            asyncio.run(bots.reply([("user", "hi")]))
+    finally:
+        os.environ.pop("MODE", None)
