@@ -535,11 +535,11 @@ def test_hands_status_dashboard_and_approve(client, admin, settings, monkeypatch
     tap("ch:chinese")  # the posts: Post + Delete per video, post-all across platforms below
     chan = last_edit()
     chan_buttons = btns(chan)
-    vid = next(b.split(":")[1] for b in chan_buttons if b.startswith("pk:"))
-    assert chan_buttons[:2] == [f"pk:{vid}:chinese", f"delq:{vid}:chinese"]
+    vid = next(b.split(":")[1] for b in chan_buttons if b.startswith("pp:"))
+    assert chan_buttons[0].startswith(f"pp:{vid}:chinese:") and f"delq:{vid}:chinese" in chan_buttons[:3]
     assert "apprq:chinese:all" in chan_buttons and "apprq:chinese:youtube" in chan_buttons
     assert all(len(b.encode()) <= 64 for b in chan_buttons)
-    tap(f"pk:{vid}:chinese")  # platform picker: every platform left is selected
+    tap(f"pk:{vid}:chinese")  # platform picker (still reachable): every platform left is selected
     pick = btns(last_edit())
     assert pick[0].startswith(f"pk:{vid}:chinese:") and pick[-2].startswith(f"pp:{vid}:chinese:")
     tap(pick[0])  # untick the first platform
