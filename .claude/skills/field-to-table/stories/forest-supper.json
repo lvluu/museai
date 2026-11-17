@@ -81,7 +81,7 @@
    "where": "woods",
    "time": "morning",
    "kind": "still",
-   "shot": "Wide view of the beech wood in the early mist from the path: tall grey trunks fading into the mist, copper leaves thick on the ground, nobody on the path.",
+   "shot": "Wide empty landscape of the beech wood in the early mist from the path, no woman and no person anywhere: tall grey trunks fading into the mist, copper leaves thick on the ground, the empty path.",
    "hold": 5.0,
    "chapter": true
   },
@@ -221,11 +221,8 @@
    "time": "morning",
    "outfit": "walk",
    "kind": "clip",
-   "shot": "Top-down close-up of the willow basket lined with blue-and-white checked cloth, a small handful of orange-yellow chanterelles in it; her hand lays one more chanterelle in.",
+   "shot": "Top-down close-up of a round willow basket lined with blue-and-white checked cloth standing on the copper beech leaves of the forest floor outdoors, a small handful of orange-yellow chanterelles in it; her hand lays one more chanterelle in.",
    "move": "Her hand lays the chanterelle in the basket and draws back out of frame; the others stay where they are.",
-   "props": [
-    "the basket"
-   ],
    "cuts": [
     [
      0.3,
@@ -419,11 +416,8 @@
    "where": "woods",
    "time": "morning",
    "kind": "still",
-   "shot": "Top-down close-up of the willow basket on the leaves: orange-yellow chanterelles, two fat brown ceps, a handful of hazelnuts and a small enamel cup of blackberries on the checked cloth.",
-   "hold": 4.0,
-   "props": [
-    "the basket"
-   ]
+   "shot": "Top-down close-up of a round willow basket lined with blue-and-white checked cloth standing on the copper beech leaves of the forest floor outdoors: orange-yellow chanterelles, two fat brown ceps, a handful of hazelnuts and a small enamel cup of blackberries on the cloth.",
+   "hold": 4.0
   },
   {
    "ch": 1,

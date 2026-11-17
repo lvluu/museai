@@ -112,3 +112,6 @@ From `../healing-longform/` lessons plus these:
   and "not browned" in every later beat with that food.
 - 2026-11-17: shared muse accounts gave 9 clips in 2 h, then `upstream_timeout` after 1800 s with progress 0: the
   video quota was gone. Compose with still fallbacks, deliver, recompose after the reset.
+- 2026-11-17 (forest-supper): a prop ref drags the shot to where the ref was shot (the basket ref on a worktop put
+  the forest basket indoors): outdoors, leave the prop out and describe it with the ground it stands on. The
+  opening empty wide still grew ELLIE's face: write "Wide empty landscape ..., no woman and no person anywhere".
