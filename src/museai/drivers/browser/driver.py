@@ -133,6 +133,29 @@ class BrowserDriver(MuseDriver):
         # start() attaches when Chromium still answers on the port, else relaunches it.
         ws_url = await self._chromium.start()
         self._browser = await CDPSession.connect(ws_url)
+        await self._dispose_orphan_contexts()
+
+    async def _dispose_orphan_contexts(self) -> None:
+        """Close every tab no live `_Tab` owns.
+
+        An attached Chromium keeps the contexts of earlier server runs and of tabs
+        dropped with a lost connection; left alone they pile up as renderers.
+        """
+        assert self._browser
+        owned = {tab.context_id for tab in self._all_tabs()}
+        try:
+            res = await self._browser.send("Target.getBrowserContexts")
+        except CDPError as exc:
+            log.warning("cannot list browser contexts: %s", exc)
+            return
+        orphans = [c for c in res.get("browserContextIds") or [] if c not in owned]
+        for context_id in orphans:
+            with contextlib.suppress(Exception):
+                await self._browser.send(
+                    "Target.disposeBrowserContext", {"browserContextId": context_id}
+                )
+        if orphans:
+            log.info("disposed %d orphan browser context(s)", len(orphans))
 
     def _browser_alive(self) -> bool:
         if self._browser is None or self._browser.closed:
@@ -164,13 +187,8 @@ class BrowserDriver(MuseDriver):
                 await self._browser.close()
             if proc and proc.returncode is not None:
                 self._chromium.proc = None
+            # Chromium may have survived the drop; _connect frees the contexts nobody owns now.
             await self._connect()
-            # Chromium may have survived the drop; free the contexts nobody owns now.
-            for tab in tabs:
-                with contextlib.suppress(Exception):
-                    await self._browser.send(
-                        "Target.disposeBrowserContext", {"browserContextId": tab.context_id}
-                    )
             log.info("browser driver reconnected")
 
     async def shutdown(self) -> None:

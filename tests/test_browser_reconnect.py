@@ -35,7 +35,13 @@ class FakeSession:
             raise CDPError("cdp connection closed")
         self.calls.append((method, params or {}))
         if method == "Target.createBrowserContext":
-            return {"browserContextId": f"ctx{next(_ids)}"}
+            context_id = f"ctx{next(_ids)}"
+            contexts.add(context_id)
+            return {"browserContextId": context_id}
+        if method == "Target.disposeBrowserContext":
+            contexts.discard(params["browserContextId"])
+        if method == "Target.getBrowserContexts":
+            return {"browserContextIds": sorted(contexts)}
         if method == "Target.createTarget":
             return {"targetId": f"tgt{next(_ids)}"}
         return {}
@@ -56,6 +62,7 @@ class FakeChromium:
 
     async def start(self) -> str:
         if self.proc is None:
+            contexts.clear()  # a fresh Chromium process has no contexts
             self.proc = FakeProc()
             self.launches += 1
         return f"ws://127.0.0.1:{self.port}/devtools/browser/b{self.launches}"
@@ -65,11 +72,14 @@ class FakeChromium:
 
 
 sessions: list[FakeSession] = []
+# Browser contexts alive in the fake Chromium process, across CDP connections.
+contexts: set[str] = set()
 
 
 @pytest.fixture
 async def driver(monkeypatch, tmp_path):
     sessions.clear()
+    contexts.clear()
     monkeypatch.setattr(driver_mod, "find_chromium", lambda configured="": "chromium")
     monkeypatch.setattr(driver_mod, "ChromiumProcess", FakeChromium)
     monkeypatch.setattr(driver_mod, "CDPSession", FakeSession)
@@ -114,6 +124,43 @@ async def test_next_job_reconnects_after_cdp_connection_closed(driver, account):
     hatch = [p["value"] for m, p in tab.session.calls if p.get("name") == "hatch_sess"]
     assert hatch == ["v1:abc", "v1:abc"]  # URL-decoded on both domains
     assert (await driver.health())["ok"] is True
+
+
+async def test_startup_disposes_contexts_left_by_an_earlier_run(monkeypatch, tmp_path, account):
+    sessions.clear()
+    monkeypatch.setattr(driver_mod, "find_chromium", lambda configured="": "chromium")
+    monkeypatch.setattr(driver_mod, "CDPSession", FakeSession)
+
+    class AttachedChromium(FakeChromium):
+        """Chromium of an earlier server run still answers on the port."""
+
+        async def start(self) -> str:
+            if self.proc is None:
+                self.proc = FakeProc()
+                self.launches += 1
+            return f"ws://127.0.0.1:{self.port}/devtools/browser/b{self.launches}"
+
+    monkeypatch.setattr(driver_mod, "ChromiumProcess", AttachedChromium)
+    contexts.clear()
+    contexts.update({"old1", "old2"})
+    drv = BrowserDriver(Settings(_env_file=None, data_dir=tmp_path, driver="browser"))
+
+    await drv.startup()
+    tab = await drv._tab(account)
+
+    assert contexts == {tab.context_id}
+    await drv.shutdown()
+
+
+async def test_tab_closed_while_disconnected_is_disposed_on_reconnect(driver, account):
+    lost = await driver._tab(account)
+    driver._browser.closed = True
+    await driver._close_tab(lost)  # job failed while the socket was down: no Target.* sent
+    assert lost.context_id in contexts
+
+    tab = await driver._tab(account)
+
+    assert contexts == {tab.context_id}
 
 
 async def test_next_job_relaunches_chromium_after_it_exited(driver, account):
