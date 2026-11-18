@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Usage: shot "brief" out.mp4
+# One slow, sharp nature shot (STYLE=travel, 9:16, 7 s) through muse-video with ../prompt/nature.txt appended.
+# One line per shot in a jobs file for ../../muse-video/scripts/render-queue (one at a time).
+# Env: LIGHT="..." (plan.py prints one per shot), MOVE="..." (plan.py prints one per shot),
+#      DURATION=7, IMAGE=first_frame.png, RETAKE=1, SIZE=9:16
+set -euo pipefail
+SKILL_DIR=$(cd "$(dirname "$(readlink -f "$0")")/.." && pwd)
+MUSE_VIDEO="$SKILL_DIR/../muse-video/scripts/muse-video"
+brief=$1
+out=$(cd "$(dirname "$2")" && pwd)/$(basename "$2")
+light=${LIGHT:-Soft clear daylight, sun well above the horizon, crisp clean air}
+move=${MOVE:-a slow forward glide}
+pace="a stabilised camera doing ${move}, at a slow walking pace and one constant speed for the whole clip, already moving in the first frame, never stopping, speeding up or changing direction. Calm, steady and razor sharp."
+rules=$(cat "$SKILL_DIR/prompt/nature.txt")
+rules=${rules//\{LIGHT\}/$light}
+rules=${rules//\{PACE\}/$pace}
+prompt="$brief
+
+$rules"
+STYLE=travel SIZE=${SIZE:-9:16} DURATION=${DURATION:-7} OUT_NAME=$(basename "$out") NO_OPEN=1 \
+  "$MUSE_VIDEO" "$prompt" "$(dirname "$out")"

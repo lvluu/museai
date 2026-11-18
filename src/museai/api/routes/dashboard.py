@@ -16,6 +16,7 @@ from fastapi.responses import FileResponse
 
 from ...accounts.keepalive import renew_account
 from ...accounts.model import Account, AccountStatus
+from ...core.renderer import job_file, renderer_status
 from ...core.system import cpu_load
 from ...errors import InvalidRequest, NotFound
 from ...services.container import Services
@@ -98,6 +99,7 @@ async def upload_cookies(account_id: str, request: Request,
         raise InvalidRequest(f"export is missing session cookies: {', '.join(missing)}")
     acc.cookies, acc.cookie_expires = cookies, expires
     acc.status, acc.cooldown_until, acc.last_error = AccountStatus.ACTIVE, 0.0, None
+    acc.video_blocked_until = 0.0
     await svc.pool.upsert(acc)
     # Also drops the account's open tab, so the next job uses the new cookies.
     check = await renew_account(svc.pool, svc.driver, account_id)
@@ -209,4 +211,16 @@ async def dashboard_data(limit: int = 1000, svc: Services = Depends(get_services
         "usage": {a.id: usage_estimate(a, videos) for a in accounts},
         "videos": [t.model_dump(mode="json") for t in videos],
         "system": await asyncio.to_thread(cpu_load),
+        "renderer": await asyncio.to_thread(renderer_status, svc.settings.render_drive)
+        if svc.settings.render_drive else None,
     }
+
+
+@router.get("/dashboard/renderer/{job_id}/{name}", include_in_schema=False,
+            dependencies=[Depends(_local_or_admin)])
+async def renderer_file(job_id: str, name: str, svc: Services = Depends(get_services)) -> FileResponse:
+    """An output file of a finished (or failed) job on the Colab render queue."""
+    path = await asyncio.to_thread(job_file, svc.settings.render_drive, job_id, name)
+    if path is None:
+        raise NotFound("file not found")
+    return FileResponse(path)

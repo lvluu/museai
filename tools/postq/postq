@@ -70,6 +70,8 @@ SERIES = {
                 "meta": {"account": "Chinese Everyday For Everyone", "business_id": "1310575373049632",
                          "asset_id": "102602519330709"},
                 "playlist": "Hội Thoại Tiếng Trung",
+                # Cẩm Tú Nhân Sinh episodes (named in the folder / video file) go to the film playlist.
+                "playlist_by_name": {"Cẩm Tú Nhân Sinh": "Học tiếng Trung qua phim"},
                 "related": "latest:Tập", "tz": "Asia/Ho_Chi_Minh", "channel": "chinese",
                 # No thumbnail in the folder: muse renders the scene, the thumbnail skill lays out the text.
                 "thumb": {"style": "chinese", "sub": "Nói sao bằng tiếng Trung?",
@@ -114,6 +116,62 @@ def queue_lock():
     with (ROOT / ".lock").open("w") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         yield
+
+
+@contextmanager
+def enqueue_lock():
+    ROOT.mkdir(parents=True, exist_ok=True)
+    with (ROOT / ".enqueue.lock").open("w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        yield
+
+
+def retire_duplicates():
+    """Archive second queue items of one video (same platform, account and file name): one card per video.
+
+    The one kept is the one already uploading (claimed or with a video_id), else approved, else the oldest.
+    The others move to done/ with status "duplicate". Returns their ids."""
+    with queue_lock():
+        groups = {}
+        for p in sorted(ROOT.glob("*.json")):
+            try:
+                i = json.loads(p.read_text())
+            except (OSError, ValueError):
+                continue
+            k = (i.get("platform"), i.get("account"), Path(i.get("source") or i["id"]).name)
+            groups.setdefault(k, []).append((p, i))
+        gone = []
+        for items in groups.values():
+            busy = lambda pi: bool(pi[1].get("video_id") or pi[0].with_suffix(".claim").is_file())  # noqa: E731
+            items.sort(key=lambda pi: (not busy(pi), not pi[1].get("auto"), pi[1]["id"]))
+            for p, i in items[1:]:
+                if busy((p, i)):
+                    continue  # two uploads already running: leave both to finish
+                DONE.mkdir(exist_ok=True)
+                (DONE / p.name).write_text(json.dumps(i | {"status": "duplicate", "duplicate_of": items[0][1]["id"]},
+                                                      indent=2, ensure_ascii=False))
+                p.unlink()
+                for media in (i.get("video"), i.get("cover")):
+                    if media and (ROOT / media["file"]).is_file():
+                        (ROOT / media["file"]).replace(DONE / media["file"])
+                gone.append(i["id"])
+    return gone
+
+
+@contextmanager
+def sync_lock():
+    """True while this process alone syncs; False when another sync already runs.
+
+    The gateway syncs every minute and a manual `postq sync` can overlap it: both read the queue
+    before either writes, so the same video went in twice."""
+    ROOT.mkdir(parents=True, exist_ok=True)
+    with (ROOT / ".sync.lock").open("w") as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            yield False
+            return
+        yield True
 
 
 def server_running():
@@ -242,7 +300,40 @@ def stage(src, item_id, role, suffixes):
         sys.exit(f"{src.name}: {role} must be one of {' '.join(sorted(suffixes))}")
     name = f"{item_id}-{role}{src.suffix.lower()}"
     shutil.copyfile(src, ROOT / name)
-    return {"file": name, "name": src.name, "size": src.stat().st_size}
+    # The copy's size, not the source's: a source rewritten during the copy (a cover re-rendered by a
+    # running sync) left a size the queued file does not have, and the extension's transfer broke on it.
+    return {"file": name, "name": src.name, "size": (ROOT / name).stat().st_size}
+
+
+def retire_renamed(source, platform, account):
+    """Archive pending items of this video whose folder was renamed since they were queued.
+
+    Renumbering or rescheduling a Desktop folder changes the source path, so the next sync queued
+    the same video again and the old item stayed. An item counts as the same video when platform,
+    account and file name match and its old path is gone. Items already uploading (claimed or with
+    a video_id) stay. Returns the ids moved to done/ with status "superseded"."""
+    name = Path(source).name
+    gone = []
+    with queue_lock():
+        for p in ROOT.glob("*.json"):
+            try:
+                i = json.loads(p.read_text())
+            except (OSError, ValueError):
+                continue
+            old = i.get("source") or ""
+            if (old == source or Path(old).name != name or i.get("platform") != platform
+                    or i.get("account") != account or Path(old).exists()
+                    or i.get("video_id") or p.with_suffix(".claim").is_file()):
+                continue
+            DONE.mkdir(exist_ok=True)
+            (DONE / p.name).write_text(json.dumps(i | {"status": "superseded", "superseded_by": source},
+                                                  indent=2, ensure_ascii=False))
+            p.unlink()
+            for media in (i.get("video"), i.get("cover")):
+                if media and (ROOT / media["file"]).is_file():
+                    (ROOT / media["file"]).replace(DONE / media["file"])
+            gone.append(i["id"])
+    return gone
 
 
 def enqueue(a):
@@ -253,7 +344,22 @@ def enqueue(a):
     if errors:
         sys.exit("\n".join(errors))
     source = str(Path(a.file).expanduser().resolve())
-    if any(i.get("source") == source and i["platform"] == a.platform for i in pending()):
+    retire_renamed(source, a.platform, a.account)
+    # Check and write under one lock: two callers (the gateway's sync, a Telegram tap, `postq episode`)
+    # each passed the check before either wrote, and the popup showed one video twice. Its own lock:
+    # staging copies the video, and the queue server must not wait on that.
+    with enqueue_lock():
+        return _enqueue(a, caption, tags, when, source)
+
+
+def same_video(i, platform, account, source):
+    """The stable key of a queued post: platform, account and the video's file name (its folder may be renamed)."""
+    return (i.get("platform") == platform and i.get("account") == account
+            and Path(i.get("source") or "").name == Path(source).name)
+
+
+def _enqueue(a, caption, tags, when, source):
+    if any(same_video(i, a.platform, a.account, source) for i in pending()):
         sys.exit(f"already queued for {a.platform}: {source}")
     # Posted before (the dashboard tick can lag or miss): never a second copy on the same account.
     for f in (ROOT / "done").glob("*.json"):
@@ -295,13 +401,42 @@ def enqueue(a):
     return item_id
 
 
+_ITEMS = {}  # path -> (mtime_ns, size, item); read-only callers share the dicts
+
+
+def read_item(p):
+    """Parsed item JSON, re-read only when the file changed: opening a file costs ~7 ms on this Mac
+    (endpoint scanner), so re-reading ~800 items on every popup poll took 2-13 s and the list never opened."""
+    st = p.stat()
+    hit = _ITEMS.get(p)
+    if hit and hit[:2] == (st.st_mtime_ns, st.st_size):
+        return hit[2]
+    item = json.loads(p.read_text())
+    _ITEMS[p] = (st.st_mtime_ns, st.st_size, item)
+    return item
+
+
+def with_disk_sizes(item):
+    """The extension pulls media in ranges up to `size`: give it the queued file's real size."""
+    for role in ("video", "cover"):
+        m = item.get(role)
+        if isinstance(m, dict) and m.get("file") and (f := ROOT / m["file"]).is_file():
+            m["size"] = f.stat().st_size
+    return item
+
+
 def pending():
     # Studio switches channel for the whole login, so YouTube posts one channel at a time: the
     # channel of the last finished YouTube post stays first until it is done. Business Suite and X
     # pick the account per post (no switch cost), so they go between, earliest slot first.
-    items = [json.loads(p.read_text()) for p in ROOT.glob("*.json")]
+    items = []
+    for p in ROOT.glob("*.json"):
+        try:
+            items.append(with_disk_sizes(read_item(p)))
+        except (OSError, ValueError):  # archived or half-written between glob and read: next poll has it
+            continue
     yt_done = sorted((d for d in (ROOT / "done").glob("*.json")), key=lambda p: p.stat().st_mtime)
-    cur = next((a for a in (json.loads(p.read_text()) for p in reversed(yt_done))
+    cur = next((a for a in (read_item(p) for p in reversed(yt_done))
                 if a.get("platform") == "youtube"), {}).get("account")
 
     def key(i):
@@ -349,8 +484,12 @@ def caption_playlist(text):
     return m[1].strip() if m else None
 
 
-def channel_playlist(series, name):
-    """The episode's playlist as named on the channel: captions.txt's, through the series' renames."""
+def channel_playlist(series, name, video_name=""):
+    """The episode's playlist as named on the channel: captions.txt's, through the series' renames.
+    ``playlist_by_name``: a series' videos whose file name holds the key go to that playlist."""
+    for key, playlist in series.get("playlist_by_name", {}).items():
+        if key.lower() in video_name.lower():
+            return playlist
     if not name:
         return series.get("playlist")
     bare = re.sub(r"[^\w&,' ]", "", name).strip()  # without the emoji the dashboard adds
@@ -622,10 +761,10 @@ def cmd_episode(a):
             platform=platform, targets=p["targets"], file=str(videos[0]), caption_ig=p.get("caption_ig"),
             account=series.get(f"{platform}_account") or meta.get("account", series["account"]),
             asset={k: meta[k] for k in ("business_id", "asset_id") if k in meta} or None,
-            cover=str(covers[0]) if covers and platform == "meta" else None, title=p.get("title"),  # Meta gets the cover; the others keep the platform's own thumbnail (custom one parked in COVERS_DIR)
+            cover=str(covers[0]) if covers and platform in ("meta", "youtube") else None, title=p.get("title"),  # Meta and YouTube get the cover; the others keep the platform's own thumbnail (a copy is parked in COVERS_DIR)
             caption=p["caption"], tags=None, at=p["at"], tz=series["tz"], visibility="public",
-            made_for_kids=False, dry_run=a.dry_run, auto=a.auto,
-            playlist=channel_playlist(series, caption_playlist(cap_text)) if platform == "youtube" else None,
+            made_for_kids=False, dry_run=a.dry_run, auto=a.auto, now=getattr(a, "now", False),
+            playlist=channel_playlist(series, caption_playlist(cap_text), videos[0].name) if platform == "youtube" else None,
             channel=series.get("channel"),
             related=(a.related or series.get("related")) if platform == "youtube" else None)
         try:
@@ -763,7 +902,7 @@ class Handler(BaseHTTPRequestHandler):
             ids = {}
             for p in [*ROOT.glob("*.json"), *DONE.glob("*.json")]:
                 try:
-                    d = json.loads(p.read_text())
+                    d = read_item(p)
                 except (OSError, ValueError):
                     continue
                 if d.get("platform") != "youtube":
@@ -870,6 +1009,103 @@ class Handler(BaseHTTPRequestHandler):
         pass
 
 
+META_AHEAD = timedelta(days=28) - timedelta(minutes=10)  # Business Suite schedules at most 28 days out
+BOX_PLATFORM = {"youtube": "youtube", "facebook": "meta", "instagram": "meta", "x": "x", "tiktok": "tiktok"}
+
+
+def open_boxes(v, feed):
+    """The video's platforms still to post. A gateway started before the feed had `open` sends none:
+    then it is what the dashboard page shows unticked, the channel's platforms minus the posted ones."""
+    if isinstance(v.get("open"), list):
+        return v["open"]
+    chans = {c.get("id"): c.get("platforms") for c in feed.get("channels") or []}
+    plats = chans.get(v.get("channel")) or [p.get("id") if isinstance(p, dict) else p for p in feed.get("platforms") or []]
+    return [p for p in plats if not (v.get("posted") or {}).get(p)]
+
+
+def retire_gone(feed):
+    """Archive pending items whose video left the dashboard and whose folder is gone (posted, then trashed).
+
+    Their cards never show (the popup follows the dashboard), but they stayed in the queue for good.
+    Items already uploading (claimed or with a video_id) stay. Returns the ids moved to done/ with
+    status "gone"."""
+    if not isinstance(feed.get("videos"), list):
+        return []
+    listed = {v.get("name") for v in feed["videos"]}
+    gone = []
+    with queue_lock():
+        for p in ROOT.glob("*.json"):
+            try:
+                i = json.loads(p.read_text())
+            except (OSError, ValueError):
+                continue
+            src = i.get("source") or ""
+            if ((i.get("video") or {}).get("name") in listed or not src or Path(src).exists()
+                    or i.get("video_id") or p.with_suffix(".claim").is_file()):
+                continue
+            DONE.mkdir(exist_ok=True)
+            (DONE / p.name).write_text(json.dumps(i | {"status": "gone"}, indent=2, ensure_ascii=False))
+            p.unlink()
+            for media in (i.get("video"), i.get("cover")):
+                if media and (ROOT / media["file"]).is_file():
+                    (ROOT / media["file"]).replace(DONE / media["file"])
+            gone.append(i["id"])
+    return gone
+
+
+def sync_dashboard(now=None, fetch=None):
+    """Queue every video the dashboard still lists as open that has no queue item yet.
+
+    The dashboard (folders with a .museai-post marker) is the source of truth: each platform in a
+    video's `open` list (the dashboard leaves out ticked ones and those outside the channel's own list,
+    Healing: no X/TikTok/Threads) gets its queue item here, `enqueue` dedupes by source + platform. Meta slots beyond the
+    28-day window wait and enter the queue by themselves once inside it. Returns episode folders queued."""
+    now = now or datetime.now(timezone.utc)
+    try:
+        d = fetch() if fetch else json.load(urllib.request.urlopen(f"{MUSEAI_BASE}/dashboard/posts", timeout=10))
+    except Exception:
+        return []
+    for iid in retire_gone(d):
+        print(f"gone from the dashboard, archived {iid}", flush=True)
+    done = []
+    for v in d.get("videos", []):
+        f = Path(v["folder"]) if v.get("folder") else None  # the dashboard names the folder: launchd's python may not read ~/Desktop
+        if not f or not v.get("slot"):
+            continue
+        want = []
+        for box in open_boxes(v, d):  # the dashboard's own list of platforms still to post
+            plat = BOX_PLATFORM.get(box)
+            if not plat or plat in want:
+                continue
+            if plat == "meta":
+                at = (v.get("schedule") or {}).get("facebook") or (v.get("schedule") or {}).get("instagram")
+                if at and datetime.fromisoformat(at) - now > META_AHEAD:
+                    continue
+            want.append(plat)
+        if want:
+            try:
+                cmd_episode(argparse.Namespace(dir=str(f), platforms=want, at=None, related=None, dry_run=False,
+                                               auto=False, now=False, no_render=True))
+                done.append(f.name)
+            except SystemExit:
+                pass  # a platform's limit or an already queued item: the others still went through
+            except Exception as e:
+                print(f"sync {f.name}: {e}", file=sys.stderr, flush=True)
+    return done
+
+
+def cmd_sync(_):
+    """One sync pass. The museai gateway runs this every minute: launchd's python cannot read ~/Desktop."""
+    with sync_lock() as mine:
+        if not mine:
+            print("another sync is running, skipped")
+            return
+        for iid in retire_duplicates():
+            print(f"duplicate archived {iid}")
+        for name in sync_dashboard():
+            print(f"queued {name}")
+
+
 def cmd_serve(_):
     ROOT.mkdir(parents=True, exist_ok=True)
     print(f"postq serving {ROOT} on http://127.0.0.1:{PORT}", flush=True)
@@ -923,11 +1159,12 @@ def main():
     sub.add_parser("list")
     sub.add_parser("results")
     sub.add_parser("serve")
+    sub.add_parser("sync", help="queue every open dashboard video that has no queue item")
     wait = sub.add_parser("wait")
     wait.add_argument("ids", nargs="*")
     wait.add_argument("--timeout", type=float, default=0)
     a = ap.parse_args()
-    {"add": cmd_add, "list": cmd_list, "results": cmd_results, "serve": cmd_serve, "wait": cmd_wait,
+    {"add": cmd_add, "list": cmd_list, "results": cmd_results, "serve": cmd_serve, "sync": cmd_sync, "wait": cmd_wait,
      "approve": cmd_approve, "episode": cmd_episode,
      "episodes": cmd_episodes}[a.cmd](a)
 

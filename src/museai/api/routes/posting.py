@@ -135,9 +135,9 @@ TRAVEL_NAME = re.compile(r"^(zoom|reel|scenic|scenery|drop|travel|nostalgia|gown
 # Threads are daytime platforms (mornings and noon best, evenings worst), so they never mirror the
 # evening reel slots; TikTok gets 15 minutes' head start on its peak (its first test audience arrives
 # with the peak). Chinese posts two a day at its own times, 12:00 and 18:30 GMT+7 on every platform
-# (user rule 2026-11-05).
+# (user rule 2026-11-05); no X or Threads (user rule 2026-11-17).
 TIMES = {
-    "chinese": {p: ["12:00 18:30"] * 7 for p in ("youtube", "tiktok", "facebook", "instagram", "x", "threads")},
+    "chinese": {p: ["12:00 18:30"] * 7 for p in ("youtube", "tiktok", "facebook", "instagram")},
     # GMT+7 (user rule 2026-11-05), one plan for Travel, Dream life and Healing. Slot 1, 07:00 (00 UTC):
     # New York 19 h, Los Angeles 16 h, São Paulo 21 h, Tokyo 09 h, Vietnam 07 h. Slot 2, 19:00 (12 UTC):
     # London 12 h, Berlin 13 h, India 17:30, Vietnam 19 h, Tokyo 21 h. Every platform at the same time.
@@ -146,7 +146,9 @@ TIMES = {
     # change a Short's long-term reach: the opening shot and retention matter more.
     "travel": {p: ["07:00 19:00"] * 7 for p in ("youtube", "tiktok", "facebook", "instagram", "x", "threads")},
 }  # fmt: skip
-TIMES["dream"] = TIMES["healing"] = TIMES["english"] = TIMES["travel"]
+TIMES["dream"] = TIMES["english"] = TIMES["travel"]
+# Healing posts only to YouTube, Facebook and Instagram (user rule 2026-11-16): no X, TikTok or Threads.
+TIMES["healing"] = {p: t for p, t in TIMES["travel"].items() if p in ("youtube", "facebook", "instagram")}
 SLOT_KEY = re.compile(r"^(\d{4}-\d{2}-\d{2})/([1-4])$")
 FOLDER_MARK = ".museai-post"  # marks a folder this module made for one video
 SETTLE = 30  # seconds a video must sit unchanged before it moves (deliver.sh may still be copying it)
@@ -410,7 +412,11 @@ def _view(path: Path, entry: dict, svc: Services) -> dict:
     return {"name": path.name, "size": st.st_size, "mtime": st.st_mtime,
             "caption": entry.get("caption", ""), "captions": entry.get("captions", {}),
             "auto_captions": svc.captions.status(_key(path.name)),
+            "folder": str(path.parent) if (path.parent / FOLDER_MARK).is_file() else None,  # postq reads no Desktop itself
             "posted": entry.get("posted", {}), "slot": key, "channel": _channel(path.name, entry),
+            # Platforms still to post, in the channel's own list (Healing: no X/TikTok/Threads). postq's
+            # sync and its popup read this, so all three show the same "ready to post" list.
+            "open": [p for p in TIMES[_channel(path.name, entry)] if not entry.get("posted", {}).get(p)],
             "playlist": _playlist(path.name, entry),
             "thumbnails": [{"kind": k, "use": THUMBS[k], "v": int(t.stat().st_mtime)}  # v: new URL when replaced
                            for k, t in _thumbs(path).items()],
@@ -599,7 +605,7 @@ async def list_posts(svc: Services = Depends(get_services)) -> dict:
     return {
         "folder": str(folder),
         "timezone": "GMT+7",
-        "channels": [{"id": k, "name": n, "focus": f} for k, (n, f) in CHANNELS.items()],
+        "channels": [{"id": k, "name": n, "focus": f, "platforms": list(TIMES[k])} for k, (n, f) in CHANNELS.items()],
         "platforms": [{"id": k, "name": n, "url": u, "limit": lim}
                       for k, (n, u, lim) in PLATFORMS.items()],
         # Cards in posting order: the next slot first.
@@ -681,7 +687,7 @@ def _update(svc: Services, path: Path, body: dict) -> dict:
             posted[platform] = time.time()
         else:
             posted.pop(platform, None)
-    done = body.get("done") or set(entry.get("posted", {})) >= set(PLATFORMS)
+    done = body.get("done") or set(entry.get("posted", {})) >= set(TIMES[_channel(name, entry)])
     if done:
         if (path.parent / FOLDER_MARK).is_file():
             _trash(path.parent)

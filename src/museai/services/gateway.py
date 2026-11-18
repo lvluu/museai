@@ -13,13 +13,13 @@ from typing import TypeVar
 from ..accounts.model import Account, AccountStatus
 from ..accounts.pool import AccountPool, Lease
 from ..drivers.base import ChatRequest, ImageRequest, MediaResult, MuseDriver, VideoRequest
-from ..errors import GenerationTimeout, UpstreamError
+from ..errors import GenerationTimeout, UpstreamError, UpstreamQuotaError, VideoLimitReached
 
 log = logging.getLogger(__name__)
 T = TypeVar("T")
 
 # A failover with less render time left than this is not started.
-MIN_VIDEO_ATTEMPT = 120.0
+MIN_VIDEO_ATTEMPT = 420.0  # a render takes 1-7 min: a retry with less left only fails later with a timeout
 
 _ANONYMOUS = Account(id="anonymous", label="driver without accounts")
 
@@ -55,12 +55,14 @@ class Gateway:
     async def _lease(
         self, exclude: list[str], hint: str | None, timeout: float | None = None,
         owner: str | None = None, kind: str = "chat", prompt: str = "",
+        avoid: list[str] | None = None,
     ) -> AsyncIterator[Lease]:
         if not self.driver.requires_account and not self.pool.all():
             yield Lease(_ANONYMOUS)
             return
         async with self.pool.lease(exclude=exclude, hint=hint, timeout=timeout,
-                                   owner=owner) as lease:
+                                   owner=owner, avoid=avoid or (),
+                                   video=kind == "video") as lease:
             job = {"kind": kind, "prompt": prompt[:200], "since": time.time()}
             jobs = self.jobs.setdefault(lease.account.id, [])
             jobs.append(job)
@@ -80,13 +82,19 @@ class Gateway:
             for a in accounts
         )
 
-    def _stuck_accounts(self, tried: list[str]) -> list[str]:
-        """Accounts whose last render timed out, skipped only while another usable one is left."""
+    def _blocks_account(self, exc: UpstreamError, kind: str) -> bool:
+        """Whether releasing the lease with ``exc`` keeps ``kind`` jobs off the account for a
+        while: out of quota (cooling), or at its video limit for a video job."""
+        if isinstance(exc, VideoLimitReached):
+            return kind == "video" and self.pool.video_limit_cooldown > 0
+        return isinstance(exc, UpstreamQuotaError) and self.pool.quota_cooldown > 0
+
+    def _stuck_accounts(self) -> list[str]:
+        """Accounts whose last render timed out. The pool takes them only
+        when no other account has a free slot, so a job never waits for a busy healthy account
+        while a stuck one sits idle."""
         now = time.monotonic()
-        usable = [a.id for a in self.pool.all()
-                  if a.enabled and a.status != AccountStatus.INVALID and a.id not in tried]
-        stuck = [i for i in usable if self._stuck_until.get(i, 0) > now]
-        return stuck if len(stuck) < len(usable) else []
+        return [i for i, until in self._stuck_until.items() if until > now]
 
     async def chat_stream(self, req: ChatRequest) -> AsyncIterator[str]:
         tried: list[str] = []
@@ -123,16 +131,24 @@ class Gateway:
         time_left: Callable[[], float] = lambda: math.inf,
     ) -> T:
         tried: list[str] = []
-        for attempt in range(self.max_failover + 1):
-            avoid = self._stuck_accounts(tried) if kind == "video" else []
-            async with self._lease(tried + avoid, hint, queue_timeout, owner, kind,
-                                   prompt) as lease:
+        attempt = 0
+        while True:
+            avoid = self._stuck_accounts() if kind == "video" else []
+            async with self._lease(tried, hint, queue_timeout, owner, kind, prompt,
+                                   avoid) as lease:
                 if on_account:
                     on_account(lease.account)
                 try:
                     return await fn(lease.account)
                 except UpstreamError as exc:
                     lease.fail(exc)
+                    if self._blocks_account(exc, kind):
+                        # Out of quota or at the video limit: releasing the lease blocks the
+                        # account, so the job moves to a ready one. Not a failure of the job:
+                        # with every account blocked it waits for the first to come back.
+                        log.warning("%s: %s is out of quota (%s), moving the job to another account",
+                                    kind, lease.account.id, exc)
+                        continue
                     tried.append(lease.account.id)
                     if kind == "video" and isinstance(exc, GenerationTimeout):
                         self._stuck_until[lease.account.id] = (
@@ -144,7 +160,7 @@ class Gateway:
                                     kind, lease.account.id, exc)
                         raise
                     log.warning("call failed on %s (%s), failing over", lease.account.id, exc)
-        raise AssertionError("unreachable")
+                    attempt += 1
 
     async def generate_image(self, req: ImageRequest) -> list[MediaResult]:
         return await self._run(

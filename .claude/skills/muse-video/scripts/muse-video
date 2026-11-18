@@ -67,14 +67,17 @@ for attempt in $(seq 1 "${RETRIES:-15}"); do
   if task=$(curl -sf -X POST "$BASE/v1/videos" -H "Authorization: Bearer $KEY" -H "Content-Type: application/json" -H "X-Muse-Session: ${MUSE_SESSION:-${CLAUDE_CODE_SESSION_ID:-}}" ${RETAKE:+-H "X-Muse-Retake: 1"} --data-binary "@$body_file"); then
     id=$(python3 -c 'import json,sys; print(json.load(sys.stdin)["id"])' <<<"$task")
     echo "task $id submitted (attempt $attempt)"
-    lost=
+    lost=0
     while true; do
       sleep 5
       st=$(curl -sf "$BASE/v1/videos/$id" -H "Authorization: Bearer $KEY" || echo '{"status":"poll_error"}')
       read -r status progress url err < <(python3 -c 'import json,sys; d=json.load(sys.stdin); r=d.get("result") or {}; print(d["status"], d.get("progress"), r.get("url","-"), json.dumps(d.get("error")).replace(" ","_"))' <<<"$st")
       echo "$(date +%T) $status progress=$progress"
       case "$status" in
-        poll_error) lost=1 ;;
+        # a restarted server forgets the task: its id answers 404 forever, so after POLL_LOST failed polls
+        # (default 60, 5 min) count it as interrupted and resubmit instead of polling a dead id until killed
+        poll_error) lost=$((lost + 1))
+          if [ "$lost" -ge "${POLL_LOST:-60}" ]; then echo "FAILED interrupted (task $id lost)"; err=interrupted; break; fi ;;
         succeeded)
           file="$OUT_DIR/${OUT_NAME:-$(basename "$url")}"
           curl -sf "$url" -H "Authorization: Bearer $KEY" -o "$file"
@@ -84,7 +87,7 @@ for attempt in $(seq 1 "${RETRIES:-15}"); do
           exit 0 ;;
         failed|cancelled)
           # a restarted server cancels its running tasks (EP10: poll errors, then "cancelled" with no error)
-          [ "$status" = cancelled ] && [ -n "$lost" ] && err=interrupted
+          [ "$status" = cancelled ] && [ "$lost" -gt 0 ] && err=interrupted
           echo "FAILED $err"; break ;;
       esac
     done

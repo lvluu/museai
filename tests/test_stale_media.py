@@ -18,7 +18,7 @@ def test_wait_media_skips_media_returned_before(monkeypatch):
     # appears on /thread/new, and only later the new one.
     states = iter([{"attachments": [old]}, {"attachments": [old]}, {"attachments": [old, new]}])
 
-    async def fake_state(_tab):
+    async def fake_state(_tab, *_a, **_k):
         return next(states)
 
     monkeypatch.setattr(drv, "_state", fake_state)

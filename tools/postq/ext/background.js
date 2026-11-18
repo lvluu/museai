@@ -1,4 +1,6 @@
+importScripts('follow.js'); // followDashboard: the badge counts the popup's list, the dashboard's "Ready to post"
 const QUEUE = 'http://127.0.0.1:8766';
+const DASH = 'http://127.0.0.1:18610/dashboard/posts';
 const CHUNK = 4 * 1024 * 1024; // bytes per executeScript call while moving a video into the tab
 const UPLOAD_TIMEOUT_MS = 60 * 60 * 1000;
 const log = (...args) => console.debug('[post-approve]', ...args);
@@ -26,7 +28,12 @@ async function refreshBadge() {
   try {
     // The header tells the queue server the extension is alive (`postq approve` warns when it is not).
     const items = await (await fetch(`${QUEUE}/api/items`, { headers: { 'X-Postq-Poller': chrome.runtime.getManifest().version } })).json();
-    chrome.action.setBadgeText({ text: items.length ? String(items.length) : '' });
+    let shown = items;
+    try {
+      const feed = await (await fetch(DASH, { signal: AbortSignal.timeout(4000) })).json();
+      if (Array.isArray(feed.videos)) shown = followDashboard(items, dashboardVideos(feed)).items;
+    } catch { /* dashboard down: count the whole queue */ }
+    chrome.action.setBadgeText({ text: shown.length ? String(shown.length) : '' });
     chrome.action.setBadgeBackgroundColor({ color: '#cc0000' });
     autoPost(items);
   } catch {
@@ -202,18 +209,21 @@ function page(tabId, platform, adapter) {
   }
   // Pull the file from the queue server in ranges and hand it to the page chunk by chunk.
   async function send(slot, media, onPct) {
-    for (let start = 0; start < media.size; start += CHUNK) {
-      const end = Math.min(start + CHUNK, media.size) - 1;
-      const res = await fetch(`${QUEUE}/media/${media.file}`, { headers: { Range: `bytes=${start}-${end}` } });
+    // The file's real size comes back in Content-Range: a queue item's recorded size can be stale.
+    let size = media.size;
+    for (let start = 0; start < size; start += CHUNK) {
+      const res = await fetch(`${QUEUE}/media/${media.file}`, { headers: { Range: `bytes=${start}-${Math.min(start + CHUNK, size) - 1}` } });
       if (res.status !== 206) throw new Error(`queue server answered ${res.status} for ${media.file}`);
+      size = Number((res.headers.get('Content-Range') || '').split('/')[1]) || size;
       const bytes = new Uint8Array(await res.arrayBuffer());
+      const end = start + bytes.length - 1;
       let bin = '';
       for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + 0x8000));
       const got = await chrome.scripting.executeScript({
-        target: { tabId }, func: (s, b) => globalThis.postqLib.chunk(s, b), args: [slot, btoa(bin)],
+        target: { tabId }, func: (s, b, f) => globalThis.postqLib.chunk(s, b, f), args: [slot, btoa(bin), start === 0],
       });
       if (got[0].result !== end + 1) throw new Error(`${slot} transfer broke at byte ${start}`);
-      onPct?.(Math.round(((end + 1) / media.size) * 100));
+      onPct?.(Math.round(((end + 1) / size) * 100));
     }
   }
   // Load another page in the same tab and re-inject (status reads 'complete' until the new load starts).
@@ -515,12 +525,17 @@ async function metaFlow(stored, pg) {
   if (item.cover) {
     await say('Moving thumbnail into the tab…');
     await pg.send('cover', item.cover, (p) => say(`Moving thumbnail into the tab ${p}%`));
-    await pg.step('setCover', item.cover.name, mimeOf(item.cover.file));
+    try {
+      await pg.step('setCover', item.cover.name, mimeOf(item.cover.file));
+    } catch (e) {
+      await say(`Thumbnail skipped (Meta default used): ${e.message}`.slice(0, 300));
+    }
   }
   const captions = await pg.step('fill', item);
   await pg.step('checkCaptions', item);
   await pg.step('toShare');
-  const sch = await pg.step('schedule', metaWhen(when), item.tz);
+  const at = metaWhen(when);
+  const sch = await pg.step('schedule', at, item.tz);
   const { story } = await pg.step('extras');
   const note = [
     sch.mode === 'scheduled' ? sch.rows.map((r) => `${r.platform} ${r.date} ${r.time}`).join(', ') + ` (${sch.zone})` : 'share now',

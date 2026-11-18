@@ -13,6 +13,7 @@ story.json (clip paths relative to the story file):
      {"kind": "hook", "clip": "s1.mp4", "pos": "low", "title": "Why does the world's biggest temple face west? 🤔"},
      {"kind": "fact", "clip": "s2.mp4", "kicker": "FACT 1/8", "title": "...", "body": "...", "src": "..."},
      {"kind": "end",  "clip": "s10.mp4", "title": "...", "body": "...", "cta": "Follow for part 2"}]}
+Kinds `plain` (no card) and `note` ("kicker": title, one small line: body) serve nature-reel.
 A beat's `secs` overrides the reading time (READ_*). Prints each beat's window and the total length.
 Narration: when vo/b<N>.wav exists next to story.json (scripts/vo.py writes it from the beat's `vo`), the
 line starts VO_LEAD after the cut, the beat lasts at least the line plus VO_GAP, and the music ducks under
@@ -93,10 +94,19 @@ def window(path, need):
 # ---------- text ----------
 def font(kind, size):
     path, idx = FONTS[kind]
+    if not Path(path).exists():  # Linux (a Colab render): the closest installed sans, bold for "heavy"
+        # name the family: Colab's fontconfig answers "sans-serif:bold" with Liberation Mono (2026-11-17)
+        style = "bold" if kind == "heavy" else "semibold"
+        for fam in ("DejaVu Sans", "Liberation Sans", "Noto Sans"):
+            path, idx = run(["fc-match", "-f", "%{file}", f"{fam}:{style}"]).strip(), 0
+            if "Mono" not in path:
+                break
     return ImageFont.truetype(path, size, index=idx)
 
 
 def emoji(text, height):
+    if not Path(EMOJI_FONT).exists():  # no Apple emoji off macOS: leave the glyph out
+        return Image.new("RGBA", (1, height))
     f = TTCollection(EMOJI_FONT, lazy=True).fonts[0]
     name = "_".join(f"u{ord(c):04X}" for c in text if ord(c) != 0xFE0F)
     glyph = f["sbix"].strikes[160].glyphs.get(name)
@@ -185,6 +195,27 @@ def card(beat, place, sub):
     img = Image.new("RGBA", (W, H))
     d = ImageDraw.Draw(img)
     max_w = W - MARGIN - SAFE_RIGHT - 40
+    if beat["kind"] == "note":
+        fk, fb = font("heavy", 38), font("demi", 44)
+        body = wrap(d, beat.get("body", ""), fb, W - MARGIN - SAFE_RIGHT - 60)
+        lh = round(fb.size * 1.3)
+        h = 52 + len(body) * lh
+        base = H - SAFE_BOTTOM - 20
+        top = base - h - 40
+        g = Image.new("L", (1, 520))
+        for y in range(520):
+            g.putpixel((0, y), round(170 * math.sin(math.pi * y / 520)))
+        band = Image.new("RGBA", (W, 520), (0, 0, 0, 255))
+        band.putalpha(g.resize((W, 520)))
+        img.alpha_composite(band, (0, H - SAFE_BOTTOM - 440))
+        y = top + 40
+        draw_line(img, MARGIN, y, tokens(beat["title"]), fk, YELLOW)
+        for ln in body:
+            y += lh
+            draw_line(img, MARGIN, y, ln, fb, (255, 255, 255, 255))
+        return img
+    if beat["kind"] == "plain":
+        return img
     if beat["kind"] == "hook":
         # big centred hook, readable from frame 0 (the first 2 s decide). "pos": "low" puts it over the lower
         # half (calm water, sky reflection) when the landmark fills the top: Angkor test (2026-11-09), the
