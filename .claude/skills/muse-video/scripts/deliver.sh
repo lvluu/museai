@@ -79,7 +79,8 @@ if time.time() - d["ts"] < 60: print(d.get("host") or "?")' "$MUSE_RENDER_DRIVE"
   fi
   if [ -z "$why" ]; then
     echo "upscale: remote (muse-renderer on $host)"
-    "$renderer" upscale "$final" "$out"
+    # a failed remote job must not lose the delivery: redo it here
+    "$renderer" upscale "$final" "$out" || { echo "upscale: local (remote job failed)"; "$(dirname "$0")/upscale.sh" "$final" "$out"; }
   else
     echo "upscale: local ($why)"
     "$(dirname "$0")/upscale.sh" "$final" "$out"
