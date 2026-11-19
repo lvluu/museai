@@ -8,6 +8,7 @@ rebuilds the reference's own melody, which is someone else's music.
 """
 
 import argparse
+import os
 from pathlib import Path
 
 import soundfile
@@ -71,6 +72,9 @@ def main():
         if not torch.cuda.is_available() or torch.cuda.is_bf16_supported(including_emulation=False)
         else "float16"
     )
+    if half == "float16":
+        # ACEStepPipeline reads any dtype but "bfloat16" as float32 (14.5 GB: CUDA OOM on the T4); its env override
+        os.environ.setdefault("ACE_PIPELINE_DTYPE", "float16")
     pipe = ACEStepPipeline(
         checkpoint_dir=str(Path.home() / ".cache/ace-step/checkpoints"),
         dtype="float32" if mps else half,
