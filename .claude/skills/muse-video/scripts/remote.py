@@ -117,18 +117,21 @@ def speakers(argv):
     # speakers.py exits 1 on a failed line, a verdict: rc.txt carries it so the job itself counts as done
     cmd = (
         "command -v uv >/dev/null || pip install -q uv; "
-        f"{env} REPORT=report.json uv run -q --no-project {SPEAKERS_DEPS} python "
+        # Colab's kernel env names its inline matplotlib backend, which mediapipe's import rejects outside a notebook
+        f"{env} MPLBACKEND=Agg REPORT=report.json uv run -q --no-project {SPEAKERS_DEPS} python "
         '"$MUSEAI/.claude/skills/muse-video/scripts/speakers.py" '
         + shlex.join([*names, "mouths.jpg"])
         + "; echo $? > rc.txt"
     )
     with job("speakers", files, cmd, 30) as (tmp, rc):
-        if rc != 0 or not (tmp / "rc.txt").is_file():
+        # no report.json: speakers.py crashed before its verdict (an env problem there, not a line that failed)
+        if rc != 0 or not (tmp / "rc.txt").is_file() or not (tmp / "report.json").is_file():
+            sys.stderr.write((tmp / "log.txt").read_text()[-1500:] if (tmp / "log.txt").is_file() else "")
             return None
         sys.stdout.write((tmp / "log.txt").read_text())
         if (tmp / "mouths.jpg").is_file():
             shutil.move(str(tmp / "mouths.jpg"), sheet)
-        if os.environ.get("REPORT") and (tmp / "report.json").is_file():
+        if os.environ.get("REPORT"):
             shutil.move(str(tmp / "report.json"), os.environ["REPORT"])
         return int((tmp / "rc.txt").read_text().strip() or 1)
 
