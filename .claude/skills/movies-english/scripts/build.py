@@ -170,7 +170,7 @@ def build(sid, work):
         (work / d).mkdir(parents=True, exist_ok=True)
     (work / "script.json").write_text(json.dumps(sc, ensure_ascii=False, indent=1))
     stills, lines = {}, ["#!/usr/bin/env bash", "# render the shots one at a time (render-queue; JOBS=N for more), one muse call each",
-                         "set -u", f"cd {work}", "MV=${MUSE_VIDEO:-$HOME/Work/museai-main/.claude/skills/muse-video/scripts/muse-video}", "export MV"]
+                         "set -u", f"cd {work}", "MV=${MUSE_VIDEO:-$HOME/dev/museai-main/.claude/skills/muse-video/scripts/muse-video}", "export MV"]
     jobs = []
     for shot in sc["shots"]:
         # "first": a frame you supply (e.g. a reference frame) is the first frame; no still is generated

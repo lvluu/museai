@@ -224,9 +224,9 @@ def build(ep_path, work):
     tag = f"aes-ep{ep['episode']:02}"
     render = ["#!/usr/bin/env bash",
               "# Renders the shots one at a time through render-queue (JOBS=N for more; never all at once).",
-              "RQ=\"$HOME/Work/museai-main/.claude/skills/muse-video/scripts/render-queue\"",
+              "RQ=\"$HOME/dev/museai-main/.claude/skills/muse-video/scripts/render-queue\"",
               "# A shot with stills/<ID>.png renders from that first frame; without one it renders from text.",
-              'MV="$HOME/Work/museai-main/.claude/skills/muse-video/scripts/muse-video"',
+              'MV="$HOME/dev/museai-main/.claude/skills/muse-video/scripts/muse-video"',
               'cd "$(dirname "$0")"; mkdir -p clips']
     for n, shot in enumerate(ep["shots"], 1):
         sid = shot["id"]

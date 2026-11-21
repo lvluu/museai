@@ -11,7 +11,7 @@ Usage (run from anywhere):
   cm.py qa <id>                        file checks + the playbook's manual checklist -> RESULT ok|FAIL
 
 Run: uv run --no-project --python 3.12 --with edge-tts --with pillow python scripts/cm.py ...
-Env: MUSEAI_HOME (folder holding data/api_key; default the repo, then ~/Work/museai), MUSEAI_BASE
+Env: MUSEAI_HOME (folder holding data/api_key; default the repo, then ~/dev/museai), MUSEAI_BASE
      (default http://127.0.0.1:18610), CM_VOICE (default en-US-AndrewNeural), CM_RATE (default +0%),
      CM_WORK (default <repo>/videos/curious-mechanism).
 """
@@ -274,7 +274,7 @@ def cmd_check(eid: str, draft: bool) -> int:
 
 # ---------- images ----------
 def api_key() -> str:
-    for home in [os.environ.get("MUSEAI_HOME"), str(REPO), str(Path.home() / "Work/museai")]:
+    for home in [os.environ.get("MUSEAI_HOME"), str(REPO), str(Path.home() / "dev/museai")]:
         if home and (Path(home) / "data/api_key").exists():
             return (Path(home) / "data/api_key").read_text().strip()
     sys.exit("no data/api_key; start museai once (python -m museai) or set MUSEAI_HOME")

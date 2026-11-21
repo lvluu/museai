@@ -25,7 +25,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-MV = Path(os.environ.get("MUSE_VIDEO", Path.home() / "Work/museai-main/.claude/skills/muse-video")) / "scripts"
+MV = Path(os.environ.get("MUSE_VIDEO", Path.home() / "dev/museai-main/.claude/skills/muse-video")) / "scripts"
 film, work = sys.argv[1], Path(sys.argv[2])
 sheet = sys.argv[3] if len(sys.argv) > 3 else str(work / "sheet.jpg")
 cut = json.loads((work / "cut.json").read_text())
