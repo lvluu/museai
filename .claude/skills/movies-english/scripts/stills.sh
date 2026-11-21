@@ -5,7 +5,7 @@
 # timeout is long (STILL_TIMEOUT, default 2 h) and X-Muse-Session gives this session its fair turn. Pick a take per still and copy it to WORK/stills/<name>.png (render.sh uses it).
 set -uo pipefail
 work=$1; shift
-API=$(cat "${MUSEAI_HOME:-$HOME/dev/museai}/data/api_key")
+API=$(cat "${MUSEAI_HOME:-$HOME/dev/museai-work}/data/api_key")
 names=("$@"); [ ${#names[@]} -gt 0 ] || names=($(cd "$work/stills" && ls *.json | sed 's/\.json$//'))
 for n in "${names[@]}"; do
   (

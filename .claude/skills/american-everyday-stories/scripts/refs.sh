@@ -6,7 +6,7 @@ set -euo pipefail
 key=$1 out=$2
 here=$(cd "$(dirname "$0")" && pwd)
 mkdir -p "$out"
-API=$(cat "${MUSEAI_HOME:-$HOME/dev/museai}/data/api_key")
+API=$(cat "${MUSEAI_HOME:-$HOME/dev/museai-work}/data/api_key")
 body=$(python3 "$here/episode.py" still "$key" "$out")
 for i in 1 2 3; do
   if curl -sf -X POST "${MUSEAI_BASE:-http://127.0.0.1:18610}/v1/images/generations" \

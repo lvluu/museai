@@ -9,7 +9,7 @@ check   content gate. Prints FAIL/WARN lines and `RESULT ok|fail`:
         no-text scene, hook text <= 7 words with no greeting / title / invented statistic.
 scenes  one 1080x1920 photo per word through museai /v1/images/generations (no text in the frame),
         cover-cropped to 9:16 -> scenes/01.png ... Existing files are kept (delete one to redo it).
-        Env: MUSEAI_HOME=~/dev/museai MUSEAI_BASE=http://127.0.0.1:18610
+        Env: MUSEAI_HOME=~/dev/museai-work MUSEAI_BASE=http://127.0.0.1:18610
 clips   one muse-video prompt per word -> scenes/NN.txt (scene + its `motion`, one slow camera move,
         10 s, no text, no talking); render each from its photo with ../muse-video (SKILL.md step 2).
 """
@@ -120,7 +120,7 @@ def check(path):
 def scenes(path, out, only=None):
     from PIL import Image
     q = json.loads(Path(path).read_text())
-    home = Path(os.environ.get("MUSEAI_HOME", Path.home() / "dev/museai"))
+    home = Path(os.environ.get("MUSEAI_HOME", Path.home() / "dev/museai-work"))
     key = (home / "data/api_key").read_text().strip()
     base = os.environ.get("MUSEAI_BASE", "http://127.0.0.1:18610")
     out = Path(out)
