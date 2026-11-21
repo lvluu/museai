@@ -81,6 +81,17 @@ MUSE2API_KEEPALIVE_ENABLED=true
 
 *(Note: Chrome executable is auto-detected on macOS `/Applications/Google Chrome.app` and Linux `/usr/bin/chromium`. Set `MUSE2API_CHROMIUM_PATH` if using a custom path; on Arch/Omarchy prefer `/usr/bin/google-chrome-stable`, since the distro Chromium wrapper injects Wayland flags that can abort under `--headless=new`).*
 
+**Chromium on Ubuntu.** Ubuntu 23.10+ blocks unprivileged user namespaces, so a Chromium outside `/opt/google/chrome`
+(Playwright / Chrome for Testing builds) aborts with "No usable sandbox" and museai stops with "Chromium did not expose a
+DevTools endpoint". Give that binary the AppArmor profile Google Chrome ships with, then restart museai:
+
+```bash
+printf '%s\n' 'abi <abi/4.0>,' 'include <tunables/global>' \
+  'profile museai-chromium /home/*/.cache/ms-playwright/chromium-*/chrome-linux64/chrome flags=(unconfined) {' \
+  '  userns,' '}' | sudo tee /etc/apparmor.d/museai-chromium
+sudo apparmor_parser -r /etc/apparmor.d/museai-chromium
+```
+
 ### 3. Run the Service
 
 ```bash
