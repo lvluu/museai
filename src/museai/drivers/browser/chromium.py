@@ -33,6 +33,11 @@ def find_chromium(configured: str = "") -> str:
     )
 
 
+async def _drain(stream: asyncio.StreamReader | None) -> None:
+    while stream and await stream.read(65536):
+        pass
+
+
 class ChromiumProcess:
     def __init__(self, executable: str, port: int, profile_dir: Path, headless: bool = True,
                  proxy: str = ""):
@@ -93,15 +98,33 @@ class ChromiumProcess:
 
         log.info("launching Chromium: %s", self.executable)
         self.proc = await asyncio.create_subprocess_exec(
-            *args, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.DEVNULL
+            *args, stdout=asyncio.subprocess.DEVNULL, stderr=asyncio.subprocess.PIPE
         )
         for _ in range(60):
             if url := await self.browser_ws_url():
+                # Chromium logs to stderr for its whole life: drain it so a full pipe never blocks the browser.
+                self._drain = asyncio.ensure_future(_drain(self.proc.stderr))
                 return url
             if self.proc.returncode is not None:
                 break
             await asyncio.sleep(0.5)
-        raise RuntimeError("Chromium did not expose a DevTools endpoint")
+        raise RuntimeError(await self._start_error())
+
+    async def _start_error(self) -> str:
+        """Why Chromium never answered: its own last stderr lines, plus the fix for the common sandbox abort."""
+        err = ""
+        if self.proc and self.proc.returncode is not None and self.proc.stderr:
+            err = (await self.proc.stderr.read()).decode(errors="replace")
+        else:
+            await self.stop()
+        tail = " | ".join(line.strip() for line in err.strip().splitlines()[:3])
+        msg = "Chromium did not expose a DevTools endpoint"
+        if tail:
+            msg += f": {tail[:600]}"
+        if "No usable sandbox" in err:
+            msg += (" (Ubuntu 23.10+ blocks unprivileged user namespaces: add an AppArmor profile with `userns,` for"
+                    f" {self.executable}, see README.md \"Chromium on Ubuntu\")")
+        return msg
 
     async def stop(self) -> None:
         if self.proc and self.proc.returncode is None:
