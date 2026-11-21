@@ -94,8 +94,11 @@ From `../healing-longform/` lessons plus these:
 7. **Short** (9:16, ~15 s, from clips; a missing clip uses its still pushed in): fill `short` in story.json (5 shots `[beat, start, secs, x]`,
    strongest motion first, the meal last, hook text from the idea) and
    `python scripts/short.py story.json --music music.m4a --out healing-<slug>-short.mp4`.
-8. **Thumbnails**: `../healing-video/scripts/cover.py --size 16:9 --at sN.mp4@auto --eyebrow "<eyebrow>"
-   --title "<2-5 word hook>" --out thumbs/healing-<slug>_16x9.jpg`, and `--size 9:16` from the short. A still works too: make a 2 s mp4 of it with ffmpeg `-loop 1` first.
+8. **Thumbnails** show the healing scenery, never ELLIE (user 2026-11-21: no person, no hands): the garden in
+   mist, the lit window at dusk, the meal on the table by the window. `python3 $H/plan.py covers story.json` lists
+   the beats with nobody in frame, wides first. Both covers come from one of those clips (the 9:16 too, not the
+   short): `../healing-video/scripts/cover.py --size 16:9 --at sN.mp4@auto --eyebrow "<eyebrow>"
+   --title "<2-5 word hook>" --out thumbs/healing-<slug>_16x9.jpg`, and `--size 9:16` from the same clip. A still works too: make a 2 s mp4 of it with ffmpeg `-loop 1` first.
 9. **Deliver** to `~/Desktop/field-to-table/<slug>/`: the 16:9 film, the 9:16 short, both thumbnails, and
    `story.json`. Copy the story to `stories/<slug>.json`, then `scripts/ideas.py record <id> --video <path>
    --slug <slug>`.

@@ -7,6 +7,7 @@
   plan.py clip  story.json N        animate stills/sN.png into sN.mp4 (16:9, DURATION=10) through scripts/shot
   plan.py brief story.json N        print the still and clip briefs of beat N
   plan.py status story.json         which refs, stills and clips exist
+  plan.py covers story.json         cover candidates: scenery beats with nobody in frame, wides first
 
 Each step skips work already on disk, so a queue killed by muse's 24-hour video limit is re-run as is.
 Images are not under that limit: render refs and stills first, clips when quota is there. longform.py
@@ -162,6 +163,25 @@ def cmd_status(sp, story):
     print("missing clips:", " ".join(str(i) for i in want if i not in clips) or "-")
 
 
+def cmd_covers(sp, story):
+    """Cover candidates: beats with nobody in frame (no cast, no hands), wides first.
+
+    Covers show the healing scenery, never the girl (user 2026-11-21)."""
+    root = sp.parent
+    rows = []
+    for i, b in enumerate(story["beats"], 1):
+        text = b["shot"].lower()
+        if b.get("cast") or re.search(r"\b(her|she|ellie|woman|girl|person)\b", text):
+            continue
+        clip = root / f"s{i}.mp4"
+        src = clip.name if clip.exists() else f"stills/s{i}.png (make a 2 s mp4 with ffmpeg -loop 1)"
+        rows.append((close(b), i, src, b["shot"]))
+    for is_close, i, src, shot in sorted(rows):
+        print(f"{i:>3} {'close' if is_close else 'wide '} {src:<12} {shot[:100]}")
+    if not rows:
+        print("no beat without a person: add a voiceless scenery beat for the cover")
+
+
 def main(a):
     if len(a) < 2:
         sys.exit(__doc__)
@@ -180,6 +200,8 @@ def main(a):
         print("CLIP:", clip_brief(story, b))
     elif a[0] == "status":
         cmd_status(sp, story)
+    elif a[0] == "covers":
+        cmd_covers(sp, story)
     else:
         sys.exit(__doc__)
 
