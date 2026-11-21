@@ -7,13 +7,13 @@
 # the 16:9 still scaled to 1920x1080, and a 9:16 crop around the teacher upscaled with Real-ESRGAN
 # to 1080x1920 (a 608 px-wide crop stretched to 1080 renders soft: muse-video "Sharp first frame").
 # Only this reference still is cropped; each format is still rendered as its own composition.
-# Env: MUSEAI_HOME=~/Work/museai MUSEAI_BASE=http://127.0.0.1:18610 ESRGAN_DIR=~/Work/tools/realesrgan
+# Env: MUSEAI_HOME=~/dev/museai-work MUSEAI_BASE=http://127.0.0.1:18610 ESRGAN_DIR=~/Work/tools/realesrgan
 #      FACE_X=0.25 (teacher's face centre as a fraction of the still's width)
 set -euo pipefail
 lesson=$1 out=$2 pick=${3:-}
 mkdir -p "$out"
 if [ -z "$pick" ]; then
-  home=${MUSEAI_HOME:-$HOME/Work/museai}
+  home=${MUSEAI_HOME:-$HOME/dev/museai-work}
   KEY=$(cat "$home/data/api_key")
   prompt=$(python3 - "$lesson" <<'EOF'
 import json, sys

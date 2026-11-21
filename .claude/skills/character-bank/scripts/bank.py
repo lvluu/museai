@@ -105,7 +105,7 @@ def scene_body(scene: str, keys: list[str], look: str, size: str, n: int,
 
 
 def post(body: dict, out: Path, stem: str) -> list[Path]:
-    key = (Path(os.environ.get("MUSEAI_HOME", Path.home() / "Work/museai")) / "data/api_key").read_text().strip()
+    key = (Path(os.environ.get("MUSEAI_HOME", Path.home() / "dev/museai-work")) / "data/api_key").read_text().strip()
     req = urllib.request.Request(
         f"{API_BASE}/v1/images/generations", data=json.dumps(body).encode(), method="POST",
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json",

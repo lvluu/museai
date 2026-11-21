@@ -185,7 +185,7 @@ def cmd_art(slug: str, view: str, n: int, refs: list[str]) -> None:
     body = {"prompt": " ".join(parts), "n": n, "size": size, "response_format": "b64_json"}
     if refs:
         body["image"] = [data_url(Path(r)) for r in refs]
-    key = (Path(os.environ.get("MUSEAI_HOME", Path.home() / "Work/museai")) / "data/api_key").read_text().strip()
+    key = (Path(os.environ.get("MUSEAI_HOME", Path.home() / "dev/museai-work")) / "data/api_key").read_text().strip()
     req = urllib.request.Request(
         f"{API_BASE}/v1/images/generations", data=json.dumps(body).encode(), method="POST",
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json",
