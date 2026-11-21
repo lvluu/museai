@@ -122,6 +122,20 @@ async def export_cookies(account_id: str, svc: Services = Depends(get_services))
     )
 
 
+@router.delete("/dashboard/accounts/{account_id}", include_in_schema=False,
+               dependencies=[Depends(_local_or_admin)])
+async def remove_account(account_id: str, svc: Services = Depends(get_services)) -> dict:
+    """Remove an account whose cookies expired. A working account is refused, so a
+    stray click cannot drop one; /admin/accounts deletes any account."""
+    acc = svc.pool.get(account_id)
+    if acc is None:
+        raise NotFound(f"account '{account_id}' not found")
+    if acc.status != AccountStatus.INVALID:
+        raise InvalidRequest(f"account '{acc.label or acc.id}' still works; only invalid accounts can be removed here")
+    await svc.pool.remove(account_id)
+    return {"deleted": account_id}
+
+
 @router.post("/dashboard/accounts/{account_id}/label", include_in_schema=False,
              dependencies=[Depends(_local_or_admin)])
 async def rename_account(account_id: str, body: dict, svc: Services = Depends(get_services)) -> dict:

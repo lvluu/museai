@@ -7,6 +7,8 @@ import unicodedata
 
 import pytest
 
+from museai.accounts.model import AccountStatus
+
 
 def test_health(client):
     assert client.get("/healthz").json()["ok"] is True
@@ -188,6 +190,20 @@ def test_dashboard_cookie_export_round_trips(client, admin):
     # The download uploads back unchanged.
     assert client.post(url, headers=admin, json=r.json()).status_code == 200
     assert client.get(url, headers=admin).json() == r.json()
+
+
+def test_dashboard_removes_only_invalid_accounts(client, admin):
+    acc = client.post("/admin/accounts", headers=admin, json={
+        "label": "old", "cookies": {"hatch_sess": "s", "hatch_native_auth_device": "d"},
+    }).json()["account"]
+    url = f"/dashboard/accounts/{acc['id']}"
+    assert client.delete(url).status_code == 401
+    assert client.delete("/dashboard/accounts/nope", headers=admin).status_code == 404
+    assert client.delete(url, headers=admin).status_code == 400  # still works: kept
+    client.app.state.services.pool.get(acc["id"]).status = AccountStatus.INVALID
+    assert client.delete(url, headers=admin).json() == {"deleted": acc["id"]}
+    ids = [a["id"] for a in client.get("/admin/accounts", headers=admin).json()["data"]]
+    assert acc["id"] not in ids
 
 
 def test_dashboard_add_account(client, admin):
