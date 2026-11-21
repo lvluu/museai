@@ -171,7 +171,7 @@ def cmd_covers(sp, story):
     rows = []
     for i, b in enumerate(story["beats"], 1):
         text = b["shot"].lower()
-        if b.get("cast") or re.search(r"\b(her|she|ellie|woman|girl|person)\b", text):
+        if b.get("cast") or re.search(r"\b(her|she|ellie)\b", text):
             continue
         clip = root / f"s{i}.mp4"
         src = clip.name if clip.exists() else f"stills/s{i}.png (make a 2 s mp4 with ffmpeg -loop 1)"
