@@ -11,6 +11,8 @@ horizontal cover for Story-mode videos (deliver.sh wants both *_9x16.jpg and *_1
 Usage: python3 scripts/cover.py --at healing-<slug>.mp4@auto --eyebrow "Scottish Highlands · autumn" \
            --title "slow down with me" --out thumbs/healing-<slug>_9x16.jpg
 `@auto` takes the brightest sharp frame of the clip (sampled every 0.5 s); `@2.0` a fixed second.
+Covers show scenery with nobody in it (user 2026-11-21): pass a clip with no person or hands in frame
+(healing-longform `plan.py covers story.json` lists them).
 deliver.sh takes THUMB_DIR=thumbs (it looks for *_9x16.jpg).
 """
 import argparse
