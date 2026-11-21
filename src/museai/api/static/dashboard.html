@@ -487,7 +487,8 @@ function renderCards() {
       ${left}
       ${bad ? `<div class="acc-fix">Log in to muse.ai as ${esc(acctName(acc.id))}, export the cookies, then upload them.</div>
                <div class="acc-acts"><span class="upload" role="button" tabindex="0" data-upload="${esc(acc.id)}" title="Cookie-Editor JSON export of muse.ai">Upload cookies JSON</span>
-               <span class="relog" role="button" tabindex="0" data-export="${esc(acc.id)}" title="Download this account's cookies as Cookie-Editor JSON">Export cookies</span></div>`
+               <span class="relog" role="button" tabindex="0" data-export="${esc(acc.id)}" title="Download this account's cookies as Cookie-Editor JSON">Export cookies</span>
+               <span class="relog" role="button" tabindex="0" data-remove="${esc(acc.id)}" title="Remove this account from the gateway">Remove</span></div>`
              : `<div class="acc-foot ${daysLeft != null && daysLeft < 7 ? "soon" : ""}">
                   <span>${exp ? `Login expires ${new Date(exp * 1000).toLocaleDateString(undefined, { day: "numeric", month: "short" })} (${daysLeft < 1 ? "today" : daysLeft + " d"})` : "Login expiry unknown"}</span>
                   <span class="acc-acts"><span class="relog" role="button" tabindex="0" data-export="${esc(acc.id)}" title="Download this account's cookies as Cookie-Editor JSON">Export</span>
@@ -1340,12 +1341,31 @@ async function exportCookies(id) {
   }
 }
 
+async function removeAccount(id) {
+  const name = acctName(id);
+  if (!confirm(`Remove ${name} from the gateway? Its cookies are deleted; add it again with fresh cookies.`)) return;
+  try {
+    const headers = key ? { Authorization: "Bearer " + key } : {};
+    const r = await fetch(`/dashboard/accounts/${encodeURIComponent(id)}`, { method: "DELETE", headers });
+    if (!r.ok) {
+      const e = await r.json().catch(() => null);
+      throw new Error(e?.error?.message || r.status + " " + r.statusText);
+    }
+    if (selected === id) selected = "";
+    load();
+  } catch (err) {
+    alert(`${name}: remove failed: ${err.message}`);
+  }
+}
+
 let uploadFor = "";
 $("cards").addEventListener("click", (e) => {
   const u = e.target.closest("[data-upload]");
   if (u) { e.stopPropagation(); uploadFor = u.dataset.upload; $("cookieFile").click(); return; }
   const ex = e.target.closest("[data-export]");
   if (ex) { e.stopPropagation(); exportCookies(ex.dataset.export); return; }
+  const rm = e.target.closest("[data-remove]");
+  if (rm) { e.stopPropagation(); removeAccount(rm.dataset.remove); return; }
   const rn = e.target.closest("[data-rename]");
   if (rn) { e.stopPropagation(); rename(rn.dataset.rename); return; }
   const c = e.target.closest(".acc"); if (!c) return;
