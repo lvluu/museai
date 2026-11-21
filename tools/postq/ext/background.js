@@ -160,7 +160,7 @@ async function approve(item, edits, manual = false) {
     const result = await adapter.flow(post, page(tabId, item.platform, adapter));
     await api(`/${item.id}`, { ...edits, ...result });
     await progress(item.id, `${result.status}${result.url ? ` · ${result.url}` : ''}`);
-    if (result.status !== 'dry-run') chrome.tabs.remove(tabId).catch(() => {}); // last tab: closes its window
+    if (result.status !== 'dry-run') chrome.tabs.remove(liveTab(tabId)).catch(() => {}); // last tab: closes its window
     return result;
   } catch (e) {
     // An upload that got as far as a video id is kept, so the retry finishes that video, no second copy.
@@ -173,7 +173,7 @@ async function approve(item, edits, manual = false) {
       await progress(item.id, `paused: ${e.message} · ${item.platform} posts wait until ${until}`);
     } else await progress(item.id, `failed: ${e.message}`);
     // Close it too: the error is in the queue (last_error) and a retry opens a fresh window.
-    if (tabId) chrome.tabs.remove(tabId).catch(() => {});
+    if (tabId) chrome.tabs.remove(liveTab(tabId)).catch(() => {});
     throw e;
   } finally {
     running.delete(item.id);
@@ -182,26 +182,37 @@ async function approve(item, edits, manual = false) {
   }
 }
 
+// Chrome swaps in a new tab id when it activates a prerendered page (TikTok/Meta prerender their own
+// links), so a posting tab can change id mid-flow, mostly on the navigation after Post/Schedule.
+// Every call follows the swap; the old id answers "No tab with id: N".
+const swapped = new Map();
+chrome.tabs.onReplaced.addListener((added, removed) => swapped.set(removed, added));
+function liveTab(id) {
+  while (swapped.has(id)) id = swapped.get(id);
+  return id;
+}
+
 // Page driver for one tab: waits for the platform host, injects lib + adapter, runs steps.
 function page(tabId, platform, adapter) {
+  const id = () => (tabId = liveTab(tabId));
   async function inject() {
     const end = Date.now() + 60000;
     for (;;) {
-      const tab = await chrome.tabs.get(tabId);
+      const tab = await chrome.tabs.get(id());
       if (/facebook\.com\/checkpoint/.test(tab.url || '')) throw new Blocked(`Facebook checkpoint (${tab.url})`);
       if (tab.status === 'complete' && new URL(tab.url || 'about:blank').host === adapter.host) break;
       if (Date.now() > end) throw new Error(`${adapter.host} did not load (logged in? tab url: ${tab.url})`);
       await new Promise((r) => setTimeout(r, 500));
     }
     const [{ result: text }] = await chrome.scripting.executeScript({
-      target: { tabId }, func: () => (document.body?.innerText || '').slice(0, 3000),
+      target: { tabId: id() }, func: () => (document.body?.innerText || '').slice(0, 3000),
     });
     if (platform === 'meta' && BLOCKED.test(text)) throw new Blocked(`${adapter.host} says: ${text.trim().split('\n').slice(0, 2).join(' ').slice(0, 160)}`);
-    await chrome.scripting.executeScript({ target: { tabId }, files: adapter.files });
+    await chrome.scripting.executeScript({ target: { tabId: id() }, files: adapter.files });
   }
   async function step(name, ...args) {
     const [{ result }] = await chrome.scripting.executeScript({
-      target: { tabId }, func: (p, s, a) => globalThis.postqRun(p, s, a), args: [platform, name, args],
+      target: { tabId: id() }, func: (p, s, a) => globalThis.postqRun(p, s, a), args: [platform, name, args],
     });
     if (!result) throw new Error(`step ${name}: no answer from the page (navigated away?)`);
     if (result.error) throw new Error(`step ${name}: ${result.error}`);
@@ -219,7 +230,7 @@ function page(tabId, platform, adapter) {
       const end = start + bytes.length - 1;
       // Native base64 (Chrome 140+): the old per-character loop kept a core busy for minutes per video.
       const got = await chrome.scripting.executeScript({
-        target: { tabId }, func: (s, b, f) => globalThis.postqLib.chunk(s, b, f), args: [slot, bytes.toBase64(), start === 0],
+        target: { tabId: id() }, func: (s, b, f) => globalThis.postqLib.chunk(s, b, f), args: [slot, bytes.toBase64(), start === 0],
       });
       if (got[0].result !== end + 1) throw new Error(`${slot} transfer broke at byte ${start}`);
       onPct?.(Math.round(((end + 1) / size) * 100));
@@ -228,9 +239,9 @@ function page(tabId, platform, adapter) {
   // Load another page in the same tab and re-inject (status reads 'complete' until the new load starts).
   // `until`: the URL prefix to wait for, where the site rewrites the query string on load.
   async function go(url, until = url) {
-    await chrome.tabs.update(tabId, { url, active: true });
+    await chrome.tabs.update(id(), { url, active: true });
     const end = Date.now() + 60000;
-    while (!(await chrome.tabs.get(tabId)).url?.startsWith(until)) {
+    while (!(await chrome.tabs.get(id())).url?.startsWith(until)) {
       if (Date.now() > end) throw new Error(`tab did not go to ${url} (a "leave page?" prompt?)`);
       await new Promise((r) => setTimeout(r, 500));
     }
@@ -239,16 +250,16 @@ function page(tabId, platform, adapter) {
   // After a channel switch: let Studio's own reload settle, then load the upload page again.
   async function reopen(url = adapter.url) {
     const end = Date.now() + 30000;
-    const before = (await chrome.tabs.get(tabId)).url;
-    while ((await chrome.tabs.get(tabId)).url === before && Date.now() < end) await new Promise((r) => setTimeout(r, 500));
-    while ((await chrome.tabs.get(tabId)).status !== 'complete' && Date.now() < end) await new Promise((r) => setTimeout(r, 500));
-    await chrome.tabs.update(tabId, { url, active: true });
-    while ((await chrome.tabs.get(tabId)).status === 'complete' && Date.now() < end) await new Promise((r) => setTimeout(r, 200));
+    const before = (await chrome.tabs.get(id())).url;
+    while ((await chrome.tabs.get(id())).url === before && Date.now() < end) await new Promise((r) => setTimeout(r, 500));
+    while ((await chrome.tabs.get(id())).status !== 'complete' && Date.now() < end) await new Promise((r) => setTimeout(r, 500));
+    await chrome.tabs.update(id(), { url, active: true });
+    while ((await chrome.tabs.get(id())).status === 'complete' && Date.now() < end) await new Promise((r) => setTimeout(r, 200));
     await inject();
   }
   // Run `func` in the page's own (MAIN) world, e.g. to patch a prototype the page itself calls.
   async function main(func, ...args) {
-    await chrome.scripting.executeScript({ target: { tabId }, world: 'MAIN', func, args });
+    await chrome.scripting.executeScript({ target: { tabId: id() }, world: 'MAIN', func, args });
   }
   return { inject, step, send, go, reopen, main };
 }
@@ -676,7 +687,7 @@ async function onChannelShorts(account, fn) {
     await pg.go(`https://studio.youtube.com/channel/${who.id}/videos/short`);
     return await fn(pg);
   } finally {
-    chrome.tabs.remove(tabId).catch(() => {});
+    chrome.tabs.remove(liveTab(tabId)).catch(() => {});
   }
 }
 
