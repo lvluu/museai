@@ -13,7 +13,9 @@ Built like hotpot's `bbq` / bb-approve.
 
 ## Install (once)
 
-1. `chrome://extensions` → Developer mode → **Load unpacked** → `tools/postq/ext`
+1. `chrome://extensions` → Developer mode → **Load unpacked** → `tools/postq/ext` of the checkout that runs
+   `postq serve` (`~/dev/museai-main`), never a feature-branch checkout: an extension older than the one beside
+   the server is refused at claim time (HTTP 426, the popup says which folder to load).
 2. Pin **post-approve** (shortcut `Alt+Shift+P`).
 3. `ln -s "$PWD/tools/postq/postq" ~/.local/bin/postq`
 
