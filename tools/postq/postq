@@ -41,6 +41,7 @@ GUARD_HEADER = "X-Postq"  # forces a CORS preflight: ordinary web pages cannot d
 CLAIM_TTL = 3600  # a video upload can take a while; a dead poster's claim expires after this
 CLAIM_LOCK = threading.Lock()
 EXT_MIN = (0, 9)  # oldest extension that switches channel and verifies on the edit page; older code must not auto-post
+EXT_DIR = Path(__file__).resolve().parent / "ext"  # the extension shipped with this postq: Chrome must load this copy
 POLLED = ROOT / ".polled"  # touched on every extension poll (every 30 s while Chrome runs it)
 VIDEO_SUFFIXES = {".mp4", ".mov", ".webm"}
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
@@ -185,19 +186,32 @@ def auto_blocked():
     return bool(why)
 
 
+def _ver(v):
+    try:
+        return tuple(int(x) for x in v.split(".")) if "." in v else (0,)  # 0.1 sent a bare "1"
+    except ValueError:
+        return (0,)
+
+
+def ext_stale(v):
+    """None when extension version `v` is at least the one shipped beside this script, else what to do.
+    Chrome loading the extension from an older checkout (a feature branch) runs code without the
+    fixes this server expects, e.g. 0.32 lost posting tabs that Chrome swaps for a new id."""
+    try:
+        want = json.loads((EXT_DIR / "manifest.json").read_text())["version"]
+    except (OSError, ValueError, KeyError):
+        want = ".".join(map(str, EXT_MIN))
+    if _ver(v or "") >= max(EXT_MIN, _ver(want)):
+        return None
+    return (f"the post-approve extension is version {v or 'old'}, this postq ships {want}: "
+            f"chrome://extensions -> remove post-approve -> Load unpacked {EXT_DIR}")
+
+
 def ext_ready():
     """None when a current extension polled in the last 90 s, else what is wrong."""
     if not POLLED.is_file() or time.time() - POLLED.stat().st_mtime > 90:
         return "the post-approve extension is not polling (Chrome closed, or extension not loaded)"
-    v = POLLED.read_text().strip()
-    try:
-        ver = tuple(int(x) for x in v.split(".")) if "." in v else (0,)  # 0.1 sent a bare "1"
-    except ValueError:
-        ver = (0,)
-    if ver < EXT_MIN:
-        return (f"the post-approve extension is version {v or 'old'}, needs {'.'.join(map(str, EXT_MIN))}: "
-                "chrome://extensions -> reload post-approve")
-    return None
+    return ext_stale(POLLED.read_text().strip())
 
 
 def dashboard_posted(video_name):
@@ -952,6 +966,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(404)
         claim = p.with_suffix(".claim")
         if self.path.endswith("/claim"):
+            # Older extensions send no version here: the poll's version stands in.
+            v = self.headers.get("X-Postq-Ext") or (POLLED.read_text().strip() if POLLED.is_file() else "")
+            if why := ext_stale(v):
+                return self._send(426, why.encode(), "text/plain; charset=utf-8")
             with CLAIM_LOCK:
                 if claim.is_file() and time.time() - claim.stat().st_mtime < CLAIM_TTL:
                     return self._send(409)

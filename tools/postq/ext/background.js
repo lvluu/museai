@@ -14,7 +14,9 @@ const ADAPTERS = {
 };
 
 const api = (path, body) => fetch(`${QUEUE}/api/items${path}`, {
-  method: 'POST', headers: { 'X-Postq': '1', 'Content-Type': 'application/json' }, body: JSON.stringify(body ?? {}),
+  method: 'POST',
+  headers: { 'X-Postq': '1', 'X-Postq-Ext': chrome.runtime.getManifest().version, 'Content-Type': 'application/json' },
+  body: JSON.stringify(body ?? {}),
 });
 
 // Progress lines the popup shows while a post runs (the popup may be closed and reopened meanwhile).
@@ -138,6 +140,8 @@ async function approve(item, edits, manual = false) {
   const adapter = ADAPTERS[item.platform];
   if (!adapter) throw new Error(`No ${item.platform} adapter yet.`);
   const claim = await api(`/${item.id}/claim`);
+  // 426: this extension is older than the one beside the queue server (loaded from a stale checkout).
+  if (claim.status === 426) throw new Error(await claim.text());
   if (!claim.ok) throw new Error('Already being posted (or posted) elsewhere: skipped.');
   running.add(item.id);
   const post = { ...item, ...edits };
