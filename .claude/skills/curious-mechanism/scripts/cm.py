@@ -12,7 +12,7 @@ Usage (run from anywhere):
 
 Run: uv run --no-project --python 3.12 --with edge-tts --with pillow python scripts/cm.py ...
 Env: MUSEAI_HOME (folder holding data/api_key; default the repo, then ~/dev/museai-work), MUSEAI_BASE
-     (default http://127.0.0.1:18610), CM_VOICE (default en-US-AndrewNeural), CM_RATE (default +0%),
+     (default http://127.0.0.1:18610), CM_VOICE (default: the episode lang's voice), CM_RATE (default: the episode lang's rate),
      CM_WORK (default <repo>/videos/curious-mechanism).
 """
 
@@ -35,7 +35,7 @@ REPO = SKILL.parents[2]
 EPISODES = SKILL / "episodes"
 WORK = Path(os.environ.get("CM_WORK", REPO / "videos/curious-mechanism"))
 API_BASE = os.environ.get("MUSEAI_BASE", "http://127.0.0.1:18610")
-VOICE = os.environ.get("CM_VOICE", "en-US-AndrewNeural")
+VOICE = os.environ.get("CM_VOICE", "en-US-AndrewNeural")  # use_lang() sets it per episode
 RATE = os.environ.get("CM_RATE", "+0%")
 FPS = 24  # muse clips are 24 fps; 30 would repeat every 4th frame (judder)
 
@@ -45,6 +45,25 @@ FORMATS = {
     "short": {"size": (1080, 1920), "words": (75, 130), "secs": (20, 60), "aspect": "9:16"},
 }
 WPS = 145 / 60
+EN_WPS = WPS
+# Episode "lang" (default en): narrator voice, speaking rate (words, or syllables for vi, per second),
+# outro, title formulas and the Whisper language. Word limits scale with the rate.
+LANGS = {
+    "en": {
+        "voice": "en-US-AndrewNeural",
+        "rate": "+0%",
+        "wps": 145 / 60,
+        "cta": ("If you want to see more stories like this, subscribe.", "Subscribe for more"),
+        "title": r"^(why|how|the hidden|what)\b",
+    },
+    "vi": {
+        "voice": "vi-VN-NamMinhNeural",
+        "rate": "+15%",  # user, s004-vi: +0% sounded slow
+        "wps": 3.1,  # measured on s004-vi: NamMinh ~2.7 syllables/s at +0% with the pauses at commas, x1.15
+        "cta": ("Đăng ký để xem thêm những chuyện như thế này.", "Đăng ký để xem thêm"),
+        "title": r"^(vì sao|tại sao|làm sao|làm thế nào|bí mật|cái gì)",
+    },
+}
 # Channel outro after the last scene of every episode: spoken line + on-screen label over the last frame.
 CTA = {
     "id": "CTA",
@@ -101,7 +120,19 @@ def load(eid: str) -> dict:
     p = ep_path(eid)
     if not p.exists():
         sys.exit(f'no episode {p}; run: cm.py new {eid} "Title"')
-    return json.loads(p.read_text())
+    ep = json.loads(p.read_text())
+    use_lang(ep)
+    return ep
+
+
+def use_lang(ep: dict) -> None:
+    """One episode per run: set the narrator, rate and outro for the episode's language."""
+    global VOICE, RATE, WPS
+    lang = LANGS[ep.get("lang", "en")]
+    VOICE = os.environ.get("CM_VOICE", lang["voice"])
+    RATE = os.environ.get("CM_RATE", lang["rate"])
+    WPS = lang["wps"]
+    CTA["say"], CTA["labels"] = lang["cta"][0], [lang["cta"][1]]
 
 
 def work(eid: str) -> Path:
@@ -115,7 +146,7 @@ def fmt(ep: dict) -> dict:
 
 
 def words(s: str) -> int:
-    return len(re.findall(r"[A-Za-z0-9'’-]+", s))
+    return len(re.findall(r"[\w'’-]+", s))
 
 
 def run(cmd: list[str]) -> str:
@@ -174,14 +205,14 @@ def cmd_check(eid: str, draft: bool) -> int:
     if len(set(ids)) != len(ids):
         add("FAIL", "scene ids repeat")
     total = sum(words(s.get("say", "")) for s in scenes)
-    lo, hi = f["words"]
+    lo, hi = (round(x * WPS / EN_WPS) for x in f["words"])
     add(
         "ok" if lo <= total <= hi else "FAIL",
         f"narration {total} words (target {lo}-{hi}, ~{total / WPS:.0f} s)",
     )
 
     title = ep.get("title", "")
-    if not re.match(r"^(why|how|the hidden|what)\b", title, re.I):
+    if not re.match(LANGS[ep.get("lang", "en")]["title"], title, re.I):
         add(
             "WARN",
             f"title '{title}' uses none of the formulas (Why... / How X actually works / The hidden ...)",
@@ -847,14 +878,14 @@ def muse_qa(ep: dict, w: Path, out: Path, say) -> None:
          str(words_path)],
         capture_output=True,
         text=True,
-        env={**os.environ, "WLANG": "en"},
+        env={**os.environ, "WLANG": ep.get("lang", "en")},
     )
     if t.returncode:
         say("FAIL", f"voice: transcribe failed: {t.stderr[-300:]}")
         return
 
     def norm(s: str) -> str:
-        return re.sub(r"[^a-z]", "", s.lower())
+        return re.sub(r"[\W\d_]", "", s.lower())
 
     import difflib
 

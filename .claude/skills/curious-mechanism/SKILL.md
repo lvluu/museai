@@ -38,6 +38,12 @@ and its output says so. Never put a fact into narration that is not a verified c
   empty gate, a suitcase). Never people dying, never inside the cabin at the moment of the accident.
 - Voice: one narrator for the whole channel (`CM_VOICE`, default `en-US-AndrewNeural`, rate `+0%`): a curious
   storyteller, warm, restrained, a pause before reveals. Change it only for the whole channel, never per video.
+- Language: episode `"lang"` (default `en`; `vi` = `vi-VN-NamMinhNeural` at `+15%`) sets the narrator, rate, outro, title
+  formulas (vi: *Vì sao...?* / *Làm sao...?*), Whisper language and word limits (vi counts syllables, ~3.1/s at +15%
+  measured, so a Short is 84-145). A translated version reuses the original's pictures and clips: new episode
+  `<id>-vi` with `from_video`, copy `img/` and `anim/` into its work folder, then `voice`, `build`, `thumb`, `qa`.
+  Vietnamese runs longer than English: trim lines until `qa` shows <= 60 s and no scene over its clip by 25 %.
+  edge-tts sometimes fails a whole burst ("No audio was received"); run `voice` again.
 - Title formulas: *Why does X...?* / *The hidden engineering inside X* / *How X actually works*. Thumbnail:
   one subject, 2-4 words that are not the title.
 
@@ -106,6 +112,9 @@ Order matters: research, then script, then pictures. Never generate images befor
     `playbook/publishing/analytics/metrics-log.md`. Schedule: 1 long-form + 2-3 Shorts a week.
 
 ## Episodes
+- `s004-rail-gaps` - Short "Why don't train tracks have gaps anymore?": sun kinks, old jointed rail,
+  continuous welded rail stretched to a summer stress-free temperature and locked down, white paint.
+- `s004-rail-gaps-vi` - the Vietnamese version of s004 (same pictures and clips), the first `lang: vi` episode.
 - `s003-cable-avalanche` - Short "How do we protect internet cables from underwater avalanches?": the model
   for the story shape (1929 Grand Banks breaks as 1 scene of evidence, then routing, many paths, repair
   ships with a grapnel, cables that sense earthquakes). The rejected v1 (an incident retold in detail) is
