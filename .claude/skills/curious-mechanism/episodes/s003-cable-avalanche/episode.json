@@ -1,0 +1,228 @@
+{
+ "id": "s003-cable-avalanche",
+ "title": "How do we protect internet cables from underwater avalanches?",
+ "format": "short",
+ "question": "Underwater avalanches still snap the cables that carry the internet. How do we protect them today?",
+ "answer": "We don't stop them: deep-sea cables are garden-hose thin and lie bare on the seabed, so engineers route them away from canyon danger spots, lay many cables so traffic reroutes when one breaks, keep about twenty repair ships on standby that hook the cable up from the seabed, and now use the cables themselves to sense earthquakes.",
+ "pillar": "Invisible Systems",
+ "thumbnail": {
+  "text": "Fished up with a hook",
+  "scene": "S06",
+  "focus": 0.9
+ },
+ "music": {
+  "file": "",
+  "licence": ""
+ },
+ "people_rule": "People are anonymous representative ship crew and engineers. Never a real person's face, never invented dialogue.",
+ "claims": {
+  "c1": {
+   "text": "On 18 November 1929 a magnitude 7.2 earthquake struck under the sea on the edge of the Grand Banks, about 400 km south of Newfoundland, and snapped twelve transatlantic telegraph cables.",
+   "sources": [
+    "Wikipedia, '1929 Grand Banks earthquake', https://en.wikipedia.org/wiki/1929_Grand_Banks_earthquake",
+    "Earth Magazine, 'Benchmarks: November 18, 1929: Turbidity currents snap trans-Atlantic cables', https://www.earthmagazine.org/article/benchmarks-november-18-1929-turbidity-currents-snap-trans-atlantic-cables/"
+   ],
+   "verified": true
+  },
+  "c2": {
+   "text": "Six cables broke at the moment of the quake; the other six broke one after another, from shallow to deep, over the next 13 hours and 17 minutes.",
+   "sources": [
+    "Earth Magazine, https://www.earthmagazine.org/article/benchmarks-november-18-1929-turbidity-currents-snap-trans-atlantic-cables/",
+    "EarthDate, 'Undersea Avalanches', http://www.earthdate.org/episodes/undersea-avalanches"
+   ],
+   "verified": true
+  },
+  "c4": {
+   "text": "The quake triggered a submarine landslide; the dense mud and water rushed down the slope like an avalanche at an estimated 60 to 100 km/h.",
+   "sources": [
+    "Earth Magazine (60 to 100 km/h), https://www.earthmagazine.org/article/benchmarks-november-18-1929-turbidity-currents-snap-trans-atlantic-cables/",
+    "EarthDate (around 100 km/h, an undersea avalanche of mud and water), http://www.earthdate.org/episodes/undersea-avalanches"
+   ],
+   "verified": true
+  },
+  "c6": {
+   "text": "Engineers route cables away from the most dangerous spots in submarine canyons where turbidity currents erode the seabed.",
+   "sources": [
+    "Talling et al. 2022, Nature Communications (GEOMAR record), https://oceanrep.geomar.de/id/eprint/52756",
+    "EurekAlert / Durham University press release on the 2020 Congo Canyon flows, https://www.eurekalert.org/news-releases/959391"
+   ],
+   "verified": true
+  },
+  "c7": {
+   "text": "In the deep ocean an internet cable is about as thick as a garden hose and lies directly on the seafloor, unburied; only near shore is it armoured and buried.",
+   "sources": [
+    "ICPC, 'Submarine Cable Protection and the Environment' (Oct 2024), https://iscpc.org/publications/submarine-cable-protection-and-the-environment/ICPC_Public_EU_October_2024.pdf",
+    "ASME Magazine, 'Connected by Sea' (Sep 2025), https://magazine.asme.org/issues/september-2025/feature-connected-by-sea",
+    "Wikipedia, 'Submarine communications cable', https://en.wikipedia.org/wiki/Submarine_communications_cable"
+   ],
+   "verified": true
+  },
+  "c8": {
+   "text": "When one cable breaks, internet traffic is rerouted automatically over other cables, often with no visible drop for users.",
+   "sources": [
+    "Cloudflare, 'Resilient Internet connectivity in Europe mitigates impact from multiple cable cuts' (2024), https://blog.cloudflare.com/resilient-internet-connectivity-baltic-cable-cuts/",
+    "Gulf News, 'Red Sea cable chaos: why the internet didn't go dark', https://gulfnews.com/technology/red-sea-cable-chaos-why-the-internet-didnt-go-dark-1.500263896"
+   ],
+   "verified": true
+  },
+  "c9": {
+   "text": "About twenty ships in the world are dedicated mainly to cable repair and wait on standby.",
+   "sources": [
+    "US-China Economic and Security Review Commission, Rear Adm. Mike Brookes QFR response (Apr 2026), https://www.uscc.gov/sites/default/files/2026-04/Rear_Admiral_Mike_Brookes_Question_for_the_Record_Response.pdf",
+    "ASME Magazine, 'Connected by Sea' (Sep 2025), https://magazine.asme.org/issues/september-2025/feature-connected-by-sea"
+   ],
+   "verified": true
+  },
+  "c10": {
+   "text": "A repair ship drags a hook called a grapnel along the seabed, kilometres down, until it catches the cable, then lifts it to the surface.",
+   "sources": [
+    "ASME Magazine, 'Connected by Sea' (Sep 2025), https://magazine.asme.org/issues/september-2025/feature-connected-by-sea",
+    "Wikipedia, 'Submarine communications cable', https://en.wikipedia.org/wiki/Submarine_communications_cable"
+   ],
+   "verified": true
+  },
+  "c11": {
+   "text": "Ordinary subsea fibre cables have been used to detect earthquakes from changes in the light travelling through them.",
+   "sources": [
+    "Google Cloud blog, 'Using subsea cables to detect earthquakes' (Jul 2020), https://cloud.google.com/blog/products/infrastructure/using-subsea-cables-to-detect-earthquakes/",
+    "Wikipedia, 'Submarine communications cable', https://en.wikipedia.org/wiki/Submarine_communications_cable"
+   ],
+   "verified": true
+  },
+  "c5": {
+   "text": "Today's submarine cables are fibre optic and carry about 99 % of the data traffic between continents.",
+   "sources": [
+    "TeleGeography, 'Do Submarine Cables Account For Over 99% of Intercontinental Data Traffic?', https://resources.telegeography.com/2023-mythbusting-part-3",
+    "Wikipedia, 'Submarine communications cable', https://en.wikipedia.org/wiki/Submarine_communications_cable"
+   ],
+   "verified": true
+  }
+ },
+ "scenes": [
+  {
+   "id": "S01",
+   "section": "hook",
+   "say": "Avalanches can cut the internet.",
+   "image": {
+    "subject": "a giant underwater avalanche of mud and sand rushing down the dark continental slope of the deep Atlantic",
+    "show": "a huge churning brown-grey cloud of sediment pouring down the slope toward the viewer, a thick armoured telegraph cable in the foreground about to be hit, the cable snapping with a red flash, deep blue darkness around",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "claims": [
+    "c4"
+   ],
+   "motion": "the churning cloud of mud surges down the slope fast and rolls over itself; it hits the cable in the foreground and the cable snaps with a red flash, the two ends whipping apart; silt fills the water"
+  },
+  {
+   "id": "S02",
+   "section": "incident",
+   "say": "In 1929, underwater avalanches snapped twelve ocean cables, one by one.",
+   "image": {
+    "subject": "a single clean cross-section diagram of the underwater continental slope off Newfoundland, from the shallow shelf at top left down to the deep ocean floor at bottom right",
+    "show": "one long seafloor profile falling steeply from top left to bottom right, five or six thick cables lying on the seafloor and crossing the slope at different depths, small red spark marks where each cable is cut, lower and lower down the slope, plain dark teal water above, no boats, no aircraft, no animals, no inset panels, one single picture, the illustration fills the whole frame from top edge to bottom edge, no empty border, no blank area",
+    "variant": "diagram"
+   },
+   "move": "pan_right",
+   "labels": [],
+   "claims": [
+    "c1",
+    "c2"
+   ],
+   "motion": "red sparks light up one after another along the cables, each one further down the slope and further to the right; the dark water above stays calm"
+  },
+  {
+   "id": "S03",
+   "section": "mystery",
+   "say": "They still do. So how do we protect the cables? We don't fight the avalanche.",
+   "image": {
+    "subject": "the deep dark Atlantic seafloor today, a vast empty plain of grey mud under black water",
+    "show": "one single thin modern cable, as thin as a garden hose, lying bare on the mud and running away into the darkness, no armour, no trench, tiny compared with the huge empty seafloor around it, a faint beam of light from far above, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "move": "pull_out",
+   "claims": [
+    "c7"
+   ],
+   "motion": "the camera slowly pulls back and the thin cable becomes tiny on the huge empty seafloor; fine silt drifts through the dark water; the cable lies still"
+  },
+  {
+   "id": "S04",
+   "section": "mechanism",
+   "say": "Out in the deep, the cable is garden-hose thin, lying bare on the seabed. So engineers steer it around the canyons.",
+   "image": {
+    "subject": "a top-down view of a deep-sea floor with a winding underwater canyon, seen from high above like a relief model",
+    "show": "a dark canyon snaking down the slope with a red glow where the danger is, a thin bright amber cable route curving wide around the canyon on the flat seafloor instead of crossing it, cool teal water tones, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "map"
+   },
+   "move": "pan_down",
+   "claims": [
+    "c6",
+    "c7"
+   ],
+   "motion": "a faint brown cloud of mud slides slowly down inside the canyon; the red glow in the canyon pulses; the amber cable route glows steadily as it curves around the canyon, untouched"
+  },
+  {
+   "id": "S05",
+   "section": "mechanism",
+   "say": "And they lay many cables. When one breaks, your data takes another path.",
+   "image": {
+    "subject": "a single clean top-down diagram of a dark teal ocean between two plain cream coastlines, left and right",
+    "show": "five thin amber cables crossing the ocean from the left coast to the right coast, one of them broken in the middle with a small red spark, bright light dots on the other four cables, nothing else: no people, no aircraft, no boats, no buildings, no inset panels, no icons, one single picture that fills the whole frame from top edge to bottom edge",
+    "variant": "diagram"
+   },
+   "move": "push_in",
+   "claims": [
+    "c8"
+   ],
+   "motion": "light pulses stream along all five cables; one cable snaps with a small red spark and its pulses stop; the pulses on the other four cables grow brighter and faster as the flow moves over to them"
+  },
+  {
+   "id": "S06",
+   "section": "discovery",
+   "say": "About twenty repair ships wait on standby. One drags a hook along the seabed until it catches the cable.",
+   "image": {
+    "subject": "a white cable repair ship on a grey rolling sea, seen in a cutaway that shows the ocean below it",
+    "show": "a long steel line hanging from the ship's bow all the way down through dark water to the seabed far below, a heavy multi-pronged grappling hook dragging along the mud and catching a thin cable, small crew in orange overalls on deck watching the line, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "cutaway"
+   },
+   "move": "pan_down",
+   "claims": [
+    "c9",
+    "c10"
+   ],
+   "motion": "the ship rolls gently on the waves; the long line tightens; far below, the hook drags slowly through the mud, raising small puffs of silt, and snags the cable, which lifts off the seabed"
+  },
+  {
+   "id": "S07",
+   "section": "payoff",
+   "say": "The twist? The cables can now feel earthquakes, through tiny changes in their light.",
+   "image": {
+    "subject": "a thin modern fibre-optic cable lying on the deep seafloor",
+    "show": "amber light pulses travelling inside the cable, and soft rings of a seismic wave spreading across the seabed from far away toward the cable, the light pulses flickering where the wave touches it, dark teal water, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "closeup"
+   },
+   "move": "push_in",
+   "claims": [
+    "c11"
+   ],
+   "motion": "soft rings ripple outward across the seabed toward the cable; when they reach it the amber light pulses inside the cable flicker and shift; fine silt jumps a little"
+  },
+  {
+   "id": "S08",
+   "section": "payoff",
+   "say": "Next time a video loads from across the ocean, it came through a garden hose on the seafloor. Nothing is ordinary when you understand how it works.",
+   "image": {
+    "subject": "a modern fibre-optic submarine cable lying on the calm sunlit seabed today",
+    "show": "a sleek cable running across sand into the distance, small fish swimming above it, faint warm amber light pulses travelling along it, soft sunbeams from the surface, peaceful, no red",
+    "variant": "main"
+   },
+   "move": "pull_out",
+   "claims": [
+    "c5",
+    "c7"
+   ],
+   "motion": "small fish swim slowly above the cable; soft sunbeams sway through the water; faint amber pulses of light travel along the cable into the distance"
+  }
+ ]
+}

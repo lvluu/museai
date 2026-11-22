@@ -5,7 +5,7 @@
  "question": "the one central question this video answers",
  "answer": "the answer in one sentence, from verified research only",
  "pillar": "Everyday Engineering",
- "thumbnail": {"text": "two to four words", "scene": "S01"},
+ "thumbnail": {"text": "two to four words", "scene": "S01", "focus": 0.5},
  "music": {"file": "", "licence": ""},
  "claims": {
   "c1": {"text": "a fact the narration states", "sources": ["source 1 (title, publisher, URL)", "source 2"], "verified": false}

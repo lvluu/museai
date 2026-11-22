@@ -145,17 +145,17 @@ The end-card teaser must name an episode in this table that will really be made.
 
 ## 2. Design system
 
-**Same in every episode and language:** everything in SKILL.md → "Episode format": 9:16 1080x1920, ~36 s fast cut (episodes 1-14: ~50 s baseline), 1.5 s hook and 4.5 s end with English narrator, 6 × 5 s words, `n/6` progress, circle countdown 2-1 with ticks, reveal chime, answer said once with "Listen & repeat" pause, recap + one score CTA + teaser, gender-colored articles, IPA only, one color grade, card and text sizes, safe zone, one video without background music (music added on TikTok), all text by ffmpeg.
+**Same in every episode and language:** everything in SKILL.md → "Episode format": 9:16 1080x1920, ~36 s fast cut (episodes 1-14: ~50 s baseline), 1.5 s hook and 4.5 s end with English narrator, 6 × 5 s words, `n/6` progress, circle countdown 2-1 with ticks, reveal chime, answer said once with "Listen & repeat" pause, recap + one score CTA + teaser, gender-colored articles, IPA only, one color grade, card and text sizes, safe zone, one video without background music (music added on TikTok), all text by `scripts/build.py` (Pillow + ffmpeg), voices by edge-tts.
 
-**Per episode:** level, topic, words (picked by Claude from the official list, given to muse.ai in the prompt), scenery, next teaser.
+**Per episode:** level, topic, words (picked by Claude from the official list, one scene sentence per word for its muse clip prompt), next teaser.
 
-**Per language:** the keys in `languages/<language>.md`: word list, answer form and colors, grammar check, pronunciation aid, font, text direction, TTS code, country for scenery.
+**Per language:** the keys in `languages/<language>.md`: word list, answer form and colors, grammar check, pronunciation aid, font, TTS voice, article colors, country for scenery.
 
 **One format per episode, never mixed.** This series is English → target language (active recall). Possible later series: target language → English (recognition), image → target language (no English clue).
 
 ## 3. Before posting
 
-No automatic checks after the render (the prompt gate is the quality step). **By the user:**
+Automatic checks: each clip is looked at before the build (SKILL.md step 5), `check_video.sh` after it. **By the user:**
 - [ ] Add music on TikTok: calm instrumental, no vocals, low enough that every word stays clear.
 - [ ] Listen to every word: native-like, grammar marker (article) spoken, same loudness. Best: a fluent speaker checks stress, vowels and final consonants (review 2026-11-04 flagged Flugzeug, Fahrrad, Straße).
 - [ ] Watch it on a phone at real size, sound low and muted: every text readable, nothing under the platform buttons.

@@ -4,7 +4,7 @@
     {
       "name": "museai",
       "runtimeExecutable": "bash",
-      "runtimeArgs": ["-c", "PATH=\"$PWD/browser-harness-setup/bin:$PATH\" exec uv run python -m museai"],
+      "runtimeArgs": ["-c", "PATH=\"$PWD/browser-harness-setup/bin:$PATH\" MUSE2API_DRIVER=browser exec uv run python -m museai"],
       "port": 18610
     }
   ]

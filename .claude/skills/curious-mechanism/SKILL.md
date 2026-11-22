@@ -24,14 +24,26 @@ and its output says so. Never put a fact into narration that is not a verified c
   was faded on a phone; picked over a cinematic painted look after a side-by-side test of s002.)
   Change the look in those two files only. `CM_LOOK=painted` renders the old painted look
   (`prompt/look-painted.txt`) into its own work folder `<id>--painted` for comparison.
-- Story: open on what went wrong (an accident, a failure, a myth), let the viewer feel it through people,
-  then explain the mechanism, then the twist, then the everyday object today. Hook = the danger itself.
+- Story = problem, then the engineers' solution (user rule 2026-11-21, model episode: s003 v2 "How do we
+  protect internet cables from underwater avalanches?"). Tell a good story that leads the viewer into a real
+  problem; let the problem lead to the solution engineers actually use; end on a twist and the viewer's own
+  everyday object. The opening does not have to be an accident or a shock: any real problem told well works
+  (an accident, a failure, a myth, a limit of nature, a daily nuisance). The video teaches what the viewer
+  did not know, never just a detailed retelling of an event: an incident gets 1-2 scenes as evidence, the
+  solution gets most of the time. Before writing scenes, state in one line: the problem, the solution, and
+  the surprise.
 - People: anonymous, ordinary passengers, crew, engineers, with real emotion. Never a real victim's face,
   never invented dialogue or quotes, no gore. Show the accident itself (viewers expect to see it), but only
   from far away, as a witness would (a jet breaking apart high in the sky), or through what it leaves (an
   empty gate, a suitcase). Never people dying, never inside the cabin at the moment of the accident.
 - Voice: one narrator for the whole channel (`CM_VOICE`, default `en-US-AndrewNeural`, rate `+0%`): a curious
   storyteller, warm, restrained, a pause before reveals. Change it only for the whole channel, never per video.
+- Language: episode `"lang"` (default `en`; `vi` = `vi-VN-NamMinhNeural` at `+15%`) sets the narrator, rate, outro, title
+  formulas (vi: *Vì sao...?* / *Làm sao...?*), Whisper language and word limits (vi counts syllables, ~3.1/s at +15%
+  measured, so a Short is 84-145). A translated version reuses the original's pictures and clips: new episode
+  `<id>-vi` with `from_video`, copy `img/` and `anim/` into its work folder, then `voice`, `build`, `thumb`, `qa`.
+  Vietnamese runs longer than English: trim lines until `qa` shows <= 60 s and no scene over its clip by 25 %.
+  edge-tts sometimes fails a whole burst ("No audio was received"); run `voice` again.
 - Title formulas: *Why does X...?* / *The hidden engineering inside X* / *How X actually works*. Thumbnail:
   one subject, 2-4 words that are not the title.
 
@@ -52,9 +64,10 @@ Order matters: research, then script, then pictures. Never generate images befor
    labels drawn on the frame), `claims` (ids the line relies on).
    - Long-form: 1150-1750 words (8-12 min at ~145 wpm). Hook <= 20 s, no channel intro. Structure from the
      playbook: hook, mystery, background, mechanism (analogies), unexpected discovery, payoff.
-   - Short: 75-130 words, 30-55 s, spoken hook <= 3 s (the danger: "This jet is about to break apart."),
-     the incident (1-2 scenes), the mechanism (2-3), the twist, the payoff on today's object. A complete
-     mini-story, never a trailer for the long video.
+   - Short: 75-130 words, 30-55 s, spoken hook <= 3 s that names the problem ("Avalanches can cut the
+     internet."), the problem shown (1-2 scenes), the question "so how do engineers deal with it?" (1), the
+     solution step by step (3-4), the twist (1), the payoff on today's object. A complete mini-story, never a
+     trailer for the long video.
    - Reuse one illustration as wide shot, close-up and labelled detail (`"image": "S03"`, new move / labels).
      Long-form budget: 12-18 main + 8-12 close-ups + 4-6 cutaways + 2-4 maps.
 4. **Gate.** `cm.py check <id>` must print `RESULT ok` (length, hook, every claim with 2 sources and
@@ -78,14 +91,19 @@ Order matters: research, then script, then pictures. Never generate images befor
    `../muse-video/scripts/render-queue anim/jobs.txt` (one clip at a time, ~10-15 min each).
    `--only S05` re-renders one clip (RETAKE). Look at every clip: same cartoon style and faces as the
    still, the motion happens, no warp, no text, no cut.
-8. **Build.** `cm.py build <id>` -> `<id>.mp4` (1920x1080 or 1080x1920, 30 fps): each scene's muse clip,
-   muted and cut to the scene length (a short clip holds its last frame); a scene without a clip falls
+8. **Build.** `cm.py build <id>` -> `<id>.mp4` (1920x1080 or 1080x1920, 24 fps like the muse clips): each scene's muse clip,
+   muted and cut to the scene length (a clip up to 25 % short is slowed to fit, a shorter one holds its last frame; a clip drawn on twos, each picture shown twice, is interpolated to 24 fps); a scene without a clip falls
    back to a slow 8 % push / pull / pan on its still. Labels fade in after 0.6 s, narration -14 LUFS,
    optional licensed music (`music.file`, ducked under the voice), plus `<id>.srt` captions.
-9. **Thumbnail.** `cm.py thumb <id> [--scene S03]` -> `<id>_thumb.jpg` (1280x720, paper left with 2-4
+9. **Thumbnail.** `cm.py thumb <id> [--scene S03]` -> `<id>_thumb.jpg` (`thumbnail.focus`: vertical crop 0 top - 1 bottom; 1280x720, paper left with 2-4
    words in ink blue + muted red, illustration right, brass CM mark).
 10. **QA.** `cm.py qa <id>` checks frame, duration, audio, loudness, image size, time per picture and the
-   thumbnail, then prints the playbook's manual checklist. Go through each manual line. Never publish with an
+   thumbnail, then runs muse-video's quality gate `../muse-video/scripts/qa.py --travel` on the video
+   (sound, noise, smooth: no freezes, repeated frames <= 5 %, no jumps, cuts only at the scene changes via
+   `PLANNED_CUTS`; motion is only a WARN, it is tuned to real footage) and Whisper (`transcribe.py`,
+   `WLANG=en`): >= 90 % of the narration heard as written. A jump inside a clip = re-render that clip
+   (`anim --only`). Look at
+   `<id>_qa.jpg`. Then it prints the playbook's manual checklist. Go through each manual line. Never publish with an
    unresolved factual error, a misleading thumbnail or a copyright doubt because of a deadline.
 11. **Publish.** Description from `playbook/publishing/descriptions.md`: chapters, every source, "original
     illustrations created with AI-assisted tools", music licence, max 3 hashtags (`#howitworks
@@ -94,6 +112,13 @@ Order matters: research, then script, then pictures. Never generate images befor
     `playbook/publishing/analytics/metrics-log.md`. Schedule: 1 long-form + 2-3 Shorts a week.
 
 ## Episodes
+- `s004-rail-gaps` - Short "Why don't train tracks have gaps anymore?": sun kinks, old jointed rail,
+  continuous welded rail stretched to a summer stress-free temperature and locked down, white paint.
+- `s004-rail-gaps-vi` - the Vietnamese version of s004 (same pictures and clips), the first `lang: vi` episode.
+- `s003-cable-avalanche` - Short "How do we protect internet cables from underwater avalanches?": the model
+  for the story shape (1929 Grand Banks breaks as 1 scene of evidence, then routing, many paths, repair
+  ships with a grapnel, cables that sense earthquakes). The rejected v1 (an incident retold in detail) is
+  kept in `videos/curious-mechanism/s003-cable-avalanche/_v1/`.
 - `s002-comet-corners` - Short "Why do airplane windows have round corners?": the 1954 Comet breakups,
   the water-tank test, the crack at the roof ADF window (not a passenger window), stress at corners.
 - `s001-window-hole` - first test Short (hole in the window), engraving look; rejected by the user

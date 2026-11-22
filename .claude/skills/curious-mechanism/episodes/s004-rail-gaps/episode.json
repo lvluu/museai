@@ -1,0 +1,226 @@
+{
+ "id": "s004-rail-gaps",
+ "title": "Why don't train tracks have gaps anymore?",
+ "format": "short",
+ "question": "Old railway track had gaps between the rails so steel could grow in the heat. Why does modern track have none, and why doesn't it buckle?",
+ "answer": "Modern rails are welded into continuous strips, stretched to a summer stress-free temperature before they are clipped down, and held by sleepers and ballast, so on a hot day the rail cannot grow and carries the force as internal stress instead.",
+ "pillar": "Everyday Engineering",
+ "thumbnail": {
+  "text": "Rails that can't grow",
+  "scene": "S07",
+  "focus": 0.5
+ },
+ "music": {
+  "file": "",
+  "licence": ""
+ },
+ "claims": {
+  "c1": {
+   "text": "Rail steel expands about 11.5 to 12 millionths of its length per degree C; a free 1 km rail would grow about half a metre for a 40 C rise.",
+   "sources": [
+    "Rail Engineer, 'Bob Hazell' article on continuous welded rail, https://railengineer.co.uk/?p=46262",
+    "OpenStax, College Physics 13.2 'Thermal Expansion of Solids and Liquids', https://openstax.org/books/college-physics/pages/13-2-thermal-expansion-of-solids-and-liquids",
+    "Practical Engineering, 'Why railroads don't need expansion joints' (2023), https://practical.engineering/blog/2023/12/5/why-railroads-dont-need-expansion-joints"
+   ],
+   "verified": true
+  },
+  "c2": {
+   "text": "If a rail cannot expand, it can buckle sideways (a sun kink); heat buckles cause derailments.",
+   "sources": [
+    "Network Rail, 'Why rails buckle in Britain', https://www.networkrail.co.uk/stories/why-rails-buckle-in-britain/",
+    "FRA, 'Track Buckling Prevention: Theory, Safety Concepts, and Applications' DOT/FRA/ORD-13/16, https://rosap.ntl.bts.gov/view/dot/9808"
+   ],
+   "verified": true
+  },
+  "c3": {
+   "text": "Old track used short rails bolted with joint bars and small gaps; wheels hit every joint (the clickety-clack), which batters and wears the rail ends.",
+   "sources": [
+    "Rail Engineer, 'Bob Hazell' article on continuous welded rail, https://railengineer.co.uk/?p=46262",
+    "Practical Engineering, 'Why railroads don't need expansion joints' (2023), https://practical.engineering/blog/2023/12/5/why-railroads-dont-need-expansion-joints",
+    "Wikipedia, 'Railway track' (continuous welded rail), https://en.wikipedia.org/wiki/Railway_track"
+   ],
+   "verified": true
+  },
+  "c4": {
+   "text": "Modern rails are welded into long continuous strings, by flash-butt welding in the depot and thermite welding on site.",
+   "sources": [
+    "Wikipedia, 'Railway track' (continuous welded rail), https://en.wikipedia.org/wiki/Railway_track",
+    "Rail Engineer, 'Bob Hazell' article on continuous welded rail, https://railengineer.co.uk/?p=46262",
+    "Practical Engineering, 'Why railroads don't need expansion joints' (2023), https://practical.engineering/blog/2023/12/5/why-railroads-dont-need-expansion-joints"
+   ],
+   "verified": true
+  },
+  "c5": {
+   "text": "Before clipping down, crews stretch the rail with hydraulic tensors (or heat it) to a stress-free temperature, in the UK 27 C, a typical summer rail temperature.",
+   "sources": [
+    "Network Rail, 'Why rails buckle in Britain', https://www.networkrail.co.uk/stories/why-rails-buckle-in-britain/",
+    "Rail Engineer, 'Bob Hazell' article on continuous welded rail, https://railengineer.co.uk/?p=46262",
+    "Nicholas et al. 2025, Proc IMechE Part F (Sheffield / Network Rail), https://eprints.whiterose.ac.uk/id/eprint/224798",
+    "Wikipedia, 'Rail stressing', https://en.wikipedia.org/wiki/Rail_stressing"
+   ],
+   "verified": true
+  },
+  "c6": {
+   "text": "Clamped rail cannot grow: above the stress-free temperature it is squeezed, and sleepers and ballast hold the force; the compressive force reaches tens of tonnes per rail on a hot day.",
+   "sources": [
+    "FRA, 'Track Buckling Prevention: Theory, Safety Concepts, and Applications' DOT/FRA/ORD-13/16, https://rosap.ntl.bts.gov/view/dot/9808",
+    "Nicholas et al. 2025, Proc IMechE Part F (Sheffield / Network Rail), https://eprints.whiterose.ac.uk/id/eprint/224798",
+    "Practical Engineering, 'Why railroads don't need expansion joints' (2023), https://practical.engineering/blog/2023/12/5/why-railroads-dont-need-expansion-joints"
+   ],
+   "verified": true
+  },
+  "c7": {
+   "text": "Network Rail paints rails white in hot weather; a white rail is 5 to 10 C cooler.",
+   "sources": [
+    "Network Rail, 'Why does Network Rail paint rails white for the summer?', https://www.networkrail.co.uk/stories/why-does-network-rail-paint-rails-white-for-the-summer/",
+    "Network Rail, 'How we prevent tracks from getting too hot', https://www.networkrail.co.uk/stories/how-we-prevent-tracks-from-getting-too-hot/"
+   ],
+   "verified": true
+  }
+ },
+ "scenes": [
+  {
+   "id": "S01",
+   "section": "hook",
+   "say": "Summer heat can bend a railway.",
+   "image": {
+    "subject": "a long straight railway track running into the distance on a scorching summer afternoon",
+    "show": "steel rails shimmering in heat haze, dry yellow grass beside the line, a hard white sun, the rails glowing faintly red where they are hottest, no train, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "claims": [
+    "c2"
+   ],
+   "motion": "heat haze ripples above the rails and makes the distant track wobble; dry grass sways slightly in a hot wind; the red glow on the rails pulses softly"
+  },
+  {
+   "id": "S02",
+   "section": "mystery",
+   "say": "Steel grows in the heat: a kilometre of rail, about half a metre on a hot day.",
+   "image": {
+    "subject": "one single long steel rail lying on wooden blocks across a sunny meadow, seen from the side at ground level",
+    "show": "the rail's far right end has pushed past a white marker post stuck in the ground, a thick glowing amber arrow running along the top of the rail pointing right, bright summer sun, heat haze; one single picture, no inset panels, no second scene, the illustration fills the whole frame from top edge to bottom edge",
+    "variant": "diagram"
+   },
+   "move": "pan_right",
+   "labels": [
+    "+ 50 CM"
+   ],
+   "claims": [
+    "c1"
+   ],
+   "motion": "the rail slowly slides longer to the right past the marker post; the amber arrow along it stretches with it; heat haze shimmers above"
+  },
+  {
+   "id": "S03",
+   "section": "mystery",
+   "say": "With nowhere to go, it bends sideways, enough to derail a train.",
+   "image": {
+    "subject": "a railway track with a sharp sideways S-shaped buckle in both rails on a hot day",
+    "show": "the rails twisted out of line over the sleepers, ballast stones scattered, seen from a little height; far down the line a passenger train has stopped, small in the distance; heat haze, red highlight on the kink, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "claims": [
+    "c2"
+   ],
+   "motion": "the rails creak and bend further sideways in a slow jolt, a few ballast stones roll away; heat haze ripples; the distant train stays stopped"
+  },
+  {
+   "id": "S04",
+   "section": "background",
+   "say": "The old fix: short rails with gaps, the clickety-clack. But every wheel hammers every gap.",
+   "image": {
+    "subject": "a close-up side view of an old railway track joint at rail height, looking along the side of the rail",
+    "show": "two rail ends meeting with a clear small gap between them, a long steel joint bar bolted across the gap with four large bolts, the rail ends worn and chipped, a big steel train wheel on the left rolling toward the gap, wooden sleeper and ballast below, the illustration fills the whole frame from top edge to bottom edge",
+    "variant": "closeup"
+   },
+   "move": "push_in",
+   "claims": [
+    "c3"
+   ],
+   "motion": "the train wheel rolls over the gap and the rail ends jolt down and up with the hit; small flakes of rust jump; the wheel rolls on and the next wheel arrives"
+  },
+  {
+   "id": "S05",
+   "section": "discovery",
+   "say": "So engineers did something strange. They welded the gaps shut.",
+   "image": {
+    "subject": "two track workers in orange high-visibility clothing welding two rail ends together on the track",
+    "show": "a bright thermite weld pouring glowing orange molten metal into a mould between the rail ends, sparks flying, the workers stepping back, evening light, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "move": "pull_out",
+   "claims": [
+    "c4"
+   ],
+   "motion": "glowing molten metal pours down into the mould between the rails, sparks fly up and fade; the workers step back and shield their faces; smoke drifts away"
+  },
+  {
+   "id": "S06",
+   "section": "mechanism",
+   "say": "Before clipping a rail down, crews stretch it with hydraulic jacks, as if it were summer.",
+   "image": {
+    "subject": "a track worker in orange high-visibility clothing operating a hydraulic rail tensor clamped onto a rail",
+    "show": "a heavy yellow hydraulic clamp gripping the rail on both sides of a cut, pulling the two ends together and stretching the long rail, a pressure gauge, concrete sleepers below, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "closeup"
+   },
+   "move": "push_in",
+   "claims": [
+    "c5"
+   ],
+   "motion": "the hydraulic clamp slowly draws the two rail ends together; the gauge needle climbs; the worker watches the gauge and keeps a hand on the lever"
+  },
+  {
+   "id": "S07",
+   "section": "mechanism",
+   "say": "Then it's locked onto concrete sleepers and stones. On hot days it can't grow. It just pushes, with tens of tonnes.",
+   "image": {
+    "subject": "a cutaway diagram of a modern railway track: rail clipped onto concrete sleepers bedded in ballast stones",
+    "show": "glowing amber arrows inside the rail pushing outward along its length, the clips and sleepers holding it firmly, the stones packed around the sleepers, the rail perfectly straight, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "diagram"
+   },
+   "move": "pan_right",
+   "labels": [
+    "TENS OF TONNES"
+   ],
+   "claims": [
+    "c6"
+   ],
+   "motion": "the amber arrows inside the rail pulse brighter and push harder; the rail stays perfectly straight and still; the clips and sleepers do not move"
+  },
+  {
+   "id": "S08",
+   "section": "payoff",
+   "say": "In a heat wave, crews even paint rails white. Up to ten degrees cooler.",
+   "image": {
+    "subject": "a track worker in orange high-visibility clothing painting the side of a steel rail white with a roller on a sunny day",
+    "show": "half the rail already bright white, the other half still dark brown steel, sunlight, a paint tray on the ballast, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "move": "pan_left",
+   "claims": [
+    "c7"
+   ],
+   "motion": "the roller moves along the rail and the white paint spreads over the dark steel; the worker steps forward; sunlight glints on the fresh paint"
+  },
+  {
+   "id": "S09",
+   "section": "payoff",
+   "say": "Your quiet train ride? Rails trying to grow, and losing. Nothing is ordinary when you understand how it works.",
+   "image": {
+    "subject": "a modern passenger train gliding along smooth welded track at golden hour",
+    "show": "a passenger at the window looking out at fields, the track below perfectly straight and seamless, calm warm light, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "move": "pull_out",
+   "claims": [
+    "c4",
+    "c6"
+   ],
+   "motion": "the train glides smoothly along the track; fields slide past the window; the passenger watches calmly; warm light flickers through passing trees"
+  }
+ ],
+ "people_rule": "People are anonymous representative track workers and passengers. Never a real person's face, never invented dialogue."
+}

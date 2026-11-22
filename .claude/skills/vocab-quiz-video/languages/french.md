@@ -1,6 +1,8 @@
 ---
 language: French
 language_upper: FRENCH
+tts_voice: fr-FR-DeniseNeural
+article_colors: le #4DA3FF, la #FF6B6B
 lang_code: fr
 country: France
 word_list: the CEFR (DELF A1/A2) reference vocabulary for French (Référentiel / Niveau A1-A2 pour le français)

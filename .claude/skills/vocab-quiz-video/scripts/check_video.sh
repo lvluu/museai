@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Check a vocab quiz video: format, ticks, speech-to-text of every answer, frame sheet.
 # Usage: check_video.sh <video.mp4> <lang_code, e.g. de>
-# Override timings for older layouts: HOOK=1.5 WORD=7 VOICE1=6.5 VOICE2=6.5 check_video.sh ...
-# Timings follow SKILL.md "Episode format": hook 3 s, 6 words x 7 s, ticks at 0.5/1.5/2.5 s, voice at 3.6 s and 5.3 s.
+# Override timings for older layouts: HOOK=3 WORD=7 VOICE1=3.5 VOICE2=5.2 check_video.sh ...
+# Timings follow SKILL.md "Episode format": hook 1.5 s, 6 words x 5 s, ticks at 0.0/1.0 s, chime at 2.0 s, voice once at 2.3 s.
 set -euo pipefail
 video=$(realpath "$1"); lang=$2
-HOOK=${HOOK:-3}; WORD=${WORD:-7}; VOICE1=${VOICE1:-3.5}; VOICE2=${VOICE2:-5.2}
+HOOK=${HOOK:-1.5}; WORD=${WORD:-5}; VOICE1=${VOICE1:-2.3}; VOICE2=${VOICE2:-}
 work="${video%.*}-check"; mkdir -p "$work"; cd "$work"
 
 echo "== format"
@@ -13,14 +13,14 @@ ffprobe -v error -show_entries stream=codec_name,width,height,r_frame_rate:forma
 
 ffmpeg -v error -y -i "$video" -ac 1 -ar 16000 audio.wav
 
-echo "== ticks (loud 0.1 s windows from 0.3 to 3.3 s of each word; expect 0.5 1.5 2.5)"
+echo "== ticks + chime (loud 0.1 s windows from 0.0 to 2.2 s of each word; expect 0.0 1.0 2.0)"
 python3 -I - "$HOOK" "$WORD" <<'EOF'
 import array, math, sys, wave
 hook, word = float(sys.argv[1]), float(sys.argv[2])
 w = wave.open("audio.wav"); sr = w.getframerate(); a = array.array("h", w.readframes(w.getnframes()))
 for r in range(6):
     base = hook + r * word; hits = []
-    for i in range(round((base + 0.3) * 10), round((base + 3.3) * 10)):
+    for i in range(round(base * 10), round((base + 2.2) * 10)):
         s = a[int(i * 0.1 * sr):int((i + 1) * 0.1 * sr)]
         p = max((abs(x) for x in s), default=0)
         if p and 20 * math.log10(p / 32768) > -12:
@@ -28,22 +28,24 @@ for r in range(6):
     print(f"word {r + 1}: {hits}")
 EOF
 
-echo "== speech-to-text (first and second reading of each answer)"
+echo "== speech-to-text (each answer; VOICE2 adds a second reading for old layouts)"
 for r in 0 1 2 3 4 5; do
-  for k in 1 2; do
+  for k in 1 ${VOICE2:+2}; do
     off=$([ $k = 1 ] && echo "$VOICE1" || echo "$VOICE2")
     s=$(python3 -c "print($HOOK + $r * $WORD + $off)")
     ffmpeg -v error -y -ss "$s" -t 1.7 -i audio.wav "voice_${r}_${k}.wav"
   done
 done
 uv run --no-project --python 3.12 --with faster-whisper==1.1.1 --with requests python -I - "$lang" <<'EOF' 2>&1 | grep -E '^word'
-import sys, wave
+import os, sys, wave
 import numpy as np
 from faster_whisper import WhisperModel
 m = WhisperModel("small", device="cpu", compute_type="int8", cpu_threads=2)
 for r in range(6):
     heard = []
     for k in (1, 2):
+        if not os.path.exists(f"voice_{r}_{k}.wav"):
+            continue
         w = wave.open(f"voice_{r}_{k}.wav")
         a = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float32) / 32768
         # vad_filter: silent windows otherwise come back as invented text ("SWR 2020").
@@ -55,7 +57,7 @@ EOF
 echo "== frames"
 times=(0.7)
 for r in 0 1 2 3 4 5; do
-  times+=("$(python3 -c "print($HOOK + $r * $WORD + 2.0)")" "$(python3 -c "print($HOOK + $r * $WORD + 4.5)")")
+  times+=("$(python3 -c "print($HOOK + $r * $WORD + 1.0)")" "$(python3 -c "print($HOOK + $r * $WORD + 4.5)")")
 done
 times+=("$(python3 -c "print($HOOK + 6 * $WORD + 1.5)")")
 inputs=()
