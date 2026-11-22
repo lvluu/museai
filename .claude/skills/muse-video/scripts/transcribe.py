@@ -1,4 +1,4 @@
-"""Usage: transcribe.py video.mp4 out.json [hint text]  -> word timestamps (zh)."""
+"""Usage: [WLANG=en] transcribe.py video.mp4 out.json [hint text]  -> word timestamps (default zh)."""
 import json
 import os
 import subprocess
@@ -14,7 +14,7 @@ pcm = subprocess.run(["ffmpeg", "-v", "error", "-i", video, "-vn", "-ac", "1", "
                       "-f", "s16le", "-"], capture_output=True, check=True).stdout
 audio = np.frombuffer(pcm, np.int16).astype(np.float32) / 32768.0
 model = WhisperModel(os.environ.get("WMODEL","small"), device="cpu", compute_type="int8")
-segments, _ = model.transcribe(audio, language="zh", word_timestamps=True,
+segments, _ = model.transcribe(audio, language=os.environ.get("WLANG", "zh"), word_timestamps=True,
                                initial_prompt=hint, vad_filter=os.environ.get("VAD","1")=="1")
 # Whisper often answers zh in traditional characters (EP10), which qa.py scores as misheard
 t2s = opencc.OpenCC("t2s").convert

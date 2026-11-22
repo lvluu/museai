@@ -17,7 +17,8 @@ Quality gate for a muse video. Exit 1 when any check fails.
   motion  --travel: nature moves like real footage, not a frozen photo, an in-place warp or a
           time-lapse (motion.py: optical flow per 10 % band)
   smooth  no frozen stretches, duplicated frames or one-frame picture jumps (jumps.py; seams
-          not eased with ease_seams.py, muse in-clip snaps), hard cuts == expected (default 0)
+          not eased with ease_seams.py, muse in-clip snaps), hard cuts == expected (default 0);
+          PLANNED_CUTS=t1,t2,... instead allows cuts/jumps only within 0.15 s of those times
   mouth   writes a contact sheet (one frame mid-line per cue) to check realism + lip sync by eye
 """
 import difflib
@@ -174,11 +175,28 @@ dup = 1 - kept / total if total else 0
 sys.path.insert(0, str(Path(__file__).parent))
 from jumps import jumps  # noqa: E402
 
+# PLANNED_CUTS=9.56,14.84,...: the edit's own cut times (curious-mechanism scene changes). A cut between two
+# similar-coloured scenes is missed by the scene detector and shows up as a jump instead, so with planned
+# times a cut or jump near one is fine and any other cut fails; the cut count is not compared.
+planned = [float(x) for x in os.environ.get("PLANNED_CUTS", "").split(",") if x.strip()]
+
+
+def near_planned(t):
+    return any(abs(t - p) <= 0.15 for p in planned)
+
+
 # a planned hard cut is a jump too; it is counted with the cuts instead
-snaps = [round(t, 2) for t, *_ in jumps(video) if all(abs(t - float(c)) > 0.1 for c in cuts)]
-ok = not freezes and len(cuts) == expected_cuts and dup <= 0.05 and not snaps
+snaps = [round(t, 2) for t, *_ in jumps(video)
+         if all(abs(t - float(c)) > 0.1 for c in cuts) and not near_planned(t)]
+if planned:
+    stray = [round(float(c), 2) for c in cuts if not near_planned(float(c))]
+    cuts_ok, cut_note = not stray, f"cuts off the planned scene changes: {stray}"
+else:
+    cuts_ok = len(cuts) == expected_cuts
+    cut_note = f"cuts at {[round(float(c), 2) for c in cuts]} (expected {expected_cuts})"
+ok = not freezes and cuts_ok and dup <= 0.05 and not snaps
 print(f"smooth  {'ok  ' if ok else 'FAIL'} freezes={[f'{float(f):.1f}s' for f in freezes]} "
-      f"repeated frames {dup:.0%} (max 5%) cuts at {[round(float(c), 2) for c in cuts]} (expected {expected_cuts}) "
+      f"repeated frames {dup:.0%} (max 5%) {cut_note} "
       f"jumps at {snaps} (seam -> ease_seams.py, inside a clip -> re-render it)")
 ok or fails.append("smooth")
 

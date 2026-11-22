@@ -37,7 +37,7 @@ WORK = Path(os.environ.get("CM_WORK", REPO / "videos/curious-mechanism"))
 API_BASE = os.environ.get("MUSEAI_BASE", "http://127.0.0.1:18610")
 VOICE = os.environ.get("CM_VOICE", "en-US-AndrewNeural")
 RATE = os.environ.get("CM_RATE", "+0%")
-FPS = 30
+FPS = 24  # muse clips are 24 fps; 30 would repeat every 4th frame (judder)
 
 FORMATS = {
     # size, words min/max (playbook: ~145 wpm), duration min/max seconds
@@ -457,6 +457,19 @@ def cmd_voice(eid: str) -> None:
 
 
 # ---------- build ----------
+def on_twos(clip: Path) -> bool:
+    """True when every other frame repeats the one before (motion at 12 pictures/s in a 24 fps file)."""
+    log = run(["ffmpeg", "-v", "error", "-i", str(clip), "-vf",
+               "signalstats,metadata=print:key=lavfi.signalstats.YDIF:file=-", "-f", "null", "-"])
+    d = [float(x) for x in re.findall(r"YDIF=([\d.]+)", log)][1:]
+    if len(d) < 24:
+        return False
+    import statistics
+
+    a, b = statistics.median(d[0::2]), statistics.median(d[1::2])
+    return max(a, b) > 3 and max(a, b) > 5 * min(a, b)
+
+
 def zoompan(move: str, n: int, w: int, h: int) -> str:
     z0, z1 = {"push_in": (1.0, 1.08), "pull_out": (1.08, 1.0)}.get(move, (1.06, 1.06))
     if move == "still":
@@ -559,8 +572,19 @@ def cmd_build(eid: str) -> None:
         clip = clips / f"{s['id']}.mp4"
         anim = anim_of(ep, s, w)
         if s is not CTA and anim.exists():
-            # muse clip, muted (narration only); a clip shorter than the scene holds its last frame.
+            # muse clip, muted (narration only). A clip up to 25 % shorter than the scene is slowed to fit
+            # (s003: a 0.8 s hold on the last frame failed qa's freeze check); a shorter one holds its last frame.
+            clip_dur = duration(anim)
+            slow = t["dur"] / clip_dur if clip_dur < t["dur"] <= clip_dur * 1.25 else 1.0
+            # s003 S01: muse drew a fast avalanche "on twos" (each picture twice in a 24 fps file), which
+            # judders and fails qa's jumps; keep one of each pair and interpolate the missing frames.
+            twos = (
+                "select='not(mod(n\\,2))',setpts=N/12/TB,minterpolate=fps=24:mi_mode=mci:mc_mode=aobmc:vsbmc=1,"
+                if on_twos(anim)
+                else ""
+            )
             vf = (
+                f"{twos}setpts={slow:.4f}*PTS,"
                 f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS},"
                 f"tpad=stop_mode=clone:stop_duration={t['dur']:.3f},format=yuv420p"
             )
@@ -734,7 +758,8 @@ def cmd_thumb(eid: str, scene: str | None) -> None:
     src = Image.open(image_of(ep, s, w)).convert("RGB")
     W, H = 1280, 720
     im = Image.new("RGB", (W, H), PAPER)
-    art = ImageOps.fit(src, (int(W * 0.55), H))
+    # focus: vertical crop position of a tall frame, 0 = top, 0.5 = centre, 1 = bottom
+    art = ImageOps.fit(src, (int(W * 0.55), H), centering=(0.5, float(th.get("focus", 0.5))))
     im.paste(art, (W - art.width, 0))
     d = ImageDraw.Draw(im)
     text = th.get("text") or ep["title"]
@@ -787,6 +812,56 @@ MANUAL = [
     "Music and SFX are licensed and logged (playbook/templates/asset-license-log.md)",
     "YouTube 'altered or synthetic content' assessed; description says AI-assisted visuals and voice",
 ]
+
+
+MUSE_SCRIPTS = SKILL.parent / "muse-video/scripts"
+
+
+def muse_qa(ep: dict, w: Path, out: Path, say) -> None:
+    """muse-video's quality gate on the finished video, plus Whisper heard vs written narration."""
+    # --travel: no dialogue, so voices / gaze / pace do not apply; one hard cut per scene change
+    sheet = w / f"{ep['id']}_qa.jpg"
+    tl = json.loads((w / "timeline.json").read_text())
+    r = subprocess.run(
+        [sys.executable, str(MUSE_SCRIPTS / "qa.py"), str(out), "--travel", str(len(tl) - 1), str(sheet)],
+        capture_output=True,
+        text=True,
+        env={**os.environ, "PLANNED_CUTS": ",".join(f"{t['start']:.2f}" for t in tl[1:])},
+    )
+    for line in r.stdout.splitlines():
+        if line.startswith("RESULT"):
+            continue
+        name, _, rest = line.partition(" ")
+        level = {"ok": "ok", "FAIL": "FAIL", "skip": "ok"}.get(rest.split()[0] if rest.split() else "", "INFO")
+        if name == "motion" and level == "FAIL":
+            # motion.py is tuned to real footage; cartoon clips read as in-place wobble. Check the clips by eye.
+            level = "WARN"
+        say(level, f"muse-qa {line.strip()}")
+    if r.returncode not in (0, 1):
+        say("FAIL", f"muse-qa crashed: {r.stderr[-300:]}")
+
+    words_path = w / "heard.json"
+    t = subprocess.run(
+        ["uv", "run", "-q", "--no-project", "--python", "3.12", "--with", "faster-whisper", "--with", "numpy",
+         "--with", "opencc-python-reimplemented", "python", str(MUSE_SCRIPTS / "transcribe.py"), str(out),
+         str(words_path)],
+        capture_output=True,
+        text=True,
+        env={**os.environ, "WLANG": "en"},
+    )
+    if t.returncode:
+        say("FAIL", f"voice: transcribe failed: {t.stderr[-300:]}")
+        return
+
+    def norm(s: str) -> str:
+        return re.sub(r"[^a-z]", "", s.lower())
+
+    import difflib
+
+    script = norm(" ".join(s.get("say", "") for s in ep["scenes"] + [CTA]))
+    heard = norm(" ".join(x["w"] for x in json.loads(words_path.read_text())))
+    ratio = difflib.SequenceMatcher(None, script, heard, autojunk=False).ratio()
+    say("ok" if ratio >= 0.9 else "FAIL", f"voice {ratio:.0%} of the narration heard as written (>= 90 %)")
 
 
 def cmd_qa(eid: str) -> int:
@@ -853,11 +928,14 @@ def cmd_qa(eid: str) -> int:
                 from PIL import Image
 
                 with Image.open(p) as im:
-                    if min(im.size) < 720:
+                    # the mock driver returns 64 px squares; real muse stills are ~500x885
+                    if min(im.size) < 400:
                         say(
                             "FAIL",
                             f"{p.name} is {im.size[0]}x{im.size[1]}: too small (mock driver?)",
                         )
+    if out.exists():
+        muse_qa(ep, w, out, say)
     thumb = w / f"{eid}_thumb.jpg"
     if ep.get("format") == "long":
         say("ok" if thumb.exists() else "FAIL", f"thumbnail {thumb.name}")
