@@ -86,7 +86,8 @@ class ChromiumProcess:
             "--disable-backgrounding-occluded-windows",
             "--disable-renderer-backgrounding",
             "--autoplay-policy=no-user-gesture-required",
-            "--window-size=1440,2200",
+            # Headless Chromium draws on the CPU, so every pixel costs per frame per tab (1440x2200 kept dell busy, 2026-11-22).
+            "--window-size=1280,800",
             "about:blank",
         ]
         if self.proxy:
