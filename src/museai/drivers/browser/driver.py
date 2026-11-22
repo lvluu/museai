@@ -623,6 +623,9 @@ class BrowserDriver(MuseDriver):
                 log.info("reply finished but the thread url was not ready yet")
         else:
             self._forget(tab)
+            # An unfinished page (stuck connecting, timeout) keeps retrying in the background: about half a core
+            # per tab on dell (2026-11-22). `_release` closes a stale tab; the next job opens a fresh one.
+            tab.stale = True
 
     # ------------------------------------------------------------ media
     @staticmethod
