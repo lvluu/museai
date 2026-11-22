@@ -1,6 +1,8 @@
 ---
 language: German
 language_upper: GERMAN
+tts_voice: de-DE-KatjaNeural
+article_colors: der #4DA3FF, die #FF6B6B, das #51CF66
 lang_code: de
 country: Germany
 word_list: the official Goethe-Institut word list (Goethe-Zertifikat Wortliste)
@@ -28,7 +30,7 @@ The tested language. Use this file as the worked example when adding a language.
 | Word list | Goethe-Institut Wortliste per level (A1 Start Deutsch 1, A2, B1) | Official list learners study for; the review asked to verify levels against a real source |
 | Answer | article + noun, article colored by gender (der blue, die red, das green) | Gender is the hard part of German nouns; the article is written too, so meaning never depends on color alone |
 | Pronunciation | IPA only | Review 2026-11-04: one notation system; mixing a respelling with IPA confused readers. The spoken voice carries the sound for casual viewers |
-| Voice | muse.ai TTS `--language de`, article + noun, said once, then a silent "Listen & repeat" pause | muse warned the voice "may not sound fully native"; v1/v2 speech-to-text heard every word right except one doubtful case |
+| Voice | edge-tts `de-DE-KatjaNeural` (build.py), article + noun at -10 % rate, said once, then a silent "Listen & repeat" pause | Since 2026-11-19 one fixed voice for every episode, checked before the build. Before: muse.ai picked its own TTS voice per video. Speech-to-text heard all 6 test answers right (ep16 rebuild) |
 | Scenery | Germany: castles, half-timbered towns, Alps, lakes, markets, stations | Viewers liked the scenery most (review: "preserve") |
 
 ## Test renders (dropped 2026-11-02, not part of the series)

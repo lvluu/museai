@@ -1,6 +1,8 @@
 ---
 language:
 language_upper:
+tts_voice:
+article_colors:
 lang_code:
 country:
 word_list:
@@ -27,7 +29,10 @@ Copy this file to `languages/<language>.md` and fill every key above. `languages
 |---|---|---|---|
 | `language` | Name in English | German | Spanish, Japanese |
 | `language_upper` | Badge text | GERMAN | SPANISH |
-| `lang_code` | TTS and speech-to-text code | de | es, fr, ja, zh |
+| `tts_voice` | edge-tts voice that says the answers (`edge-tts --list-voices`) | de-DE-KatjaNeural | es-ES-ElviraNeural, fr-FR-DeniseNeural, ja-JP-NanamiNeural |
+| `article_colors` | Gender color per article word (build.py colors the first word of the answer); empty for languages without articles | `der #4DA3FF, die #FF6B6B, das #51CF66` | `el #4DA3FF, la #FF6B6B` (es); empty (zh, ja) |
+| `font_bold`, `font_regular` | Optional font paths for build.py; default Noto Sans (Latin + IPA) | empty | `/usr/share/fonts/opentype/noto/NotoSansCJK-Bold.ttc` (zh, ja) |
+| `lang_code` | Speech-to-text code for check_video.sh | de | es, fr, ja, zh |
 | `country` | Where the scenery comes from | Germany | Spain, Japan |
 | `word_list` | Official list per level | Goethe-Institut Wortliste | Instituto Cervantes Plan Curricular (es), HSK list (zh), JLPT list (ja) |
 | `answer_form` | What the answer shows | the German noun with its article (der/die/das) | the Spanish noun with its article (el/la); the Chinese word in simplified characters |
