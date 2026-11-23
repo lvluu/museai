@@ -475,6 +475,9 @@ async function metaFlow(stored, pg) {
   const when = item.schedule_at ? Date.parse(item.schedule_at) : null;
   const list = `${BS}/posts/${when ? 'scheduled' : 'published'}_posts?${q}`;
   if (!item.video_id) metaWhen(when); // a slot too far ahead stops here, before any upload
+  // Rows match on the first 40 caption chars, often just the shared title: an Instagram reel of the same
+  // video posted earlier is not this Facebook-only item's post (2026-11-23: it stopped the Facebook one).
+  const mine = (r) => r.match && (!r.platform || item.targets.includes(r.platform));
 
   // Never a second post: a submitted item, or one whose caption is already in the list, is only checked;
   // a reel already at this slot for a target (one saved without its caption looks like nobody's) stops it.
@@ -483,14 +486,14 @@ async function metaFlow(stored, pg) {
     // The other list too: a reel scheduled earlier (or already gone out) is this item, at whatever time.
     const other = `${BS}/posts/${when ? 'published' : 'scheduled'}_posts?${q}`;
     await pg.go(other, `${BS}/posts/`);
-    const elsewhere = (await pg.step('findScheduled', [item.caption, item.caption_ig])).filter((r) => r.match);
+    const elsewhere = (await pg.step('findScheduled', [item.caption, item.caption_ig])).filter(mine);
     if (elsewhere.length) {
       await say(`Already ${when ? 'posted' : 'scheduled'} (${elsewhere.length} row(s)) · checking it`);
       return checkMetaList(item, pg, other, null, 'resumed', elsewhere);
     }
     await pg.go(list, `${BS}/posts/`);
     const rows = await pg.step('findScheduled', [item.caption, item.caption_ig]);
-    const found = rows.filter((r) => r.match);
+    const found = rows.filter(mine);
     if (item.video_id || found.length) {
       await say(`Already ${when ? 'scheduled' : 'posted'} (${found.length} row(s)) · checking it`);
       return checkMetaList(item, pg, list, when, 'resumed', found);
@@ -581,7 +584,8 @@ async function checkMetaList(item, pg, list, when, note, rows) {
       await new Promise((r) => setTimeout(r, 20000));
       await pg.go(list, `${BS}/posts/`);
     }
-    found = (await pg.step('findScheduled', [item.caption, item.caption_ig])).filter((r) => r.match);
+    found = (await pg.step('findScheduled', [item.caption, item.caption_ig]))
+      .filter((r) => r.match && (!r.platform || item.targets.includes(r.platform)));
   }
   const checks = [];
   for (const t of item.targets) {
