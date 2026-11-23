@@ -1,6 +1,6 @@
 ---
 name: curious-mechanism
-description: Make a video for The Curious Mechanism (@curiousmechai) - a faceless, AI-illustrated educational channel that explains the hidden engineering, design decisions and strange history of everyday things, in a clean 2D cartoon look (bold outlines, flat colours, cel shading, expressive characters, teal / amber / cream with red for danger). Every story opens on what went wrong (an accident, a failure, a near miss) and then explains why. Long-form 8-12 min 16:9 mini-documentaries (one a week) and 30-55 s 9:16 Shorts (complete mini-stories), built from one episode.json - verified claims with 2 sources each, a script for the ear, illustrations through museai animated scene by scene with muse video, one fixed narrator voice, editorial labels drawn in the edit, a 1280x720 thumbnail and a QA gate. Use for "Curious Mechanism", "curiousmechai", "why are airplane windows round", "how X actually works", "hidden engineering of X", "everyday engineering video", "explainer like the airplane window one", or the next episode or Short of this channel.
+description: Make a video for The Curious Mechanism (@curiousmechai) - a faceless, AI-illustrated educational channel that explains the hidden engineering, design decisions and strange history of everyday things, in a clean 2D cartoon look (bold outlines, flat colours, cel shading, expressive characters, teal / amber / cream with red for danger). Every story opens on what went wrong (an accident, a failure, a near miss) and then explains why. Long-form 8-12 min 16:9 mini-documentaries (one a week) and 30-55 s 9:16 Shorts (complete mini-stories), built from one episode.json - verified claims with 2 sources each, a script for the ear, illustrations through museai animated scene by scene with muse video, one fixed narrator voice, editorial labels drawn in the edit, a 1280x720 thumbnail drawn by muse and a QA gate. Use for "Curious Mechanism", "curiousmechai", "why are airplane windows round", "how X actually works", "hidden engineering of X", "everyday engineering video", "explainer like the airplane window one", or the next episode or Short of this channel.
 ---
 
 # curious-mechanism
@@ -95,8 +95,11 @@ Order matters: research, then script, then pictures. Never generate images befor
    muted and cut to the scene length (a clip up to 25 % short is slowed to fit, a shorter one holds its last frame; a clip drawn on twos, each picture shown twice, is interpolated to 24 fps); a scene without a clip falls
    back to a slow 8 % push / pull / pan on its still. Labels fade in after 0.6 s, narration -14 LUFS,
    optional licensed music (`music.file`, ducked under the voice), plus `<id>.srt` captions.
-9. **Thumbnail.** `cm.py thumb <id> [--scene S03]` -> `<id>_thumb.jpg` (`thumbnail.focus`: vertical crop 0 top - 1 bottom; 1280x720, paper left with 2-4
-   words in ink blue + muted red, illustration right, brass CM mark).
+9. **Thumbnail.** `cm.py thumb <id> [--scene S03]` -> `<id>_thumb.jpg` (1280x720). muse draws the whole thumbnail
+   (user rule 2026-11-23: every picture comes from muse): paper left with the 2-4 `thumbnail.text` words in ink
+   blue + muted red, the scene's illustration attached as the reference on the right, brass CM mark. OCR
+   (rapidocr) must read the words exactly; a miss is redrawn, up to `THUMB_TRIES` (3), then it stops and keeps
+   the last render as `<id>_thumb_muse.png`. Still look at it: OCR does not see a wrong drawing.
 10. **QA.** `cm.py qa <id>` checks frame, duration, audio, loudness, image size, time per picture and the
    thumbnail, then runs muse-video's quality gate `../muse-video/scripts/qa.py --travel` on the video
    (sound, noise, smooth: no freezes, repeated frames <= 5 %, no jumps, cuts only at the scene changes via
