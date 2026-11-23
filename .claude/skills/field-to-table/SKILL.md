@@ -61,12 +61,30 @@ From `../healing-longform/` lessons plus these:
   kitchen and clay-pot refs).
 - Food continuity: every shot names what the container holds and its state (raw / roasted / peeled).
 
+## Styles (user 2026-11-23: "a new style for every video")
+
+Every film gets a different look and world from `styles.json`: where ELLIE lives that day (snow cabin, sea
+cottage, alpine chalet, Provence farmhouse, Highland croft, a terraced hillside with eastern strings, an orchard on
+16mm), her clothes, a camera sentence, a colour grade with its own grain, the music instruments and level.
+`python3 scripts/ideas.py style` picks one not used in the last 3 films (never-used first). Copy its `id`,
+`camera`, `grade`, `music_lufs` into story.json (`plan.py` adds `camera` to the look; `longform.py` uses `grade`
+and `music_lufs`), plus `"shake": 2` (a slow handheld drift added in compose, the clip itself stays locked off)
+and `"max_slow": 1.12` (slow motion reads as generated). Use its `music` as the ACE-Step TAGS. The idea bank gives
+the subject and the work; the style gives the place: rewrite the idea's setting into the style's world. Record
+with `ideas.py record <id> --style <style id>`. Add a style when the season has none left.
+
+## YouTube's AI label
+
+The label comes from our own upload: `src/museai/services/publishers/youtube.py` sends
+`containsSyntheticMedia: True`, YouTube's disclosure for realistic generated footage (its policy requires it; a
+missing disclosure can cost monetisation). Keep it. Better footage keeps viewers, it does not remove the label.
+
 ## Steps
 
-1. **Pick an idea.** `python3 scripts/ideas.py next --season now` (cottage bank; `--bank countryside` for the
+1. **Pick a style and an idea.** `python3 scripts/ideas.py style`, then `python3 scripts/ideas.py next --season now` (cottage bank; `--bank countryside` for the
    A-Qiao variant). Turn its `chapters` into 5 chapters and ~70 beats (~60 clips, ~12 stills). Copy
-   `stories/forest-supper.json` as the template (`stories/gen-forest-supper.py` wrote it: edit a copy of the
-   generator, it fills `cuts`, `teaser` and `short`); `cast: ["ELLIE"]` when she is in frame. Check the length with
+   `stories/pumpkin-terraces.json` as the template (`stories/gen-pumpkin-terraces.py` wrote it: edit a copy of the
+   generator, it fills the style fields, `cuts`, `teaser` and `short`); `cast: ["ELLIE"]` when she is in frame. Check the length with
    `longform.py --dry` (aim 600-750 s).
 2. **Plan + render**, detached, from the work folder (`H=../healing-longform/scripts`):
    ```bash
@@ -101,7 +119,7 @@ From `../healing-longform/` lessons plus these:
    --title "<2-5 word hook>" --out thumbs/healing-<slug>_16x9.jpg`, and `--size 9:16` from the same clip. A still works too: make a 2 s mp4 of it with ffmpeg `-loop 1` first.
 9. **Deliver** to `~/Desktop/field-to-table/<slug>/`: the 16:9 film, the 9:16 short, both thumbnails, and
    `story.json`. Copy the story to `stories/<slug>.json`, then `scripts/ideas.py record <id> --video <path>
-   --slug <slug>`.
+   --slug <slug> --style <style id>`.
 
 ## Lessons
 

@@ -1,0 +1,103 @@
+[
+ {
+  "id": "eastern-strings",
+  "name": "mountain kitchen with eastern strings",
+  "world": "a small timber-and-plaster house on a terraced hillside garden above a misty valley, a bamboo grove, a clay stove with a wide iron pan, a spring-fed stone basin, our own cottage girl living there",
+  "seasons": [
+   "spring",
+   "summer",
+   "autumn",
+   "winter"
+  ],
+  "outfits": "a loose undyed linen jacket with wide sleeves tied at the waist, wide flax trousers, cloth shoes, her braid over her LEFT shoulder",
+  "camera": "Calm mirrorless footage with a 50mm lens: the subject sharp, the background softly out of focus, quiet natural colours, real grain.",
+  "grade": "eq=gamma={g:.3f}:saturation=0.86:contrast=1.0,colorbalance=rs=0.005:gs=0.012:bs=-0.005,noise=alls=6:allf=t,vignette=PI/6",
+  "music": "slow guzheng plucks with a soft bamboo flute and gentle pipa, spacious, tender, calm, no drums, no vocals",
+  "music_lufs": -28
+ },
+ {
+  "id": "nordic-snow",
+  "name": "winter cabin in the north",
+  "world": "a small red-painted wooden cabin at the edge of a snowy birch and pine forest in Scandinavia, a frozen lake below, a wood-burning stove, a sauna hut",
+  "seasons": [
+   "winter"
+  ],
+  "outfits": "a thick grey wool fisherman jumper, a mustard knitted hat, felted wool mittens, brown leather snow boots",
+  "camera": "Shot on a small mirrorless camera with an ordinary 35mm lens: natural perspective, the background a little soft, gentle real grain, cool true winter colours.",
+  "grade": "eq=gamma={g:.3f}:saturation=0.84:contrast=1.03,colorbalance=rs=-0.02:gs=0.0:bs=0.03,noise=alls=6:allf=t,vignette=PI/6",
+  "music": "slow soft celesta and felt piano with distant bowed strings, nordic winter, sparse, calm, no drums, no vocals",
+  "music_lufs": -27
+ },
+ {
+  "id": "cornish-sea",
+  "name": "sea cottage on the cliffs",
+  "world": "a whitewashed fisherman's cottage on a Cornish cliff path, a small walled garden of sea kale and herbs, a shingle cove below, rock pools, a stone harbour wall",
+  "seasons": [
+   "spring",
+   "summer",
+   "autumn"
+  ],
+  "outfits": "a navy-and-cream striped Breton top, a faded indigo linen shirt over it, rolled cream canvas trousers, worn tan leather sandals",
+  "camera": "Handheld-steady phone footage on a breezy bright coast: airy pale colours, crisp detail, real wind in hair and grass.",
+  "grade": "eq=gamma={g:.3f}:saturation=0.9:contrast=0.99:brightness=0.01,colorbalance=rs=-0.01:gs=0.005:bs=0.015,noise=alls=4:allf=t",
+  "music": "gentle fingerpicked acoustic guitar with soft harmonium and light sea air, slow, warm, calm, no drums, no vocals",
+  "music_lufs": -26
+ },
+ {
+  "id": "film16-orchard",
+  "name": "old orchard on 16mm film",
+  "world": "an old farmhouse orchard in the English Midlands, a brick bakehouse, a cider press shed, long grass under gnarled trees",
+  "seasons": [
+   "autumn",
+   "summer"
+  ],
+  "outfits": "a rust-brown corduroy pinafore over a cream cotton blouse, a moss-green cardigan, brown leather ankle boots",
+  "camera": "Looks like footage shot on 16mm film: soft natural contrast, slightly faded colours, visible film grain, a hint of softness at the edges.",
+  "grade": "curves=master='0/0.04 0.5/0.5 1/0.94',eq=gamma={g:.3f}:saturation=0.82:contrast=0.98,colorbalance=rs=0.02:gs=0.01:bs=-0.02,noise=alls=11:allf=t,vignette=PI/5",
+  "music": "slow solo cello and soft upright piano, nostalgic, tender, calm, no drums, no vocals",
+  "music_lufs": -26
+ },
+ {
+  "id": "alpine-meadow",
+  "name": "summer chalet in the mountains",
+  "world": "a dark-timber alpine chalet on a high meadow in the Alps, wildflowers, a cold spring trough, cows far off on the slope, a small dairy room with wooden shelves",
+  "seasons": [
+   "summer",
+   "spring"
+  ],
+  "outfits": "a white cotton blouse with rolled sleeves, a faded dark-green dirndl-style linen skirt with a plain apron, hiking boots",
+  "camera": "Bright documentary footage on a clear mountain day: deep focus, crisp air, true greens and blues, no haze effect.",
+  "grade": "eq=gamma={g:.3f}:saturation=0.93:contrast=1.02,colorbalance=rs=0.0:gs=0.01:bs=0.0,noise=alls=4:allf=t",
+  "music": "soft zither and gentle acoustic guitar with a light wooden flute, alpine, slow, calm, no drums, no vocals",
+  "music_lufs": -26
+ },
+ {
+  "id": "provence-stone",
+  "name": "stone farmhouse in the south",
+  "world": "an old pale-stone farmhouse in Provence, a lavender field and olive trees, a vine pergola, terracotta floor tiles, a deep stone sink, cicadas in the heat",
+  "seasons": [
+   "summer",
+   "autumn"
+  ],
+  "outfits": "a loose white linen dress, a straw sun hat, a sage-green linen apron, woven leather sandals",
+  "camera": "Phone footage in strong clear southern sun: real hard shadows under the pergola, warm stone, honest colours, never orange.",
+  "grade": "eq=gamma={g:.3f}:saturation=0.92:contrast=1.03,colorbalance=rs=0.02:gs=0.01:bs=-0.025,noise=alls=5:allf=t,vignette=PI/7",
+  "music": "slow nylon-string classical guitar and soft accordion breathing, warm afternoon, calm, no drums, no vocals",
+  "music_lufs": -26
+ },
+ {
+  "id": "highland-rain",
+  "name": "stone croft in the rain",
+  "world": "a low grey stone croft with a turf-and-slate roof in the Scottish Highlands, a peat stack, a burn running past, heather hills in low cloud, a small porch full of boots",
+  "seasons": [
+   "autumn",
+   "winter",
+   "spring"
+  ],
+  "outfits": "a waxed olive-green jacket over a heather-grey wool jumper, a tweed flat cap, green wellington boots",
+  "camera": "Overcast documentary footage in soft wet light: muted greens and greys, rain droplets on leaves, moody but clearly exposed.",
+  "grade": "eq=gamma={g:.3f}:saturation=0.8:contrast=1.04,colorbalance=rs=-0.01:gs=0.01:bs=0.02,noise=alls=7:allf=t,vignette=PI/6",
+  "music": "slow celtic harp with soft low whistle and gentle piano, misty, calm, no drums, no vocals",
+  "music_lufs": -27
+ }
+]
