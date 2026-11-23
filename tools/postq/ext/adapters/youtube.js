@@ -342,7 +342,7 @@ async function setRelated(want) {
     // Channel content > Shorts, every page: [{ id, title, vis }]. Lets a post find a copy an earlier,
     // interrupted run already uploaded (its id never reached the queue) instead of uploading again.
     async uploads() {
-      await waitFor(['ytcp-video-row', 'ytcp-video-list-empty-state, #empty-state'], { timeout: 60000, what: 'content list' });
+      await waitFor(['ytcp-video-row', 'ytcp-video-list-empty-state, #empty-state, ytcp-video-section-content .no-content'], { timeout: 60000, what: 'content list' });
       await sleep(1500);
       await rows50();
       const seen = new Map();
