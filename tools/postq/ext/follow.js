@@ -8,6 +8,7 @@
 //            dashboard's current slot time;
 //   missing: open (video, platform) pairs with no queue item, so list + missing = the dashboard list;
 //   off:     queue items the dashboard does not list (or lists as done there): not shown as cards;
+//            Channel art (kind "branding") is no dashboard video: always listed, first;
 //   dups:    a second queue item for the same video and platform (an older sync or a renamed folder
 //            queued it twice): one card each, the approved one (else the oldest) shows.
 const BOX_PLATFORM = { youtube: 'youtube', facebook: 'meta', instagram: 'meta', x: 'x', tiktok: 'tiktok' };
@@ -54,13 +55,14 @@ function followDashboard(items, videos, now = Date.now()) {
           : !v.slot ? 'no slot yet' : !v.folder ? 'not in its posting folder yet' : 'not queued yet';
         missing.push({ channel: v.channel, platform: p, name: v.name, slot: v.slot, why, wait });
       }
+  const art = items.filter((i) => i.kind === 'branding');
   return {
-    items: shown
+    items: [...art, ...shown
       .sort((a, b) => dash(a).n - dash(b).n || a.platform.localeCompare(b.platform))
       // The time is the dashboard's current slot time (slots move; the queued schedule_at goes stale).
-      .map((i) => ({ ...i, schedule_at: dash(i).v.schedule?.[i.platform === 'meta' ? 'facebook' : i.platform] || i.schedule_at })),
+      .map((i) => ({ ...i, schedule_at: dash(i).v.schedule?.[i.platform === 'meta' ? 'facebook' : i.platform] || i.schedule_at }))],
     missing,
-    off: items.filter((i) => !open(i)),
+    off: items.filter((i) => i.kind !== 'branding' && !open(i)),
     dups,
   };
 }

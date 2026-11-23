@@ -1,7 +1,7 @@
 // YouTube Studio upload dialog (studio.youtube.com, opened via youtube.com/upload).
 // Every selector lives in SEL: when Studio changes, fix it here. Run a --dry-run item after a fix.
 globalThis.postqAdapters.youtube ??= (() => {
-  const { sleep, $, waitFor, typeInto, setValue, key, takeFile, attach } = globalThis.postqLib;
+  const { sleep, visible, $, waitFor, typeInto, setValue, key, takeFile, attach } = globalThis.postqLib;
 
   const SEL = {
     fileInput: ['ytcp-uploads-file-picker input[type=file]', 'input[type=file][name=Filedata]'],
@@ -45,7 +45,16 @@ globalThis.postqAdapters.youtube ??= (() => {
     visibilityShown: ['ytcp-video-metadata-visibility'],
     visibilityOpen: ['ytcp-video-metadata-visibility #select-button'],
     visibilityPopover: ['ytcp-video-visibility-select'],
+    // Channel editing page (studio.youtube.com/channel/<id>/editing/profile), channel art.
+    artInput: 'input#file-selector', // inside each BRANDING slot
+    artReplace: 'ytcp-button#replace-button', // shown by a slot that holds an image
+    artDialog: 'tp-yt-paper-dialog', // the crop dialog a picked file opens
+    artDone: 'ytcp-button#done-button',
+    artPublish: 'ytcp-button#publish-button', // carries `disabled` while nothing is left to publish
   };
+  // Channel art slot -> its upload element on the editing page.
+  const BRANDING = { avatar: 'ytcp-profile-image-upload', banner: 'ytcp-banner-upload', watermark: 'ytcp-video-watermark-upload' };
+  const cropDialog = () => [...document.querySelectorAll(SEL.artDialog)].find((d) => visible(d) && d.querySelector(SEL.artDone));
 
   const text = (el) => (el?.innerText || el?.textContent || '').trim();
   // Names compare without case, Vietnamese accents, emoji or punctuation ("I’d Live 🏡" == "I'd Live").
@@ -183,6 +192,51 @@ async function setRelated(want) {
       await waitFor(SEL.avatar, { hidden: true, timeout: 45000, what: 'Studio top bar (are you logged in to YouTube?)' });
       await waitFor(SEL.channelName, { hidden: true, timeout: 15000, what: 'channel name' });
       return location.href.split('?')[0];
+    },
+
+    // Channel art as the editing page shows it. Studio exposes no banner URL, so the banner is checked
+    // by presence only. With `want`, waits (30 s) until those slots hold an image and the avatar /
+    // watermark differ from `before`; without, until two reads a second apart agree (images loaded).
+    async artState(want = [], before = null) {
+      for (const sel of Object.values(BRANDING)) await waitFor(sel, { hidden: true, what: `${sel} on the channel editing page` });
+      const read = () => {
+        const slot = (s) => document.querySelector(BRANDING[s]);
+        const bg = [...slot('watermark').querySelectorAll('*')].map((e) => getComputedStyle(e).backgroundImage).find((b) => /url\(/.test(b));
+        return {
+          avatar: [...slot('avatar').querySelectorAll('img')].map((i) => i.src).find(Boolean) || '',
+          watermark: bg?.match(/url\("?([^")]+)/)?.[1] || '',
+          set: Object.fromEntries(Object.keys(BRANDING).map((s) => [s, !!$(SEL.artReplace, { root: slot(s) })])),
+        };
+      };
+      const loaded = (s) => (!s.set.avatar || s.avatar) && (!s.set.watermark || s.watermark);
+      const changed = (s) => want.every((k) => s.set[k]) && ['avatar', 'watermark'].every((k) => !want.includes(k) || s[k] !== before?.[k]);
+      let s, last;
+      for (const end = Date.now() + 30000; Date.now() < end; await sleep(1000)) {
+        s = read();
+        if (want.length ? changed(s) : loaded(s) && JSON.stringify(s) === last) break;
+        last = JSON.stringify(s);
+      }
+      return s;
+    },
+
+    // One slot: the file from the extension goes into the slot's picker, Studio opens its crop dialog, Done.
+    async setArt(slot, name, type) {
+      const input = await waitFor(`${BRANDING[slot]} ${SEL.artInput}`, { hidden: true, what: `${slot} file input` });
+      attach(input, takeFile(slot, name, type));
+      let dlg;
+      for (const end = Date.now() + 30000; !(dlg = cropDialog()) && Date.now() < end;) await sleep(250);
+      if (!dlg) throw new Error(`${slot}: no crop dialog 30 s after picking "${name}" (page: "${text(document.querySelector(BRANDING[slot])).slice(0, 120)}")`);
+      dlg.querySelector(SEL.artDone).click();
+      for (const end = Date.now() + 15000; visible(dlg) && Date.now() < end;) await sleep(250);
+      if (visible(dlg)) throw new Error(`${slot}: crop dialog still open after Done ("${text(dlg).slice(0, 120)}")`);
+    },
+
+    async publishArt() {
+      const btn = await waitFor(SEL.artPublish, { what: 'Publish button' });
+      if (btn.hasAttribute('disabled')) throw new Error('channel art: Publish button is off after setting the images (Studio took none?)');
+      btn.click();
+      for (const end = Date.now() + 60000; !btn.hasAttribute('disabled') && Date.now() < end;) await sleep(500);
+      if (!btn.hasAttribute('disabled')) throw new Error('channel art: Publish button still on 60 s after the click (not published?)');
     },
 
     whoami() {
