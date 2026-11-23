@@ -26,6 +26,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import unicodedata
 import urllib.error
 import urllib.request
 from pathlib import Path
@@ -322,13 +323,37 @@ def prompt_for(ep: dict, img: dict) -> str:
     )
 
 
+def muse_image(eid: str, prompt: str, size: str, ref: Path | None = None) -> bytes:
+    """One still from muse through museai's /v1/images/generations; `ref` is attached as a reference image."""
+    body = {"prompt": prompt, "n": 1, "size": size, "response_format": "b64_json"}
+    if ref:
+        body["image"] = "data:image/png;base64," + base64.b64encode(ref.read_bytes()).decode()
+    req = urllib.request.Request(
+        f"{API_BASE}/v1/images/generations",
+        data=json.dumps(body).encode(),
+        method="POST",
+        headers={
+            "Authorization": f"Bearer {api_key()}",
+            "Content-Type": "application/json",
+            "X-Muse-Session": os.environ.get("MUSE_SESSION", f"cm-{eid}"),
+        },
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=float(os.environ.get("STILL_TIMEOUT", 3600))) as r:
+            data = json.load(r)["data"]
+    except urllib.error.HTTPError as e:
+        sys.exit(f"museai {e.code}: {e.read()[:300]!r}")
+    except urllib.error.URLError as e:
+        sys.exit(f"museai at {API_BASE} not reachable ({e}); start it: python -m museai")
+    return base64.b64decode(data[0]["b64_json"])
+
+
 def cmd_images(eid: str, only: str | None) -> None:
     ep = load(eid)
     out = work(eid) / "img"
     out.mkdir(exist_ok=True)
     w, h = fmt(ep)["size"]
     size = f"{w}x{h}"
-    key = api_key()
     for s in ep["scenes"]:
         img = s.get("image")
         if not isinstance(img, dict) or (only and s["id"] != only):
@@ -337,27 +362,7 @@ def cmd_images(eid: str, only: str | None) -> None:
         if p.exists() and not only:
             print(f"skip {p.name} (exists)")
             continue
-        body = {"prompt": prompt_for(ep, img), "n": 1, "size": size, "response_format": "b64_json"}
-        req = urllib.request.Request(
-            f"{API_BASE}/v1/images/generations",
-            data=json.dumps(body).encode(),
-            method="POST",
-            headers={
-                "Authorization": f"Bearer {key}",
-                "Content-Type": "application/json",
-                "X-Muse-Session": os.environ.get("MUSE_SESSION", f"cm-{eid}"),
-            },
-        )
-        try:
-            with urllib.request.urlopen(
-                req, timeout=float(os.environ.get("STILL_TIMEOUT", 3600))
-            ) as r:
-                data = json.load(r)["data"]
-        except urllib.error.HTTPError as e:
-            sys.exit(f"{s['id']}: museai {e.code}: {e.read()[:300]!r}")
-        except urllib.error.URLError as e:
-            sys.exit(f"museai at {API_BASE} not reachable ({e}); start it: python -m museai")
-        p.write_bytes(base64.b64decode(data[0]["b64_json"]))
+        p.write_bytes(muse_image(eid, prompt_for(ep, img), size))
         print(p)
 
 
@@ -490,8 +495,20 @@ def cmd_voice(eid: str) -> None:
 # ---------- build ----------
 def on_twos(clip: Path) -> bool:
     """True when every other frame repeats the one before (motion at 12 pictures/s in a 24 fps file)."""
-    log = run(["ffmpeg", "-v", "error", "-i", str(clip), "-vf",
-               "signalstats,metadata=print:key=lavfi.signalstats.YDIF:file=-", "-f", "null", "-"])
+    log = run(
+        [
+            "ffmpeg",
+            "-v",
+            "error",
+            "-i",
+            str(clip),
+            "-vf",
+            "signalstats,metadata=print:key=lavfi.signalstats.YDIF:file=-",
+            "-f",
+            "null",
+            "-",
+        ]
+    )
     d = [float(x) for x in re.findall(r"YDIF=([\d.]+)", log)][1:]
     if len(d) < 24:
         return False
@@ -776,8 +793,48 @@ def write_srt(ep: dict, tl: dict, path: Path) -> None:
 
 
 # ---------- thumbnail ----------
+THUMB = (
+    "{look} A YouTube thumbnail, 16:9 landscape. Left 45 %: plain warm cream paper ({paper}) with the "
+    'words "{text}" in very large heavy bold uppercase serif letters, ink blue ({ink}) with a thin '
+    "charcoal outline, the last line muted red ({red}), on 2-3 lines, spelled exactly like that, "
+    "nothing else written anywhere. Right 55 %: {subject}, {show}, drawn exactly like the attached "
+    "illustration. Small brass ({brass}) letters CM in the bottom-right corner. Bold, readable on a phone. "
+    "Avoid: {avoid}."
+)
+
+
+def plain(s: str) -> str:
+    """Letters only, accents dropped: OCR reads 'THE LENS' as 'THELENS' and misses Vietnamese marks."""
+    s = unicodedata.normalize("NFKD", s.upper().replace("Đ", "D"))
+    return "".join(c for c in s if c.isalnum() and not unicodedata.combining(c))
+
+
+def ocr(path: Path) -> str:
+    code = (
+        "import sys; from rapidocr_onnxruntime import RapidOCR; "
+        "r = RapidOCR()(sys.argv[1])[0] or []; print(' '.join(x[1] for x in r))"
+    )
+    return run(
+        [
+            "uv",
+            "run",
+            "-q",
+            "--no-project",
+            "--python",
+            "3.12",
+            "--with",
+            "rapidocr-onnxruntime",
+            "python",
+            "-c",
+            code,
+            str(path),
+        ]
+    ).strip()
+
+
 def cmd_thumb(eid: str, scene: str | None) -> None:
-    from PIL import Image, ImageDraw, ImageFont, ImageOps
+    """The whole thumbnail is drawn by muse; OCR checks the words and a miss is redrawn (THUMB_TRIES)."""
+    from PIL import Image, ImageOps
 
     ep = load(eid)
     w = work(eid)
@@ -786,49 +843,42 @@ def cmd_thumb(eid: str, scene: str | None) -> None:
     s = next((x for x in ep["scenes"] if x["id"] == sid), None)
     if not s:
         sys.exit(f"no scene {sid}")
-    src = Image.open(image_of(ep, s, w)).convert("RGB")
-    W, H = 1280, 720
-    im = Image.new("RGB", (W, H), PAPER)
-    # focus: vertical crop position of a tall frame, 0 = top, 0.5 = centre, 1 = bottom
-    art = ImageOps.fit(src, (int(W * 0.55), H), centering=(0.5, float(th.get("focus", 0.5))))
-    im.paste(art, (W - art.width, 0))
-    d = ImageDraw.Draw(im)
-    text = th.get("text") or ep["title"]
-    fsize = 96
-    f = ImageFont.truetype(font(True, True), fsize)
-    room = W - art.width - 48 - 32
-    lines = wrap(d, text.upper(), f, room)
-    while (len(lines) > 3 or max(d.textlength(x, font=f) for x in lines) > room) and fsize > 40:
-        fsize -= 6
-        f = ImageFont.truetype(font(True, True), fsize)
-        lines = wrap(d, text.upper(), f, room)
-    y = (H - len(lines) * fsize * 1.15) / 2
-    for i, line in enumerate(lines):
-        d.text(
-            (48, y + i * fsize * 1.15),
-            line,
-            font=f,
-            fill=RED if i == len(lines) - 1 else INK,
-            stroke_width=3,
-            stroke_fill=CHARCOAL,
-        )
-    fm = ImageFont.truetype(font(True, True), 34)
-    d.text((W - 70, H - 58), "CM", font=fm, fill=BRASS, stroke_width=1, stroke_fill=CHARCOAL)
+    ref = image_of(ep, s, w)
+    if not ref.exists():
+        sys.exit(f"{ref} missing; run cm.py images {eid} first")
+    img = (
+        s["image"]
+        if isinstance(s["image"], dict)
+        else next(x["image"] for x in ep["scenes"] if x["id"] == s["image"])
+    )
+    text = (th.get("text") or ep["title"]).upper()
+    prompt = THUMB.format(
+        look=LOOK,
+        avoid=AVOID,
+        text=text,
+        subject=img["subject"],
+        show=img["show"],
+        paper=PAPER,
+        ink=INK,
+        red=RED,
+        brass=BRASS,
+    )
     out = w / f"{eid}_thumb.jpg"
-    im.save(out, quality=92)
-    print(out)
-
-
-def wrap(d, text: str, f, width: int) -> list[str]:
-    lines, cur = [], ""
-    for word in text.split():
-        t = f"{cur} {word}".strip()
-        if d.textlength(t, font=f) <= width or not cur:
-            cur = t
-        else:
-            lines.append(cur)
-            cur = word
-    return lines + [cur] if cur else lines
+    raw = w / f"{eid}_thumb_muse.png"
+    for i in range(1, int(os.environ.get("THUMB_TRIES", 3)) + 1):
+        if i > 1:
+            prompt = "NEW STANDALONE REQUEST. Draw it again from scratch. " + prompt
+        raw.write_bytes(muse_image(eid, prompt, "1920x1080", ref))
+        heard = ocr(raw)
+        ok = plain(text) in plain(heard)
+        print(f"try {i}: OCR {heard!r} -> {'ok' if ok else 'words wrong'}")
+        if ok:
+            im = ImageOps.fit(Image.open(raw).convert("RGB"), (1280, 720))
+            im.save(out, quality=92)
+            raw.unlink()
+            print(out)
+            return
+    sys.exit(f"thumbnail words still wrong after {i} tries; last render kept at {raw}")
 
 
 # ---------- qa ----------
@@ -854,7 +904,14 @@ def muse_qa(ep: dict, w: Path, out: Path, say) -> None:
     sheet = w / f"{ep['id']}_qa.jpg"
     tl = json.loads((w / "timeline.json").read_text())
     r = subprocess.run(
-        [sys.executable, str(MUSE_SCRIPTS / "qa.py"), str(out), "--travel", str(len(tl) - 1), str(sheet)],
+        [
+            sys.executable,
+            str(MUSE_SCRIPTS / "qa.py"),
+            str(out),
+            "--travel",
+            str(len(tl) - 1),
+            str(sheet),
+        ],
         capture_output=True,
         text=True,
         env={**os.environ, "PLANNED_CUTS": ",".join(f"{t['start']:.2f}" for t in tl[1:])},
@@ -863,7 +920,9 @@ def muse_qa(ep: dict, w: Path, out: Path, say) -> None:
         if line.startswith("RESULT"):
             continue
         name, _, rest = line.partition(" ")
-        level = {"ok": "ok", "FAIL": "FAIL", "skip": "ok"}.get(rest.split()[0] if rest.split() else "", "INFO")
+        level = {"ok": "ok", "FAIL": "FAIL", "skip": "ok"}.get(
+            rest.split()[0] if rest.split() else "", "INFO"
+        )
         if name == "motion" and level == "FAIL":
             # motion.py is tuned to real footage; cartoon clips read as in-place wobble. Check the clips by eye.
             level = "WARN"
@@ -873,9 +932,24 @@ def muse_qa(ep: dict, w: Path, out: Path, say) -> None:
 
     words_path = w / "heard.json"
     t = subprocess.run(
-        ["uv", "run", "-q", "--no-project", "--python", "3.12", "--with", "faster-whisper", "--with", "numpy",
-         "--with", "opencc-python-reimplemented", "python", str(MUSE_SCRIPTS / "transcribe.py"), str(out),
-         str(words_path)],
+        [
+            "uv",
+            "run",
+            "-q",
+            "--no-project",
+            "--python",
+            "3.12",
+            "--with",
+            "faster-whisper",
+            "--with",
+            "numpy",
+            "--with",
+            "opencc-python-reimplemented",
+            "python",
+            str(MUSE_SCRIPTS / "transcribe.py"),
+            str(out),
+            str(words_path),
+        ],
         capture_output=True,
         text=True,
         env={**os.environ, "WLANG": ep.get("lang", "en")},
@@ -892,7 +966,10 @@ def muse_qa(ep: dict, w: Path, out: Path, say) -> None:
     script = norm(" ".join(s.get("say", "") for s in ep["scenes"] + [CTA]))
     heard = norm(" ".join(x["w"] for x in json.loads(words_path.read_text())))
     ratio = difflib.SequenceMatcher(None, script, heard, autojunk=False).ratio()
-    say("ok" if ratio >= 0.9 else "FAIL", f"voice {ratio:.0%} of the narration heard as written (>= 90 %)")
+    say(
+        "ok" if ratio >= 0.9 else "FAIL",
+        f"voice {ratio:.0%} of the narration heard as written (>= 90 %)",
+    )
 
 
 def cmd_qa(eid: str) -> int:
