@@ -7,6 +7,7 @@ Usage (run from anywhere):
   cm.py voice <id>                     one narrator voice per scene (edge-tts) -> timeline.json
   cm.py anim <id> [--only S03]         muse-video jobs (illustration = first frame) -> anim/jobs.txt
   cm.py build <id>                     muse clips (else Ken Burns stills) + labels + narration -> <id>.mp4
+  cm.py dual <id> <id>-vi              one mp4 with eng + vie audio tracks and subtitles, plus <id>-vi.m4a, on one timeline
   cm.py thumb <id> [--scene S01]       1280x720 thumbnail (YouTube) -> <id>_thumb.jpg
   cm.py qa <id>                        file checks + the playbook's manual checklist -> RESULT ok|FAIL
 
@@ -162,6 +163,14 @@ def duration(p: Path) -> float:
         ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(p)]
     )
     return float(out.strip())
+
+
+def stream_duration(p: Path, sel: str) -> float:
+    out = run(
+        ["ffprobe", "-v", "error", "-select_streams", sel]
+        + ["-show_entries", "stream=duration", "-of", "csv=p=0", str(p)]
+    )
+    return float(out.split()[0])
 
 
 def font(bold: bool = True, serif: bool = True) -> str:
@@ -579,13 +588,17 @@ def spaced_width(d, txt: str, f) -> float:
     return sum(d.textlength(ch, font=f) for ch in txt) + f.size * 0.08 * max(len(txt) - 1, 0)
 
 
-def cmd_build(eid: str) -> None:
+def read_timeline(eid: str) -> list[dict]:
+    p = work(eid) / "timeline.json"
+    if not p.exists():
+        sys.exit(f"{eid}: run cm.py voice {eid} first")
+    return json.loads(p.read_text())
+
+
+def cmd_build(eid: str, tl: list[dict] | None = None, out: Path | None = None) -> None:
     ep = load(eid)
     w = work(eid)
-    tl_path = w / "timeline.json"
-    if not tl_path.exists():
-        sys.exit("run cm.py voice first")
-    tl = {x["id"]: x for x in json.loads(tl_path.read_text())}
+    tl = {x["id"]: x for x in (tl if tl is not None else read_timeline(eid))}
     W, H = fmt(ep)["size"]
     clips = w / "clips"
     clips.mkdir(exist_ok=True)
@@ -730,8 +743,8 @@ def cmd_build(eid: str) -> None:
         ]
     )
 
-    out = w / f"{eid}.mp4"
-    tmp = w / f"{eid}.part.mp4"
+    out = out or w / f"{eid}.mp4"
+    tmp = out.with_suffix(".part.mp4")
     music = ep.get("music", {}).get("file")
     mix = "[1:a]highpass=f=70,acompressor=threshold=-20dB:ratio=3,loudnorm=I=-14:TP=-1.5:LRA=11[a]"
     ins = ["-i", str(nar)]
@@ -776,8 +789,54 @@ def cmd_build(eid: str) -> None:
         ]
     )
     tmp.replace(out)
-    write_srt(ep, tl, w / f"{eid}.srt")
+    write_srt(ep, tl, out.with_suffix(".srt"))
     print(out)
+
+
+def merge_timelines(en: list[dict], vi: list[dict]) -> list[dict]:
+    if [x["id"] for x in en] != [x["id"] for x in vi]:
+        sys.exit(f"scene ids differ: {[x['id'] for x in en]} vs {[x['id'] for x in vi]}")
+    merged, t = [], 0.0
+    for a, b in zip(en, vi, strict=True):
+        d = max(a["dur"], b["dur"])
+        merged.append({"id": a["id"], "start": round(t, 3), "dur": d})
+        t += d
+    return merged
+
+
+def cmd_dual(en_id: str, vi_id: str) -> int:
+    en_tl, vi_tl = read_timeline(en_id), read_timeline(vi_id)
+    merged = merge_timelines(en_tl, vi_tl)
+    ew, vw = work(en_id), work(vi_id)
+    en_mp4, vi_mp4 = ew / f"{en_id}-dual-en.mp4", vw / f"{vi_id}-dual-vi.mp4"
+    for tl, eid, out in ((en_tl, en_id, en_mp4), (vi_tl, vi_id, vi_mp4)):
+        cmd_build(eid, [{**m, "speech": x["speech"]} for m, x in zip(merged, tl, strict=True)], out)
+    dual, m4a = ew / f"{en_id}-dual.mp4", ew / f"{en_id}-vi.m4a"
+    run(
+        ["ffmpeg", "-y", "-v", "error", "-i", str(en_mp4), "-i", str(vi_mp4)]
+        + ["-i", str(en_mp4.with_suffix(".srt")), "-i", str(vi_mp4.with_suffix(".srt"))]
+        + ["-map", "0:v", "-map", "0:a", "-map", "1:a", "-map", "2", "-map", "3"]
+        + ["-c:v", "copy", "-c:a", "copy", "-c:s", "mov_text"]
+        + ["-metadata:s:a:0", "language=eng", "-metadata:s:a:0", "title=English"]
+        + ["-metadata:s:a:1", "language=vie", "-metadata:s:a:1", "title=Tiếng Việt"]
+        + ["-metadata:s:s:0", "language=eng", "-metadata:s:s:0", "title=English"]
+        + ["-metadata:s:s:1", "language=vie", "-metadata:s:s:1", "title=Tiếng Việt"]
+        + ["-disposition:a:0", "default", "-disposition:a:1", "0"]
+        + ["-movflags", "+faststart", str(dual)]
+    )
+    run(["ffmpeg", "-y", "-v", "error", "-i", str(vi_mp4), "-vn", "-c:a", "copy", str(m4a)])
+    for p in (en_mp4, vi_mp4):
+        p.unlink()
+    lens = {"video": stream_duration(dual, "v:0"), "eng": stream_duration(dual, "a:0")}
+    lens["vie"] = stream_duration(dual, "a:1")
+    lens["vie.m4a"] = stream_duration(m4a, "a:0")
+    print(dual)
+    print(m4a)
+    print("  ".join(f"{k} {v:.3f} s" for k, v in lens.items()))
+    if max(lens.values()) - min(lens.values()) > 0.1:
+        print("FAIL: video and audio durations differ by more than 0.1 s")
+        return 1
+    return 0
 
 
 def write_srt(ep: dict, tl: dict, path: Path) -> None:
@@ -1083,6 +1142,12 @@ def main(argv: list[str]) -> int:
         if not shutil.which("ffmpeg"):
             sys.exit("ffmpeg not found")
         cmd_build(eid)
+    elif cmd == "dual":
+        if not shutil.which("ffmpeg"):
+            sys.exit("ffmpeg not found")
+        if not rest:
+            sys.exit("cm.py dual <en-id> <vi-id>")
+        return cmd_dual(eid, rest[0])
     elif cmd == "thumb":
         cmd_thumb(eid, opt("--scene"))
     elif cmd == "qa":
