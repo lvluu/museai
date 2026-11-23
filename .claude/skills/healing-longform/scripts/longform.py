@@ -107,6 +107,8 @@ def main():
     global XF
     XF = float(story.get("xf", XF))  # a fast-cut film (field-to-table) uses 0.3-0.5 s
     teaser = story.get("teaser")
+    shake = int(story.get("shake", 0))  # px of handheld drift (0 = locked off)
+    max_slow = float(story.get("max_slow", 1.45))  # field-to-table: 1.12, real-time movement
     # one shot per entry: the cold open (teaser shots), then each beat, or each of its `cuts`
     # (cuts: [[start, secs, zoom, x, y], ...]: one take cut twice, wide then a punch-in, like a two-camera edit)
     shots = [(bn, dict(start=st, hold=secs, zoom=(rest or [1.0])[0], x=(rest[1:] or [0.5])[0],
@@ -175,7 +177,14 @@ def main():
             overlays.append((png, c0, min(c0 + CARD_HOLD, p["L"] - 0.2), 0.9))  # a short cut ends the card early
         for png, *_ in overlays:
             inputs += ["-loop", "1", "-t", f"{need:.3f}", "-i", str(png)]
-        grade = "eq=gamma={g:.3f}:saturation=0.96:contrast=1.01,colorbalance=rs=0.015:gs=0.01:bs=-0.02,noise=alls=4:allf=t"
+        # a story's `grade` (field-to-table styles.json) changes the film's colour and grain; {g} is the gamma lift
+        grade = story.get("grade", "eq=gamma={g:.3f}:saturation=0.96:contrast=1.01,"
+                          "colorbalance=rs=0.015:gs=0.01:bs=-0.02,noise=alls=4:allf=t")
+        if shake:  # a tripod-free camera breathes: a slow drift of a pixel or two, different per shot, after the zoom crop
+            ph = (i * 2.399) % 6.283
+            grade = (f"crop=iw-{2 * shake}:ih-{2 * shake}:'{shake}+{shake}*0.7*sin(t*0.53+{ph:.2f})"
+                     f"+{shake}*0.3*sin(t*1.31+{ph * 2:.2f})':'{shake}+{shake}*0.6*sin(t*0.41+{ph * 3:.2f})"
+                     f"+{shake}*0.4*sin(t*1.07+{ph:.2f})',scale={W}:{H}:flags=lanczos," + grade)
         cz = p["cut"]
         zoom = "" if cz["zoom"] <= 1.0 else (
             f"crop=iw/{cz['zoom']}:ih/{cz['zoom']}:'min(max(0,{cz['x']}*iw-iw/{cz['zoom']}/2),iw-iw/{cz['zoom']})'"
@@ -192,7 +201,7 @@ def main():
             cd = dur(p["src"])
             st = min(float(p["cut"]["start"]), max(0.0, cd - need))
             f = max(1.0, need / (cd - st))
-            if f > 1.45:  # never slower than ~0.7x: the clip's head is used whole
+            if f > max_slow:  # slow motion reads as generated footage: past max_slow the clip's head is used whole
                 st, f = 0.0, need / cd
             y = luma(p["src"], st)
             g = min(1.5, math.log(max(y, 20) / 255) / math.log(130 / 255)) if y < 125 else 1.0
@@ -282,7 +291,7 @@ def main():
         run(["ffmpeg", "-y", "-hide_banner", "-stream_loop", "-1", "-i", a.music, "-af",
              f"atrim=duration={total:.3f},afade=in:st=0.8:d=4,afade=out:st={total - 6:.3f}:d=6,aresample=48000,"
              "aformat=channel_layouts=stereo", str(music)])
-        run(["python3", LNORM, str(music), str(music.with_suffix(".n.m4a")), "-25"])
+        run(["python3", LNORM, str(music), str(music.with_suffix(".n.m4a")), str(story.get("music_lufs", -25))])
     mix = tmp / "mix.wav"
     extra = len(stems) - 2
     ins_ = ["-i", str(foley.with_suffix(".n.m4a")), "-i", str(voice.with_suffix(".n.m4a")),

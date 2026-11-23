@@ -1,0 +1,1220 @@
+{
+ "story_id": "fc-0521",
+ "slug": "pumpkin-terraces",
+ "title": "the sound of a pumpkin",
+ "eyebrow": "a late autumn day",
+ "season": "late autumn",
+ "xf": 0.4,
+ "style": "eastern-strings",
+ "camera": "Calm mirrorless footage with a 50mm lens: the subject sharp, the background softly out of focus, quiet natural colours, real grain.",
+ "grade": "eq=gamma={g:.3f}:saturation=0.86:contrast=1.0,colorbalance=rs=0.005:gs=0.012:bs=-0.005,noise=alls=6:allf=t,vignette=PI/6",
+ "music_lufs": -28,
+ "shake": 2,
+ "max_slow": 1.12,
+ "light": {
+  "morning": "Early morning in late autumn, soft cool grey daylight, low white mist lying in the valley below the terraces.",
+  "late morning": "Late morning in late autumn, bright soft overcast daylight, the mist lifting off the hills.",
+  "afternoon": "Afternoon in late autumn, soft clear daylight from the open lattice window, bright, not golden.",
+  "dusk": "Dusk in late autumn, soft blue fading daylight over the valley and one plain warm bulb on under the eaves; everything clearly visible."
+ },
+ "outfits": {
+  "walk": "a loose undyed linen jacket with wide sleeves tied at the waist, wide flax-grey trousers, dark cloth shoes",
+  "kitchen": "the undyed linen jacket with the wide sleeves rolled to the forearm, a dark-indigo linen apron, wide flax-grey trousers",
+  "supper": "a soft oatmeal wool cardigan over the undyed linen jacket, wide flax-grey trousers"
+ },
+ "places": {
+  "terraces": "a terraced hillside kitchen garden above a misty green valley: narrow earth terraces held up by old mossy dry-stone walls, pumpkin vines with big rough leaves sprawling over a low bamboo trellis, rows of greens and spring onions, a bamboo grove at the top of the slope, a small timber-and-plaster house with a grey tiled roof and deep eaves",
+  "spring": "a spring-fed stone basin beside the garden path under the bamboo grove: clear water running from a split bamboo pipe into a mossy carved stone trough, ferns around it, wet flat stepping stones",
+  "kitchen": "a small plain timber kitchen with lime-plastered walls: a clay-brick stove with a wide black iron pan set into it and a wood fire under it, a heavy worn wooden worktop, a wide wooden lattice window open onto the valley, a few woven bamboo baskets and plain stoneware jars on one shelf",
+  "porch": "a wooden porch at the front of the small house under the deep tiled eaves, a low worn wooden table and two low stools, the terraces and the misty valley below, a plain paper lamp hanging from the eave"
+ },
+ "refs": {
+  "terraces": {
+   "kind": "place",
+   "brief": "The terraced garden empty, nobody in it, seen from the top terrace: the dry-stone walls stepping down, the pumpkin vines over the bamboo trellis, the greens, the misty valley beyond, the corner of the small house. Soft grey morning light."
+  },
+  "kitchen": {
+   "kind": "place",
+   "brief": "The kitchen empty, nobody in it, seen from the doorway: the clay-brick stove with the wide black iron pan, the worn wooden worktop, the lattice window open onto the valley. Bright soft daylight."
+  },
+  "porch": {
+   "kind": "place",
+   "brief": "The porch empty, nobody on it: the low wooden table and two stools under the deep eaves, the terraces and the misty valley below. Soft daylight."
+  },
+  "the basket": {
+   "kind": "prop",
+   "brief": "A shallow round woven bamboo basket with a bent bamboo handle, empty, standing on a worn wooden worktop. Soft daylight."
+  },
+  "Pip": {
+   "kind": "prop",
+   "brief": "Pip the cat sitting upright on worn wooden floorboards, looking slightly to the side, full body in view, soft daylight."
+  }
+ },
+ "chapters": [
+  {
+   "n": 1,
+   "title": "i.  the terraces",
+   "sub": "one knock, a hollow sound"
+  },
+  {
+   "n": 2,
+   "title": "ii.  the spring",
+   "sub": "cold water, clean skin"
+  },
+  {
+   "n": 3,
+   "title": "iii.  the stove",
+   "sub": "seeds and wedges"
+  },
+  {
+   "n": 4,
+   "title": "iv.  the dough",
+   "sub": "soup, and little cakes"
+  },
+  {
+   "n": 5,
+   "title": "v.  the porch",
+   "sub": "dinner above the mist"
+  }
+ ],
+ "beats": [
+  {
+   "ch": 1,
+   "where": "terraces",
+   "time": "morning",
+   "kind": "still",
+   "shot": "Wide empty landscape of the terraced hillside in the early mist, no woman and no person anywhere: dry-stone terraces stepping down into a white sea of mist, the bamboo grove dark at the top.",
+   "hold": 5.0,
+   "chapter": true
+  },
+  {
+   "ch": 1,
+   "where": "terraces",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Wide empty view down the terraces into the misty valley, nobody anywhere.",
+   "move": "Only the mist moves, drifting slowly along the valley below; nothing else moves and no one walks in.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "terraces",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from behind, small in the frame, walking slowly down the narrow stone steps between two terraces, the empty bamboo basket on her arm.",
+   "move": "She walks slowly down two steps with soft footfalls on stone; the terraces and the camera stay perfectly still.",
+   "props": [
+    "the basket"
+   ],
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "terraces",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of a big rough pumpkin leaf on the trellis with heavy dew drops on it.",
+   "move": "One dew drop rolls slowly down the leaf and falls; the leaf trembles once and stays.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "terraces",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up among the big pumpkin leaves on the ground: a squat ribbed dusty-orange pumpkin with pale-green streaks and a dry curled stalk resting on dry straw; her hands in undyed linen sleeves lift a leaf to show it.",
+   "move": "Her hands lift the leaf slowly and hold it; the pumpkin stays where it is.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.6
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "terraces",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of her hands in undyed linen sleeves knocking twice on a squat ribbed dusty-orange pumpkin with pale-green streaks and a dry curled stalk on the straw, listening.",
+   "move": "Her knuckles knock twice on the pumpkin with a hollow sound; the pumpkin stays still.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "terraces",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of her hands in undyed linen sleeves twisting the dry curled stalk of a squat ribbed dusty-orange pumpkin with pale-green streaks and a dry curled stalk until it snaps free of the vine.",
+   "move": "She twists the stalk slowly and it snaps off the vine with a dry crack.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.45
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "terraces",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from the side on the terrace, head bowed, lifting a squat ribbed dusty-orange pumpkin with pale-green streaks and a dry curled stalk from the straw in both arms.",
+   "move": "She lifts the pumpkin slowly against her chest and straightens up; the camera stays locked off.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.45,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "terraces",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of a row of spring onions in dark soil; her fingers in undyed linen sleeves pull up three of them.",
+   "move": "She pulls the spring onions up slowly, a little soil falling from the white roots.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "terraces",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of the bamboo basket on the mossy top of a dry-stone wall outdoors, the dusty-orange pumpkin in it and three spring onions beside it.",
+   "move": "Her hand lays the spring onions in the basket and draws back; the pumpkin stays where it is.",
+   "props": [
+    "the basket"
+   ],
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "terraces",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of Pip the cat sitting on the mossy dry-stone wall of the terrace in the mist.",
+   "move": "Pip blinks slowly and his ear turns toward a sound; the wall and the mist stay still.",
+   "props": [
+    "Pip"
+   ],
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "terraces",
+   "time": "morning",
+   "kind": "still",
+   "shot": "Close-up of the bamboo grove at the top of the slope in the mist: tall green stems, thin leaves, a narrow earth path between them, no person.",
+   "hold": 3.5
+  },
+  {
+   "ch": 1,
+   "where": "terraces",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of the tall green bamboo stems at the top of the terraces in the mist, thin leaves above.",
+   "move": "Only the bamboo leaves sway and rustle softly in the breeze; nothing else moves and no one walks in.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.4
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "spring",
+   "time": "late morning",
+   "kind": "still",
+   "shot": "Close-up of the stone spring basin under the bamboo, no person: clear water running from the split bamboo pipe into the mossy stone trough, ferns around it.",
+   "hold": 5.0,
+   "chapter": true
+  },
+  {
+   "ch": 2,
+   "where": "spring",
+   "time": "late morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of the split bamboo pipe pouring a thin clear stream into the mossy stone trough.",
+   "move": "Only the water moves, falling into the trough and rippling; nothing else moves.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "spring",
+   "time": "late morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of the stone trough: her hands in rolled undyed linen sleeves wash the soil off the dusty-orange pumpkin under the running water.",
+   "move": "Her hands turn the pumpkin slowly under the water and the soil washes away.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "spring",
+   "time": "late morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of her hands rinsing the three spring onions in the clear stream from the bamboo pipe.",
+   "move": "The water runs over the white roots and the last soil rinses off.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "spring",
+   "time": "late morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from behind crouching at the stone trough under the bamboo, head bowed, the clean wet pumpkin on the flat stone beside her.",
+   "move": "She shakes the water from her hands slowly; the bamboo and the camera stay still.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "kind": "still",
+   "shot": "Wide view of the plain kitchen with nobody in it: the clean dusty-orange pumpkin on the worn worktop, the clay stove, the lattice window open onto the valley.",
+   "hold": 5.0,
+   "chapter": true
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the open fire door of the clay-brick stove: her hand in a rolled linen sleeve feeds in a few dry split sticks.",
+   "move": "The sticks catch with a soft crackle and small flames lick up; her hand draws back.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Top-down close-up of the worn worktop: the dusty-orange pumpkin already cut into thick wedges with bright orange flesh and a hollow of pale seeds; her hands lift one wedge.",
+   "move": "Her hands slowly lift one wedge and turn it to show the seeds; the other wedges stay where they are.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of her fingers in rolled linen sleeves scooping the pale wet seeds out of a bright orange pumpkin wedge into a small stoneware bowl.",
+   "move": "Her fingers scoop the seeds slowly and they drop into the bowl with a wet sound.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "spring",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the small stoneware bowl at the stone spring trough outdoors: her hands rinse the pale pumpkin seeds under the bamboo pipe, rubbing off the orange strings.",
+   "move": "The water runs through the seeds and her fingers rub them slowly.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the wide black iron pan on the clay stove: her hand tips the clean pale pumpkin seeds from the bowl into the dry hot pan.",
+   "move": "The seeds spill into the pan with a sharp patter and a little steam rises.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the wide black iron pan: pale pumpkin seeds toasting, her hand stirring them slowly with a flat wooden paddle.",
+   "move": "The paddle turns the seeds slowly; a few seeds pop and jump with a small crack.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the iron pan: thick bright orange pumpkin wedges laid flesh-down in a little oil, just starting to brown at the edges.",
+   "move": "The wedges sizzle softly and a thin curl of steam rises; the wedges stay where they are.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from the side at the clay stove, head bowed over the wide iron pan, turning the pumpkin wedges with long wooden chopsticks.",
+   "move": "She turns one wedge slowly with the chopsticks; smoke from the fire drifts past the lattice window; the camera stays locked off.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.45,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of Pip the cat lying on the worn floorboards near the warm clay stove.",
+   "move": "Pip stretches one white paw slowly and settles again; nothing else moves.",
+   "props": [
+    "Pip"
+   ],
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "kind": "still",
+   "shot": "Close-up of the lattice window open onto the valley: the hills in soft afternoon light, a few clouds, a stoneware jar on the sill, no person.",
+   "hold": 3.5
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "kind": "still",
+   "shot": "Top-down close-up of the worn worktop: soft roasted pumpkin wedges with browned edges on a plain stoneware plate, a little steam rising, a small bowl of toasted pumpkin seeds beside it.",
+   "hold": 5.0,
+   "chapter": true
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of her hands in rolled linen sleeves peeling the thin skin off a soft roasted pumpkin wedge with her fingers over a stoneware bowl.",
+   "move": "The skin peels away slowly and the soft orange flesh drops into the bowl.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the stoneware bowl of soft roasted orange pumpkin: her hand presses it into a smooth mash with a wooden pestle.",
+   "move": "The pestle presses down slowly and the pumpkin squashes into a soft orange mash.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of a black clay pot on the stove: her hand tips spoonfuls of orange pumpkin mash into simmering water.",
+   "move": "The mash slides in with a soft plop and the water turns orange; steam rises.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the black clay pot of thick orange pumpkin soup bubbling gently, steam rising.",
+   "move": "Bubbles rise slowly through the thick soup with a soft blub; the pot stays still.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of a wide stoneware bowl: orange pumpkin mash with white flour; her hands knead it into a soft orange dough.",
+   "move": "Her hands fold and press the dough slowly; a little flour dusts the bowl.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the floured worktop: her palms press small balls of orange pumpkin dough into flat round cakes and set them in a row.",
+   "move": "She presses one ball flat slowly with her palm and lays it beside the others.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of her fingers pressing a few toasted pumpkin seeds into the top of each flat orange pumpkin cake on the floured worktop.",
+   "move": "Her fingers press the seeds in slowly one by one; the cakes stay in their row.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the wide black iron pan: flat orange pumpkin cakes with seeds on top frying in a little oil.",
+   "move": "The cakes sizzle steadily and their edges turn golden; a thin steam rises.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the iron pan: her chopsticks turn one pumpkin cake over to show a crisp golden-brown underside.",
+   "move": "The cake flips slowly and lands with a sizzle.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from behind at the lattice window, wiping her hands slowly on her indigo apron while steam rises from the pot on the stove beside her.",
+   "move": "She wipes her hands slowly and looks out at the valley; the camera stays still.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.45
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "porch",
+   "time": "dusk",
+   "kind": "still",
+   "shot": "Wide view of the small house from the terrace below at blue dusk: the deep eaves, the paper lamp lit on the porch, the misty valley, nobody outside.",
+   "hold": 5.0,
+   "chapter": true
+  },
+  {
+   "ch": 5,
+   "where": "porch",
+   "time": "dusk",
+   "outfit": "supper",
+   "kind": "clip",
+   "shot": "Close-up of the low wooden table on the porch: her hands in oatmeal wool sleeves set down a plain stoneware bowl and a pair of wooden chopsticks.",
+   "move": "She sets the bowl down slowly and lays the chopsticks across it.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "kitchen",
+   "time": "dusk",
+   "outfit": "supper",
+   "kind": "clip",
+   "shot": "Close-up of the black clay pot: a wooden ladle in her hand lifts thick orange pumpkin soup and pours it into a stoneware bowl.",
+   "move": "The soup pours slowly from the ladle into the bowl and steam rises.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "porch",
+   "time": "dusk",
+   "outfit": "supper",
+   "kind": "clip",
+   "shot": "Top-down close-up of the stoneware bowl of thick orange pumpkin soup on the porch table: her fingers scatter toasted pumpkin seeds and a few green spring onion rings on top.",
+   "move": "The seeds and onion rings fall slowly onto the soup; steam rises.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "porch",
+   "time": "dusk",
+   "kind": "still",
+   "shot": "Top-down view of the low wooden porch table at dusk: the bowl of orange pumpkin soup with seeds on top, a plate of golden pumpkin cakes, a small cup of tea, wooden chopsticks, the light of the paper lamp from above.",
+   "hold": 5.0
+  },
+  {
+   "ch": 5,
+   "where": "porch",
+   "time": "dusk",
+   "outfit": "supper",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from behind and a little to the side, sitting down on the low stool at the porch table, the blue misty valley beyond.",
+   "move": "She sits down slowly and tucks her cardigan around her; the lamp and the valley stay still; the camera stays locked off.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "porch",
+   "time": "dusk",
+   "outfit": "supper",
+   "kind": "clip",
+   "shot": "Close-up of the plate of golden pumpkin cakes: her chopsticks pick one up and break it in half to show the soft orange inside.",
+   "move": "The cake breaks slowly with a soft crisp sound and a little steam rises.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "porch",
+   "time": "dusk",
+   "outfit": "supper",
+   "kind": "clip",
+   "shot": "Close-up of the bowl of pumpkin soup: a porcelain spoon dips in and lifts thick orange soup with seeds.",
+   "move": "The spoon lifts slowly out of the soup and out of frame; steam rises.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "porch",
+   "time": "dusk",
+   "outfit": "supper",
+   "kind": "clip",
+   "shot": "Close-up of Pip the cat curled on the second low stool on the porch, the light of the paper lamp on his fur.",
+   "move": "Pip breathes slowly and his ear twitches once; nothing else moves.",
+   "props": [
+    "Pip"
+   ],
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "porch",
+   "time": "dusk",
+   "outfit": "supper",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from behind on the porch, holding the warm soup bowl in both hands, the blue valley and the first lights far below.",
+   "move": "She lifts the bowl a little in both hands and holds it; the valley and the lamp stay still.",
+   "cuts": [
+    [
+     0.3,
+     4.4
+    ],
+    [
+     4.9,
+     4.2,
+     1.28,
+     0.5,
+     0.45
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "porch",
+   "time": "dusk",
+   "outfit": "supper",
+   "kind": "clip",
+   "shot": "Wide view from the porch over the dark terraces into the blue misty valley at dusk, nobody anywhere.",
+   "move": "Only the mist moves slowly along the valley; nothing else moves and no one walks in.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.8,
+     1.2,
+     0.5,
+     0.5
+    ]
+   ]
+  }
+ ],
+ "teaser": {
+  "text": "Knock twice. If it sounds hollow, it's ready. This one was.",
+  "text_secs": 5.5,
+  "shots": [
+   [
+    6,
+    0.5,
+    3.0
+   ],
+   [
+    24,
+    0.6,
+    2.6
+   ],
+   [
+    39,
+    0.8,
+    2.6
+   ],
+   [
+    34,
+    1.0,
+    2.6
+   ],
+   [
+    3,
+    1.0,
+    2.8
+   ],
+   [
+    47,
+    1.0,
+    2.6
+   ],
+   [
+    49,
+    1.0,
+    2.4
+   ],
+   [
+    46,
+    2.0,
+    3.6
+   ]
+  ]
+ },
+ "short": {
+  "text": "one pumpkin, from the vine to dinner",
+  "shots": [
+   [
+    6,
+    0.5,
+    2.8,
+    0.5
+   ],
+   [
+    7,
+    0.8,
+    2.4,
+    0.5
+   ],
+   [
+    24,
+    0.6,
+    2.4,
+    0.5
+   ],
+   [
+    39,
+    0.8,
+    2.4,
+    0.5
+   ],
+   [
+    47,
+    1.0,
+    2.4,
+    0.5
+   ],
+   [
+    46,
+    2.0,
+    3.0,
+    0.5
+   ]
+  ]
+ }
+}

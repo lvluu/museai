@@ -13,12 +13,14 @@ Each step skips work already on disk, so a queue killed by muse's 24-hour video 
 Images are not under that limit: render refs and stills first, clips when quota is there. longform.py
 uses the still (a slow push-in) for a clip beat whose clip is missing, so a cut can be watched at any stage.
 """
+import hashlib
 import json
 import os
 import re
 import shlex
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 SKILL = Path(__file__).resolve().parent.parent
@@ -36,7 +38,15 @@ def load(path):
 
 def look(story):
     """The footage rules: the story's `look` (path from .claude/skills/, e.g. field-to-table/prompt/look.txt)."""
-    return SKILL.parent / story["look"] if story.get("look") else LOOK
+    base = SKILL.parent / story["look"] if story.get("look") else LOOK
+    if not story.get("camera"):
+        return base
+    # a style's camera sentence (field-to-table styles.json) goes under the look's own rules
+    text = f"{base.read_text().strip()}\n\nTHIS FILM'S CAMERA AND COLOUR: {story['camera']}\n"
+    out = Path(tempfile.gettempdir()) / f"look-{hashlib.sha1(text.encode()).hexdigest()[:12]}.txt"
+    if not out.exists():
+        out.write_text(text)
+    return out
 
 
 def slug(name):
