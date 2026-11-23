@@ -12,6 +12,8 @@ Needs Pillow (the ACE-Step venv python has it).
 """
 import argparse
 import json
+import os
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -19,7 +21,9 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 W, H, FPS, XF = 1080, 1920, 30, 0.35
-ITALIC = "/System/Library/Fonts/Supplemental/Georgia Italic.ttf"
+_FONTS = "/System/Library/Fonts/Supplemental"
+_ASSETS = os.environ.get("HV_ASSETS")  # fonts sent along with the remote render (Colab has no macOS fonts)
+ITALIC = os.path.join(_ASSETS or _FONTS, "Georgia Italic.ttf")
 LNORM = Path(__file__).resolve().parents[2] / "healing-video" / "scripts" / "lnorm.py"
 
 
@@ -63,6 +67,8 @@ def main():
     sp = Path(a.story).resolve()
     root, story = sp.parent, json.loads(sp.read_text())
     sh = story["short"]
+    if os.environ.get("SHORT_REMOTE", "1") != "0" and os.environ.get("RENDER_LOCAL") != "1":
+        return remote_short(a, sp, root, sh)
     tmp = root / "build-short"
     tmp.mkdir(exist_ok=True)
     segs = []
@@ -122,6 +128,28 @@ def main():
     run(["ffmpeg", "-y", "-hide_banner", "-i", str(video), "-i", str(tmp / "mix.n.m4a"), "-map", "0:v", "-map",
          "1:a", "-c:v", "copy", "-c:a", "aac", "-b:a", "192k", "-shortest", "-movflags", "+faststart", a.out])
     print(f"wrote {a.out} ({total:.1f} s)")
+
+
+
+def remote_short(a, sp, root, sh):
+    """Render on the Colab render queue (muse-video/scripts/remote.py), never on this Mac. The shots' clips or
+    stills go up; only the short comes back. SHORT_REMOTE=0 renders in place (the runtime itself sets it)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "muse-video" / "scripts"))
+    import remote
+
+    files = [sp]
+    for beat, *_ in sh["shots"]:
+        src, still = root / f"s{beat}.mp4", root / "stills" / f"s{beat}.png"
+        if not (src.exists() or still.exists()):
+            sys.exit(f"short: no clip or still for beat {beat}")
+        files.append(src if src.exists() else still)
+    music = "music" + Path(a.music).suffix
+    assets = {"Georgia Italic.ttf": os.path.join(_FONTS, "Georgia Italic.ttf"), music: a.music}
+    cmd = ('HV_ASSETS="$PWD/w/_assets" SHORT_REMOTE=0 python3 '
+           '"$MUSEAI/.claude/skills/field-to-table/scripts/short.py" '
+           + shlex.join([f"w/{sp.relative_to(root)}", "--music", f"w/_assets/{music}", "--out", "out.mp4"]))
+    remote.compose_here_or_exit("short", root, sorted(set(files)), assets, cmd, a.out, minutes=60)
+    print(f"wrote {a.out}")
 
 
 if __name__ == "__main__":
