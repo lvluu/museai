@@ -120,6 +120,8 @@ Order matters: research, then script, then pictures. Never generate images befor
     `playbook/publishing/analytics/metrics-log.md`. Schedule: 1 long-form + 2-3 Shorts a week.
 
 ## Episodes
+- `s005-lighthouse-lens` - Short "How does a lighthouse throw light so far?": lamps losing most of their light,
+  Fresnel's stepped lens of prism rings gathering it into one beam, the same rings in car tail lights.
 - `s004-rail-gaps` - Short "Why don't train tracks have gaps anymore?": sun kinks, old jointed rail,
   continuous welded rail stretched to a summer stress-free temperature and locked down, white paint.
 - `s004-rail-gaps-vi` - the Vietnamese version of s004 (same pictures and clips), the first `lang: vi` episode.

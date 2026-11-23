@@ -1,0 +1,217 @@
+{
+ "id": "s005-lighthouse-lens",
+ "title": "How does a lighthouse throw light so far?",
+ "format": "short",
+ "question": "A lighthouse flame shines in every direction and a solid lens big enough to focus it would be impossibly thick. How did lighthouses reach the horizon?",
+ "answer": "Augustin Fresnel cut away the thick middle of the lens and kept only the light-bending curves as rings of glass prisms around the lamp, gathering scattered light into one beam visible more than 20 miles out; the same stepped rings are in car tail lights today.",
+ "pillar": "Everyday Engineering",
+ "problem": "Lighthouse lamps lost half their light or more, and a solid lens to fix it would be enormous and swallow light.",
+ "solution": "Fresnel's stepped lens: only the curved surfaces, as rings of prisms, focusing the flame into one far-reaching beam.",
+ "surprise": "The same stepped rings are in the car tail light in front of you.",
+ "thumbnail": {
+  "text": "Light cut into rings",
+  "scene": "S06",
+  "focus": 0.5
+ },
+ "music": {
+  "file": "",
+  "licence": ""
+ },
+ "claims": {
+  "c1": {
+   "text": "Before the Fresnel lens, lamps with reflectors lost much of their light: reflectors returned only about half the light (Wikipedia), a reflector light lost 60-80 % (NPS); an open flame scatters light in all directions.",
+   "sources": [
+    "National Park Service, Cape Hatteras, 'The Fresnel Lens', https://www.nps.gov/caha/learn/historyculture/fresnellens.htm",
+    "Wikipedia, 'Fresnel lens' (lighthouse history), https://en.wikipedia.org/wiki/Fresnel_lens"
+   ],
+   "verified": true
+  },
+  "c2": {
+   "text": "A conventional solid glass lens big enough for a lighthouse would be enormous, heavy and impractical; early thick lenses lost light in the glass.",
+   "sources": [
+    "Explain that Stuff, 'Fresnel lenses', http://www.explainthatstuff.com/fresnel-lenses.html",
+    "Wikipedia, 'Fresnel lens' (Rogers lenses 14 cm thick, absorption), https://en.wikipedia.org/wiki/Fresnel_lens",
+    "National Park Service, 'Fresnel Lens', https://www.nps.gov/articles/fresnel-lens.htm"
+   ],
+   "verified": true
+  },
+  "c3": {
+   "text": "Fresnel's lens removes the thick interior and keeps the light-bending surfaces as concentric stepped rings / prisms, gathering scattered light into one beam.",
+   "sources": [
+    "Explain that Stuff, 'Fresnel lenses', http://www.explainthatstuff.com/fresnel-lenses.html",
+    "Wikipedia, 'Fresnel lens', https://en.wikipedia.org/wiki/Fresnel_lens",
+    "National Park Service, Cape Hatteras, 'The Fresnel Lens', https://www.nps.gov/caha/learn/historyculture/fresnellens.htm"
+   ],
+   "verified": true
+  },
+  "c4": {
+   "text": "The first lighthouse Fresnel lens was lit at Cordouan, France, in July 1823 (25 July 1823).",
+   "sources": [
+    "Wikipedia, 'Fresnel lens', https://en.wikipedia.org/wiki/Fresnel_lens",
+    "Phare de Cordouan (French Ministry of Culture), 'Cordouan's first lens', https://cordouan.culture.gouv.fr/en/cordouans-first-lens"
+   ],
+   "verified": true
+  },
+  "c5": {
+   "text": "A Fresnel lighthouse light could shine to the horizon, more than 20 miles out (Cordouan 1823: >32 km / 20 mi; large first-order lenses ~21 miles).",
+   "sources": [
+    "National Park Service, Cape Hatteras, 'The Fresnel Lens', https://www.nps.gov/caha/learn/historyculture/fresnellens.htm",
+    "Wikipedia, 'Fresnel lens' (Cordouan visible more than 32 km), https://en.wikipedia.org/wiki/Fresnel_lens",
+    "National Park Service, 'Fresnel Lens', https://www.nps.gov/articles/fresnel-lens.htm"
+   ],
+   "verified": true
+  },
+  "c6": {
+   "text": "Fresnel lenses are used today in car lights (tail, marker, reversing lights; plastic Fresnel lenses in lamps) and some traffic signals.",
+   "sources": [
+    "Wikipedia, 'Fresnel lens' (tail, marker and reversing lights), https://en.wikipedia.org/wiki/Fresnel_lens",
+    "Explain that Stuff, 'Fresnel lenses' (car lamps, traffic signals), http://www.explainthatstuff.com/fresnel-lenses.html"
+   ],
+   "verified": true
+  }
+ },
+ "scenes": [
+  {
+   "id": "S01",
+   "section": "hook",
+   "say": "Old lighthouses wasted half their light.",
+   "image": {
+    "subject": "a tall stone lighthouse on a rocky coast at night in a storm, a small sailing ship far out on dark waves",
+    "show": "the lamp at the top gives only a weak yellow glow that spreads in every direction and fades into the rain, the ship barely sees it, dark teal sea, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "claims": [
+    "c1"
+   ],
+   "motion": "rain sweeps across, waves roll and break on the rocks, the weak glow flickers; the distant ship rocks on the swell"
+  },
+  {
+   "id": "S02",
+   "section": "mystery",
+   "say": "A flame shines everywhere: into the sky, onto the rocks. Far out at sea, a faint glow.",
+   "image": {
+    "subject": "inside the lantern room at the top of an old lighthouse, an oil lamp with a curved metal reflector behind it",
+    "show": "rays of amber light leaving the flame in every direction, most going up to the ceiling and down to the floor, only a few rays heading out through the window to the sea, a red highlight on the wasted rays, one single picture, the illustration fills the whole frame from top edge to bottom edge",
+    "variant": "diagram"
+   },
+   "move": "pull_out",
+   "claims": [
+    "c1"
+   ],
+   "motion": "the flame flickers and the amber rays spread out in all directions; the rays going up and down glow red and fade; only a few thin rays reach the window"
+  },
+  {
+   "id": "S03",
+   "section": "background",
+   "say": "A giant glass lens could focus it. But it would be huge, heavy, and thick enough to swallow the light.",
+   "image": {
+    "subject": "a huge solid round glass lens, as thick as a millstone, standing in front of a lighthouse lamp",
+    "show": "two lighthouse workers straining to lift it with ropes, the glass so thick that the light behind it looks dim and green, a heavy wooden frame creaking, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "claims": [
+    "c2"
+   ],
+   "motion": "the workers pull on the ropes and the heavy lens barely lifts, then sinks back; the dim light behind the glass wavers"
+  },
+  {
+   "id": "S04",
+   "section": "mystery",
+   "say": "So how do you throw a flame twenty miles?",
+   "image": {
+    "subject": "close view from behind of an 1820s lighthouse keeper in a dark wool coat standing on the iron railing gallery at the very top of a lighthouse at dusk, looking out over a wide dark sea",
+    "show": "only the top railing and lantern glass are visible, the keeper fills the lower third, a weak oil lamp glow beside him, the far horizon, first stars, exterior view only, early 19th century, no aircraft, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "move": "pan_right",
+   "claims": [
+    "c5"
+   ],
+   "motion": "wind tugs at the keeper's coat, the sea glitters below, clouds drift across the dusk sky"
+  },
+  {
+   "id": "S05",
+   "section": "discovery",
+   "say": "A French engineer, Augustin Fresnel, saw that only a lens's curved surface bends the light.",
+   "image": {
+    "subject": "a cross-section diagram of a thick convex glass lens, seen from the side",
+    "show": "amber light rays bending only where they cross the curved outer surfaces, the thick glass middle shaded grey as unnecessary, a red highlight on the curved surfaces, plain cream background, the illustration fills the whole frame from top edge to bottom edge",
+    "variant": "diagram"
+   },
+   "move": "push_in",
+   "labels": [
+    "ONLY THE CURVE BENDS LIGHT"
+   ],
+   "claims": [
+    "c3"
+   ],
+   "motion": "the amber rays travel into the lens and bend at the curved surfaces; the grey middle slowly fades out"
+  },
+  {
+   "id": "S06",
+   "section": "mechanism",
+   "say": "He cut away the thick middle, kept the curves as rings of glass prisms around the flame.",
+   "image": {
+    "subject": "a tall beehive-shaped Fresnel lighthouse lens made of many concentric rings of glass prisms in a brass frame, a lamp glowing inside",
+    "show": "the rings catching the flame's light and turning it into one straight bright beam pointing out to the right, brass and glass gleaming, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "closeup"
+   },
+   "move": "pull_out",
+   "labels": [
+    "RINGS OF PRISMS"
+   ],
+   "claims": [
+    "c3"
+   ],
+   "motion": "the lamp glows brighter, light runs through the glass rings and gathers into one straight beam; the lens turns slowly"
+  },
+  {
+   "id": "S07",
+   "section": "mechanism",
+   "say": "In 1823 the first one was lit at Cordouan, in France. Its beam reached the horizon, over twenty miles out.",
+   "image": {
+    "subject": "an elegant tall stone lighthouse standing on a rock island in an estuary at night",
+    "show": "one strong straight warm white-gold beam of light shining horizontally far across calm dark water to a small sailing ship on the horizon, stars above, early 19th century, no people, no aircraft, the beam is warm gold not red, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "move": "pan_right",
+   "labels": [
+    "20+ MILES"
+   ],
+   "claims": [
+    "c4",
+    "c5"
+   ],
+   "motion": "the beam sweeps slowly across the water and passes over the far ship; small waves glitter under it"
+  },
+  {
+   "id": "S08",
+   "section": "payoff",
+   "say": "Those stepped rings never left. Look closely at a car's tail light: Fresnel's rings, in plastic.",
+   "image": {
+    "subject": "a close-up of a modern car's red tail light at night on a wet street",
+    "show": "the red plastic cover showing fine stepped ridges and rings, glowing, reflections on wet asphalt, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "closeup"
+   },
+   "move": "push_in",
+   "claims": [
+    "c6"
+   ],
+   "motion": "the tail light brightens as if the brakes are pressed, the rings glow; raindrops run down the plastic; street reflections ripple"
+  },
+  {
+   "id": "S09",
+   "section": "payoff",
+   "say": "Nothing is ordinary once you see how it works.",
+   "image": "S07",
+   "move": "pull_out",
+   "claims": [
+    "c5"
+   ],
+   "motion": "the beam sweeps slowly across the water; the lighthouse stands steady under the stars"
+  }
+ ],
+ "people_rule": "People are anonymous lighthouse workers and keepers. Augustin Fresnel is named but not shown. Never invented dialogue."
+}
