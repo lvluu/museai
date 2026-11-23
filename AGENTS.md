@@ -147,3 +147,8 @@ Every video made through museai follows `.claude/skills/muse-video/SKILL.md`. `s
 When a change is finished: branch from the latest `main`, commit, push the branch, open a PR, wait for the `CI` workflow
 (`.github/workflows/ci.yml`: secrets scan, `ruff check .`, `pytest -q` on Python 3.10 and 3.12), then squash-merge.
 Run `ruff check .` and `pytest -q` locally first. Any failing check: fix it, do not merge.
+
+**Repository:** museai lives only in `lvluu/museai` (remote `origin`). GitHub lists it as a fork of `d4ncboz/museai`,
+which is someone else's repo: never add it as a remote, push to it, or open PRs or comments there. `gh` falls back to
+the fork parent when no repo is given, so every `gh pr create` passes `--repo lvluu/museai` (once per clone:
+`gh repo set-default lvluu/museai`). `.claude/hooks/only-lvluu-repo.py` blocks the rest for Claude Code.
