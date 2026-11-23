@@ -44,6 +44,11 @@ and its output says so. Never put a fact into narration that is not a verified c
   `<id>-vi` with `from_video`, copy `img/` and `anim/` into its work folder, then `voice`, `build`, `thumb`, `qa`.
   Vietnamese runs longer than English: trim lines until `qa` shows <= 60 s and no scene over its clip by 25 %.
   edge-tts sometimes fails a whole burst ("No audio was received"); run `voice` again.
+  To publish both languages as one video: after `voice` for both, `cm.py dual <id> <id>-vi` builds both on one
+  timeline (each scene lasts the longer of its two narrations) and writes `<id>-dual.mp4` (audio 0 = eng default,
+  audio 1 = vie, English and Vietnamese subtitles) and `<id>-vi.m4a` (the Vietnamese audio, same length as the video)
+  in the `<id>` work folder. Facebook, TikTok and Instagram play only the first track; YouTube takes the m4a as a
+  multi-language audio upload. Labels are burned in English in the dual file. It exits 1 if the lengths differ by > 0.1 s.
 - Title formulas: *Why does X...?* / *The hidden engineering inside X* / *How X actually works*. Thumbnail:
   one subject, 2-4 words that are not the title.
 
