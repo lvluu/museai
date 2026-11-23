@@ -147,8 +147,8 @@ def main():
         if missing:
             sys.exit(f"missing: {', '.join(map(str, missing))}")
         return
-    if os.environ.get("LONGFORM_REMOTE", "1") != "0" and remote_compose(a, sp, root, plan):
-        return
+    if os.environ.get("LONGFORM_REMOTE", "1") != "0" and os.environ.get("RENDER_LOCAL") != "1":
+        return remote_compose(a, sp, root, plan)
 
     # 1. one graded segment per beat (+ subtitles, + chapter card), and its own sound
     for p in plan:
@@ -308,17 +308,16 @@ def main():
 
 
 def remote_compose(a, sp, root, plan):
-    """Compose on the Colab render queue (muse-video/scripts/remote.py) while it is online: minutes of every
-    core here (loud fans). The story folder's clips, stills and voice go up; only the film comes back.
-    False: offline, or the job failed (then it composes here)."""
+    """Compose on the Colab render queue (muse-video/scripts/remote.py): never on this Mac (minutes of every core,
+    the machine lags). The story folder's clips, stills and voice go up; only the film comes back. Offline or a
+    failed job stops here (LONGFORM_REMOTE=0 composes in place: the runtime itself sets it)."""
     sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "muse-video" / "scripts"))
     import remote
 
-    host = remote.online()[0]
     srcs = {p["src"] for p in plan}
-    if not host or not all(s.is_relative_to(root) for s in srcs):
-        return False
-    print(f"compose: remote (muse-renderer on {host})", flush=True)
+    outside = sorted(str(s) for s in srcs if not s.is_relative_to(root))
+    if outside:
+        sys.exit(f"compose: sources outside {root} cannot go to the render queue: {', '.join(outside)}")
     vo = root / "vo"
     files = [sp, *sorted(srcs), *(sorted(vo.iterdir()) if vo.is_dir() else [])]
     assets = {n: os.path.join(_FONTS, n) for n in ("Georgia.ttf", "Georgia Italic.ttf")}
@@ -331,11 +330,8 @@ def remote_compose(a, sp, root, plan):
     cmd = ('HV_ASSETS="$PWD/w/_assets" HV_NVENC=1 LONGFORM_REMOTE=0 python3 '
            '"$MUSEAI/.claude/skills/healing-longform/scripts/longform.py" '
            + shlex.join([f"w/{sp.relative_to(root)}", "--music", music, "--out", "out.mp4"]))
-    if remote.compose(root, files, assets, cmd, a.out) == 0:
-        print(f"wrote {a.out} ({dur(a.out):.1f} s)")
-        return True
-    print("compose: local (remote job failed)", flush=True)
-    return False
+    remote.compose_here_or_exit("compose", root, files, assets, cmd, a.out)
+    print(f"wrote {a.out} ({dur(a.out):.1f} s)")
 
 
 def foley_src(p, plan, need, out):

@@ -158,6 +158,21 @@ def compose(root, files, assets, cmd, out, minutes=240):
     return 0
 
 
+def compose_here_or_exit(what, root, files, assets, cmd, out, minutes=240, tries=3):
+    """Compose on the Colab runtime or stop: ffmpeg renders never run on this Mac (2026-11-23: a failed upload
+    fell back to a local 4K compose, load 85 on 15 cores). Offline or TRIES failed jobs -> exit 1."""
+    host, why = online()
+    if not host:
+        sys.exit(f"{what}: render queue offline ({why}); not rendering on this machine. Start the queue "
+                 "(muse-renderer install-service) and run it again.")
+    print(f"{what}: remote (muse-renderer on {host})", flush=True)
+    for k in range(1, tries + 1):
+        if compose(root, files, assets, cmd, out, minutes) == 0:
+            return
+        print(f"{what}: remote job failed (try {k}/{tries})", file=sys.stderr, flush=True)
+    sys.exit(f"{what}: remote render failed {tries} times; not rendering on this machine.")
+
+
 def main(argv):
     if argv[:1] == ["online"]:
         host, why = online()
