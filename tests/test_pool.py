@@ -20,6 +20,7 @@ from museai.errors import (
     UpstreamError,
     UpstreamQuotaError,
     UpstreamRefused,
+    UpstreamTimeout,
     VideoLimitReached,
 )
 from museai.services.gateway import Gateway
@@ -120,7 +121,7 @@ async def test_gateway_fails_over(tmp_path):
     gw = Gateway(pool, _FlakyDriver({"a0"}), max_failover=2)
     text = "".join([d async for d in gw.chat_stream(ChatRequest(prompt="hi", model="m"))])
     assert "hi" in text
-    assert pool.get("a0").status == AccountStatus.COOLING
+    assert pool.get("a0").status == AccountStatus.ACTIVE  # a generic failure fails over, no pause
     assert pool.get("a1").success_count == 1
 
 
@@ -542,9 +543,22 @@ async def test_quota_cooldown_is_configurable(tmp_path):
 
 
 async def test_zero_quota_cooldown_keeps_account_usable(tmp_path):
-    pool = await _pool(tmp_path, n=1, cooldown=120.0, quota_cooldown=0.0)
+    pool = await _pool(tmp_path, n=1, quota_cooldown=0.0)
     with pytest.raises(UpstreamQuotaError):
         async with pool.lease():
             raise UpstreamQuotaError("Out of usage")
     async with pool.lease() as lease:
+        assert lease.account.id == "a0"
+
+
+async def test_local_browser_failure_does_not_pause_account(tmp_path):
+    # Only muse's own messages (login, usage, video limit) take an account out of rotation.
+    pool = await _pool(tmp_path, n=1)
+    for exc in (UpstreamTimeout("browser did not answer Page.enable within 60s"),
+                UpstreamError("browser error: cdp connection closed")):
+        with pytest.raises(type(exc)):
+            async with pool.lease():
+                raise exc
+        assert pool.get("a0").status == AccountStatus.ACTIVE
+    async with pool.lease(timeout=0.1) as lease:
         assert lease.account.id == "a0"

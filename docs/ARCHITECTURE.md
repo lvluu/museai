@@ -39,7 +39,7 @@ Dependencies flow strictly downward: `api → services → accounts/core → dri
 4. On failure:
    - `UpstreamAuthError`: the account is marked `invalid`;
    - `UpstreamQuotaError`: the account cools down for at least one hour;
-   - any other retryable error: the account cools down for `account_cooldown` seconds;
+   - any other error (our own Chromium timing out, a dropped socket, a one-off bad reply): no cooldown, the account keeps rendering;
    - if nothing has been sent to the client yet, the request is retried on another account (up to `max_failover` times).
 5. For streaming, the route pulls the first delta before returning 200, so errors such as "no account available" or "upstream authentication failed" come back with the right HTTP status code.
 

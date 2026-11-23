@@ -62,8 +62,6 @@ class UpstreamError(Muse2APIError):
     error_type = "upstream_error"
     code = "upstream_error"
     retryable: bool = True
-    # False when the account is healthy and only this job went wrong: fail over, no cooldown.
-    cools_account: bool = True
 
 
 class UpstreamAuthError(UpstreamError):
@@ -93,8 +91,6 @@ class GenerationTimeout(UpstreamTimeout):
     """An image/video job ran past its deadline. The account is healthy, so it is not cooled
     down; the job moves to another account, where a stuck render often goes through."""
 
-    cools_account = False
-
 
 class BrowserTimeout(UpstreamTimeout):
     """Our own Chromium was too slow (a CDP command or the page load timed out), usually because
@@ -116,4 +112,3 @@ class UpstreamRefused(UpstreamError):
     account usually renders the clip."""
 
     code = "upstream_refused"
-    cools_account = False
