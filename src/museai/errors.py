@@ -96,6 +96,14 @@ class GenerationTimeout(UpstreamTimeout):
     cools_account = False
 
 
+class BrowserTimeout(UpstreamTimeout):
+    """Our own Chromium was too slow (a CDP command or the page load timed out), usually because
+    it is busy with many renders. The muse.ai account is fine, so it is not paused: the job
+    fails over and the account stays available."""
+
+    cools_account = False
+
+
 class UpstreamMediaLost(UpstreamError):
     """Upstream generated nothing it could attach ("Video not found"); retry elsewhere."""
 

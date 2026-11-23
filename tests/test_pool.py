@@ -13,6 +13,7 @@ from museai.config import Settings
 from museai.drivers.base import ChatRequest, VideoRequest
 from museai.drivers.mock import MockDriver
 from museai.errors import (
+    BrowserTimeout,
     GenerationTimeout,
     NoAccountAvailable,
     UpstreamAuthError,
@@ -161,7 +162,13 @@ class _OneBadVideoDriver(MockDriver):
 
 
 @pytest.mark.parametrize(
-    "exc", [GenerationTimeout("timed out"), UpstreamRefused("text only: Done, attached below")]
+    "exc",
+    [
+        GenerationTimeout("timed out"),
+        UpstreamRefused("text only: Done, attached below"),
+        BrowserTimeout("browser did not answer Page.navigate within 60s"),
+        BrowserTimeout("muse.ai page did not become ready (path=/thread/new, hasInput=True)"),
+    ],
 )
 async def test_stuck_or_refused_video_moves_to_another_account_without_cooldown(tmp_path, exc):
     pool = await _pool(tmp_path, n=2, strategy="round_robin")
