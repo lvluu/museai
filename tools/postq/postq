@@ -75,7 +75,7 @@ SERIES = {
                 "playlist_by_name": {"Cẩm Tú Nhân Sinh": "Học tiếng Trung qua phim"},
                 "related": "latest:Tập", "tz": "Asia/Ho_Chi_Minh", "channel": "chinese",
                 # No thumbnail in the folder: muse renders the scene, the thumbnail skill lays out the text.
-                "thumb": {"style": "chinese", "sub": "Nói sao bằng tiếng Trung?",
+                "thumb": {"style": "chinese", "sub": "Nói sao bằng tiếng Trung?", "zh": True, "badge": "TẬP {}",
                           "scene": "Everyday scene for a short Chinese-conversation lesson"}},
     # Playlist per episode: captions.txt's "=== YouTube playlist ===" section (the dashboard picks it).
     "Dream": {"x_account": "BlueEyes132w", "account": "Dream Jobs Daily",
@@ -93,7 +93,15 @@ SERIES = {
                 # captions.txt name -> the playlist's name on the channel, where they differ
                 "playlists": {"Slow Living Kitchen & Home": "Slow Kitchen", "Rain, Snow & Misty Days": "Rain & Snow Days"}},
     # Channel UCQJLZDgkpRwA4undRLbO_Qw; its name really is spelled "Mechanim".
-    "Curious": {"account": "Curious Mechanim", "tz": "Asia/Ho_Chi_Minh", "related": "latest:"},
+    "Curious": {"account": "Curious Mechanim", "tz": "Asia/Ho_Chi_Minh", "related": "latest:",
+                "thumb": {"style": "curious", "sub": "",
+                          "prompt": "Bright, friendly cartoon illustration explaining how an everyday thing works. "
+                                    "Subject: {topic}. {title}. Clean bold outlines, flat vivid colours with soft "
+                                    "shading, simple cutaway showing the inside mechanism, playful but accurate "
+                                    "proportions, cheerful educational explainer look. 9:16 vertical portrait, one "
+                                    "big clear subject in the lower two thirds; the top third is a calm, plain "
+                                    "background. No photorealism, no text, letters, labels, logos or watermarks "
+                                    "anywhere."}},
 }
 # museai dashboard slots (posting.py CHANNELS): "HH:MM" -> n in the "YYYY-MM-DD/n" slot key.
 SLOTS = {"chinese": ["12:00", "18:30"], "travel": ["07:00", "19:00"], "dream": ["07:00", "19:00"],
@@ -681,7 +689,7 @@ def render_cover(d, video, series, yt_title, captions):
     t = series["thumb"]
     topic = video.stem.split(" - ", 1)[-1]
     first = next((ln for ln in captions.splitlines() if ln.strip()), "")
-    prompt = (f"Vertical 9:16 photo, real camera, natural light, bright true colours. {t['scene']}: {topic}. "
+    prompt = t["prompt"].format(topic=topic, title=yt_title) if "prompt" in t else (f"Vertical 9:16 photo, real camera, natural light, bright true colours. {t['scene']}: {topic}. "
               f"{yt_title}. {first} Two friendly young adults in this everyday situation, faces sharp and clearly "
               "visible, smiling, turned toward the camera, upper bodies in the lower two thirds of the frame; the "
               "top third is calm, uncluttered background. Original fictional people, not resembling any real "
@@ -707,10 +715,10 @@ def render_cover(d, video, series, yt_title, captions):
                "--with", "opencv-python-headless==4.10.0.84", "--with", "pillow==11.0.0", "--with", "fonttools",
                "python", str(THUMB_PY), t["style"], str(tmp), str(tmp / "still.mp4"), "--name", "cover",
                "--at", "1", "--title", topic.upper(), "--sub", t["sub"]]
-        if zh:
+        if zh and t.get("zh"):
             cmd += ["--zh", zh.group(1)]
-        if ep:
-            cmd += ["--badge", f"TẬP {int(ep.group(1))}"]
+        if ep and t.get("badge"):
+            cmd += ["--badge", t["badge"].format(int(ep.group(1)))]
         run = subprocess.run(cmd, capture_output=True, text=True, cwd=THUMB_PY.parent)
         if run.returncode:
             raise RuntimeError(f"thumbnail skill failed: {(run.stderr or run.stdout).strip()[-400:]}")
@@ -735,8 +743,8 @@ def cmd_episode(a):
     cap_text = cap_file.read_text()
     sections = parse_captions(cap_text)
     wanted = set(a.platforms)
-    for plat in ("x", "tiktok"):
-        if plat in wanted and not series.get(f"{plat}_account"):
+    for plat in ("x", "tiktok", "meta"):
+        if plat in wanted and not series.get("meta" if plat == "meta" else f"{plat}_account"):
             wanted.discard(plat)  # the series has no account there (Chinese): not an error
             if a.platforms != DEFAULT_PLATFORMS:
                 print(f"note: {d.name.split()[0]} has no {plat}_account in SERIES, skipping {plat}", file=sys.stderr)
