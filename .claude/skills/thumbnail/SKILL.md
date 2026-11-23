@@ -76,7 +76,6 @@ sheet, 2 MB JPEG writer) is `scripts/core.py`.
 |---|---|---|
 | `chinese` | EVERYDAY CHINESE, teaching-video, product-ad, any video with people talking | best face frame, yellow hanzi hook, title white on a red box, sub line, episode badge |
 | `travel` | scenic-drop-reel, muse-video travel mode; `--split` for zoominview | stakes/scale frame full bleed, bright natural grade (dark frames lifted), optional zoom and red ring + arrow on the subject, huge yellow hook on a black plate (labels refused), Futura place name, text kept off people, sub with flag |
-| `curious` | Curious Mechanim channel (postq `Curious` series) | cartoon explainer frame full bleed and ungraded, chunky white title with a thick ink-blue outline in the calm top band, optional muted-red sub, brass "CM" mark on a white disc; no badge |
 
 ## Rules every style keeps
 What makes a cover get tapped (YouTube / TikTok creator guidance, high-CTR channels): one sharp,

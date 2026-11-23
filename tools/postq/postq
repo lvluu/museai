@@ -94,14 +94,15 @@ SERIES = {
                 "playlists": {"Slow Living Kitchen & Home": "Slow Kitchen", "Rain, Snow & Misty Days": "Rain & Snow Days"}},
     # Channel UCQJLZDgkpRwA4undRLbO_Qw; its name really is spelled "Mechanim".
     "Curious": {"account": "Curious Mechanim", "tz": "Asia/Ho_Chi_Minh", "related": "latest:",
-                "thumb": {"style": "curious", "sub": "",
-                          "prompt": "Bright, friendly cartoon illustration explaining how an everyday thing works. "
-                                    "Subject: {topic}. {title}. Clean bold outlines, flat vivid colours with soft "
-                                    "shading, simple cutaway showing the inside mechanism, playful but accurate "
-                                    "proportions, cheerful educational explainer look. 9:16 vertical portrait, one "
-                                    "big clear subject in the lower two thirds; the top third is a calm, plain "
-                                    "background. No photorealism, no text, letters, labels, logos or watermarks "
-                                    "anywhere."}},
+                # No "style": muse draws the whole cover, title included; no thumbnail-skill layout.
+                "thumb": {"prompt": "Vertical 9:16 YouTube Shorts cover, bright friendly cartoon illustration "
+                                    "explaining how an everyday thing works. Subject: {topic}. {title}. One big clear "
+                                    "subject in the lower two thirds, a simple cutaway or arrow showing the trick "
+                                    "inside, a curious cartoon character reacting. In the top third, on a calm "
+                                    "background, the title \"{topic}\" in huge bold white letters with a thick "
+                                    "dark-blue outline. Clean bold outlines, flat vivid colours with soft shading, "
+                                    "crisp and sharp. Spell the title exactly; no other text, no logos, no "
+                                    "watermarks."}},
 }
 # museai dashboard slots (posting.py CHANNELS): "HH:MM" -> n in the "YYYY-MM-DD/n" slot key.
 SLOTS = {"chinese": ["12:00", "18:30"], "travel": ["07:00", "19:00"], "dream": ["07:00", "19:00"],
@@ -682,7 +683,8 @@ def page_outcome(item, ok, error=None):
 
 def render_cover(d, video, series, yt_title, captions):
     """Missing thumbnail: muse renders the episode's scene (no text), the thumbnail skill adds title,
-    hanzi hook and badge. Returns the new '<video> - thumbnail 9x16.jpg' in the folder."""
+    hanzi hook and badge; a series thumb without "style" takes muse's picture as the whole cover.
+    Returns the new '<video> - thumbnail 9x16.jpg' in the folder."""
     import base64
     import tempfile
     import urllib.request
@@ -704,6 +706,12 @@ def render_cover(d, video, series, yt_title, captions):
     with tempfile.TemporaryDirectory(prefix="postq-cover-") as tmp:
         tmp = Path(tmp)
         (tmp / "still.png").write_bytes(png)
+        if "style" not in t:
+            dst = d / f"{video.stem} - thumbnail 9x16.jpg"
+            subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(tmp / "still.png"), "-vf",
+                            "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920", "-q:v", "2",
+                            str(dst)], check=True)
+            return dst
         # thumb.py reads frames from a video: a 2 s clip of the still.
         subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-loop", "1", "-i", str(tmp / "still.png"), "-t", "2",
                         "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=25",
