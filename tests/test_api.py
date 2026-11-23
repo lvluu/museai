@@ -158,7 +158,7 @@ def test_dashboard_cookie_upload(client, admin):
     acc = client.post("/admin/accounts", headers=admin, json={
         "label": "a1", "cookies": {"hatch_sess": "old", "hatch_native_auth_device": "d"},
     }).json()["account"]
-    client.patch(f"/admin/accounts/{acc['id']}", headers=admin, json={"enabled": True})
+    client.patch(f"/admin/accounts/{acc['id']}", headers=admin, json={"enabled": False})
     url = f"/dashboard/accounts/{acc['id']}/cookies"
     export = [
         {"name": "hatch_sess", "value": "new", "domain": ".muse.ai", "expirationDate": 1893456000.5},
@@ -169,6 +169,7 @@ def test_dashboard_cookie_upload(client, admin):
     r = client.post(url, headers=admin, json=export)
     assert r.status_code == 200
     assert r.json()["account"]["status"] == "active"
+    assert r.json()["account"]["enabled"] is True  # new cookies re-enable a disabled account
     r = client.post(url, headers=admin, json=[{"name": "datr", "value": "x"}])
     assert r.status_code == 400
     assert "hatch_sess" in r.json()["error"]["message"]

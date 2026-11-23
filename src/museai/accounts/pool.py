@@ -95,7 +95,6 @@ class AccountPool:
         *,
         strategy: str = "lru",
         max_concurrency: int = 1,
-        cooldown: float = 120.0,
         quota_cooldown: float = 3600.0,
         video_limit_cooldown: float = 3600.0,
         acquire_timeout: float = 60.0,
@@ -103,7 +102,6 @@ class AccountPool:
         self.store = store
         self.strategy: Strategy = STRATEGIES[strategy]()
         self.max_concurrency = max(1, max_concurrency)
-        self.cooldown = cooldown
         self.quota_cooldown = quota_cooldown
         self.video_limit_cooldown = video_limit_cooldown
         self.acquire_timeout = acquire_timeout
@@ -288,9 +286,9 @@ class AccountPool:
             acc.cooldown_until = time.time() + self.quota_cooldown
             acc.quota_hits = [*acc.quota_hits, time.time()][-QUOTA_HISTORY:]
             log.warning("account %s out of quota, cooling down", acc.id)
-        elif getattr(error, "retryable", False) and getattr(error, "cools_account", True):
-            acc.status = AccountStatus.COOLING
-            acc.cooldown_until = time.time() + self.cooldown
+        # Any other failure (our own Chromium timing out, a dropped socket, a muse page that
+        # misbehaved once) only fails this job over: the account keeps rendering. Only muse's own
+        # messages above (expired login, out of usage, video limit) take it out of rotation.
 
     @asynccontextmanager
     async def lease(

@@ -99,6 +99,8 @@ async def upload_cookies(account_id: str, request: Request,
     if missing := muse.missing_session_cookies(cookies):
         raise InvalidRequest(f"export is missing session cookies: {', '.join(missing)}")
     acc.cookies, acc.cookie_expires = cookies, expires
+    # New cookies mean the owner wants this account rendering again, also when it was disabled.
+    acc.enabled = True
     acc.status, acc.cooldown_until, acc.last_error = AccountStatus.ACTIVE, 0.0, None
     acc.video_blocked_until = 0.0
     await svc.pool.upsert(acc)
