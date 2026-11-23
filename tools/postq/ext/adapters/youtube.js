@@ -210,10 +210,12 @@ async function setRelated(want) {
       };
       const loaded = (s) => (!s.set.avatar || s.avatar) && (!s.set.watermark || s.watermark);
       const changed = (s) => want.every((k) => s.set[k]) && ['avatar', 'watermark'].every((k) => !want.includes(k) || s[k] !== before?.[k]);
+      const settled = (s) => want.every((k) => s.set[k]) && loaded(s);
       let s, last;
       for (const end = Date.now() + 30000; Date.now() < end; await sleep(1000)) {
         s = read();
         if (want.length ? changed(s) : loaded(s) && JSON.stringify(s) === last) break;
+        if (want.length && settled(s) && JSON.stringify(s) === last && Date.now() > end - 20000) break;
         last = JSON.stringify(s);
       }
       return s;

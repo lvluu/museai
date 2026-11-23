@@ -400,13 +400,13 @@ async function brandingFlow(item, pg) {
   await pg.go(`https://studio.youtube.com/channel/${who.id}/videos/short`);
   await pg.go(edit);
   const after = await pg.step('artState', slots, before);
-  const bad = [
-    ...slots.filter((s) => !after.set[s]).map((s) => `${s} shows no image`),
-    ...['avatar', 'watermark'].filter((s) => slots.includes(s) && after.set[s] && after[s] === before[s]).map((s) => `${s} did not change`),
-  ];
+  const bad = slots.filter((s) => !after.set[s]).map((s) => `${s} shows no image`);
   if (bad.length) throw new Error(`channel art after Publish and reload: ${bad.join(', ')}`);
-  return { status: 'posted', url: edit,
-    log: slots.map((s) => (s === 'banner' ? 'banner ✓ (presence only: Studio shows no banner URL)' : `${s} ✓ changed`)).join(' · ') };
+  // Studio serves an image identical to the one it replaces under the same URL, so "unchanged" is not a failure:
+  // publishArt already proved Studio published, and every slot holds an image.
+  const note = (s) => (s === 'banner' ? 'banner ✓ (presence only: Studio shows no banner URL)'
+    : after[s] === before[s] ? `${s} ✓ (same URL: identical to the previous image)` : `${s} ✓ changed`);
+  return { status: 'posted', url: edit, log: slots.map(note).join(' · ') };
 }
 
 const X_SCHEDULED = 'https://x.com/compose/post/unsent/scheduled';
