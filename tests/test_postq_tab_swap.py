@@ -29,6 +29,7 @@ const ctx = { chrome, console, URL, fetch: async () => ({ json: async () => [] }
 ctx.globalThis = ctx; ctx.self = ctx;
 vm.createContext(ctx);
 vm.runInContext(fs.readFileSync(path.join(ext, 'background.js'), 'utf8') + ';globalThis.page = page;', ctx);
+ctx.setTimeout = (fn) => (setImmediate(fn), 0);  // waits inside the page driver pass at once; load-time timers stay stubbed
 (async () => {
   const pg = ctx.page(1, 'tiktok', { host: 'www.tiktok.com', files: [] });
   const before = await pg.step('ready');

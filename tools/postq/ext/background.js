@@ -161,7 +161,8 @@ async function approve(item, edits, manual = false) {
       : { url: adapter.url, focused: false, type: 'normal',
         left: 40 + slot * 70, top: 40 + slot * 50, width: 1280, height: 900 });
     tabId = win.tabs[0].id;
-    const result = await adapter.flow(post, page(tabId, item.platform, adapter));
+    const flow = item.kind === 'branding' ? brandingFlow : adapter.flow;
+    const result = await flow(post, page(tabId, item.platform, adapter));
     await api(`/${item.id}`, { ...edits, ...result });
     await progress(item.id, `${result.status}${result.url ? ` · ${result.url}` : ''}`);
     if (result.status !== 'dry-run') chrome.tabs.remove(liveTab(tabId)).catch(() => {}); // last tab: closes its window
@@ -196,6 +197,10 @@ function liveTab(id) {
   return id;
 }
 
+// A person does not act the instant a page answers: every page action waits 2-10 s first.
+const ACTION_WAIT_MS = [2000, 10000];
+const actionWait = () => new Promise((r) => setTimeout(r, ACTION_WAIT_MS[0] + Math.random() * (ACTION_WAIT_MS[1] - ACTION_WAIT_MS[0])));
+
 // Page driver for one tab: waits for the platform host, injects lib + adapter, runs steps.
 function page(tabId, platform, adapter) {
   const id = () => (tabId = liveTab(tabId));
@@ -215,6 +220,7 @@ function page(tabId, platform, adapter) {
     await chrome.scripting.executeScript({ target: { tabId: id() }, files: adapter.files });
   }
   async function step(name, ...args) {
+    await actionWait();
     const [{ result }] = await chrome.scripting.executeScript({
       target: { tabId: id() }, func: (p, s, a) => globalThis.postqRun(p, s, a), args: [platform, name, args],
     });
@@ -243,6 +249,7 @@ function page(tabId, platform, adapter) {
   // Load another page in the same tab and re-inject (status reads 'complete' until the new load starts).
   // `until`: the URL prefix to wait for, where the site rewrites the query string on load.
   async function go(url, until = url) {
+    await actionWait();
     await chrome.tabs.update(id(), { url, active: true });
     const end = Date.now() + 60000;
     while (!(await chrome.tabs.get(id())).url?.startsWith(until)) {
@@ -276,7 +283,9 @@ const accountMatches = (want, who) => {
   return [who.name, who.id].some((v) => v && norm(v) === norm(want));
 };
 
-async function youtubeFlow(item, pg) {
+// Studio on the item's channel (switched when it is on another one, and refused when the switch does
+// not take): nothing is ever set on the wrong channel. Returns whoami {name, id}.
+async function youtubeChannel(item, pg) {
   const say = (line) => progress(item.id, line);
   await say('Opening YouTube Studio…');
   await pg.inject();
@@ -293,6 +302,12 @@ async function youtubeFlow(item, pg) {
     }
   }
   await setYtCurrent(item.account);
+  return who;
+}
+
+async function youtubeFlow(item, pg) {
+  const say = (line) => progress(item.id, line);
+  const who = await youtubeChannel(item, pg);
   const when = item.schedule_at ? Date.parse(item.schedule_at) : null;
   // A run killed between upload and saving the id (reload, crash, closed window) left a copy on the
   // channel: find it by title (or the filename title a fresh draft gets) and finish that one instead.
@@ -367,6 +382,37 @@ async function checkOnEditPage(item, pg, id, link, when, note) {
   if (item.cover) await pg.send('cover', item.cover, (p) => say(`Moving thumbnail into the tab ${p}%`));
   const checks = await pg.step('verify', { ...item, cover: item.cover && { name: item.cover.name, type: mimeOf(item.cover.file) } }, when);
   return { status: when ? 'scheduled' : 'posted', url: link, log: [note, ...checks].join(' · ') };
+}
+
+// Channel art: every image of the item set on the editing page, published once, then read back on a
+// fresh load of the page. Setting the same images again converges, so a retry is safe.
+async function brandingFlow(item, pg) {
+  const say = (line) => progress(item.id, line);
+  const who = await youtubeChannel(item, pg);
+  const edit = `https://studio.youtube.com/channel/${who.id}/editing/profile`;
+  const slots = Object.keys(item.images); // postq stores them in Studio's order: avatar, banner, watermark
+  await pg.go(edit);
+  const before = await pg.step('artState');
+  for (const slot of slots) {
+    const img = item.images[slot];
+    await say(`Channel ${who.name} ✓ · moving ${slot} into the tab…`);
+    await pg.send(slot, img);
+    await say(`Setting ${slot}…`);
+    await pg.step('setArt', slot, img.name, mimeOf(img.file));
+  }
+  await say('Publishing channel art…');
+  await pg.step('publishArt');
+  // Another page first: go() to the URL the tab already shows would inject into the page being replaced.
+  await pg.go(`https://studio.youtube.com/channel/${who.id}/videos/short`);
+  await pg.go(edit);
+  const after = await pg.step('artState', slots, before);
+  const bad = slots.filter((s) => !after.set[s]).map((s) => `${s} shows no image`);
+  if (bad.length) throw new Error(`channel art after Publish and reload: ${bad.join(', ')}`);
+  // Studio serves an image identical to the one it replaces under the same URL, so "unchanged" is not a failure:
+  // publishArt already proved Studio published, and every slot holds an image.
+  const note = (s) => (s === 'banner' ? 'banner ✓ (presence only: Studio shows no banner URL)'
+    : after[s] === before[s] ? `${s} ✓ (same URL: identical to the previous image)` : `${s} ✓ changed`);
+  return { status: 'posted', url: edit, log: slots.map(note).join(' · ') };
 }
 
 const X_SCHEDULED = 'https://x.com/compose/post/unsent/scheduled';

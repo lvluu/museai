@@ -26,11 +26,12 @@ function counter(input, max) {
 
 function render(item) {
   const lim = LIMITS[item.platform] || {};
+  const art = item.kind === 'branding'; // channel art: images to set, no video or text fields
   const el = document.createElement('section');
   el.className = 'card';
   el.innerHTML = `
     <div class="meta"><span class="pill"></span><span class="who"></span><span class="pill dry" hidden>dry run</span><span class="pill state" hidden></span><span class="when"></span></div>
-    <div class="top">
+    ${art ? '<div class="top"><div class="fields"><b class="arttitle"></b><div class="arts"></div></div></div>' : `<div class="top">
       <video muted controls preload="none"></video>
       <div class="fields">
         ${lim.title ? '<label>Title <input name="title"></label>' : ''}
@@ -42,11 +43,11 @@ function render(item) {
             <option>public</option><option>unlisted</option><option>private</option></select></label>` : ''}
         </div>
       </div>
-    </div>
+    </div>`}
     <div class="row">
       <button class="primary" data-act="approve">Approve</button>
       <button data-act="discard">Discard</button>
-      <label class="check"><input type="checkbox" name="dry"> dry run</label>
+      ${art ? '' : '<label class="check"><input type="checkbox" name="dry"> dry run</label>'}
       <span class="status"></span>
     </div>`;
   const q = (s) => el.querySelector(s);
@@ -55,23 +56,34 @@ function render(item) {
   who.textContent = item.account + (item.playlist ? ` · playlist: ${item.playlist}` : '');
   dryPill.hidden = !item.dry_run;
   whenEl.textContent = item.created;
-  // No preload: 100+ cards each fetching video metadata made the popup open slowly. The cover is the poster.
-  q('video').src = `${QUEUE}/media/${item.video.file}`;
-  if (item.cover) q('video').poster = `${QUEUE}/media/${item.cover.file}`;
   const title = q('[name=title]');
-  if (title) {
-    title.value = item.title;
-    title.parentElement.prepend(counter(title, lim.title));
-  }
   const caption = q('[name=caption]');
-  caption.value = item.caption;
-  caption.parentElement.prepend(counter(caption, lim.caption));
-  q('[name=at]').value = toLocalInput(item.schedule_at);
-  if (q('[name=visibility]')) q('[name=visibility]').value = item.visibility;
-  if (q('[name=related]')) q('[name=related]').value = item.related || '';
-  q('[name=dry]').checked = item.dry_run;
+  if (art) {
+    q('.arttitle').textContent = `Channel art for ${item.account}`;
+    q('.arts').replaceChildren(...Object.entries(item.images).map(([slot, m]) => {
+      const fig = Object.assign(document.createElement('figure'), { title: m.name });
+      fig.append(Object.assign(document.createElement('img'), { src: `${QUEUE}/media/${m.file}`, alt: slot }),
+        Object.assign(document.createElement('figcaption'), { textContent: slot }));
+      return fig;
+    }));
+  } else {
+    // No preload: 100+ cards each fetching video metadata made the popup open slowly. The cover is the poster.
+    q('video').src = `${QUEUE}/media/${item.video.file}`;
+    if (item.cover) q('video').poster = `${QUEUE}/media/${item.cover.file}`;
+    if (title) {
+      title.value = item.title;
+      title.parentElement.prepend(counter(title, lim.title));
+    }
+    caption.value = item.caption;
+    caption.parentElement.prepend(counter(caption, lim.caption));
+    q('[name=at]').value = toLocalInput(item.schedule_at);
+    if (q('[name=visibility]')) q('[name=visibility]').value = item.visibility;
+    if (q('[name=related]')) q('[name=related]').value = item.related || '';
+    q('[name=dry]').checked = item.dry_run;
+  }
   const c = { item, el, badge, status: q('.status'), buttons: [...el.querySelectorAll('button')] };
   c.edits = () => {
+    if (art) return {};
     const at = q('[name=at]').value;
     return {
       ...(title && { title: title.value }),
@@ -204,7 +216,7 @@ const filterLoaded = chrome.storage.local.get('popupFilter').then(({ popupFilter
   platSel.value = f.plat || '';
   hideDone.checked = !!f.hide;
 }).catch(() => {});
-const shown = (c) => (!chanSel.value || chanOf(c.item) === chanSel.value)
+const shown = (c) => (!chanSel.value || chanOf(c.item) === chanSel.value || c.item.kind === 'branding')
   && (!platSel.value || c.item.platform === platSel.value)
   && !(hideDone.checked && ['approved', 'posting', 'done'].includes(c.state));
 function fillSelect(sel, opts, allLabel) {

@@ -165,6 +165,39 @@ def attach_file(b64: str, mime: str, filename: str) -> str:
 }})()"""
 
 
+def fetch_full_image(src: str) -> str:
+    """The chat shows a ~500 px preview of a generated image; its viewer loads the full-size picture.
+    Open the viewer of the preview ``src``, fetch the biggest picture it shows, close the viewer."""
+    return f"""(async () => {{
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  const close = () => {{
+    const d = document.querySelector('[role="dialog"]');
+    const b = d && [...d.querySelectorAll('button')].find((x) => /^close$/i.test(x.getAttribute('aria-label') || x.textContent.trim()));
+    if (b) b.click(); else document.dispatchEvent(new KeyboardEvent('keydown', {{ key: 'Escape', bubbles: true }}));
+  }};
+  try {{
+    const pre = [...document.querySelectorAll('img')].find((i) => (i.currentSrc || i.src) === {q(src)});
+    const opener = pre && pre.closest('button, [role="button"], a');
+    if (!opener) return {{ ok: false, err: 'no viewer button' }};
+    opener.click();
+    let big = null;
+    for (let t = 0; t < 40 && !big; t++) {{
+      await sleep(250);
+      big = [...document.querySelectorAll('[role="dialog"] img')]
+        .filter((i) => i.complete && i.naturalWidth > pre.naturalWidth)
+        .sort((x, y) => y.naturalWidth - x.naturalWidth)[0] || null;
+    }}
+    if (!big) {{ close(); return {{ ok: false, err: 'viewer showed no bigger image' }}; }}
+    const b = await (await fetch(big.currentSrc || big.src)).blob();
+    const buf = new Uint8Array(await b.arrayBuffer());
+    let s = '';
+    for (let i = 0; i < buf.length; i += 0x8000) s += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+    close();
+    return {{ ok: true, mime: b.type || '', b64: btoa(s), w: big.naturalWidth, h: big.naturalHeight }};
+  }} catch (e) {{ close(); return {{ ok: false, err: String(e) }}; }}
+}})()"""
+
+
 def fetch_as_base64(url: str) -> str:
     """Fetch a (possibly blob:) URL inside the page context and return base64 bytes."""
     return f"""(async () => {{

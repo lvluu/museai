@@ -11,6 +11,7 @@ post-approve Chrome extension, which posts them through your own logged-in sessi
   postq list | results | serve
   postq wait [ID ...] [--timeout S]   # exit 0 posted, 2 failed/discarded, 3 timeout
   postq approve ID ...                # post without a click (Chrome + extension must be running)
+  postq branding --account NAME [--avatar F] [--banner F] [--watermark F] [--auto]   # YouTube channel art
 """
 import argparse
 import urllib.parse
@@ -45,6 +46,10 @@ EXT_DIR = Path(__file__).resolve().parent / "ext"  # the extension shipped with 
 POLLED = ROOT / ".polled"  # touched on every extension poll (every 30 s while Chrome runs it)
 VIDEO_SUFFIXES = {".mp4", ".mov", ".webm"}
 IMAGE_SUFFIXES = {".jpg", ".jpeg", ".png", ".webp"}
+# YouTube channel art: slot -> largest file Studio takes (Customization > Branding), in the order Studio
+# sets them. Dimensions (banner at least 2048x1152) are not checked: postq reads no image headers.
+BRANDING = {"avatar": 4 << 20, "banner": 6 << 20, "watermark": 1 << 20}
+BRANDING_SUFFIXES = {".jpg", ".jpeg", ".png"}
 COVERS_DIR = Path(os.environ.get("POSTQ_COVERS_DIR", Path.home() / "Desktop" / "postq-covers"))  # custom thumbnails, applied later by hand
 
 # Per platform: what the upload form accepts. Checked at `add`, so a post fails here and not halfway
@@ -75,7 +80,7 @@ SERIES = {
                 "playlist_by_name": {"Cẩm Tú Nhân Sinh": "Học tiếng Trung qua phim"},
                 "related": "latest:Tập", "tz": "Asia/Ho_Chi_Minh", "channel": "chinese",
                 # No thumbnail in the folder: muse renders the scene, the thumbnail skill lays out the text.
-                "thumb": {"style": "chinese", "sub": "Nói sao bằng tiếng Trung?",
+                "thumb": {"style": "chinese", "sub": "Nói sao bằng tiếng Trung?", "zh": True, "badge": "TẬP {}",
                           "scene": "Everyday scene for a short Chinese-conversation lesson"}},
     # Playlist per episode: captions.txt's "=== YouTube playlist ===" section (the dashboard picks it).
     "Dream": {"x_account": "BlueEyes132w", "account": "Dream Jobs Daily",
@@ -92,6 +97,17 @@ SERIES = {
                 "related": "latest:",  # newest public video of the channel
                 # captions.txt name -> the playlist's name on the channel, where they differ
                 "playlists": {"Slow Living Kitchen & Home": "Slow Kitchen", "Rain, Snow & Misty Days": "Rain & Snow Days"}},
+    # Channel UCQJLZDgkpRwA4undRLbO_Qw; its name really is spelled "Mechanim".
+    "Curious": {"account": "Curious Mechanim", "tz": "Asia/Ho_Chi_Minh", "related": "latest:",
+                # No "style": muse draws the whole cover, title included; no thumbnail-skill layout.
+                "thumb": {"prompt": "Vertical 9:16 YouTube Shorts cover, bright friendly cartoon illustration "
+                                    "explaining how an everyday thing works. Subject: {topic}. {title}. One big clear "
+                                    "subject in the lower two thirds, a simple cutaway or arrow showing the trick "
+                                    "inside, a curious cartoon character reacting. In the top third, on a calm "
+                                    "background, the title \"{topic}\" in huge bold white letters with a thick "
+                                    "dark-blue outline. Clean bold outlines, flat vivid colours with soft shading, "
+                                    "crisp and sharp. Spell the title exactly; no other text, no logos, no "
+                                    "watermarks."}},
 }
 # museai dashboard slots (posting.py CHANNELS): "HH:MM" -> n in the "YYYY-MM-DD/n" slot key.
 SLOTS = {"chinese": ["12:00", "18:30"], "travel": ["07:00", "19:00"], "dream": ["07:00", "19:00"],
@@ -127,6 +143,11 @@ def enqueue_lock():
         yield
 
 
+def media_of(item):
+    """Every file staged for an item: a post's video and cover, or the images of a channel-art item."""
+    return [m for m in (item.get("video"), item.get("cover"), *(item.get("images") or {}).values()) if m]
+
+
 def retire_duplicates():
     """Archive second queue items of one video (same platform, account and file name): one card per video.
 
@@ -152,8 +173,8 @@ def retire_duplicates():
                 (DONE / p.name).write_text(json.dumps(i | {"status": "duplicate", "duplicate_of": items[0][1]["id"]},
                                                       indent=2, ensure_ascii=False))
                 p.unlink()
-                for media in (i.get("video"), i.get("cover")):
-                    if media and (ROOT / media["file"]).is_file():
+                for media in media_of(i):
+                    if (ROOT / media["file"]).is_file():
                         (ROOT / media["file"]).replace(DONE / media["file"])
                 gone.append(i["id"])
     return gone
@@ -343,8 +364,8 @@ def retire_renamed(source, platform, account):
             (DONE / p.name).write_text(json.dumps(i | {"status": "superseded", "superseded_by": source},
                                                   indent=2, ensure_ascii=False))
             p.unlink()
-            for media in (i.get("video"), i.get("cover")):
-                if media and (ROOT / media["file"]).is_file():
+            for media in media_of(i):
+                if (ROOT / media["file"]).is_file():
                     (ROOT / media["file"]).replace(DONE / media["file"])
             gone.append(i["id"])
     return gone
@@ -456,9 +477,8 @@ def read_item(p):
 
 def with_disk_sizes(item):
     """The extension pulls media in ranges up to `size`: give it the queued file's real size."""
-    for role in ("video", "cover"):
-        m = item.get(role)
-        if isinstance(m, dict) and m.get("file") and (f := ROOT / m["file"]).is_file():
+    for m in media_of(item):
+        if m.get("file") and (f := ROOT / m["file"]).is_file():
             m["size"] = f.stat().st_size
     return item
 
@@ -485,6 +505,37 @@ def pending():
 
 def cmd_add(a):
     print(enqueue(a))
+
+
+def cmd_branding(a):
+    """Queue YouTube channel art (avatar, banner, video watermark) for the extension to set in Studio."""
+    files = {slot: Path(f).expanduser() for slot in BRANDING if (f := getattr(a, slot))}
+    if not files:
+        sys.exit(f"give at least one of {', '.join('--' + s for s in BRANDING)}")
+    errors = []
+    for slot, f in files.items():
+        if not f.is_file():
+            errors.append(f"file not found: {f}")
+        elif f.suffix.lower() not in BRANDING_SUFFIXES:
+            errors.append(f"{f.name}: {slot} must be one of {' '.join(sorted(BRANDING_SUFFIXES))}")
+        elif f.stat().st_size > BRANDING[slot]:
+            errors.append(f"{f.name}: {slot} is {f.stat().st_size / 2**20:.1f} MB, YouTube takes at most {BRANDING[slot] >> 20} MB")
+    if errors:  # all checked before anything is staged: a bad banner must not leave a staged avatar behind
+        sys.exit("\n".join(errors))
+    ROOT.mkdir(parents=True, exist_ok=True)
+    item_id = time.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:6]
+    item = {
+        "id": item_id,
+        "kind": "branding",
+        "platform": "youtube",
+        "account": a.account,
+        "images": {slot: stage(f, item_id, slot, BRANDING_SUFFIXES) for slot, f in files.items()},
+        "auto": a.auto and not auto_blocked(),
+        "created": time.strftime("%Y-%m-%dT%H:%M:%S"),
+    }
+    (ROOT / f"{item_id}.json").write_text(json.dumps(item, indent=2, ensure_ascii=False))
+    ensure_server()
+    print(item_id)
 
 
 def fold(s):
@@ -633,6 +684,9 @@ FAILURE_ADVICE = [  # (error pattern, why it failed, what to do) — first match
     (r"thumbnail did not change|thumbnail .* was not accepted",
      "YouTube did not accept the thumbnail image (size, type, or Studio slow).",
      "Check the image is under 2 MB JPG/PNG, then re-approve."),
+    (r"channel art|crop dialog|Publish button",
+     "YouTube Studio did not take a channel-art image (wrong size or type, or Studio slow).",
+     "Check the image against YouTube's limits (banner at least 2048x1152), then re-approve."),
     (r"Save did not finish",
      "Studio's Save took longer than 240 s (machine load or slow network).",
      "Re-approve when the machine is idle."),
@@ -672,14 +726,15 @@ def page_outcome(item, ok, error=None):
 
 def render_cover(d, video, series, yt_title, captions):
     """Missing thumbnail: muse renders the episode's scene (no text), the thumbnail skill adds title,
-    hanzi hook and badge. Returns the new '<video> - thumbnail 9x16.jpg' in the folder."""
+    hanzi hook and badge; a series thumb without "style" takes muse's picture as the whole cover.
+    Returns the new '<video> - thumbnail 9x16.jpg' in the folder."""
     import base64
     import tempfile
     import urllib.request
     t = series["thumb"]
     topic = video.stem.split(" - ", 1)[-1]
     first = next((ln for ln in captions.splitlines() if ln.strip()), "")
-    prompt = (f"Vertical 9:16 photo, real camera, natural light, bright true colours. {t['scene']}: {topic}. "
+    prompt = t["prompt"].format(topic=topic, title=yt_title) if "prompt" in t else (f"Vertical 9:16 photo, real camera, natural light, bright true colours. {t['scene']}: {topic}. "
               f"{yt_title}. {first} Two friendly young adults in this everyday situation, faces sharp and clearly "
               "visible, smiling, turned toward the camera, upper bodies in the lower two thirds of the frame; the "
               "top third is calm, uncluttered background. Original fictional people, not resembling any real "
@@ -694,6 +749,12 @@ def render_cover(d, video, series, yt_title, captions):
     with tempfile.TemporaryDirectory(prefix="postq-cover-") as tmp:
         tmp = Path(tmp)
         (tmp / "still.png").write_bytes(png)
+        if "style" not in t:
+            dst = d / f"{video.stem} - thumbnail 9x16.jpg"
+            subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", str(tmp / "still.png"), "-vf",
+                            "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920", "-q:v", "2",
+                            str(dst)], check=True)
+            return dst
         # thumb.py reads frames from a video: a 2 s clip of the still.
         subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-loop", "1", "-i", str(tmp / "still.png"), "-t", "2",
                         "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,fps=25",
@@ -705,10 +766,10 @@ def render_cover(d, video, series, yt_title, captions):
                "--with", "opencv-python-headless==4.10.0.84", "--with", "pillow==11.0.0", "--with", "fonttools",
                "python", str(THUMB_PY), t["style"], str(tmp), str(tmp / "still.mp4"), "--name", "cover",
                "--at", "1", "--title", topic.upper(), "--sub", t["sub"]]
-        if zh:
+        if zh and t.get("zh"):
             cmd += ["--zh", zh.group(1)]
-        if ep:
-            cmd += ["--badge", f"TẬP {int(ep.group(1))}"]
+        if ep and t.get("badge"):
+            cmd += ["--badge", t["badge"].format(int(ep.group(1)))]
         run = subprocess.run(cmd, capture_output=True, text=True, cwd=THUMB_PY.parent)
         if run.returncode:
             raise RuntimeError(f"thumbnail skill failed: {(run.stderr or run.stdout).strip()[-400:]}")
@@ -733,8 +794,8 @@ def cmd_episode(a):
     cap_text = cap_file.read_text()
     sections = parse_captions(cap_text)
     wanted = set(a.platforms)
-    for plat in ("x", "tiktok"):
-        if plat in wanted and not series.get(f"{plat}_account"):
+    for plat in ("x", "tiktok", "meta"):
+        if plat in wanted and not series.get("meta" if plat == "meta" else f"{plat}_account"):
             wanted.discard(plat)  # the series has no account there (Chinese): not an error
             if a.platforms != DEFAULT_PLATFORMS:
                 print(f"note: {d.name.split()[0]} has no {plat}_account in SERIES, skipping {plat}", file=sys.stderr)
@@ -842,9 +903,11 @@ def cmd_episodes(a):
 
 def cmd_list(_):
     for i in pending():
-        when = i["schedule_at"] or "now"
-        print(f"{i['id']}  {i['platform']}  {i['account']}  {when}  {(i['title'] or i['caption'])[:50]!r}"
-              + ("  [dry-run]" if i["dry_run"] else "")
+        when = i.get("schedule_at") or "now"
+        what = (f"channel art: {', '.join(i['images'])}" if i.get("kind") == "branding"
+                else (i["title"] or i["caption"])[:50])
+        print(f"{i['id']}  {i['platform']}  {i['account']}  {when}  {what!r}"
+              + ("  [dry-run]" if i.get("dry_run") else "")
               + (f"  last error: {i['last_error']}" if i.get("last_error") else ""))
 
 
@@ -1038,10 +1101,10 @@ class Handler(BaseHTTPRequestHandler):
             (DONE / p.name).write_text(json.dumps(item, indent=2, ensure_ascii=False))
             p.unlink()
         claim.unlink(missing_ok=True)
-        for media in (item["video"], item.get("cover")):
-            if media and (ROOT / media["file"]).is_file():
+        for media in media_of(item):
+            if (ROOT / media["file"]).is_file():
                 (ROOT / media["file"]).replace(DONE / media["file"])
-        if item.get("status") in ("scheduled", "posted"):
+        if item.get("status") in ("scheduled", "posted") and item.get("kind") != "branding":
             threading.Thread(target=mark_dashboard, args=(item,), daemon=True).start()
         if item.get("status") not in ("dry-run", "discarded"):
             page_outcome(item, item.get("status") in ("scheduled", "posted"), item.get("error"))
@@ -1088,8 +1151,8 @@ def retire_gone(feed):
             DONE.mkdir(exist_ok=True)
             (DONE / p.name).write_text(json.dumps(i | {"status": "gone"}, indent=2, ensure_ascii=False))
             p.unlink()
-            for media in (i.get("video"), i.get("cover")):
-                if media and (ROOT / media["file"]).is_file():
+            for media in media_of(i):
+                if (ROOT / media["file"]).is_file():
                     (ROOT / media["file"]).replace(DONE / media["file"])
             gone.append(i["id"])
     return gone
@@ -1198,6 +1261,12 @@ def main():
     ap_.add_argument("ids", nargs="+")
     ap_.add_argument("--now", action="store_true", help="post right away instead of at its scheduled time")
     ap_.add_argument("--video", help="already uploaded as this YouTube video id: schedule and check it, no new upload")
+    br = sub.add_parser("branding", help="youtube channel art: avatar, banner, video watermark (at least one)")
+    br.add_argument("--account", required=True, help="channel name or id; checked before anything is set")
+    br.add_argument("--avatar", help="profile picture (jpg/png, at most 4 MB)")
+    br.add_argument("--banner", help="banner image (jpg/png, at least 2048x1152, at most 6 MB)")
+    br.add_argument("--watermark", help="video watermark (jpg/png, at most 1 MB)")
+    br.add_argument("--auto", action="store_true", help="set it without a click")
     sub.add_parser("list")
     sub.add_parser("results")
     sub.add_parser("serve")
@@ -1207,7 +1276,7 @@ def main():
     wait.add_argument("--timeout", type=float, default=0)
     a = ap.parse_args()
     {"add": cmd_add, "list": cmd_list, "results": cmd_results, "serve": cmd_serve, "sync": cmd_sync, "wait": cmd_wait,
-     "approve": cmd_approve, "episode": cmd_episode,
+     "approve": cmd_approve, "episode": cmd_episode, "branding": cmd_branding,
      "episodes": cmd_episodes}[a.cmd](a)
 
 

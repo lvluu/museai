@@ -724,6 +724,23 @@ class BrowserDriver(MuseDriver):
         )
 
     async def _download(self, tab: _Tab, att: dict, kind: str) -> MediaResult:
+        if kind == "image":
+            res = await tab.session.evaluate(
+                dom.fetch_full_image(att["src"]), await_promise=True, timeout=60
+            )
+            if (res or {}).get("ok"):
+                return MediaResult(
+                    data=base64.b64decode(res["b64"]),
+                    mime=res.get("mime") or "image/png",
+                    kind=kind,
+                    width=res.get("w") or None,
+                    height=res.get("h") or None,
+                )
+            log.info(
+                "%s full-size image not reached (%s), keeping the preview",
+                tab.account_id,
+                (res or {}).get("err"),
+            )
         res = await tab.session.evaluate(
             dom.fetch_as_base64(att["src"]), await_promise=True, timeout=300
         )

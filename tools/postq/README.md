@@ -60,6 +60,20 @@ items stay queued for a click.
 `add` checks each platform's limits (title/caption length, forbidden characters, tags,
 how far ahead it may be scheduled) before anything is queued.
 
+### Channel art
+
+```bash
+postq branding --account "Curious Mechanim" --avatar a.png --banner b.jpg --watermark w.png [--auto]
+```
+
+Queues a YouTube channel's avatar, banner and video watermark (any of them, at least one) as one item.
+Approve opens Studio on that channel (switching to it, never setting art on another channel), sets each
+image on the channel's editing page (picker, crop dialog, Done), presses Publish, then loads the page
+again and checks every slot shows an image and the avatar and watermark changed. Studio shows no banner
+URL, so the banner is checked by presence only. Images must be JPG or PNG; `postq` checks YouTube's file
+size limits (avatar 4 MB, banner 6 MB, watermark 1 MB) but not dimensions: a banner under 2048x1152
+fails in Studio. Running it again sets the same images again.
+
 ## Approve
 
 Click the icon (badge = pending count). Each card has a video preview, editable title, caption,
