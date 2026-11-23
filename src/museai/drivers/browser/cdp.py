@@ -13,7 +13,7 @@ from typing import Any
 
 from websockets.asyncio.client import ClientConnection, connect
 
-from ...errors import UpstreamTimeout
+from ...errors import BrowserTimeout
 
 log = logging.getLogger(__name__)
 
@@ -82,7 +82,7 @@ class CDPSession:
             return await asyncio.wait_for(fut, timeout)
         except asyncio.TimeoutError as exc:  # the builtin TimeoutError only from Python 3.11
             # Browser tab hung: a typed error lets the job fail over to another account.
-            raise UpstreamTimeout(f"browser did not answer {method} within {timeout:.0f}s") from exc
+            raise BrowserTimeout(f"browser did not answer {method} within {timeout:.0f}s") from exc
         finally:
             self._pending.pop(msg_id, None)
 

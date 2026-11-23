@@ -29,6 +29,7 @@ from ...accounts.model import Account
 from ...config import Settings
 from ...core.prompt import followup_text
 from ...errors import (
+    BrowserTimeout,
     GenerationTimeout,
     UpstreamAuthError,
     UpstreamError,
@@ -364,7 +365,7 @@ class BrowserDriver(MuseDriver):
         log.warning("PAGE_STATE final before error: %s", state)
         if any(h in head for h in dom.LOGIN_HINTS):
             raise UpstreamAuthError("muse.ai redirected to login; cookies are no longer valid")
-        raise UpstreamTimeout(
+        raise BrowserTimeout(
             f"muse.ai page did not become ready (path={state.get('path')}, hasInput={state.get('hasInput')})"
         )
 
