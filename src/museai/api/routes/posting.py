@@ -24,6 +24,7 @@ posting order, renumbered as videos go; deleting a folder takes its video out of
 
 from __future__ import annotations
 
+import asyncio
 import ipaddress
 import json
 import logging
@@ -593,16 +594,35 @@ def refresh(svc: Services, now: datetime, videos: list[Path] | None = None) -> t
     return videos, state
 
 
+# One listing at a time, shared by every caller asking meanwhile: the dashboard, the postq popup and
+# badge poll it every few seconds and each pass reads ~100 Desktop folders, so overlapping passes
+# used to queue up for minutes.
+_listing: dict[int, asyncio.Task] = {}
+
+
 @router.get("/dashboard/posts", include_in_schema=False)
 async def list_posts(svc: Services = Depends(get_services)) -> dict:
-    folder = svc.settings.post_dir
-    videos = queued(svc)
-    now = datetime.now(TZ)
-    videos, state = refresh(svc, now, videos)
+    task = _listing.get(id(svc))
+    if task is None:
+        task = _listing[id(svc)] = asyncio.create_task(_list_posts(svc))
+        task.add_done_callback(lambda _: _listing.pop(id(svc), None))
+    return await asyncio.shield(task)  # a caller hanging up does not cancel the others' answer
+
+
+async def _list_posts(svc: Services) -> dict:
+    # The file work runs off the event loop: it takes seconds, and every other request waited on it.
+    videos, state, out = await asyncio.to_thread(_posts_view, svc)
     for p in videos:
         svc.captions.schedule(_key(p.name), p, state.get(_key(p.name), {}),
                               lambda key, caps: _save_captions(svc, key, caps))
-    return {
+    return out
+
+
+def _posts_view(svc: Services) -> tuple[list[Path], dict, dict]:
+    folder = svc.settings.post_dir
+    now = datetime.now(TZ)
+    videos, state = refresh(svc, now)
+    return videos, state, {
         "folder": str(folder),
         "timezone": "GMT+7",
         "channels": [{"id": k, "name": n, "focus": f, "platforms": list(TIMES[k])} for k, (n, f) in CHANNELS.items()],
