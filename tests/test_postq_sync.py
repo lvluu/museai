@@ -202,3 +202,37 @@ def test_pending_items_carry_the_queued_files_real_size(monkeypatch, tmp_path):
     (tmp_path / "a-cover.jpg").write_bytes(b"x" * 10)
     (tmp_path / "a.json").write_text('{"id": "a", "platform": "youtube", "cover": {"file": "a-cover.jpg", "size": 99}}')
     assert [i["cover"]["size"] for i in postq.pending()] == [10]
+
+
+def test_meta_queues_the_targets_an_earlier_post_left_out(monkeypatch, tmp_path):
+    """An Instagram-only post leaves Facebook open on the dashboard: sync must queue Facebook, not skip."""
+    root = tmp_path / "queue"
+    (root / "done").mkdir(parents=True)
+    monkeypatch.setattr(postq, "ROOT", root)
+    monkeypatch.setattr(postq, "DONE", root / "done")
+    src = tmp_path / "Healing 01 · Tue 15-12 19h00 · h" / "h.mp4"
+    src.parent.mkdir()
+    src.write_bytes(b"mp4")
+    ig = {"id": "0-ig", "platform": "meta", "targets": ["instagram"], "account": "A", "source": str(src),
+          "status": "scheduled"}
+    (root / "done" / "0-ig.json").write_text(postq.json.dumps(ig))
+    ns = argparse.Namespace(platform="meta", targets=["facebook", "instagram"], account="A", file=str(src),
+                            cover=None, title="", caption_ig="ig text", asset=None, playlist=None, related=None,
+                            channel=None, visibility="public", tz="UTC", made_for_kids=False, dry_run=False,
+                            auto=False, now=False)
+    monkeypatch.setattr(postq, "auto_blocked", lambda: False)
+    postq._enqueue(ns, "fb text", [], None, str(src))
+    (item,) = [postq.json.loads(p.read_text()) for p in root.glob("*.json")]
+    assert item["targets"] == ["facebook"] and item["caption"] == "fb text" and item["caption_ig"] is None
+    # both targets covered now: nothing more
+    ns.targets = ["facebook", "instagram"]
+    with pytest.raises(SystemExit, match="already queued"):
+        postq._enqueue(ns, "fb text", [], None, str(src))
+
+
+def test_a_dateless_section_does_not_swallow_the_next_one():
+    text = ("=== YouTube Shorts  Tue 15-12 19:00 ===\nyt\n\n=== TikTok ===\ntt\n\n"
+            "=== Facebook Reels  Tue 15-12 19:00 ===\nfb\n\n=== Instagram Reels  Tue 15-12 19:00 ===\nig\n")
+    s = postq.parse_captions(text)
+    assert list(s) == ["YouTube Shorts", "Facebook Reels", "Instagram Reels"]
+    assert s["Facebook Reels"] == ("Tue 15-12", "19:00", "fb")

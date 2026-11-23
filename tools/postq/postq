@@ -373,7 +373,24 @@ def same_video(i, platform, account, source):
 
 
 def _enqueue(a, caption, tags, when, source):
-    queued = next((i for i in pending() if same_video(i, a.platform, a.account, source)), None)
+    if a.platform == "meta" and getattr(a, "targets", None):
+        # A Meta item covers only its targets: an Instagram-only post leaves Facebook still to post.
+        done = [d for f in (ROOT / "done").glob("*.json")
+                if (d := json.loads(f.read_text())).get("status") in ("posted", "scheduled")]
+        covered = set().union(*(set(i.get("targets") or ["facebook", "instagram"]) for i in [*pending(), *done]
+                                if same_video(i, "meta", a.account, source)))
+        rest = [t for t in a.targets if t not in covered]
+        if rest and rest != list(a.targets):
+            if "facebook" not in rest:  # Instagram alone: its own caption leads
+                caption = getattr(a, "caption_ig", None) or caption
+            a.caption_ig = None
+            a.targets = rest
+            return _enqueue_one(a, caption, tags, when, source, skip_same=True)
+    return _enqueue_one(a, caption, tags, when, source)
+
+
+def _enqueue_one(a, caption, tags, when, source, skip_same=False):
+    queued = None if skip_same else next((i for i in pending() if same_video(i, a.platform, a.account, source)), None)
     if queued:
         if getattr(a, "cover", None) and not queued.get("cover") and not queued.get("claimed"):
             # Queued before this platform got covers (TikTok before #388): without one the adapter skips
@@ -383,7 +400,7 @@ def _enqueue(a, caption, tags, when, source):
             sys.exit(f"already queued for {a.platform}, cover added: {source}")
         sys.exit(f"already queued for {a.platform}: {source}")
     # Posted before (the dashboard tick can lag or miss): never a second copy on the same account.
-    for f in (ROOT / "done").glob("*.json"):
+    for f in [] if skip_same else (ROOT / "done").glob("*.json"):
         d = json.loads(f.read_text())
         if (d.get("source") == source and d["platform"] == a.platform and d.get("account") == a.account
                 and d.get("status") in ("posted", "scheduled")):
@@ -494,7 +511,7 @@ def episode_when(day_month, hhmm, tz, today=None):
 def parse_captions(text):
     """captions.txt -> {section: (when "YYYY-MM-DD HH:MM" fn args, body)}."""
     out = {}
-    for m in re.finditer(r"^=== (.+?)\s{2,}(\w{3} \d{1,2}-\d{1,2}) (\d{1,2}:\d{2}) ===\n(.*?)(?=^=== |\Z)", text, re.M | re.S):
+    for m in re.finditer(r"^=== ([^\n]+?)\s{2,}(\w{3} \d{1,2}-\d{1,2}) (\d{1,2}:\d{2}) ===\n(.*?)(?=^=== |\Z)", text, re.M | re.S):
         out[m[1].strip()] = (m[2], m[3], m[4].strip())
     return out
 
