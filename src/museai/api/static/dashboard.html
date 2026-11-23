@@ -418,15 +418,14 @@ const TASK_PILL = { succeeded: ["p-ok", "Done"], failed: ["p-bad", "Failed"], ru
 const pill = ([cls, text]) => `<span class="pill ${cls}">${esc(text)}</span>`;
 
 // What the account can do right now, in plain words. muse.ai shows no remaining usage,
-// so "out of usage" comes from the pool cooling the account after a quota error.
+// so "out of usage" comes from the pool cooling the account after a quota error, the only
+// error that cools one. Not read from last_error: a later failed job overwrites it.
 function accState(acc, busy) {
   const until = acc.cooldown_until * 1000;
   if (!acc.enabled) return ["p-idle", "Disabled"];
   if (acc.status === "invalid") return ["p-bad", "Cookies expired"];
   if (acc.status === "cooling" && until > Date.now())
-    return /quota/i.test(acc.last_error || "")
-      ? ["p-bad", `Out of usage until ${fmtClock(until / 1000)}`]
-      : ["p-run", `Paused until ${fmtClock(until / 1000)}`];
+    return ["p-bad", `Out of usage until ${fmtClock(until / 1000)}`];
   if (acc.video_blocked_until * 1000 > Date.now())
     return ["p-bad", `Video limit until ${fmtClock(acc.video_blocked_until)}`];
   return busy ? ["p-run", "Rendering"] : ["p-ok", "Ready"];
