@@ -1,0 +1,47 @@
+{
+  "_doc": "Facebook Pages the fb-weekly agent keeps on track with Meta's creator weekly tasks. series = postq SERIES key, channel = museai dashboard channel. voice: how the Page writes captions, replies and comments.",
+  "scheduled_counts": false,
+  "_scheduled_counts": "Measured 2026-11-23: 3 reels per Page posted through Business Suite scheduling in the week of 22 Nov counted 0 (Slow Sunlit Days) and 1 (Dream Jobs) on the weekly tasks. Treat scheduled posts as not counting; publish now from the Page instead. Flip to true once `fbweekly.py learn` shows they count.",
+  "pages": [
+    {
+      "name": "Slow Sunlit Days",
+      "id": "61596276628319",
+      "series": "Healing",
+      "channel": "healing",
+      "business_id": "101536708808337",
+      "asset_id": "1500320413167603",
+      "language": "English",
+      "voice": "Calm, warm, slow. Short sentences, one soft emoji at most (☀️ 🍵 🌿 ❄️ 🥧). Invites the reader into a quiet moment: what would you bake, which window would you sit by. Never salesy, never hashtags in replies."
+    },
+    {
+      "name": "Dream Jobs",
+      "id": "61595751407445",
+      "series": "Dream",
+      "channel": "dream",
+      "business_id": "101536708808337",
+      "asset_id": "1409316562268486",
+      "language": "English",
+      "voice": "Playful, wonder-filled, whimsical. Asks 'would you take this job?'. One sparkle emoji at most (✨ 🌙 ☁️). Short, curious, kind."
+    },
+    {
+      "name": "Blue Eyes Wander",
+      "id": "",
+      "series": "Travel",
+      "channel": "travel",
+      "business_id": "101536708808337",
+      "asset_id": "101493205479354",
+      "language": "English",
+      "voice": "Awe, aerial travel, one fact per post (place, country, why it is special). Asks 'have you been?' or 'who would you go with?'. One emoji at most (🌍 ⛰️ 🌊)."
+    },
+    {
+      "name": "Chinese Everyday For Everyone",
+      "id": "",
+      "series": "Chinese",
+      "channel": "chinese",
+      "business_id": "1310575373049632",
+      "asset_id": "102602519330709",
+      "language": "Vietnamese",
+      "voice": "Tiếng Việt, thân thiện, như cô giáo trẻ. Mỗi bài một câu tiếng Trung (chữ Hán + pinyin + nghĩa). Hỏi người đọc 'bạn sẽ nói thế nào?'. Tối đa một emoji."
+    }
+  ]
+}
