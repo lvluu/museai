@@ -197,6 +197,10 @@ function liveTab(id) {
   return id;
 }
 
+// A person does not act the instant a page answers: every page action waits 2-10 s first.
+const ACTION_WAIT_MS = [2000, 10000];
+const actionWait = () => new Promise((r) => setTimeout(r, ACTION_WAIT_MS[0] + Math.random() * (ACTION_WAIT_MS[1] - ACTION_WAIT_MS[0])));
+
 // Page driver for one tab: waits for the platform host, injects lib + adapter, runs steps.
 function page(tabId, platform, adapter) {
   const id = () => (tabId = liveTab(tabId));
@@ -216,6 +220,7 @@ function page(tabId, platform, adapter) {
     await chrome.scripting.executeScript({ target: { tabId: id() }, files: adapter.files });
   }
   async function step(name, ...args) {
+    await actionWait();
     const [{ result }] = await chrome.scripting.executeScript({
       target: { tabId: id() }, func: (p, s, a) => globalThis.postqRun(p, s, a), args: [platform, name, args],
     });
@@ -244,6 +249,7 @@ function page(tabId, platform, adapter) {
   // Load another page in the same tab and re-inject (status reads 'complete' until the new load starts).
   // `until`: the URL prefix to wait for, where the site rewrites the query string on load.
   async function go(url, until = url) {
+    await actionWait();
     await chrome.tabs.update(id(), { url, active: true });
     const end = Date.now() + 60000;
     while (!(await chrome.tabs.get(id())).url?.startsWith(until)) {
