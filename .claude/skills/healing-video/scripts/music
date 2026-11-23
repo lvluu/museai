@@ -40,13 +40,18 @@ if [[ -n ${REF:-} ]]; then
   refargs=(--ref "$loop" --ref-strength "${REF_STRENGTH:-0.3}")
 fi
 # The ACE render (minutes of full CPU/GPU on a Mac, loud fans) goes to the Colab render queue while its
-# server is up (muse-video/scripts/remote.py; MUSIC_REMOTE=0 keeps it here); a failed job renders here.
+# server is up (muse-video/scripts/remote.py). No local fallback: a local take filled 17 GB on the 16 GB Mac,
+# swapped and ran the fans for hours (2026-11-23). RENDER_LOCAL=1 (or MUSIC_REMOTE=0) renders here on purpose.
 remote=
 if [[ ${MUSIC_REMOTE:-1} != 0 ]] && host=$(python3 "$MV/remote.py" online 2>/dev/null); then
   echo "music: remote (muse-renderer on $host)" >&2
   python3 "$MV/remote.py" ace "$raw" .claude/skills/healing-video/scripts/ace_piano.py --tags "$tags" \
     ${refargs[@]+"${refargs[@]}"} --duration "$((secs + 6))" --seed "$seed" >&2 && remote=1 \
-    || echo "music: local (remote job failed)" >&2
+    || echo "music: remote job failed" >&2
+fi
+if [[ -z $remote && -z ${RENDER_LOCAL:-} && ${MUSIC_REMOTE:-1} != 0 ]]; then
+  echo "music: no Colab render (server offline or job failed), not rendering on this Mac; RENDER_LOCAL=1 allows it. Check: muse-renderer doctor, ~/Library/Logs/muse-renderer.log" >&2
+  exit 4
 fi
 if [[ -n $remote ]]; then
   :

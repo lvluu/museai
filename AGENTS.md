@@ -127,6 +127,8 @@ muse-renderer wait <id> -o work/      # new files come back here
 ```
 Measured 2026-11-17: 3 muse segments stitched in about 100 s on Colab (upload + stitch + download). Only
 committed scripts run there: push a skill-script change before queueing a job that needs it.
+ACE music (`healing-video/scripts/music`) and the 4K upscale (`muse-video/scripts/deliver.sh`) never fall back to
+this machine: with the server offline or a job failed they stop (exit 4 / 1). `RENDER_LOCAL=1` renders here on purpose.
 
 ---
 
