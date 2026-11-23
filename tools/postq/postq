@@ -92,6 +92,8 @@ SERIES = {
                 "related": "latest:",  # newest public video of the channel
                 # captions.txt name -> the playlist's name on the channel, where they differ
                 "playlists": {"Slow Living Kitchen & Home": "Slow Kitchen", "Rain, Snow & Misty Days": "Rain & Snow Days"}},
+    # Channel UCQJLZDgkpRwA4undRLbO_Qw; its name really is spelled "Mechanim".
+    "Curious": {"account": "Curious Mechanim", "tz": "Asia/Ho_Chi_Minh", "related": "latest:"},
 }
 # museai dashboard slots (posting.py CHANNELS): "HH:MM" -> n in the "YYYY-MM-DD/n" slot key.
 SLOTS = {"chinese": ["12:00", "18:30"], "travel": ["07:00", "19:00"], "dream": ["07:00", "19:00"],
