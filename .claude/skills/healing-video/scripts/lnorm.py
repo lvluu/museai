@@ -41,7 +41,8 @@ def main():
     target = sys.argv[3] if len(sys.argv) > 3 else "-16"
     pre = sys.argv[4] if len(sys.argv) > 4 else ""
     m = measure(src, pre, target)
-    ln = (f"loudnorm=I={target}:TP=-1.5:LRA=11:measured_I={m['input_i']}:measured_TP={m['input_tp']}:"
+    # silent input (a stills-only film has no clip sound): loudnorm rejects measured_I=-inf, so pass it through
+    ln = "" if "inf" in str(m["input_i"]) else (f"loudnorm=I={target}:TP=-1.5:LRA=11:measured_I={m['input_i']}:measured_TP={m['input_tp']}:"
           f"measured_LRA={m['input_lra']}:measured_thresh={m['input_thresh']}:offset={m['target_offset']}:linear=true")
     af = ",".join(filter(None, [pre, ln, "aresample=44100"]))
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", src, "-af", af, "-c:a", "aac", "-b:a", "192k", out], check=True)
