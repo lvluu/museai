@@ -1,0 +1,23 @@
+[
+  {"id": "f01", "name": "一把伞", "shape": "A stranger lends the narrator an umbrella in the rain; years later the narrator does the same for someone else.", "looks": ["street-cinema", "illustrated-home"]},
+  {"id": "f02", "name": "最后一班车", "shape": "The narrator misses the last bus after a bad day and walks home; the walk turns out to be what they needed.", "looks": ["street-cinema"]},
+  {"id": "f03", "name": "一碗面", "shape": "A small noodle shop owner who always adds an egg without asking; the narrator finds out why.", "looks": ["street-cinema", "illustrated-home"]},
+  {"id": "f04", "name": "旧自行车", "shape": "An old bicycle the father fixed every spring; riding it again as an adult.", "looks": ["morning-cycle"]},
+  {"id": "f05", "name": "妈妈的电话", "shape": "Mother's weekly phone call that always asks only one thing: 'did you eat?'. The narrator finally understands the question.", "looks": ["illustrated-home", "zen-still"]},
+  {"id": "f06", "name": "一杯茶", "shape": "Making tea slowly on a hard day, step by step; each step is a small lesson.", "looks": ["zen-still"]},
+  {"id": "f07", "name": "没寄出的信", "shape": "A letter written to someone and never sent; what the narrator would say today.", "looks": ["zen-still", "illustrated-home"]},
+  {"id": "f08", "name": "楼下的猫", "shape": "A stray cat downstairs that waits every evening; the narrator learns about patience and trust.", "looks": ["illustrated-home", "street-cinema"]},
+  {"id": "f09", "name": "早安信", "shape": "A morning letter to the listener: today's date, the weather, one small truth, one thing to do today.", "looks": ["morning-cycle", "zen-still"]},
+  {"id": "f10", "name": "外婆的院子", "shape": "Summers at grandmother's courtyard; what she taught without words.", "looks": ["morning-cycle", "zen-still"]},
+  {"id": "f11", "name": "火车上", "shape": "A long train ride home; a conversation with an old stranger opposite.", "looks": ["street-cinema", "morning-cycle"]},
+  {"id": "f12", "name": "第一份工作", "shape": "The first job in a big city, a small rented room, and the person who helped the narrator stay.", "looks": ["street-cinema", "illustrated-home"]},
+  {"id": "f13", "name": "一个人的晚饭", "shape": "Cooking dinner for one, properly, with a real plate; learning to be good company to yourself.", "looks": ["illustrated-home"]},
+  {"id": "f14", "name": "下雨天", "shape": "A rainy day off; nothing happens, and that is the point.", "looks": ["illustrated-home", "zen-still", "street-cinema"]},
+  {"id": "f15", "name": "老照片", "shape": "An old photo found in a drawer; the story of the day it was taken.", "looks": ["zen-still", "morning-cycle"]},
+  {"id": "f16", "name": "花店", "shape": "The narrator buys flowers for no reason from a small flower shop; the florist's story.", "looks": ["street-cinema", "zen-still"]},
+  {"id": "f17", "name": "深夜电台", "shape": "Talking to the listener late at night as a radio host: someone wrote in with a question, and the host answers.", "looks": ["illustrated-home", "street-cinema"]},
+  {"id": "f18", "name": "回家的路", "shape": "The road home at New Year: the station, the small town, the light still on at home.", "looks": ["street-cinema", "morning-cycle"]},
+  {"id": "f19", "name": "写给十八岁", "shape": "A letter to the narrator's eighteen-year-old self.", "looks": ["zen-still", "morning-cycle"]},
+  {"id": "f20", "name": "一棵树", "shape": "A tree outside the window watched through four seasons; what it says about waiting.", "looks": ["morning-cycle", "zen-still", "illustrated-home"]},
+  {"id": "f21", "name": "先说结论", "shape": "Open on a two-word verdict (e.g. 就两个字：必走), state the narrator's own stance (我从不相信…), give the reason as one long sentence cut into escalating short beats, and end on a soft question to the listener (你信吗？). Calm, cool narration over the warmest, most peaceful pictures.", "looks": ["sunlit-cottage", "zen-still", "illustrated-home"]}
+]
