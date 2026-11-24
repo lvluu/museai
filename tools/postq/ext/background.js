@@ -368,6 +368,9 @@ async function youtubeFlow(item, pg) {
 async function checkOnEditPage(item, pg, id, link, when, note) {
   const say = (line) => progress(item.id, line);
   const edit = `https://studio.youtube.com/video/${id}/edit`;
+  // A dry run that finds the video already uploaded (an earlier dry run left a draft, or a copy is on the
+  // channel) stops here: scheduling, fixing fields or the cover would post it for real (2026-11-24, 001).
+  if (item.dry_run) return { status: 'dry-run', url: edit, log: `${note} · video ${id} already on the channel: dry run, nothing pressed` };
   await pg.go(edit);
   if (await pg.step('openDraft')) {
     await say('Still a draft: setting its schedule…');
