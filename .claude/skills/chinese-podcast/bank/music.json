@@ -1,0 +1,14 @@
+[
+  {"id": "rain-piano", "style": "late night rain radio",
+   "tags": "soft solo felt piano with muted hammers, slow sparse melody of long held notes, faint rain ambience, low and middle register, pianissimo, 54 bpm, intimate, instrumental, no drums, no vocals"},
+  {"id": "lofi-room", "style": "quiet lo-fi bedroom at night",
+   "tags": "mellow lo-fi electric piano, warm tape saturation, soft vinyl crackle, very soft brushed beat far in the background, slow 60 bpm, nostalgic, instrumental, no vocals"},
+  {"id": "guzheng-tea", "style": "tea house afternoon",
+   "tags": "gentle guzheng plucks with soft piano chords, a distant bamboo flute, pentatonic, slow and spacious, 56 bpm, peaceful, instrumental, no drums, no vocals"},
+  {"id": "cello-dusk", "style": "autumn dusk memory",
+   "tags": "soft felt piano with a warm solo cello holding long low notes, slow, tender, bittersweet, 52 bpm, chamber recording, instrumental, no drums, no vocals"},
+  {"id": "guitar-morning", "style": "early morning walk",
+   "tags": "soft fingerpicked nylon acoustic guitar, simple warm melody, light piano notes, slow 66 bpm, hopeful but calm, instrumental, no drums, no vocals"},
+  {"id": "musicbox-snow", "style": "first snow at night",
+   "tags": "soft felt piano with a quiet music box melody, slow, sparse, warm pads underneath, 50 bpm, tender, instrumental, no drums, no vocals"}
+]
