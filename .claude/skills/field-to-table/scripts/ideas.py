@@ -35,12 +35,31 @@ def load(p, default):
     return json.loads(p.read_text()) if p.exists() else default
 
 
+WORK_ROOTS = [Path.home() / "dev" / "museai-out", Path.home() / "Movies" / "museai"]
+
+
+def in_progress():
+    """Films started but not recorded yet (story.json in a work folder): their idea and style count as used,
+    so a second session does not pick the same style while the first is still rendering."""
+    done = {e.get("slug") for e in load(HISTORY, [])}
+    out = []
+    for root in WORK_ROOTS:
+        for p in sorted(root.glob("healing-*/story.json"), key=lambda p: p.stat().st_mtime):
+            try:
+                st = json.loads(p.read_text())
+            except (OSError, ValueError):
+                continue
+            if st.get("style") and st.get("slug") not in done:
+                out.append({"id": st.get("story_id"), "slug": st.get("slug"), "style": st["style"]})
+    return out
+
+
 def fresh(bank, season=None, kind=None):
-    h = load(HISTORY, [])
-    used = {e["id"] for e in h}
-    subj = {e["subject"] for e in h[-8:]}
-    sett = {e["setting"] for e in h[-3:]}
-    thr = {e["thread"] for e in h[-2:]}
+    h = load(HISTORY, []) + in_progress()
+    used = {e.get("id") for e in h}
+    subj = {e.get("subject") for e in h[-8:]}
+    sett = {e.get("setting") for e in h[-3:]}
+    thr = {e.get("thread") for e in h[-2:]}
     return [i for i in bank if i["id"] not in used and i["subject"] not in subj and i["setting"] not in sett
             and i["thread"] not in thr and (not season or i["season"] == season) and (not kind or i["kind"] == kind)]
 
@@ -66,7 +85,7 @@ def main():
         print(json.dumps(got[: a.n] if a.n > 1 else got[0], indent=1, ensure_ascii=False))
     elif a.cmd == "style":
         season = SEASONS[datetime.date.today().month] if a.season in (None, "now") else a.season
-        h = load(HISTORY, [])
+        h = load(HISTORY, []) + in_progress()
         used = [e.get("style", "cottage") for e in h]
         recent = set(used[-3:])
         styles = [st for st in load(STYLES, []) if season in st["seasons"] and st["id"] not in recent]
