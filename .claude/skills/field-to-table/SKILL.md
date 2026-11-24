@@ -66,7 +66,9 @@ From `../healing-longform/` lessons plus these:
 Every film gets a different look and world from `styles.json`: where ELLIE lives that day (snow cabin, sea
 cottage, alpine chalet, Provence farmhouse, Highland croft, a terraced hillside with eastern strings, an orchard on
 16mm), her clothes, a camera sentence, a colour grade with its own grain, the music instruments and level.
-`python3 scripts/ideas.py style` picks one not used in the last 3 films (never-used first). Copy its `id`,
+`python3 scripts/ideas.py style` picks one not used in the last 3 films (never-used first); a film still rendering
+(a `healing-*/story.json` in `~/dev/museai-out` or `~/Movies/museai` not yet recorded) counts as used, so two
+sessions never pick the same style or idea. Copy its `id`,
 `camera`, `grade`, `music_lufs` into story.json (`plan.py` adds `camera` to the look; `longform.py` uses `grade`
 and `music_lufs`), plus `"shake": 2` (a slow handheld drift added in compose, the clip itself stays locked off)
 and `"max_slow": 1.12` (slow motion reads as generated). Use its `music` as the ACE-Step TAGS. The idea bank gives
