@@ -583,7 +583,7 @@ def cmd_compose(a):
     if music.exists():
         inp += ["-stream_loop", "-1", "-i", str(music)]
         mi = nvid + len(pl)
-        fc.append(f"[{mi}:a]aresample=48000,ac=2,atrim=0:{total:.3f},lowpass=f=5500,volume=-6dB,"
+        fc.append(f"[{mi}:a]aresample=48000,aformat=channel_layouts=stereo,atrim=0:{total:.3f},lowpass=f=5500,volume=-6dB,"
                   f"afade=t=in:st=0:d=2,afade=t=out:st={total - 4:.2f}:d=4[mus]")
         fc.append("[mus][key]sidechaincompress=threshold=0.03:ratio=6:attack=40:release=600[duck]")
         fc.append("[voice]pan=stereo|c0=c0|c1=c0[vs];[vs][duck]amix=inputs=2:normalize=0,"
