@@ -617,7 +617,7 @@ def cmd_compose(a):
     nv = os.environ.get("HV_NVENC") == "1"
     enc = (["-c:v", "h264_nvenc", "-preset", "p5", "-cq", "20", "-b:v", "0"] if nv
            else ["-c:v", "libx264", "-preset", "medium", "-crf", "19"]) + ["-pix_fmt", "yuv420p", "-r", str(FPS)]
-    segs = [seg_video(d, p, ln, build, enc) for p, ln in zip(pl, ep["lines"], strict=True)]
+    segs = [seg_video(d, p, ep["lines"][p["i"]], build, enc) for p in pl]  # no zip(strict=): Mac python3 is 3.9
     print(f"compose: {len(segs)} shots", flush=True)
     total = pl[-1]["end"]
     # video: dissolve chain
