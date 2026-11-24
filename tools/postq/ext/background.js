@@ -197,8 +197,8 @@ function liveTab(id) {
   return id;
 }
 
-// A person does not act the instant a page answers: every page action waits 2-10 s first.
-const ACTION_WAIT_MS = [2000, 10000];
+// A person does not act the instant a page answers: every page action waits 1-3 s first (user rule 2026-11-24).
+const ACTION_WAIT_MS = [1000, 3000];
 const actionWait = () => new Promise((r) => setTimeout(r, ACTION_WAIT_MS[0] + Math.random() * (ACTION_WAIT_MS[1] - ACTION_WAIT_MS[0])));
 
 // Page driver for one tab: waits for the platform host, injects lib + adapter, runs steps.
