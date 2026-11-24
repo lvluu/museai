@@ -41,9 +41,9 @@ if [[ -n ${REF:-} ]]; then
 fi
 # The ACE render (minutes of full CPU/GPU on a Mac, loud fans) goes to the Colab render queue while its
 # server is up (muse-video/scripts/remote.py). No local fallback: a local take filled 17 GB on the 16 GB Mac,
-# swapped and ran the fans for hours (2026-11-23). RENDER_LOCAL=1 (or MUSIC_REMOTE=0) renders here on purpose.
+# swapped and ran the fans for hours (2026-11-23). RENDER_LOCAL=1 (or MUSIC_REMOTE=0) skips the queue and renders here on purpose.
 remote=
-if [[ ${MUSIC_REMOTE:-1} != 0 ]] && host=$(python3 "$MV/remote.py" online 2>/dev/null); then
+if [[ ${MUSIC_REMOTE:-1} != 0 && -z ${RENDER_LOCAL:-} ]] && host=$(python3 "$MV/remote.py" online 2>/dev/null); then
   echo "music: remote (muse-renderer on $host)" >&2
   python3 "$MV/remote.py" ace "$raw" .claude/skills/healing-video/scripts/ace_piano.py --tags "$tags" \
     ${refargs[@]+"${refargs[@]}"} --duration "$((secs + 6))" --seed "$seed" >&2 && remote=1 \
