@@ -3,10 +3,13 @@
 
   podcast.py bank                       (re)write bank/scripts.json: 1000 seeds = 50 themes x 20 story frames
   podcast.py next [--n 3] [--seed ID]   pick unused seeds + a random look / voice / music mix (prints JSON)
-  podcast.py new DIR [--seed ID]        next pick -> DIR/episode.json skeleton (write the lines, then go on)
+  podcast.py new DIR [--seed ID] [--date YYYY-MM-DD]
+                                        next pick -> DIR/episode.json skeleton dated tomorrow (episodes go out
+                                        the next day); write the lines, then go on
   podcast.py voice DIR                  edge-tts narration per line -> DIR/vo/lNN.wav + vo/durations.json
   podcast.py captions DIR               caption / date card / word card / outro PNGs -> DIR/cap/
-  podcast.py stills DIR [-j 3]          one muse still per line -> DIR/stills/sNN.png (sNN.mp4 beside it wins)
+  podcast.py stills DIR [-j 3]          one muse still per line -> DIR/stills/sNN.png (first frame for clips)
+  podcast.py clips DIR [-j 3]           one muse video clip per line -> DIR/stills/sNN.mp4 (wins over the png)
   podcast.py music DIR                  ACE music bed from the episode's music id -> DIR/music.m4a (Colab)
   podcast.py compose DIR [--out F]      film -> DIR/<slug>.mp4 on the Colab render queue (PODCAST_REMOTE=0 here)
   podcast.py record DIR --video F       append to ~/.config/museai/chinese-podcast-history.json
@@ -23,7 +26,7 @@ import shlex
 import subprocess
 import sys
 import time
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 SKILL = Path(__file__).resolve().parents[1]
@@ -126,7 +129,7 @@ def cmd_new(a):
     if f.exists():
         sys.exit(f"{f} exists")
     ep = {"seed": p["id"], "theme": p["theme"], "frame": p["frame"], "look": p["look"], "voice": p["voice"],
-          "music": p["music"], "date": date.today().isoformat(), "slug": d.name, "title": "", "title_vi": "",
+          "music": p["music"], "date": a.date or (date.today() + timedelta(days=1)).isoformat(), "slug": d.name, "title": "", "title_vi": "",
           "brief": {"truth": p["truth"], "shape": p["shape"], "theme": f"{p['theme_zh']} ({p['theme_vi']})"},
           "lines": [{"zh": "", "vi": "", "shot": "", "word": None}]}
     f.write_text(json.dumps(ep, ensure_ascii=False, indent=1) + "\n")
@@ -472,7 +475,60 @@ def cmd_music(a):
     m = byid(load("music.json"))[ep["music"]]
     secs = int(plan(d, ep)[-1]["end"] + 8)
     script = SKILL.parent / "healing-video/scripts/music"
-    run([str(script), m["style"], str(d / "music.m4a"), str(secs), str(a.seed)], env={**os.environ, "TAGS": m["tags"]})
+    # healing, never dramatic: the soft preset and its calm gate (no BUSY_OK); exit 3 = take refused, next seed
+    env = {k: v for k, v in os.environ.items() if k not in ("BUSY_OK", "SUNNY_OK")} | {"MOOD": "soft", "TAGS": m["tags"]}
+    for seed in range(a.seed, a.seed + a.tries):
+        r = subprocess.run([str(script), m["style"], str(d / "music.m4a"), str(secs), str(seed)], env=env)
+        if r.returncode != 3:
+            sys.exit(r.returncode)
+        print(f"music: seed {seed} not calm enough, next seed", file=sys.stderr)
+    sys.exit(f"music: no calm take in seeds {a.seed}..{a.seed + a.tries - 1}")
+
+
+# ---------------------------------------------------------------- clips
+
+CLIP_MOTION = ("One continuous real video shot with gentle natural motion: slow camera drift or slow push-in, small "
+               "living movement in the scene (steam, leaves, light, a hand, a passer-by far away). Calm and unhurried. "
+               "No cuts, no speech, no one talking to camera, faces never close.")
+
+
+def cmd_clips(a):
+    """Real muse video per line (the user wants video, not a moving still): muse-video, 16:9, the line's still as
+    first frame when there is one so the look matches the date card and the other shots."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    d = Path(a.dir)
+    ep = ep_load(d)
+    look = byid(load("looks.json"))[ep["look"]]
+    st = d / "stills"
+    st.mkdir(exist_ok=True)
+    segs = {p["i"]: p["seg"] for p in plan(d, ep)} if (d / "vo/durations.json").exists() else {}
+    mv = SKILL.parent / "muse-video/scripts/muse-video"
+    jobs = [i for i in range(len(ep["lines"])) if not (st / f"s{i:02d}.mp4").exists() or (a.only and i in a.only)]
+
+    def one(i):
+        ln, out = ep["lines"][i], st / f"s{i:02d}.mp4"
+        env = {**os.environ, "SIZE": "16:9", "NO_OPEN": "1", "OUT_NAME": out.name, "RETAKE": "1",
+               "DURATION": str(min(10, max(6, int(segs.get(i, 8)) + 1)))}
+        first = st / f"s{i:02d}.png"
+        if first.exists():
+            head = first.read_bytes()[:12]
+            ext = ".webp" if head[8:12] == b"WEBP" else ".jpg" if head[:2] == b"\xff\xd8" else ".png"
+            img = st / f".first{i:02d}{ext}"
+            img.write_bytes(first.read_bytes())
+            env["IMAGE"] = str(img)
+        prompt = f"{look['block']} {ln['shot']} {CLIP_MOTION} {NO_TEXT}"
+        with open(d / "clips.log", "a") as log:
+            r = subprocess.run([str(mv), prompt, str(st)], env=env, stdout=log, stderr=subprocess.STDOUT)
+        if "IMAGE" in env:
+            Path(env["IMAGE"]).unlink(missing_ok=True)
+        return out.name, r.returncode == 0 and out.exists()
+
+    with ThreadPoolExecutor(a.j) as ex:
+        res = list(ex.map(one, jobs))
+    bad = [n for n, ok in res if not ok]
+    print(f"clips: {len(jobs) - len(bad)}/{len(jobs)} new in {st}" + (f"; FAILED {bad}" if bad else ""))
+    sys.exit(1 if bad else 0)
 
 
 # ---------------------------------------------------------------- compose
@@ -508,8 +564,10 @@ def seg_video(d, p, ln, build, enc):
         base = (f"[0:v]scale={W * 2}:{H * 2}:force_original_aspect_ratio=increase,crop={W * 2}:{H * 2},"
                 f"zoompan=z='{z}':x='(iw-iw/zoom)*{dx}':y='(ih-ih/zoom)/2':d=1:s={W}x{H}:fps={FPS}")
     else:
-        inp = ["-stream_loop", "-1", "-t", f"{p['seg']:.3f}", "-i", str(src)]
-        base = f"[0:v]scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},fps={FPS},setpts=PTS-STARTPTS"
+        slow = max(1.0, p["seg"] / max(dur(src), 0.1))  # a short clip plays slower, never loops (a loop jumps)
+        inp = ["-t", f"{p['seg']:.3f}", "-i", str(src)] if slow == 1.0 else ["-i", str(src)]
+        base = (f"[0:v]setpts={slow:.4f}*(PTS-STARTPTS),scale={W}:{H}:force_original_aspect_ratio=increase,"
+                f"crop={W}:{H},fps={FPS},trim=0:{p['seg']:.3f},setpts=PTS-STARTPTS")
     grade = "eq=contrast=0.97:saturation=0.9:gamma=1.02,noise=alls=5:allf=t,vignette=PI/5"
     fc = [f"{base},{grade},format=rgba[v0]"]
     ov = []  # (png, t0, t1)
@@ -587,9 +645,9 @@ def cmd_compose(a):
                   f"afade=t=in:st=0:d=2,afade=t=out:st={total - 4:.2f}:d=4[mus]")
         fc.append("[mus][key]sidechaincompress=threshold=0.03:ratio=6:attack=40:release=600[duck]")
         fc.append("[voice]pan=stereo|c0=c0|c1=c0[vs];[vs][duck]amix=inputs=2:normalize=0,"
-                  "loudnorm=I=-16:TP=-1.5:LRA=9[aout]")
+                  "loudnorm=I=-16:TP=-1.5:LRA=9,aresample=48000,alimiter=limit=0.84:level=false[aout]")
     else:
-        fc.append("[key]anullsink;[voice]pan=stereo|c0=c0|c1=c0,loudnorm=I=-16:TP=-1.5:LRA=9[aout]")
+        fc.append("[key]anullsink;[voice]pan=stereo|c0=c0|c1=c0,loudnorm=I=-16:TP=-1.5:LRA=9,aresample=48000,alimiter=limit=0.84:level=false[aout]")
     run(["ffmpeg", "-v", "error", "-y", *inp, "-filter_complex", ";".join(fc), "-map", "[v]", "-map", "[aout]",
          *enc, "-c:a", "aac", "-b:a", "192k", "-ar", "48000", "-t", f"{total:.3f}", "-movflags", "+faststart",
          str(out)])
@@ -621,6 +679,7 @@ def main():
     p = sp.add_parser("new")
     p.add_argument("dir")
     p.add_argument("--seed")
+    p.add_argument("--date", help="episode date (default tomorrow: episodes go out the next day)")
     p = sp.add_parser("voice")
     p.add_argument("dir")
     p.add_argument("--fresh", action="store_true")
@@ -629,9 +688,14 @@ def main():
     p.add_argument("dir")
     p.add_argument("-j", type=int, default=3)
     p.add_argument("--only", type=int, nargs="*", help="re-render these line numbers")
+    p = sp.add_parser("clips")
+    p.add_argument("dir")
+    p.add_argument("-j", type=int, default=3)
+    p.add_argument("--only", type=int, nargs="*", help="re-render these line numbers")
     p = sp.add_parser("music")
     p.add_argument("dir")
     p.add_argument("--seed", type=int, default=7)
+    p.add_argument("--tries", type=int, default=6, help="seeds to try before giving up on a calm take")
     p = sp.add_parser("compose")
     p.add_argument("dir")
     p.add_argument("--out")
