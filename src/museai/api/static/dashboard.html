@@ -689,7 +689,8 @@ let posts = { platforms: [], videos: [] }, postsSig = "";
 // Channel tab (Chinese / Travel / Dream / Healing): filters the schedule and the cards; remembered per browser.
 let chan = (() => { try { return localStorage.getItem("postChannel") || "chinese"; } catch { return "chinese"; } })();
 const chanPlats = (v) => { const ch = (posts.channels || []).find((c) => c.id === v.channel);
-  return posts.platforms.filter((p) => !ch?.platforms || ch.platforms.includes(p.id)); };
+  const own = v.platforms || ch?.platforms;  // a 16:9 video: YouTube only
+  return posts.platforms.filter((p) => !own || own.includes(p.id)); };
 const chanVideos = () => posts.videos.filter((v) => v.channel === chan);
 const postUrl = (name, rest = "") => `/dashboard/posts/${encodeURIComponent(name)}${rest}`;
 
@@ -708,7 +709,7 @@ function renderPosts() {
   const shown = chanVideos();
   if (!shown.length) { $("posts").innerHTML = `<div class="empty">Nothing waiting to be posted in this channel.</div>`; return; }
   $("posts").innerHTML = shown.map((v) => {
-    const n = Object.keys(v.posted).length;
+    const n = chanPlats(v).filter((p) => v.posted[p.id]).length;
     return `<div class="post" data-name="${esc(v.name)}">
       <video src="${esc(postUrl(v.name, "/file"))}#t=0.5" preload="metadata" controls muted playsinline></video>
       <div class="post-body">

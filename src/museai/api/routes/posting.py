@@ -25,11 +25,13 @@ posting order, renumbered as videos go; deleting a folder takes its video out of
 from __future__ import annotations
 
 import asyncio
+import functools
 import ipaddress
 import json
 import logging
 import re
 import shutil
+import struct
 import subprocess
 import threading
 import time
@@ -150,6 +152,9 @@ TIMES = {
 TIMES["dream"] = TIMES["english"] = TIMES["travel"]
 # Healing posts only to YouTube, Facebook and Instagram (user rule 2026-11-16): no X, TikTok or Threads.
 TIMES["healing"] = {p: t for p, t in TIMES["travel"].items() if p in ("youtube", "facebook", "instagram")}
+# A 16:9 (landscape) video goes to YouTube only, as a regular video: Facebook and Instagram Reels take
+# vertical video (user rule 2026-11-24).
+LANDSCAPE_PLATFORMS = ("youtube",)
 SLOT_KEY = re.compile(r"^(\d{4}-\d{2}-\d{2})/([1-4])$")
 FOLDER_MARK = ".museai-post"  # marks a folder this module made for one video
 SETTLE = 30  # seconds a video must sit unchanged before it moves (deliver.sh may still be copying it)
@@ -252,6 +257,60 @@ def _kind(name: str) -> str:
         return "place"
     word = re.split(r"[-_ ]", Path(low).stem, maxsplit=1)[0]
     return {"reel": "place", "scenic": "place", "scenery": "place", "drop": "place", "travel": "place"}.get(word, word)
+
+
+def _video_size(path: Path) -> tuple[int, int] | None:
+    """Width and height of the first video track, read from the MP4 ``tkhd`` box (no ffprobe: the
+    listing runs every few seconds over ~100 videos). None when the file can't be read."""
+    try:
+        st = path.stat()
+        return _video_size_cached(str(path), st.st_mtime, st.st_size)
+    except OSError:
+        return None
+
+
+@functools.lru_cache(maxsize=1024)
+def _video_size_cached(path: str, _mtime: float, size: int) -> tuple[int, int] | None:
+    with open(path, "rb") as f:
+        def boxes(start: int, end: int):
+            pos = start
+            while pos + 8 <= end:
+                f.seek(pos)
+                n, kind = struct.unpack(">I4s", f.read(8))
+                head = 8
+                if n == 1:
+                    n, head = struct.unpack(">Q", f.read(8))[0], 16
+                elif n == 0:
+                    n = end - pos
+                if n < head:
+                    return
+                yield kind, pos + head, pos + n
+                pos += n
+
+        for kind, a, b in boxes(0, size):
+            if kind != b"moov":
+                continue
+            for kind, ta, tb in boxes(a, b):
+                if kind != b"trak":
+                    continue
+                for kind, ha, _ in boxes(ta, tb):
+                    if kind == b"tkhd":
+                        f.seek(ha)
+                        version = f.read(1)[0]
+                        f.seek(ha + (36 if version == 1 else 24) + 52)
+                        w, h = struct.unpack(">II", f.read(8))
+                        if w and h:  # an audio track has none
+                            return w >> 16, h >> 16
+    return None
+
+
+def _platforms(path: Path, entry: dict) -> list[str]:
+    """Platforms this video posts on: its channel's, only YouTube for a landscape video."""
+    own = list(TIMES[_channel(path.name, entry)])
+    size = _video_size(path)
+    if size and size[0] > size[1]:
+        return [p for p in own if p in LANDSCAPE_PLATFORMS]
+    return own
 
 
 def _thumbs(path: Path) -> dict[str, Path]:
@@ -415,9 +474,10 @@ def _view(path: Path, entry: dict, svc: Services) -> dict:
             "auto_captions": svc.captions.status(_key(path.name)),
             "folder": str(path.parent) if (path.parent / FOLDER_MARK).is_file() else None,  # postq reads no Desktop itself
             "posted": entry.get("posted", {}), "slot": key, "channel": _channel(path.name, entry),
-            # Platforms still to post, in the channel's own list (Healing: no X/TikTok/Threads). postq's
-            # sync and its popup read this, so all three show the same "ready to post" list.
-            "open": [p for p in TIMES[_channel(path.name, entry)] if not entry.get("posted", {}).get(p)],
+            # Platforms still to post, in the video's own list (Healing: no X/TikTok/Threads; 16:9: YouTube
+            # only). postq's sync and its popup read this, so all three show the same "ready to post" list.
+            "platforms": _platforms(path, entry),
+            "open": [p for p in _platforms(path, entry) if not entry.get("posted", {}).get(p)],
             "playlist": _playlist(path.name, entry),
             "thumbnails": [{"kind": k, "use": THUMBS[k], "v": int(t.stat().st_mtime)}  # v: new URL when replaced
                            for k, t in _thumbs(path).items()],
@@ -707,7 +767,7 @@ def _update(svc: Services, path: Path, body: dict) -> dict:
             posted[platform] = time.time()
         else:
             posted.pop(platform, None)
-    done = body.get("done") or set(entry.get("posted", {})) >= set(TIMES[_channel(name, entry)])
+    done = body.get("done") or set(entry.get("posted", {})) >= set(_platforms(path, entry))
     if done:
         if (path.parent / FOLDER_MARK).is_file():
             _trash(path.parent)
