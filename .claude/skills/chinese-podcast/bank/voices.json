@@ -1,10 +1,7 @@
 [
-  {"id": "xiaoxiao-night", "voice": "zh-CN-XiaoxiaoNeural", "sex": "f", "rate": "-14%", "pitch": "-3Hz",
-   "feel": "warm close-mic night radio host, the reels' female narrator"},
-  {"id": "xiaoyi-morning", "voice": "zh-CN-XiaoyiNeural", "sex": "f", "rate": "-12%", "pitch": "-4Hz",
-   "feel": "soft young voice, a morning letter"},
-  {"id": "yunjian-deep", "voice": "zh-CN-YunjianNeural", "sex": "m", "rate": "-12%", "pitch": "-4Hz",
-   "feel": "deep calm male voice, the reels' male narrator (人生最好的一天)"},
-  {"id": "yunxi-gentle", "voice": "zh-CN-YunxiNeural", "sex": "m", "rate": "-12%", "pitch": "-3Hz",
-   "feel": "gentle young man telling a story to a friend"}
+  {"id": "xiaoxiao-night", "voice": "zh-CN-XiaoxiaoNeural", "sex": "f", "rate": "-14%", "pitch": "-3Hz", "feel": "warm close-mic night radio host, the reels' female narrator"},
+  {"id": "xiaoyi-morning", "voice": "zh-CN-XiaoyiNeural", "sex": "f", "rate": "-12%", "pitch": "-4Hz", "feel": "soft young voice, a morning letter"},
+  {"id": "yunjian-deep", "voice": "zh-CN-YunjianNeural", "sex": "m", "rate": "-12%", "pitch": "-4Hz", "feel": "deep calm male voice, the reels' male narrator (人生最好的一天)"},
+  {"id": "yunxi-gentle", "voice": "zh-CN-YunxiNeural", "sex": "m", "rate": "-12%", "pitch": "-3Hz", "feel": "gentle young man telling a story to a friend"},
+  {"id": "xiaoxiao-dusk", "voice": "zh-CN-XiaoxiaoNeural", "sex": "f", "rate": "-10%", "pitch": "-8Hz", "feel": "low mature female, calm and certain, says hard truths flatly; reel 1456768899288979 (measured F0 ~162 Hz)"}
 ]

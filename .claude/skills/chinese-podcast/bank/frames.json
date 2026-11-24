@@ -18,5 +18,6 @@
   {"id": "f17", "name": "深夜电台", "shape": "Talking to the listener late at night as a radio host: someone wrote in with a question, and the host answers.", "looks": ["illustrated-home", "street-cinema"]},
   {"id": "f18", "name": "回家的路", "shape": "The road home at New Year: the station, the small town, the light still on at home.", "looks": ["street-cinema", "morning-cycle"]},
   {"id": "f19", "name": "写给十八岁", "shape": "A letter to the narrator's eighteen-year-old self.", "looks": ["zen-still", "morning-cycle"]},
-  {"id": "f20", "name": "一棵树", "shape": "A tree outside the window watched through four seasons; what it says about waiting.", "looks": ["morning-cycle", "zen-still", "illustrated-home"]}
+  {"id": "f20", "name": "一棵树", "shape": "A tree outside the window watched through four seasons; what it says about waiting.", "looks": ["morning-cycle", "zen-still", "illustrated-home"]},
+  {"id": "f21", "name": "先说结论", "shape": "Open on a two-word verdict (e.g. 就两个字：必走), state the narrator's own stance (我从不相信…), give the reason as one long sentence cut into escalating short beats, and end on a soft question to the listener (你信吗？). Calm, cool narration over the warmest, most peaceful pictures.", "looks": ["sunlit-cottage", "zen-still", "illustrated-home"]}
 ]

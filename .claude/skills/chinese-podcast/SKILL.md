@@ -6,18 +6,18 @@ description: Make a 16:9 Mandarin "emotional radio" story video (情感电台 / 
 # chinese-podcast
 
 Paths are relative to this folder (`.claude/skills/chinese-podcast/`). Server, retries and QA come from `../muse-video/SKILL.md`.
-Style source: `references/reference-reels.md` (5 reels the user picked). They are style references only: never download
+Style source: `references/reference-reels.md` (5 reels the user picked) and `references/reel-1456768899288979.md` (sunlit cottage, verdict-first, low calm female voice). They are style references only: never download
 or reuse their audio, never clone the speakers; the narrator is Mandarin edge-tts and the music is our own ACE track.
 
 ## Banks (`bank/`)
 | file | what | count |
 |---|---|---|
-| `themes.json` | one quiet truth each (遇见, 放下, 家, 今天, 回忆 …) with vi | 50 |
-| `frames.json` | story shapes (一把伞, 回家的路, 妈妈的电话 …) + the looks that fit | 20 |
-| `scripts.json` | seeds = theme x frame, fixed shuffle (`podcast.py bank` rewrites it) | 1000 |
-| `voices.json` | Standard Mandarin narrators, slow rate, lower pitch (2 female, 2 male) | 4 |
-| `music.json` | mood beds with full ACE instrument tags, all instrumental | 6 |
-| `looks.json` | visual looks from the reels: street-cinema, zen-still, illustrated-home, morning-cycle; each lists its music | 4 |
+| `themes.json` | one quiet truth each (遇见, 放下, 家, 今天, 回忆 …) with vi | 52 |
+| `frames.json` | story shapes (一把伞, 回家的路, 妈妈的电话 …) + the looks that fit (f21 先说结论: verdict first, end on a question) | 21 |
+| `scripts.json` | seeds = theme x frame; `podcast.py bank` keeps existing ids and appends new pairs after a bank edit | 1092 |
+| `voices.json` | Standard Mandarin narrators, slow rate, lower pitch (3 female, 2 male) | 5 |
+| `music.json` | mood beds with full ACE instrument tags, all instrumental | 7 |
+| `looks.json` | visual looks from the reels: street-cinema, zen-still, illustrated-home, morning-cycle, sunlit-cottage; each lists its music | 5 |
 
 `podcast.py next` picks an unused seed whose theme was not in the last 15 episodes and frame not in the last 5, then a
 random look (from the frame), voice and music (from the look), never repeating the previous episode's choice.

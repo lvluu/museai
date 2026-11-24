@@ -74,11 +74,19 @@ def dur(p):
 
 def cmd_bank(_a):
     themes, frames = load("themes.json"), load("frames.json")
-    pairs = [(t, f) for t in themes for f in frames]
-    random.Random(7).shuffle(pairs)  # a fixed order: neighbours differ in theme and frame
-    seeds = [{"id": f"cp-{i:04d}", "theme": t["id"], "theme_zh": t["zh"], "theme_vi": t["vi"], "truth": t["truth"],
-              "frame": f["id"], "frame_zh": f["name"], "shape": f["shape"], "looks": f["looks"]}
-             for i, (t, f) in enumerate(pairs, 1)]
+    try:  # seeds already in the bank keep their ids (history and episodes point at them); new pairs append
+        old = json.loads((BANK / "scripts.json").read_text())
+    except (OSError, ValueError):
+        old = []
+    have = {(s["theme"], s["frame"]) for s in old}
+    pairs = [(t, f) for t in themes for f in frames if (t["id"], f["id"]) not in have]
+    random.Random(7 + len(old)).shuffle(pairs)  # a fixed order: neighbours differ in theme and frame
+    tb, fb = byid(themes), byid(frames)
+    seeds = [{"id": s["id"], "theme": s["theme"], "frame": s["frame"]} for s in old]
+    seeds += [{"id": f"cp-{i:04d}", "theme": t["id"], "frame": f["id"]} for i, (t, f) in enumerate(pairs, len(old) + 1)]
+    seeds = [{**s, "theme_zh": tb[s["theme"]]["zh"], "theme_vi": tb[s["theme"]]["vi"], "truth": tb[s["theme"]]["truth"],
+              "frame_zh": fb[s["frame"]]["name"], "shape": fb[s["frame"]]["shape"], "looks": fb[s["frame"]]["looks"]}
+             for s in seeds]
     (BANK / "scripts.json").write_text(json.dumps(seeds, ensure_ascii=False, indent=1) + "\n")
     print(f"wrote {BANK / 'scripts.json'}: {len(seeds)} seeds")
 
