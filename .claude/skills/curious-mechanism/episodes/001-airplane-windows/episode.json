@@ -1,0 +1,1313 @@
+{
+ "id": "001-airplane-windows",
+ "title": "Why are airplane windows round?",
+ "format": "long",
+ "lang": "en",
+ "question": "Why does every window and opening in an airliner cabin have rounded corners?",
+ "answer": "A pressurised cabin is loaded on every flight; sharp corners concentrate that stress and grow fatigue cracks, as the 1954 Comet breakups showed, so rounded corners spread the load.",
+ "pillar": "Everyday Engineering",
+ "problem": "Square openings in a pressurised fuselage pile stress into their corners, and every flight repeats the load until a crack grows.",
+ "solution": "Rounded windows that spread the stress, plus fatigue testing of whole fuselages and crack stoppers in the skin.",
+ "surprise": "The Comet's fatal crack began at a small roof antenna opening, not a passenger window; and your window hides a tiny hole that makes the outer pane do the work.",
+ "people_rule": "People are anonymous representative passengers, crew and engineers. Never a real victim's face, never invented dialogue.",
+ "thumbnail": {
+  "text": "Why no corners?",
+  "scene": "S45",
+  "focus": 0.5
+ },
+ "music": {
+  "file": "",
+  "licence": ""
+ },
+ "claims": {
+  "c1": {
+   "text": "On 2 May 1952 BOAC flew the first jet airliner passenger service, a de Havilland Comet from London to Johannesburg with stops on the way.",
+   "sources": [
+    "FlightGlobal, 'How Comet's debut service launched the passenger jet age', https://flightglobal.com/flight-international/how-comets-debut-service-launched-the-passenger-jet-age/148341.article",
+    "Wikipedia, 'de Havilland Comet', https://en.wikipedia.org/wiki/De_Havilland_Comet"
+   ],
+   "verified": true
+  },
+  "c2": {
+   "text": "The Comet was designed to cruise at about 40,000 ft (Wikipedia: design cruising altitude 40,000 ft; Engineers Ireland: the Elba flight was climbing to about 36,000 ft).",
+   "sources": [
+    "Wikipedia, 'de Havilland Comet', https://en.wikipedia.org/wiki/De_Havilland_Comet",
+    "Engineers Ireland, 'Beyond the limits of imagination: what do the Comet aircraft failures teach us', https://www.engineersireland.ie/Engineers-Journal/Mechanical/beyond-the-limits-of-imagination-what-do-the-comet-aircraft-failures-teach-us"
+   ],
+   "verified": true
+  },
+  "c3": {
+   "text": "On 10 January 1954 Comet G-ALYP broke up in flight off Elba; all 35 aboard died.",
+   "sources": [
+    "Wikipedia, 'BOAC Flight 781', https://en.wikipedia.org/wiki/BOAC_Flight_781",
+    "Aerossurance, 'Common Comet Misconceptions', https://aerossurance.com/safety-management/comet-misconceptions/"
+   ],
+   "verified": true
+  },
+  "c4": {
+   "text": "On 8 April 1954 Comet G-ALYY broke up in flight over the sea near Naples; the Comets were grounded again.",
+   "sources": [
+    "Wikipedia, 'South African Airways Flight 201', https://en.wikipedia.org/wiki/South_African_Airways_Flight_201",
+    "Aerossurance, 'Common Comet Misconceptions', https://aerossurance.com/safety-management/comet-misconceptions/"
+   ],
+   "verified": true
+  },
+  "c5": {
+   "text": "Wreckage of G-ALYP was salvaged from the sea off Elba; by the end of August 1954 about 70 % had been recovered.",
+   "sources": [
+    "Aerossurance, 'Common Comet Misconceptions', https://aerossurance.com/safety-management/comet-misconceptions/",
+    "Wikipedia, 'de Havilland Comet', https://en.wikipedia.org/wiki/De_Havilland_Comet (70 per cent by weight of the main structure)"
+   ],
+   "verified": true
+  },
+  "c6": {
+   "text": "Investigators tested Comet G-ALYU in a water tank, pressurising it again and again; it failed from metal fatigue after the equivalent of about 3,000 flights.",
+   "sources": [
+    "Wikipedia, 'BOAC Flight 781', https://en.wikipedia.org/wiki/BOAC_Flight_781",
+    "Engineers Ireland, 'Beyond the limits of imagination: what do the Comet aircraft failures teach us', https://www.engineersireland.ie/Engineers-Journal/Mechanical/beyond-the-limits-of-imagination-what-do-the-comet-aircraft-failures-teach-us"
+   ],
+   "verified": true
+  },
+  "c7": {
+   "text": "The Elba failure was traced to the ADF window, a square cut-out in the roof, not a passenger window; fatigue cracks started around the rivets there.",
+   "sources": [
+    "Wikipedia, 'BOAC Flight 781', https://en.wikipedia.org/wiki/BOAC_Flight_781 ('the forward ADF window in the roof'; cracks 'around the rivet')",
+    "Wikipedia, 'de Havilland Comet', https://en.wikipedia.org/wiki/De_Havilland_Comet ('square cut-outs for the ADF antennas')",
+    "Aerossurance, 'Common Comet Misconceptions', https://aerossurance.com/safety-management/comet-misconceptions/"
+   ],
+   "verified": true
+  },
+  "c8": {
+   "text": "A pressurised cabin is loaded on every flight; the stress on the fuselage is proportional to the pressure difference between inside and outside, so airliners keep cabin altitude at or below 8,000 feet rather than sea level.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Cabin_pressurization",
+    "US 14 CFR 25.841, Cornell LII, https://www.law.cornell.edu/cfr/text/14/25.841"
+   ],
+   "verified": true
+  },
+  "c9": {
+   "text": "Metal fatigue: loads far below breaking strength, repeated many times, grow small cracks until the part fails.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Fatigue_(material)",
+    "Engineers Ireland, https://www.engineersireland.ie/Engineers-Journal/Mechanical/beyond-the-limits-of-imagination-what-do-the-comet-aircraft-failures-teach-us"
+   ],
+   "verified": true
+  },
+  "c10": {
+   "text": "Stress concentrates where the edge of an opening curves most sharply: around a round hole it rises to about three times the surrounding stress, and as a corner's radius goes to zero the peak stress grows without limit.",
+   "sources": [
+    "https://en.wikipedia.org/wiki/Stress_concentration",
+    "M. E. Tuttle, University of Washington, 'Stress Concentration' lecture, https://courses.washington.edu/mengr556/StressConcentrationLecture.pdf"
+   ],
+   "verified": true
+  },
+  "c11": {
+   "text": "The Comet returned as the redesigned Comet 4 in 1958, with a thickened fuselage skin.",
+   "sources": [
+    "Wikipedia, 'de Havilland Comet', https://en.wikipedia.org/wiki/De_Havilland_Comet (Comet 4 debuted 1958; skin thickened)",
+    "Aerossurance, 'Common Comet Misconceptions', https://aerossurance.com/safety-management/comet-misconceptions/ (Comet 4 in commercial service from October 1958)"
+   ],
+   "verified": true
+  },
+  "c12": {
+   "text": "The Comet accidents changed the requirements for airliners: they are designed so that cracks are found and tolerated (fail-safe / damage tolerance) before they can bring the structure down.",
+   "sources": [
+    "Wikipedia, 'de Havilland Comet', https://en.wikipedia.org/wiki/De_Havilland_Comet (fail-safe or safe-life standards)",
+    "Wikipedia, 'Damage tolerance', https://en.wikipedia.org/wiki/Damage_tolerance"
+   ],
+   "verified": true
+  },
+  "c13": {
+   "text": "A cabin window has three panes; the small hole is in the middle pane, so the outer pane carries the cabin pressure.",
+   "sources": [
+    "Time, 'This Is Why There Are Holes in Airplane Windows', https://time.com/3903109/airplane-window-holes",
+    "IFLScience, 'Why Do Airplane Windows Have A Tiny Hole In Them?', https://www.iflscience.com/why-is-there-a-tiny-hole-in-airplane-windows-82433"
+   ],
+   "verified": true
+  },
+  "c14": {
+   "text": "The hole lets moisture out of the gap between the panes, which keeps the window from fogging.",
+   "sources": [
+    "Time, 'This Is Why There Are Holes in Airplane Windows', https://time.com/3903109/airplane-window-holes",
+    "IFLScience, 'Why Do Airplane Windows Have A Tiny Hole In Them?', https://www.iflscience.com/why-is-there-a-tiny-hole-in-airplane-windows-82433"
+   ],
+   "verified": true
+  }
+ },
+ "scenes": [
+  {
+   "id": "S01",
+   "section": "hook",
+   "say": "Next time you fly, look at the window. Not through it. At it. There is not a single sharp corner anywhere.",
+   "image": {
+    "subject": "a modern airliner cabin window seen from the aisle seat",
+    "show": "a rounded oval cabin window with soft corners, a pulled-up shade, a passenger's hand resting on the armrest, blue sky and clouds outside",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [],
+   "motion": "clouds drift slowly past outside the oval window; the passenger's fingers tap the armrest once; a gentle cabin vibration"
+  },
+  {
+   "id": "S02",
+   "section": "hook",
+   "say": "That shape is not style. It is a lesson, and it was learned the hard way.",
+   "image": {
+    "subject": "an airliner window seat seen from behind the passenger",
+    "show": "a passenger's silhouette looking out of a rounded oval cabin window at a wing and blue sky, soft cabin light",
+    "variant": "main"
+   },
+   "move": "pull_out",
+   "labels": [],
+   "claims": [],
+   "motion": "the passenger slowly leans toward the window; the wing tip flexes slightly; clouds slide past"
+  },
+  {
+   "id": "S03",
+   "section": "hook",
+   "say": "In the next few minutes, we will follow that lesson from a quiet cabin in 1954 to the tiny hole in the window beside you.",
+   "image": {
+    "subject": "an old 1950s jet cabin turning into a modern cabin",
+    "show": "on the left half a 1950s cabin with a squarish window and a woman in a hat, on the right half a modern cabin with an oval window and a phone on the tray table, split by a soft line",
+    "variant": "main"
+   },
+   "move": "pull_out",
+   "labels": [],
+   "claims": [],
+   "motion": "sunlight sweeps slowly from the old cabin on the left to the modern one on the right; clouds drift past both windows"
+  },
+  {
+   "id": "S04",
+   "section": "mystery",
+   "say": "Your house has square windows. So does your car, your office, your train. Square is easy to cut, easy to frame, easy to fit.",
+   "image": {
+    "subject": "a row of ordinary buildings and a city tram",
+    "show": "square house windows, a square office window and a tram with square windows side by side on a sunny street",
+    "variant": "main"
+   },
+   "move": "pan_right",
+   "labels": [],
+   "claims": [],
+   "motion": "the tram rolls slowly along the street; curtains sway in an open square house window; a bird lands on a window sill"
+  },
+  {
+   "id": "S05",
+   "section": "mystery",
+   "say": "A square window is the most natural shape in the world. Builders have made them that way for centuries, and nothing bad happens.",
+   "image": {
+    "subject": "a carpenter fitting a square wooden window frame into a brick wall",
+    "show": "a cheerful carpenter in an apron pressing a square wooden window frame into a brick wall, a level tool on the sill",
+    "variant": "main"
+   },
+   "move": "pan_left",
+   "labels": [],
+   "claims": [],
+   "motion": "the carpenter pushes the frame into place and taps it with a mallet; sawdust drifts down"
+  },
+  {
+   "id": "S06",
+   "section": "mystery",
+   "say": "So why does an airliner, one of the most carefully designed machines on Earth, refuse to have a single one?",
+   "image": {
+    "subject": "a modern twin-engine airliner parked at a gate",
+    "show": "side view of the fuselage showing a long row of small oval windows, ground crew walking beneath",
+    "variant": "main"
+   },
+   "move": "pan_left",
+   "labels": [],
+   "claims": [],
+   "motion": "a baggage cart drives slowly past under the wing; a ground worker walks along the fuselage; heat shimmer over the apron"
+  },
+  {
+   "id": "S07",
+   "section": "mystery",
+   "say": "To find out, we have to go back to the first jet airliner, and to a crack smaller than your fingernail.",
+   "image": {
+    "subject": "a single tiny crack in a sheet of aluminium beside rivets",
+    "show": "an extreme close-up of polished aircraft aluminium with a row of rivets and one hair-thin dark crack starting at a rivet hole, shown in red",
+    "variant": "closeup"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [],
+   "motion": "the camera light glints across the metal; the thin red crack lengthens a tiny bit in one short jump"
+  },
+  {
+   "id": "S08",
+   "section": "background",
+   "say": "On the second of May, 1952, a de Havilland Comet took off from London for Johannesburg.",
+   "image": {
+    "subject": "a 1950s de Havilland Comet 1 jet airliner taking off from a London airfield",
+    "show": "the sleek silver Comet with four jet engines buried in the wing roots and squarish cabin windows climbing away, a small crowd waving behind a fence",
+    "variant": "main"
+   },
+   "move": "pan_up",
+   "labels": [
+    "2 MAY 1952"
+   ],
+   "claims": [
+    "c1"
+   ],
+   "motion": "the Comet lifts off and climbs slowly away; the crowd waves hats and handkerchiefs; grass bends in the jet wash"
+  },
+  {
+   "id": "S08b",
+   "section": "background",
+   "say": "It was the first jet airliner ever to carry paying passengers.",
+   "image": {
+    "subject": "passengers in 1950s coats climbing the boarding steps of a silver Comet jet",
+    "show": "excited passengers with hats and handbags walking up mobile steps into the open door of a sleek silver jet airliner, a smiling stewardess at the top, morning light",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c1"
+   ],
+   "motion": "passengers climb the steps one by one; the stewardess greets them with a nod; a coat flaps in the breeze"
+  },
+  {
+   "id": "S09",
+   "section": "background",
+   "say": "There were stops on the way, but the age of the jet had begun. People who had flown in rattling propeller planes could not believe how smooth it was.",
+   "image": {
+    "subject": "the cabin of a 1950s Comet in calm flight",
+    "show": "passengers in 1950s clothes relaxing in wide seats beside nearly square windows, a stewardess pouring tea, a cup of tea on a tray table, sunlight",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c1"
+   ],
+   "motion": "the stewardess pours tea slowly into a cup; a passenger leans back and smiles; sunlight moves across the seats"
+  },
+  {
+   "id": "S10",
+   "section": "background",
+   "say": "It felt like the future had arrived early. Higher, faster and smoother than anything that had flown passengers before.",
+   "image": {
+    "subject": "passengers in a 1950s jet cabin looking out in wonder",
+    "show": "a boy with his face close to a squarish window pointing at clouds below, his mother smiling beside him, quiet cabin",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c2"
+   ],
+   "motion": "the boy points and presses closer to the window; his mother leans over to look; clouds drift past below"
+  },
+  {
+   "id": "S11",
+   "section": "background",
+   "say": "The Comet was built to cruise at around forty thousand feet, far above the weather.",
+   "image": {
+    "subject": "a Comet jet airliner high above the clouds",
+    "show": "the silver Comet, a pure jet with NO propellers, its four jet engines buried inside the wing roots, small against a deep blue sky far above a sea of white clouds",
+    "variant": "main"
+   },
+   "move": "pan_right",
+   "labels": [
+    "≈ 40,000 FT"
+   ],
+   "claims": [
+    "c2"
+   ],
+   "motion": "the Comet glides slowly across the frame; clouds below drift the other way; a thin contrail trails behind"
+  },
+  {
+   "id": "S12",
+   "section": "background",
+   "say": "Up there the air is far too thin to breathe. So the cabin is sealed and pumped full of air, like a balloon with people inside.",
+   "image": {
+    "subject": "a cutaway of a jet airliner fuselage in flight",
+    "show": "a side cutaway showing seated passengers inside a sealed tube, soft teal arrows of air filling the cabin, thin pale air outside",
+    "variant": "diagram"
+   },
+   "move": "push_in",
+   "labels": [
+    "THIN AIR",
+    "PRESSURISED CABIN"
+   ],
+   "claims": [
+    "c8"
+   ],
+   "motion": "teal air arrows flow gently into the cabin and fill it; outside, faint wisps of thin air drift past"
+  },
+  {
+   "id": "S13",
+   "section": "background",
+   "say": "Every flight, the fuselage swells a little. Every landing, it relaxes again. One flight, one breath in and out.",
+   "image": {
+    "subject": "a balloon-like diagram of a fuselage tube",
+    "show": "the same aircraft tube drawn twice, one slightly swollen with amber outline, one relaxed, a looping arrow between them",
+    "variant": "diagram"
+   },
+   "move": "still",
+   "labels": [
+    "TAKE-OFF",
+    "LANDING"
+   ],
+   "claims": [
+    "c8"
+   ],
+   "motion": "the fuselage tube slowly swells outward, holds, then slowly relaxes, like breathing in and out, twice"
+  },
+  {
+   "id": "S14",
+   "section": "background",
+   "say": "Think about what that means for the metal. The air inside pushes outward on every square inch of the skin, the whole time you are up there.",
+   "image": {
+    "subject": "air pushing outward on the inside of a fuselage skin",
+    "show": "a close cutaway of a curved aircraft skin panel with many small teal arrows pressing outward from the cabin side, thin pale air outside",
+    "variant": "diagram"
+   },
+   "move": "push_in",
+   "labels": [
+    "PUSHING OUT"
+   ],
+   "claims": [
+    "c8"
+   ],
+   "motion": "the teal arrows push steadily outward and the curved skin bulges very slightly"
+  },
+  {
+   "id": "S15",
+   "section": "background",
+   "say": "Land, open the doors, and the push is gone. Take off again, and it comes back.",
+   "image": {
+    "subject": "a 1950s jet parked at a gate with its door open and steps attached",
+    "show": "passengers walking down mobile steps from the open door of a silver jet airliner onto the apron, evening light",
+    "variant": "main"
+   },
+   "move": "still",
+   "labels": [],
+   "claims": [
+    "c8"
+   ],
+   "motion": "passengers walk slowly down the steps; a ground worker waves; the evening light fades a little"
+  },
+  {
+   "id": "S15b",
+   "section": "background",
+   "say": "A short hop and a long flight both count as one full cycle.",
+   "image": {
+    "subject": "a simple loop diagram of one flight cycle",
+    "show": "a cartoon airliner climbing up one side of a looping arrow and descending the other, with a soft swollen fuselage at the top of the loop and a relaxed one at the bottom",
+    "variant": "diagram"
+   },
+   "move": "push_in",
+   "labels": [
+    "1 FLIGHT = 1 CYCLE"
+   ],
+   "claims": [
+    "c8"
+   ],
+   "motion": "the small airliner travels once around the looping arrow; the fuselage swells at the top and relaxes at the bottom"
+  },
+  {
+   "id": "S16",
+   "section": "background",
+   "say": "That is why modern cabins are not kept at sea level. They are kept at no higher than about eight thousand feet, to go easier on the metal.",
+   "image": {
+    "subject": "a cabin pressure gauge in a cockpit panel",
+    "show": "a round analogue cabin altitude gauge with its needle resting in an amber band among other cockpit dials",
+    "variant": "closeup"
+   },
+   "move": "push_in",
+   "labels": [
+    "CABIN ≤ 8,000 FT"
+   ],
+   "claims": [
+    "c8"
+   ],
+   "motion": "the needle rises slowly and settles in the amber band; a small light blinks once"
+  },
+  {
+   "id": "S17",
+   "section": "background",
+   "say": "For almost two years, the Comet was the pride of British aviation.",
+   "image": {
+    "subject": "a crowd admiring a Comet jet on display at an airfield",
+    "show": "families in 1950s clothes gathered around a gleaming silver Comet jet on a sunny airfield, a child on a father's shoulders",
+    "variant": "main"
+   },
+   "move": "pull_out",
+   "labels": [],
+   "claims": [],
+   "motion": "the child waves a small flag; people point at the jet; flags flutter in the breeze"
+  },
+  {
+   "id": "S18",
+   "section": "background",
+   "say": "Then, on the tenth of January, 1954, a Comet climbed away from Rome toward London.",
+   "image": {
+    "subject": "a Comet jet airliner climbing over the blue Mediterranean coast",
+    "show": "the silver Comet seen from far away climbing above a calm blue sea and the hills of an island, bright winter afternoon",
+    "variant": "main"
+   },
+   "move": "pan_up",
+   "labels": [
+    "10 JANUARY 1954"
+   ],
+   "claims": [
+    "c3"
+   ],
+   "motion": "the small silver jet climbs slowly across the sky; gentle waves sparkle on the sea far below"
+  },
+  {
+   "id": "S19",
+   "section": "background",
+   "say": "Near the island of Elba, witnesses saw something they could not understand.",
+   "image": {
+    "subject": "two fishermen in a small wooden boat on a calm sea near a hilly island",
+    "show": "two anonymous fishermen pausing with their net and turning to look up at the empty sky with puzzled faces, the island of Elba behind them, bright winter afternoon",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c3"
+   ],
+   "motion": "the boat rocks gently; the fishermen slowly turn their heads up toward the sky; the net drips water"
+  },
+  {
+   "id": "S20",
+   "section": "background",
+   "say": "High in the sky, the jet broke apart. All thirty-five people on board were lost.",
+   "image": {
+    "subject": "a distant mid-air breakup of a jet airliner seen from a beach far below",
+    "show": "a wide view mostly of empty blue sky and calm sea; far away and high up, a TINY silver jet airliner silhouette, as small as a fingernail in the frame, broken into two separate halves with a few small fragments, each trailing a thin grey smoke line downward; seen only from outside as a distant shape, no interior, no seats, no people, no flash, no fire, no sparks",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c3"
+   ],
+   "motion": "the two halves of the jet drift slowly apart and tilt downward, trailing grey smoke; small panels flutter down; the sea below stays calm"
+  },
+  {
+   "id": "S21",
+   "section": "background",
+   "say": "No storm. No warning. No call from the crew. Only a trail of smoke, slowly fading over the sea.",
+   "image": {
+    "subject": "an empty clear blue sky over a calm sea",
+    "show": "an empty winter sky above a calm sea with a faint thin grey smoke trail slowly fading, no aircraft",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c3"
+   ],
+   "motion": "the faint smoke trail slowly thins and fades away; small waves glint on the sea"
+  },
+  {
+   "id": "S22",
+   "section": "background",
+   "say": "The Comets were stopped and checked. Nothing obvious was found. After a few changes, they flew again.",
+   "image": {
+    "subject": "a hangar with a Comet jet airliner and engineers in 1950s overalls",
+    "show": "engineers on ladders inspecting the wing and engines of a Comet under hangar lights, toolboxes on the floor",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c3"
+   ],
+   "motion": "an engineer on a ladder runs a torch slowly along the wing; another writes on a clipboard; hangar lights hum"
+  },
+  {
+   "id": "S23",
+   "section": "background",
+   "say": "Investigators had theories, but almost no evidence. Most of the aircraft was lying at the bottom of the sea.",
+   "image": {
+    "subject": "investigators studying a few small pieces of debris on a table",
+    "show": "engineers in 1950s suits leaning over a long table with only three small bent metal pieces and a seat cushion, a big empty sea chart on the wall",
+    "variant": "main"
+   },
+   "move": "pan_right",
+   "labels": [],
+   "claims": [],
+   "motion": "an engineer turns a small bent piece over in his hands; another taps the empty sea chart"
+  },
+  {
+   "id": "S24",
+   "section": "background",
+   "say": "Then, on the eighth of April, near Naples, it happened again.",
+   "image": {
+    "subject": "an empty airport gate in the 1950s",
+    "show": "an empty waiting area with a forgotten suitcase and a hat on a bench, rain on the large window, a departures board in the distance",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c4"
+   ],
+   "motion": "rain runs down the window; a light above the gate flickers once; the hat on the bench stays still"
+  },
+  {
+   "id": "S25",
+   "section": "background",
+   "say": "Two of the most modern airliners in the world had simply come apart in clear sky. The whole Comet fleet was grounded.",
+   "image": {
+    "subject": "a row of grounded Comet jet airliners parked on a grey airfield",
+    "show": "several silver Comets parked in a line with covers on their engines under a grey sky, no people",
+    "variant": "main"
+   },
+   "move": "pan_left",
+   "labels": [
+    "GROUNDED"
+   ],
+   "claims": [
+    "c4"
+   ],
+   "motion": "grey clouds drift slowly overhead; a canvas engine cover flaps gently in the wind"
+  },
+  {
+   "id": "S26",
+   "section": "background",
+   "say": "Now nobody could fly the Comet. The pride of British aviation was sitting on the ground, and no one could say exactly why.",
+   "image": {
+    "subject": "a newspaper on a café table about the grounded Comet",
+    "show": "a 1950s café table with a folded newspaper showing a drawing of a jet airliner, a coffee cup, rain on the window",
+    "variant": "closeup"
+   },
+   "move": "pull_out",
+   "labels": [],
+   "claims": [
+    "c4"
+   ],
+   "motion": "steam rises from the coffee; rain runs down the window; the newspaper page lifts slightly in a draught"
+  },
+  {
+   "id": "S27",
+   "section": "mechanism",
+   "say": "Investigators needed the wreckage. Off Elba, ships hunted for pieces on the seabed, with divers and grabs.",
+   "image": {
+    "subject": "a 1950s salvage ship on the sea lowering a grab",
+    "show": "a grey salvage ship with a crane lowering a metal grab into the water, a diver's boat alongside, calm sea",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c5"
+   ],
+   "motion": "the crane slowly lowers the grab into the water; the ship rocks gently; ripples spread"
+  },
+  {
+   "id": "S28",
+   "section": "mechanism",
+   "say": "By the end of that summer, about seventy percent of the aircraft had been brought up and laid out, piece by piece, on a frame.",
+   "image": {
+    "subject": "aircraft wreckage being reassembled on a wooden frame in a hangar",
+    "show": "bent silver panels of a jet fuselage fixed to a large wooden frame, engineers in coats studying them",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [
+    "~70 % RECOVERED"
+   ],
+   "claims": [
+    "c5"
+   ],
+   "motion": "an engineer lifts a bent panel into place on the frame; another steps back to look; dust drifts in a light beam"
+  },
+  {
+   "id": "S29",
+   "section": "mechanism",
+   "say": "Every twisted panel was a clue. But the panels alone could not say what had torn them apart.",
+   "image": {
+    "subject": "a twisted, torn panel of aircraft skin on a workbench",
+    "show": "a crumpled silver fuselage panel with torn rivet lines lying on a wooden bench under a lamp, a ruler beside it",
+    "variant": "closeup"
+   },
+   "move": "pull_out",
+   "labels": [],
+   "claims": [
+    "c5"
+   ],
+   "motion": "the lamp swings slightly and its light moves over the torn edges; dust drifts in the beam"
+  },
+  {
+   "id": "S30",
+   "section": "mechanism",
+   "say": "At the same time, engineers did something astonishing. They took a whole Comet and put it in a giant tank of water.",
+   "image": {
+    "subject": "a complete Comet jet fuselage sitting inside a huge water tank",
+    "show": "a silver Comet fuselage with wings sticking out of a long concrete tank filled with water, engineers on a walkway above",
+    "variant": "main"
+   },
+   "move": "pull_out",
+   "labels": [],
+   "claims": [
+    "c6"
+   ],
+   "motion": "the water ripples gently around the fuselage; an engineer walks slowly along the walkway; pipes vibrate"
+  },
+  {
+   "id": "S31",
+   "section": "mechanism",
+   "say": "Water was pumped into the cabin and let out again, over and over. Each pump was one flight.",
+   "image": {
+    "subject": "a cutaway diagram of an EMPTY test fuselage inside a water tank being pressurised",
+    "show": "an empty aircraft fuselage with no seats and no people inside, sitting in a concrete water tank, teal water arrows pumped into the empty cabin and drained out in a loop, a pump and pressure gauge beside the tank",
+    "variant": "diagram"
+   },
+   "move": "still",
+   "labels": [
+    "1 PUMP = 1 FLIGHT"
+   ],
+   "claims": [
+    "c6"
+   ],
+   "motion": "the water level inside the empty cabin rises, then falls, then rises again; the gauge needle swings up and back"
+  },
+  {
+   "id": "S31b",
+   "section": "mechanism",
+   "say": "And water, unlike air, would not explode if the cabin burst.",
+   "image": {
+    "subject": "a comparison of a bursting air balloon and a gently leaking water balloon",
+    "show": "on the left a balloon bursting with a sharp pop of air lines, on the right a water-filled balloon with a small split letting water trickle out calmly, simple cartoon",
+    "variant": "diagram"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c6"
+   ],
+   "motion": "the air balloon on the left bursts outward; the water balloon on the right splits and water trickles out gently"
+  },
+  {
+   "id": "S32",
+   "section": "mechanism",
+   "say": "After the equivalent of about three thousand flights, the cabin split open.",
+   "image": {
+    "subject": "a split in the side of a fuselage inside a water tank",
+    "show": "close view of a Comet fuselage in a water tank with a long tear opening in its upper skin and a rush of bubbles escaping",
+    "variant": "closeup"
+   },
+   "move": "push_in",
+   "labels": [
+    "~3,000 FLIGHTS"
+   ],
+   "claims": [
+    "c6"
+   ],
+   "motion": "the tear in the skin widens a little and a rush of bubbles pours out into the tank water"
+  },
+  {
+   "id": "S65",
+   "section": "mechanism",
+   "say": "That test changed how the world thinks about aircraft. Not how strong a cabin is on its first flight, but how strong it still is on its thousandth.",
+   "image": {
+    "subject": "a 1950s engineer at a chalkboard next to a scale model of a jet",
+    "show": "an engineer chalking a simple line graph that falls over many flights, a small model jet airliner on the desk, a colleague watching",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [
+    "FLIGHT 1 → FLIGHT 1,000"
+   ],
+   "claims": [
+    "c6"
+   ],
+   "motion": "the engineer draws the falling line on the chalkboard; chalk dust drifts; the colleague nods slowly"
+  },
+  {
+   "id": "S33",
+   "section": "mechanism",
+   "say": "Day and night, the pumps worked. It was like flying the same aircraft over and over, without ever leaving the ground.",
+   "image": {
+    "subject": "engineers watching a pressure test control panel at night",
+    "show": "two engineers in a dim 1950s control room watching a wall of gauges and a counter, a clock showing late night, a thermos on the desk",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c6"
+   ],
+   "motion": "the counter clicks up; a gauge needle swings up and back; one engineer pours coffee from the thermos"
+  },
+  {
+   "id": "S34",
+   "section": "mechanism",
+   "say": "Three thousand flights. Not a storm, not a bomb. Just the cabin breathing in and out, again and again.",
+   "image": {
+    "subject": "a paperclip being bent back and forth by two fingers",
+    "show": "close-up of two fingers bending a steel paperclip back and forth, a tiny red crack appearing at the bend",
+    "variant": "closeup"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c9"
+   ],
+   "motion": "the fingers bend the paperclip back and forth slowly; on the fourth bend a tiny red crack appears at the bend"
+  },
+  {
+   "id": "S34b",
+   "section": "mechanism",
+   "say": "The name for that is metal fatigue.",
+   "image": {
+    "subject": "a magnified view of a tiny crack growing in metal grains",
+    "show": "a close-up of grey metal grains with a thin red crack creeping between them, a magnifying lens edge framing it",
+    "variant": "closeup"
+   },
+   "move": "push_in",
+   "labels": [
+    "METAL FATIGUE"
+   ],
+   "claims": [
+    "c9"
+   ],
+   "motion": "the red crack creeps forward between the metal grains in tiny steps"
+  },
+  {
+   "id": "S35",
+   "section": "mechanism",
+   "say": "Bend a paperclip once, nothing happens. Bend it again and again and it snaps, though you never pushed hard.",
+   "image": {
+    "subject": "a broken paperclip in a palm",
+    "show": "an open palm holding a steel paperclip snapped into two pieces at its bend",
+    "variant": "closeup"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c9"
+   ],
+   "motion": "the hand stays still; soft window light slowly moves across the palm and the two broken paperclip pieces; one small piece rocks very slightly"
+  },
+  {
+   "id": "S35b",
+   "section": "mechanism",
+   "say": "Small loads, repeated, grow tiny cracks.",
+   "image": {
+    "subject": "a row of small identical arrows hitting a metal bar",
+    "show": "many small identical teal arrows tapping one after another on a metal bar, a tiny red crack forming where they hit",
+    "variant": "diagram"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c9"
+   ],
+   "motion": "small teal arrows tap the bar one after another; a tiny red crack slowly appears and grows"
+  },
+  {
+   "id": "S36",
+   "section": "mechanism",
+   "say": "The tank had answered one question: what broke the Comet. Now the wreck had to answer a second one: where exactly did it begin?",
+   "image": {
+    "subject": "the rebuilt wreckage on its frame seen from a distance",
+    "show": "a long hangar with the reassembled Comet wreckage on a wooden frame, a single engineer standing in front of it with a clipboard",
+    "variant": "main"
+   },
+   "move": "pan_left",
+   "labels": [],
+   "claims": [
+    "c5"
+   ],
+   "motion": "the engineer slowly walks along the frame looking up; light shafts from high windows drift"
+  },
+  {
+   "id": "S37",
+   "section": "mechanism",
+   "say": "The scary part is that you cannot see it coming. The crack is tiny for most of its life. Then, all at once, it is not.",
+   "image": {
+    "subject": "a hair-thin crack hidden in aircraft skin",
+    "show": "an extreme close-up of riveted aluminium skin where a nearly invisible thin crack shows only under a magnifying glass edge",
+    "variant": "closeup"
+   },
+   "move": "pull_out",
+   "labels": [],
+   "claims": [
+    "c9"
+   ],
+   "motion": "the magnifying glass slides over the metal and the thin crack comes into view"
+  },
+  {
+   "id": "S38",
+   "section": "mechanism",
+   "say": "But a crack has to start somewhere. And on the rebuilt wreck from Elba, the investigators found where.",
+   "image": {
+    "subject": "an engineer with a magnifying glass studying a bent piece of aircraft roof",
+    "show": "an engineer in a 1950s suit leaning close with a magnifying glass over a torn panel with a squarish opening",
+    "variant": "closeup"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c7"
+   ],
+   "motion": "the engineer slowly moves the magnifying glass along the panel and stops; his eyebrows rise"
+  },
+  {
+   "id": "S39",
+   "section": "discovery",
+   "say": "It was not a passenger window. It was a small, squarish opening in the roof, for a radio navigation antenna.",
+   "image": {
+    "subject": "the roof of a Comet fuselage seen from above",
+    "show": "the top of the silver fuselage with two small squarish cut-outs near the front, one marked in red",
+    "variant": "diagram"
+   },
+   "move": "push_in",
+   "labels": [
+    "ADF ANTENNA WINDOW"
+   ],
+   "claims": [
+    "c7"
+   ],
+   "motion": "the camera drifts slowly over the roof; the red outline of one squarish opening glows softly"
+  },
+  {
+   "id": "S40",
+   "section": "discovery",
+   "say": "Around the rivets at its edge, a fatigue crack had grown, flight after flight, until the roof tore open.",
+   "image": {
+    "subject": "a close-up of the corner of a squarish cut-out in aircraft skin",
+    "show": "rivets around a sharp square corner, a red crack running from a rivet hole at the corner outward",
+    "variant": "closeup"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c7"
+   ],
+   "motion": "the red crack grows outward from the rivet hole in short jumps"
+  },
+  {
+   "id": "S41",
+   "section": "discovery",
+   "say": "So the famous story, square passenger windows broke the Comet, is not quite right. But the reason it broke is exactly why your window is round.",
+   "image": {
+    "subject": "a modern oval airliner window next to a crossed-out square window",
+    "show": "a rounded oval airplane window on the left and a square window outline on the right with a red diagonal cross over it",
+    "variant": "diagram"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c7"
+   ],
+   "motion": "the red cross draws itself slowly over the square window; the oval window glows softly"
+  },
+  {
+   "id": "S42",
+   "section": "mechanism",
+   "say": "Here is why. Think of the force in the skin as water flowing in a river.",
+   "image": {
+    "subject": "a calm river flowing evenly",
+    "show": "smooth parallel streams of teal water flowing straight across the frame",
+    "variant": "diagram"
+   },
+   "move": "pan_right",
+   "labels": [],
+   "claims": [],
+   "motion": "the teal water flows smoothly and evenly from left to right"
+  },
+  {
+   "id": "S43",
+   "section": "mechanism",
+   "say": "Put a rock in the river. The water has to go around it, and it speeds up at the sides.",
+   "image": {
+    "subject": "water flowing around a round rock in a river",
+    "show": "teal flow lines bending smoothly around a round grey rock, the lines bunched slightly at its sides in amber",
+    "variant": "diagram"
+   },
+   "move": "still",
+   "labels": [],
+   "claims": [
+    "c10"
+   ],
+   "motion": "the water flows around the rock; small swirls form at its sides and drift away"
+  },
+  {
+   "id": "S44",
+   "section": "mechanism",
+   "say": "A hole in metal works the same way. The stress flows around it. Even a perfect circle makes it about three times stronger at the edges.",
+   "image": {
+    "subject": "a flat metal plate with a round hole being pulled from both sides",
+    "show": "teal stress lines flowing around a circular hole, amber where they crowd at the top and bottom of the hole, arrows pulling the plate",
+    "variant": "diagram"
+   },
+   "move": "push_in",
+   "labels": [
+    "≈ 3×"
+   ],
+   "claims": [
+    "c10"
+   ],
+   "motion": "the arrows pull gently; the stress lines flow around the hole and the amber glow pulses at its edges"
+  },
+  {
+   "id": "S45",
+   "section": "mechanism",
+   "say": "Now make the hole square. The lines cannot bend gently around a sharp corner. They pile up into it.",
+   "image": {
+    "subject": "a flat metal plate with a square hole being pulled from both sides",
+    "show": "teal stress lines crowding tightly into the four sharp corners of a square hole, the corners glowing red",
+    "variant": "diagram"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c10"
+   ],
+   "motion": "the stress lines squeeze into the corners; the red glow at each corner grows brighter and brighter"
+  },
+  {
+   "id": "S46",
+   "section": "mechanism",
+   "say": "The sharper the corner, the higher the stress at its tip. In theory, at a perfectly sharp corner, there is no limit at all.",
+   "image": {
+    "subject": "a sharp corner tip under a magnifier with glowing stress",
+    "show": "a magnified sharp corner of a cut-out with stress lines converging into its tip, the tip glowing bright red",
+    "variant": "diagram"
+   },
+   "move": "still",
+   "labels": [
+    "SHARP = DANGER"
+   ],
+   "claims": [
+    "c10"
+   ],
+   "motion": "the stress lines squeeze tighter into the tip and its red glow brightens step by step"
+  },
+  {
+   "id": "S47",
+   "section": "mechanism",
+   "say": "Add rivet holes close to that corner, and you have tiny weak spots sitting near the most stressed point of the opening.",
+   "image": {
+    "subject": "a square corner with a rivet hole at its tip in a stress diagram",
+    "show": "the red glowing corner of a square opening with one rivet hole right at the tip, a tiny red crack starting from it",
+    "variant": "closeup"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c7",
+    "c10"
+   ],
+   "motion": "the red glow pulses at the corner; a tiny crack creeps out from the rivet hole in one short jump"
+  },
+  {
+   "id": "S48",
+   "section": "mechanism",
+   "say": "This is not only true of aircraft. Wherever metal is loaded again and again,",
+   "image": {
+    "subject": "a steel crane base and a machine bracket with rounded inside corners",
+    "show": "a construction crane's steel base plate and a machine bracket side by side, every inside corner smoothly rounded and outlined in amber",
+    "variant": "diagram"
+   },
+   "move": "pan_left",
+   "labels": [],
+   "claims": [
+    "c10"
+   ],
+   "motion": "the crane arm slowly swings above; amber outlines trace around the rounded corners"
+  },
+  {
+   "id": "S48b",
+   "section": "mechanism",
+   "say": "in cranes, brackets and engines, engineers round the inside corners.",
+   "image": {
+    "subject": "an engine part with smoothly rounded inside corners",
+    "show": "a close-up of a shiny machined engine bracket whose inside corners are smoothly rounded, outlined in soft amber, on a workshop bench",
+    "variant": "closeup"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c10"
+   ],
+   "motion": "a workshop lamp light glides slowly over the bracket; the amber outlines on the rounded corners glow softly"
+  },
+  {
+   "id": "S49",
+   "section": "mechanism",
+   "say": "Engineers call this a stress concentration. And they have learned to fear sharp corners.",
+   "image": {
+    "subject": "an engineering drawing comparing sharp and rounded corners",
+    "show": "a blueprint-style drawing of a sharp-cornered notch glowing red beside a rounded notch glowing soft amber, an engineer's pencil resting on it",
+    "variant": "diagram"
+   },
+   "move": "pan_right",
+   "labels": [
+    "STRESS CONCENTRATION"
+   ],
+   "claims": [
+    "c10"
+   ],
+   "motion": "the pencil slowly traces the rounded corner; the red glow on the sharp notch pulses"
+  },
+  {
+   "id": "S50",
+   "section": "mechanism",
+   "say": "Now repeat that every flight. The cabin breathes in, the corner is pulled hard. It breathes out. In, out. Thousands of times.",
+   "image": {
+    "subject": "a fuselage cabin breathing in and out with a stressed corner",
+    "show": "a fuselage tube drawn with one square opening whose corner flashes red each time the tube swells",
+    "variant": "diagram"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c8",
+    "c9"
+   ],
+   "motion": "the tube swells and relaxes in a slow rhythm and the corner flashes red each time it swells"
+  },
+  {
+   "id": "S51",
+   "section": "mechanism",
+   "say": "Round off the corner, and the lines can bend smoothly around it. The load is spread out. The peak stress drops.",
+   "image": {
+    "subject": "a metal plate with an oval rounded window opening",
+    "show": "teal stress lines flowing smoothly around an oval opening with only a soft amber glow at its sides",
+    "variant": "diagram"
+   },
+   "move": "pull_out",
+   "labels": [
+    "ROUNDED = SPREAD"
+   ],
+   "claims": [
+    "c10"
+   ],
+   "motion": "the stress lines flow calmly around the oval; the soft amber glow stays gentle"
+  },
+  {
+   "id": "S52",
+   "section": "mechanism",
+   "say": "That is the whole secret. Not stronger glass, and not thicker metal. Just a curve.",
+   "image": {
+    "subject": "a single smooth curve drawn on paper",
+    "show": "an engineer's hand drawing a single smooth rounded corner with a compass on cream paper",
+    "variant": "closeup"
+   },
+   "move": "still",
+   "labels": [],
+   "claims": [],
+   "motion": "the compass turns slowly and draws the smooth curve"
+  },
+  {
+   "id": "S53",
+   "section": "payoff",
+   "say": "The Comet came back in 1958 as the Comet 4, redesigned, with a thicker skin, built on what the tank had taught.",
+   "image": {
+    "subject": "a de Havilland Comet 4 jet airliner flying",
+    "show": "the longer silver Comet 4 with a row of oval windows flying over green countryside in bright sun",
+    "variant": "main"
+   },
+   "move": "pan_right",
+   "labels": [
+    "COMET 4 · 1958"
+   ],
+   "claims": [
+    "c11"
+   ],
+   "motion": "the Comet 4 flies slowly across the frame; its shadow slides over the fields below"
+  },
+  {
+   "id": "S54",
+   "section": "payoff",
+   "say": "Look closely at the windows on any airliner today, and at its doors and hatches. Every corner is rounded.",
+   "image": {
+    "subject": "a modern airliner door and cargo hatch with rounded corners",
+    "show": "close side view of a modern airliner's passenger door and a cargo hatch, both with clearly rounded corners, ground crew below",
+    "variant": "main"
+   },
+   "move": "pan_right",
+   "labels": [],
+   "claims": [],
+   "motion": "a ground worker walks past under the door; a baggage belt moves slowly toward the hatch"
+  },
+  {
+   "id": "S55",
+   "section": "payoff",
+   "say": "Today, airliners are inspected for cracks on a schedule, long before any of them can grow large.",
+   "image": {
+    "subject": "an engineer inspecting a modern airliner fuselage with a handheld device",
+    "show": "an engineer in a hi-vis vest on a platform holding a small inspection probe against the fuselage skin around a window, hangar lights",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c12"
+   ],
+   "motion": "the engineer slides the probe slowly along the skin; a small screen on the device shows a moving line"
+  },
+  {
+   "id": "S56",
+   "section": "payoff",
+   "say": "But the real change was bigger than one aircraft.",
+   "image": {
+    "subject": "a modern fuselage fatigue test rig",
+    "show": "a large airliner fuselage section held in a steel test frame with hydraulic jacks and cables, engineers watching screens",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c12"
+   ],
+   "motion": "hydraulic jacks push gently and release in rhythm; a screen line ticks upward; an engineer leans toward a monitor"
+  },
+  {
+   "id": "S56b",
+   "section": "payoff",
+   "say": "After the Comet, the rules changed. Fatigue became something every airliner is designed and tested against.",
+   "image": {
+    "subject": "engineers watching a modern fatigue test counter in a control room",
+    "show": "two engineers in a control room watching a large screen with a counter of simulated flights ticking upward next to a live view of a fuselage in a test rig",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c12"
+   ],
+   "motion": "the flight counter ticks upward; one engineer points at the screen; the other nods"
+  },
+  {
+   "id": "S57",
+   "section": "payoff",
+   "say": "Structures are built so that a crack is found before it can run. If one part fails, the cabin is meant to hold together.",
+   "image": {
+    "subject": "the inside of an airliner fuselage skin with frames and straps",
+    "show": "a cutaway of curved aircraft skin with ribs, stringers and a metal strap across them, a small red crack stopping right at the strap",
+    "variant": "cutaway"
+   },
+   "move": "push_in",
+   "labels": [
+    "CRACK STOPPER"
+   ],
+   "claims": [
+    "c12"
+   ],
+   "motion": "a small red crack creeps toward the strap and stops at it"
+  },
+  {
+   "id": "S58",
+   "section": "payoff",
+   "say": "And there is one more detail in your window, if you look closely. A tiny hole, near the bottom.",
+   "image": {
+    "subject": "a close-up of an airliner window",
+    "show": "a rounded cabin window with a tiny hole visible in the plastic pane near the bottom, clouds beyond",
+    "variant": "closeup"
+   },
+   "move": "push_in",
+   "labels": [
+    "THE TINY HOLE"
+   ],
+   "claims": [
+    "c13"
+   ],
+   "motion": "clouds drift past outside; the light shifts softly on the plastic pane around the tiny hole"
+  },
+  {
+   "id": "S59",
+   "section": "payoff",
+   "say": "A cabin window has three panes. The tiny hole is in the middle one. So the outer pane carries the cabin pressure.",
+   "image": {
+    "subject": "a cutaway of an airliner window showing three panes",
+    "show": "three curved window panes stacked in a frame, the middle pane with a tiny hole, teal arrows showing air passing through it, the outer pane outlined in amber",
+    "variant": "diagram"
+   },
+   "move": "still",
+   "labels": [
+    "OUTER",
+    "MIDDLE",
+    "INNER"
+   ],
+   "claims": [
+    "c13"
+   ],
+   "motion": "a teal air arrow passes slowly through the tiny hole in the middle pane; the outer pane glows softly amber"
+  },
+  {
+   "id": "S60",
+   "section": "payoff",
+   "say": "The same little hole also lets moist air out of the gap, so the window does not fog up on a long flight.",
+   "image": {
+    "subject": "a window gap between panes fogging and clearing",
+    "show": "a close cutaway of the gap between two window panes with tiny droplets drifting out through a small hole, the pane turning clear",
+    "variant": "diagram"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c14"
+   ],
+   "motion": "tiny droplets drift slowly out through the small hole and the misted pane clears"
+  },
+  {
+   "id": "S61",
+   "section": "payoff",
+   "say": "Three panes, one tiny hole, and four rounded corners. Everything about that small window was shaped by what engineers learned from the Comet.",
+   "image": {
+    "subject": "a cabin window with three panes, a tiny hole and four rounded corners",
+    "show": "a front view of a rounded airliner window with its frame, three thin outlines of panes and a tiny hole, sunset clouds outside",
+    "variant": "closeup"
+   },
+   "move": "pull_out",
+   "labels": [],
+   "claims": [
+    "c13"
+   ],
+   "motion": "sunset light shifts slowly across the window; clouds drift past outside"
+  },
+  {
+   "id": "S62",
+   "section": "payoff",
+   "say": "So next time you sit by a window, look at that shape again. That curve is a lesson written into the metal.",
+   "image": {
+    "subject": "a young traveller at a window seat touching the window frame",
+    "show": "a young traveller with headphones around the neck gently tracing the rounded corner of the window with a finger, wing and sky outside",
+    "variant": "main"
+   },
+   "move": "push_in",
+   "labels": [],
+   "claims": [],
+   "motion": "the finger slowly traces the rounded corner; the traveller smiles; clouds drift past"
+  },
+  {
+   "id": "S63",
+   "section": "payoff",
+   "say": "Thousands of flights a day, cabins breathing in and out, and not one sharp corner to catch the load.",
+   "image": {
+    "subject": "a modern airliner climbing at sunset",
+    "show": "an airliner with a row of oval windows climbing into a golden sunset over a city, lights coming on below",
+    "variant": "main"
+   },
+   "move": "pan_up",
+   "labels": [],
+   "claims": [],
+   "motion": "the airliner climbs slowly into the golden sky; city lights twinkle on below"
+  },
+  {
+   "id": "S64",
+   "section": "payoff",
+   "say": "Nothing is ordinary, once you know how it really works.",
+   "image": {
+    "subject": "an airliner window glowing at night above city lights",
+    "show": "a row of glowing oval airliner windows seen from outside at night, city lights far below",
+    "variant": "main"
+   },
+   "move": "pull_out",
+   "labels": [],
+   "claims": [],
+   "motion": "the airliner glides slowly past; the window lights glow warmly; city lights twinkle below"
+  }
+ ]
+}

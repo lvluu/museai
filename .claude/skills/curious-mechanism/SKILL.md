@@ -62,7 +62,8 @@ Order matters: research, then script, then pictures. Never generate images befor
    Prefer primary sources (accident reports, manufacturer docs, museums, textbooks). An AI answer is never a
    source. List myths: they often make the best twist. Cannot verify? Cut it, or say the doubt on screen.
 3. **Script = scenes.** `python scripts/cm.py new <id> "<Title>" [--short]` copies `episode.template.json`.
-   Each scene: `say` (narration for one picture, 4-8 s, written for the ear), `section`
+   Each scene: `say` (narration for one picture, 4-8 s and never over 9 s: one muse clip is at most 10 s, user rule
+   2026-11-24; `check` fails a longer line and `qa` fails a scene over 10 s; split it, written for the ear), `section`
    (hook / mystery / background / mechanism / discovery / payoff), `image` (`subject`, `show`, `variant`:
    main | cutaway | closeup | map | diagram) or the id of an earlier scene to reuse its picture, `move`
    (push_in | pull_out | pan_left | pan_right | pan_up | pan_down | still), `labels` (uppercase editorial
@@ -73,7 +74,12 @@ Order matters: research, then script, then pictures. Never generate images befor
      internet."), the problem shown (1-2 scenes), the question "so how do engineers deal with it?" (1), the
      solution step by step (3-4), the twist (1), the payoff on today's object. A complete mini-story, never a
      trailer for the long video.
-   - Reuse one illustration as wide shot, close-up and labelled detail (`"image": "S03"`, new move / labels).
+   - Every scene has its own illustration and its own muse clip: never reuse a picture (`"image": "S03"`)
+     (user rule 2026-11-23: the same clip seen twice in one video is unacceptable; `check` fails on it).
+     A crash is drawn as what it is (the airliner clearly snapping apart, smoke trails, falling pieces),
+     never as a flash or starburst that reads as fireworks.
+     Every picture must make physical sense: a test rig, tank or wreck has no passengers or crew inside
+     (user note 2026-11-23: passengers drawn in a fuselage being filled with water).
      Long-form budget: 12-18 main + 8-12 close-ups + 4-6 cutaways + 2-4 maps.
 4. **Gate.** `cm.py check <id>` must print `RESULT ok` (length, hook, every claim with 2 sources and
    verified, no filler phrases like "since the dawn of", no text asked of the image model, valid
