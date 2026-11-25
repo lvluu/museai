@@ -40,22 +40,38 @@ long, exhausting day, there's no need to do anything"). Tags target study/work B
 - **Hook**: there is no spoken hook; the first 10 s are the best-looking wide of the day (garden in sun, a
   window with curtains moving) with the first song already playing. The title and thumbnail do the hooking.
 
-## Pacing and camera (NOT yet measured)
+## Pacing and camera (measured 2026-11-25)
 
-The cut count was not taken: the session's browser closed before the frame-difference pass ran, and downloading
-the video for `ffmpeg scdet` needs the user's OK. The lines below are the genre's working assumptions, used as the
-skill's targets; replace them with measured numbers (`ffmpeg -vf "select='gt(scene,0.3)',showinfo"` on a 2-min
-excerpt) when the video may be fetched:
-- Long, calm shots, roughly 5-10 s each, cut on the song's phrases (about one cut per sung line or two), simple
-  hard cuts or short dissolves, no zooms, no speed ramps, no flashy transitions.
-- Camera is mostly locked or a slow, near-still handheld; the motion is inside the frame: curtains, steam, leaves,
+Measured on the most viewed video (1169 s, 6 songs), downloaded at 480p, `ffmpeg select='gt(scene,0.25)'`, hits
+closer than 0.6 s merged, then checked by eye on frame sheets:
+- **310 shots, 309 cuts: mean 3.8 s, median 3.0 s** (p10 1.7 s, p25 2.3 s, p75 4.5 s, p90 6.2 s; max 40.9 s).
+- Shot lengths: 0-2 s 53 | 2-4 s 161 | 4-6 s 60 | 6-8 s 22 | 8-10 s 6 | 10-15 s 5 | 15-30 s 2 | 30 s+ 1.
+- Per song the average shot is 4.6 / 3.4 / 4.4 / 4.6 / 4.0 / 2.2 s (44-75 cuts a song): faster near the end.
+- First 10 s: cuts at 3.8, 6.4, 8.7 s, so 3 different shots before the 10 s mark.
+- The detector misses some soft cuts (a cat shot then a covered basket counted as one 6 s shot), so the real
+  median is at or under 3.0 s. Transitions are a mix: 78 of 309 cuts score >= 0.6 (hard cuts), 98 score under 0.4
+  (soft cuts and short dissolves), plus the odd fade through dark.
+- So the film is not slow because shots are long: it is a quick, steady 3 s rhythm of calm images, every shot
+  showing a different subject or scale. The calm comes from the motion inside each shot and the music.
+- Order seen in one 90 s stretch (24 shots): ladle over a pan (close) - plate with a spoon (close) - woman at a
+  low table through a window frame (wide) - eating, profile (medium) - porch table (wide) - misty forest (wide) -
+  stream (wide) - wooden house with tea terraces (wide) - hands picking tea leaves (close) - picking, profile
+  (medium) - stream (wide) - picker far off (wide) - flowering branch (close) - sitting on a ridge (wide) - looking
+  up with a basket (medium) - leaves in a basket (top-down close) - house roof in rain (wide) - fridge door (close)
+  - kitchen window (medium) - drinking (close) - kitchen (wide) - glass jar (close) - misty hills (wide) - standing
+  in a doorway (wide). About 45% wide, 20% medium, 35% close.
+- Camera (start vs end frames of 6 shots of 4-6 s): locked or near-still handheld, framing the same at both ends; the motion is inside the frame: curtains, steam, leaves,
   her hands, water, a cat walking through.
 - Shot sizes alternate wide (house, garden, field) - medium (her from behind or the side, at work) - close (hands,
   cup, flowers, book page).
 - Subjects: tending flowers, watering, reading by the window, tea and coffee, baking, cycling a lane, sitting on a
   porch, a picnic, by a stream or the sea, a dog or cat, evening lamps. Seasons rotate (hydrangeas, summer, spring,
   "after dark").
-- She is seen from behind, the side or at a distance; faces stay soft or turned away.
+- She is seen from behind, the side or at a distance; in close and medium shots her face shows in profile or
+  three-quarter while she eats or looks up, never into the lens.
+- Look: muted greens, low saturation, soft contrast, filmic. The footage seems gathered from several sources
+  (different women and houses inside one song; blurred burned-in subtitles in some shots), so one coherent world
+  is something we do better than the channel, not something it does.
 
 ## Sound
 
@@ -70,12 +86,14 @@ sound is not featured; the footage's own sound, if any, sits far under the songs
   rather than glamour poses.
 - Natural light that changes with the time of day through the film (morning - noon - dusk - lamps at night).
 - Steady locked framing; motion comes from the world, not from a floating camera.
+- Many short different shots: no single frame stays long enough to be inspected for AI faults.
 - Real imperfections: soft focus edges, a little grain, wind moving hair and fabric.
 
 ## What our skill takes from it (and what not)
 
 Takes: the 18-20 min 16:9 playlist length, 6 songs of ~3 min as chapters, the place-and-feeling mood title, songs
-as chapter timestamps in the description, a calm one-girl country day in 6 scenes, long locked shots with motion
-inside the frame, cut to the music phrase, a scenery-only thumbnail.
+as chapter timestamps in the description, a calm one-girl country day in 6 scenes, a ~3 s shot rhythm (each clip cut into 3 shots:
+wide, then two closer crops) with locked shots and the motion inside the frame, wide / medium / close mixed,
+muted soft grade, a scenery-only thumbnail (unchanged: the best healing frame, no person).
 Never: the series bracket or suffix wording, the welcome paragraph, the song titles or lyrics, the Japanese
 title/tags, their girl or house. Our girl is ELLIE (braid over her LEFT shoulder) in our own world.
