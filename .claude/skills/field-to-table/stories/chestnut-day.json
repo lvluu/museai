@@ -193,10 +193,11 @@
    "ch": 1,
    "where": "grove",
    "time": "morning",
-   "kind": "still",
+   "kind": "clip",
    "cast": [],
    "shot": "Wide shot of the slope under the old chestnut trees, mist in the valley below, no one there; brown burrs scattered on the leaves.",
-   "hold": 9
+   "hold": 9,
+   "move": "Only the mist moves, drifting slowly in the valley below; the trees stay still; nothing else moves and no one walks in."
   },
   {
    "ch": 1,
@@ -257,10 +258,11 @@
    "ch": 1,
    "where": "grove",
    "time": "late morning",
-   "kind": "still",
+   "kind": "clip",
    "cast": [],
    "shot": "Wide shot of the valley and layered green hills from the slope, mist lifting, a few chestnut leaves at the top of the frame.",
-   "hold": 9
+   "hold": 9,
+   "move": "Only the mist moves, lifting slowly off the hills; nothing else moves and no one walks in."
   },
   {
    "ch": 1,
@@ -321,10 +323,11 @@
    "ch": 2,
    "where": "stream",
    "time": "late morning",
-   "kind": "still",
+   "kind": "clip",
    "cast": [],
    "shot": "Close-up of clear water running over smooth grey stones in the stream, ferns at the edge.",
-   "hold": 8
+   "hold": 8,
+   "move": "Only the water moves, running and rippling over the stones; the ferns tremble slightly; nothing else moves."
   },
   {
    "ch": 2,
@@ -354,10 +357,11 @@
    "ch": 2,
    "where": "courtyard",
    "time": "afternoon",
-   "kind": "still",
+   "kind": "clip",
    "cast": [],
    "shot": "Top-down close-up of the round bamboo sieve tray covered in one layer of drying brown chestnuts in soft sun, the shadow of a leaf moving across them.",
-   "hold": 8
+   "hold": 8,
+   "move": "The chestnuts stay still in the sieve; only soft leaf shadows drift slowly across them in the breeze."
   },
   {
    "ch": 2,
@@ -389,10 +393,11 @@
    "ch": 2,
    "where": "courtyard",
    "time": "afternoon",
-   "kind": "still",
+   "kind": "clip",
    "cast": [],
    "shot": "Wide shot of the farmhouse from the courtyard gate: grey tiles, pale walls, the bamboo tray of chestnuts in the sun, bamboo moving behind the roof.",
-   "hold": 9
+   "hold": 9,
+   "move": "Only the leaves of the trees sway softly and a thin curl of smoke drifts from the roof; nothing else moves and no one walks in."
   },
   {
    "ch": 2,
@@ -596,11 +601,12 @@
    "ch": 4,
    "where": "courtyard",
    "time": "late afternoon",
-   "kind": "still",
+   "kind": "clip",
    "cast": [],
    "shot": "Wide shot of the hills beyond the courtyard wall, clouds moving slowly over the ridges, smoke from the kitchen chimney drifting across.",
    "chapter": true,
-   "hold": 11
+   "hold": 11,
+   "move": "Only the clouds move, drifting slowly over the hills; nothing else moves and no one walks in."
   },
   {
    "ch": 4,
@@ -617,10 +623,11 @@
    "ch": 4,
    "where": "kitchen",
    "time": "late afternoon",
-   "kind": "still",
+   "kind": "clip",
    "cast": [],
    "shot": "Top-down close-up of a wide clay bowl full of whole peeled pale-yellow chestnuts on the wooden worktop.",
-   "hold": 8
+   "hold": 8,
+   "move": "The chestnuts stay still in the bowl; only a faint thread of steam rises from them."
   },
   {
    "ch": 4,
@@ -793,23 +800,25 @@
    "ch": 4,
    "where": "courtyard",
    "time": "late afternoon",
-   "kind": "still",
+   "kind": "clip",
    "cast": [],
    "shot": "Wide shot of the courtyard in late afternoon, the clay pot steaming on its stove, the bamboo tray empty, the hills going soft behind.",
    "props": [
     "clay pot"
    ],
-   "hold": 9
+   "hold": 9,
+   "move": "Only the steam moves, rising slowly from the clay pot; nothing else moves and no one walks in."
   },
   {
    "ch": 5,
    "where": "eaves",
    "time": "dusk",
-   "kind": "still",
+   "kind": "clip",
    "cast": [],
    "shot": "Wide shot of the valley at dusk from the porch, layered blue hills, mist settling, the edge of the tile eaves at the top of the frame.",
    "chapter": true,
-   "hold": 11
+   "hold": 11,
+   "move": "Only the mist moves, settling slowly into the valley; nothing else moves and no one walks in."
   },
   {
    "ch": 5,
@@ -919,28 +928,31 @@
    "ch": 5,
    "where": "eaves",
    "time": "dusk",
-   "kind": "still",
+   "kind": "clip",
    "cast": [],
    "shot": "Close-up of the empty bowl and chopsticks resting across it on the table, a few chestnut shells on the brown paper, the teacup.",
-   "hold": 8
+   "hold": 8,
+   "move": "The bowl and chopsticks stay still; only faint leaf shadows move across the table in the evening breeze."
   },
   {
    "ch": 5,
    "where": "courtyard",
    "time": "dusk",
-   "kind": "still",
+   "kind": "clip",
    "cast": [],
    "shot": "Wide shot of the farmhouse from the courtyard at dusk, one warm bulb lit under the eaves, the blue hills behind and the first stars.",
-   "hold": 10
+   "hold": 10,
+   "move": "Only the trees sway softly in the evening breeze; nothing else moves and no one walks in."
   },
   {
    "ch": 5,
    "where": "grove",
    "time": "dusk",
-   "kind": "still",
+   "kind": "clip",
    "cast": [],
    "shot": "Wide shot of the dark chestnut slope above the farmhouse at dusk, one small lit window below among the bamboo, mist in the valley.",
-   "hold": 12
+   "hold": 12,
+   "move": "Only the treetops sway slowly against the dusk sky; nothing else moves and no one walks in."
   }
  ],
  "short": {
