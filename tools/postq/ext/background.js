@@ -26,10 +26,37 @@ async function progress(id, line) {
   await chrome.storage.session.set({ progress: { ...all, [id]: line } });
 }
 
+// Chrome keeps running the code it loaded until the extension is reloaded, even after `git pull`
+// updated the folder (2026-11-25: 0.36 kept running while postq shipped 0.42). When the folder's
+// manifest has another version and no post runs, reload from disk. At most once per 10 min, so a
+// folder Chrome cannot read never turns into a reload loop.
+async function reloadIfUpdated() {
+  if (running.size || starting.size) return false;
+  let disk;
+  try { disk = (await (await fetch(chrome.runtime.getURL('manifest.json'), { cache: 'no-store' })).json()).version; } catch { return false; }
+  if (!disk || disk === chrome.runtime.getManifest().version) return false;
+  const { reloadedAt = 0 } = await chrome.storage.local.get('reloadedAt');
+  if (Date.now() - reloadedAt < 10 * 60000) return false;
+  await chrome.storage.local.set({ reloadedAt: Date.now() });
+  log('folder has', disk, 'running', chrome.runtime.getManifest().version, ': reloading');
+  chrome.runtime.reload();
+  return true;
+}
+
 async function refreshBadge() {
+  if (await reloadIfUpdated()) return;
   try {
     // The header tells the queue server the extension is alive (`postq approve` warns when it is not).
-    const items = await (await fetch(`${QUEUE}/api/items`, { headers: { 'X-Postq-Poller': chrome.runtime.getManifest().version } })).json();
+    const res = await fetch(`${QUEUE}/api/items`, { headers: { 'X-Postq-Poller': chrome.runtime.getManifest().version } });
+    // The folder Chrome loads is older than postq (a feature-branch checkout): a reload cannot help.
+    const stale = res.headers.get('X-Postq-Ext-Stale');
+    chrome.action.setTitle({ title: stale ? `post-approve: OUTDATED - ${stale}` : 'post-approve: pending posts' });
+    if (stale) {
+      chrome.action.setBadgeText({ text: 'OLD' });
+      chrome.action.setBadgeBackgroundColor({ color: '#e67e00' });
+      return; // old code must not post: postq refuses it anyway (`approve` checks the version)
+    }
+    const items = await res.json();
     let shown = items;
     try {
       const feed = await (await fetch(DASH, { signal: AbortSignal.timeout(4000) })).json();
