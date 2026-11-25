@@ -27,7 +27,11 @@ a grammar point, a view), and the language of the audience. Then write each plat
 never paste one caption six times with different hashtags.
 
 1. **Hook (first line, every platform)**: a question, a promise or a surprise the viewer wants
-   answered, with the search keyword in the first 5-8 words. Fits the fold: ≤ 55 characters for
+   answered, with the search keyword in the first 5-8 words. A hook opens a gap the video closes:
+   a concrete detail plus an unanswered "why", a contrast, or a direct "you" aimed at a feeling
+   ("Con mèo không cho ôm, nhưng chiều nào cũng ngủ cạnh tôi. Vì sao?", "Bạn luôn là người nhắn
+   trước?"). Never a flat label or a restated title ("Chỉ hai chữ: X", "Truyện về Y"); never give the
+   answer away in the hook. Write 3 hooks per platform, keep the sharpest. Fits the fold: ≤ 55 characters for
    Instagram, ≤ ~90 for TikTok, ≤ ~120 for Facebook. Never open with a hashtag, the video length or
    "X in N seconds".
 2. **Body**: one or two short lines naming what the viewer learns or sees, using the words people
