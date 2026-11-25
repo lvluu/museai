@@ -10,8 +10,8 @@
   plan.py covers story.json         cover candidates: scenery beats with nobody in frame, wides first
 
 Each step skips work already on disk, so a queue killed by muse's 24-hour video limit is re-run as is.
-Images are not under that limit: render refs and stills first, clips when quota is there. longform.py
-uses the still (a slow push-in) for a clip beat whose clip is missing, so a cut can be watched at any stage.
+Images are not under that limit: render refs and stills first, clips when quota is there. Every beat gets a clip
+(a beat's `kind` no longer matters): longform.py composes only from clips, never from stills (user 2026-11-25).
 """
 import hashlib
 import json
@@ -156,8 +156,7 @@ def cmd_jobs(sp, story):
     retry = "for t in 1 2 3; do {cmd} && break; sleep 60; done"
     refs = [retry.format(cmd=f"{PY} {me} ref {s} {shlex.quote(k)}") for k in story["refs"]]
     stills = [retry.format(cmd=f"{PY} {me} still {s} {i}") for i in range(1, len(story["beats"]) + 1)]
-    clips = [retry.format(cmd=f"{PY} {me} clip {s} {i}") for i, b in enumerate(story["beats"], 1)
-             if b.get("kind") == "clip"]
+    clips = [retry.format(cmd=f"{PY} {me} clip {s} {i}") for i in range(1, len(story["beats"]) + 1)]
     for name, lines in (("refs", refs), ("stills", stills), ("clips", clips)):
         (root / f"jobs-{name}.txt").write_text("\n".join(lines) + "\n")
         print(f"jobs-{name}.txt: {len(lines)} jobs")
@@ -167,7 +166,7 @@ def cmd_status(sp, story):
     root = sp.parent
     refs = [k for k in story["refs"] if (root / "refs" / f"{slug(k)}.png").exists()]
     stills = [i for i in range(1, len(story["beats"]) + 1) if (root / "stills" / f"s{i}.png").exists()]
-    want = [i for i, b in enumerate(story["beats"], 1) if b.get("kind") == "clip"]
+    want = list(range(1, len(story["beats"]) + 1))
     clips = [i for i in want if (root / f"s{i}.mp4").exists()]
     print(f"refs {len(refs)}/{len(story['refs'])}  stills {len(stills)}/{len(story['beats'])}  clips {len(clips)}/{len(want)}")
     print("missing clips:", " ".join(str(i) for i in want if i not in clips) or "-")
