@@ -39,13 +39,22 @@ titles (another channel's series name).
 ## Pace and hook (2026-11-17 feedback: v1 "too slow, looks AI, weak hook")
 
 - **Cut like a human editor.** Each clip beat has `cuts: [[0.3, 4.6], [5.0, 4.4, 1.32, x, y]]`: the wide part of the
-  take, then a 1.32x punch-in of its second half centred on the hands (x, y), like a second camera. Stills 3.5-5 s.
-  Story `xf: 0.4`. ~60 clips + ~12 stills = ~10.5 min, an average shot of ~4 s instead of 9.5 s.
+  take, then a 1.32x punch-in of its second half centred on the hands (x, y), like a second camera. Breathing shots
+  of the place (mist, the bamboo, the window) are clips too, one cut of 3.5-5 s (`s()` in the generator).
+  Story `xf: 0.4`. ~72 clips = ~10.5 min, an average shot of ~4 s instead of 9.5 s.
 - **Cold open.** Story `teaser`: 7-8 shots of 2.4-3.6 s from the best moments (the pour, the sizzle, the bubbling
   dish, her walking into the mist, the cat, her sitting down to eat) with one hook line that promises the payoff
   ("I walked into the woods with an empty basket. This is what we had for dinner."), then the title card.
 - **Simple real actions** an ordinary person films: a boot in leaves, twisting a mushroom out of moss, butter
   foaming, a ladle pour. One action per shot; never a pose.
+
+## No still images (user 2026-11-25)
+
+Every shot in the film and the short is moving footage. A still picture with a push-in reads as a jumping static
+slide, so the film never shows one: no `kind: "still"` beats (the generator's `s()` makes an ambient clip whose
+`move` says only the mist / leaves / water move), story `"no_stills": true` (`longform.py` leaves out any beat with
+no clip and moves its chapter card to the next clip), and `short.py` stops on a beat with no clip. Stills are
+only the start frames `plan.py` animates into clips; they never reach the edit.
 
 ## Rules that keep it from looking AI
 
@@ -84,7 +93,7 @@ missing disclosure can cost monetisation). Keep it. Better footage keeps viewers
 ## Steps
 
 1. **Pick a style and an idea.** `python3 scripts/ideas.py style`, then `python3 scripts/ideas.py next --season now` (cottage bank; `--bank countryside` for the
-   A-Qiao variant). Turn its `chapters` into 5 chapters and ~70 beats (~60 clips, ~12 stills). Copy
+   A-Qiao variant). Turn its `chapters` into 5 chapters and ~70 beats, all clips. Copy
    `stories/pumpkin-terraces.json` as the template (`stories/gen-pumpkin-terraces.py` wrote it: edit a copy of the
    generator, it fills the style fields, `cuts`, `teaser` and `short`); `cast: ["ELLIE"]` when she is in frame. Check the length with
    `longform.py --dry` (aim 600-750 s).
@@ -103,22 +112,23 @@ missing disclosure can cost monetisation). Keep it. Better footage keeps viewers
    ../healing-video/scripts/music "<season> english countryside cottage" mN.m4a 300 <seed>`
    (exit 3 = calm gate rejected the take: next seed).
 4. **Quota.** 60 clips is more than a day of muse video quota when other queues run. Don't loop on retries:
-   `plan.py status story.json` lists missing clips; a missing clip composes as its still pushed in. Compose and
-   deliver when the queue ends; re-run the clip queue after the quota resets and recompose (segments are cached).
+   `plan.py status story.json` lists missing clips; a missing clip is left out of the film (`no_stills`), never shown as a still. Compose
+   only when the film is still 600 s+ without them; otherwise re-run the clip queue after the quota resets first
+   (segments are cached).
 5. **QA every clip** (`../muse-video/scripts/qa.py`, frame sheet): reject faces to camera, morphing hands, a second
    person, food that changes state wrongly, a moving camera. Re-render (delete `sN.mp4`, re-run its job) only a
    broken shot; trim a bad ending with the beat's `start`/`hold` instead.
 6. **Compose** the long film:
    `python $H/longform.py story.json --music music.m4a --out healing-<slug>.mp4 --dry` (aim 600-900 s), then
    without `--dry`.
-7. **Short** (9:16, ~15 s, from clips; a missing clip uses its still pushed in): fill `short` in story.json (5 shots `[beat, start, secs, x]`,
+7. **Short** (9:16, ~15 s, clips only: pick beats whose clip exists): fill `short` in story.json (5 shots `[beat, start, secs, x]`,
    strongest motion first, the meal last, hook text from the idea) and
    `python scripts/short.py story.json --music music.m4a --out healing-<slug>-short.mp4`.
 8. **Thumbnails** show the healing scenery, never ELLIE (user 2026-11-21: no person, no hands): the garden in
    mist, the lit window at dusk, the meal on the table by the window. `python3 $H/plan.py covers story.json` lists
    the beats with nobody in frame, wides first. Both covers come from one of those clips (the 9:16 too, not the
    short): `../healing-video/scripts/cover.py --size 16:9 --at sN.mp4@auto --eyebrow "<eyebrow>"
-   --title "<2-5 word hook>" --out thumbs/healing-<slug>_16x9.jpg`, and `--size 9:16` from the same clip. A still works too: make a 2 s mp4 of it with ffmpeg `-loop 1` first.
+   --title "<2-5 word hook>" --out thumbs/healing-<slug>_16x9.jpg`, and `--size 9:16` from the same clip.
 9. **Deliver** to `~/Desktop/field-to-table/<slug>/`: the 16:9 film, the 9:16 short, both thumbnails, and
    `story.json`. Copy the story to `stories/<slug>.json`, then `scripts/ideas.py record <id> --video <path>
    --slug <slug> --style <style id>`.
@@ -134,7 +144,9 @@ missing disclosure can cost monetisation). Keep it. Better footage keeps viewers
 - 2026-11-17: food look drifts between stills (cakes pale-yellow in the kitchen, browned at the table): name the colour
   and "not browned" in every later beat with that food.
 - 2026-11-17: shared muse accounts gave 9 clips in 2 h, then `upstream_timeout` after 1800 s with progress 0: the
-  video quota was gone. Compose with still fallbacks, deliver, recompose after the reset.
+  video quota was gone. Wait for the reset and render the rest (still fallbacks are no longer allowed).
 - 2026-11-17 (forest-supper): a prop ref drags the shot to where the ref was shot (the basket ref on a worktop put
   the forest basket indoors): outdoors, leave the prop out and describe it with the ground it stands on. The
   opening empty wide still grew ELLIE's face: write "Wide empty landscape ..., no woman and no person anywhere".
+- 2026-11-25 (apple-cake-card, chestnut-day): the user rejected the still beats ("static jumping images"): both films
+  recomposed with `no_stills`, the still beats left out. New films: ambient clips instead, see "No still images".
