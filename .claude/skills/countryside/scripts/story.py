@@ -47,7 +47,7 @@ def new(idea, style, slug, songs, per_song):
         for j in range(per_song):
             beats.append({"ch": k + 1, "song": k, "where": "garden" if j % 3 == 0 else "house", "time": sc["time"],
                           "outfit": sc["time"], "kind": "clip", "cast": [] if j % 3 == 0 else ["ELLIE"],
-                          "shot": "TODO", "move": "TODO", "cuts": CUTS, "chapter": j == 0})
+                          "shot": "TODO", "move": "TODO", "cuts": CUTS, "chapter": False})
     return {
         "story_id": idea["id"], "slug": slug, "title": idea["title"], "eyebrow": "a slow day in the countryside",
         "format": "countryside-playlist", "xf": 0.4,
@@ -56,8 +56,10 @@ def new(idea, style, slug, songs, per_song):
         "places": places,
         "light": {sc["time"]: "TODO one sentence of light for this time" for sc in idea["scenes"]},
         "outfits": {sc["time"]: style["outfits"] for sc in idea["scenes"]},
-        "refs": [{"id": "house", "kind": "place", "where": "house"}, {"id": "garden", "kind": "place", "where": "garden"}],
-        "chapters": [[k + 1, sc["scene"]] for k, sc in enumerate(idea["scenes"][:songs])],
+        "look": "healing-longform/prompt/look.txt",
+        "refs": {"house": {"kind": "place", "brief": f"The house interior empty, nobody in it, seen from the doorway: {style['world']}."},
+                 "garden": {"kind": "place", "brief": f"The garden and grounds empty, nobody in them: {style['world']}."}},
+        "chapters": [{"n": k + 1, "title": sc["scene"], "sub": ""} for k, sc in enumerate(idea["scenes"][:songs])],
         "songs": [{"title": "TODO our own song title", "scene": sc["scene"], "tags": style["music"], "seed": 0}
                   for sc in idea["scenes"][:songs]],
         "beats": beats,
