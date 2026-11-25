@@ -487,9 +487,11 @@ def cmd_music(a):
 
 # ---------------------------------------------------------------- clips
 
-CLIP_MOTION = ("One continuous real video shot with gentle natural motion: slow camera drift or slow push-in, small "
-               "living movement in the scene (steam, leaves, light, a hand, a passer-by far away). Calm and unhurried. "
-               "No cuts, no speech, no one talking to camera, faces never close.")
+# a locked camera: qa.py --travel fails a drift above 3 % of the width per second as time-lapse, and a muse
+# "slow push-in" drifts 3-17 %/s (ep005); only the scene moves
+CLIP_MOTION = ("One continuous real video shot from a locked camera on a tripod: the camera does not pan, zoom, push "
+               "in or drift. Only small living movement in the scene (steam, leaves, light, a hand, a passer-by far "
+               "away). Calm and unhurried. No cuts, no speech, no one talking to camera, faces never close.")
 
 
 def cmd_clips(a):
