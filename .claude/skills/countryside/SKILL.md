@@ -59,6 +59,7 @@ and re-run the same clip queue after the 24-hour reset. Never compose, never fal
    "<scene>" mN.m4a 200 <seed>`, joined with `../field-to-table/scripts/music_chain.sh music.m4a m1.m4a ... m6.m4a`.
 7. **Compose.** `python $H/longform.py story.json --music music.m4a --out healing-<slug>.mp4 --dry`, then without
    `--dry`. `python3 scripts/story.py chapters story.json` gives the description's chapter list.
-8. **Deliver + record.** Film, 16:9 thumbnail (`../healing-video/scripts/cover.py` from a no-person clip), story
+8. **Deliver + record.** ALWAYS move the finished film to the Desktop (user, 2026-11-25: every final video goes to
+   the Desktop, never leave it only in the work folder). Film, 16:9 thumbnail (`../healing-video/scripts/cover.py` from a no-person clip), story
    to `~/Desktop/countryside/<slug>/`; copy the story to `stories/<slug>.json`; then
    `python3 scripts/ideas.py record <ct-id> --style <style id> --slug <slug> --video <path>`.
