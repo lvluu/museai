@@ -3,9 +3,10 @@ the clips' own sound as a continuous bed, a real rain bed under rainy beats, sof
 
   python3 longform.py story.json --music music.m4a --out healing-<slug>.mp4 [--dry]
 
-Per beat: sN.mp4 when it exists, else stills/sN.png as a slow push-in (so a cut can be watched while
-clips are still missing). Story `"no_stills": true` (field-to-table) never shows a still: a beat with no clip is
-left out and its chapter card moves to the next clip of that chapter. A beat lasts LEAD + voice + GAP (a beat with no voice: HOLD s: the breathing
+Per beat: its rendered clip sN.mp4. Every beat needs one: a film is never composed from stills (user 2026-11-25:
+a stills film was "only image jumping"; quota out = wait for the reset and re-run the clip queue). Story
+`"no_stills": true` (field-to-table) leaves out a beat with no clip and moves its chapter card to the next clip of
+that chapter; any other missing clip stops the compose. A beat lasts LEAD + voice + GAP (a beat with no voice: HOLD s: the breathing
 shots). Chapter beats (`"chapter": true`) carry the chapter card; the first one also the film's title.
 Subtitles, grade and the stem levels come from ../healing-video/scripts/story169.py.
 
@@ -136,25 +137,25 @@ def main():
         L = (lead + vd + GAP) if vd else float(cut["hold"])
         L += TAIL if i == len(shots) else 0
         clip = root / b.get("clip", f"s{bn}.mp4")
-        src = clip if clip.exists() else root / "stills" / f"s{bn}.png"
+        src = clip
         card = None
         if bn in card_beats and not tease and cut.get("first"):
             c = chapters[b["ch"]]
             card = ([story["title"]] if first_card else []) + [c["title"], c["sub"]]
             first_card = False
-        plan.append(dict(i=i, bn=bn, b=b, src=src, still=src.suffix == ".png", vo=vo if vd else None, vd=vd,
+        plan.append(dict(i=i, bn=bn, b=b, src=src, vo=vo if vd else None, vd=vd,
                          lead=lead, L=L, T=t, card=card, cut=cut, foley_db=float(b.get("foley_db", 0))))
         t += L
     total = t
-    stills = [p["i"] for p in plan if p["still"]]
-    print(f"{len(plan)} beats, {total:.1f} s ({total / 60:.2f} min); stills for beats: {stills or '-'}")
-    missing = [p["src"] for p in plan if not p["src"].exists()]
+    print(f"{len(plan)} beats, {total:.1f} s ({total / 60:.2f} min)")
+    missing = list(dict.fromkeys(p["src"] for p in plan if not p["src"].exists()))
     if a.dry or missing:
         for p in plan:
             print(f"{p['i']:>3} b{p['bn']:>2} ch{p['b']['ch']} T={p['T']:6.1f} L={p['L']:4.1f} vo={p['vd']:4.1f} "
-                  f"{'STILL' if p['still'] else 'clip '} {'CARD' if p['card'] else ''}")
+                  f"{'MISSING' if not p['src'].exists() else 'clip   '} {'CARD' if p['card'] else ''}")
         if missing:
-            sys.exit(f"missing: {', '.join(map(str, missing))}")
+            sys.exit(f"missing clips (render them: plan.py clip; never compose from stills): "
+                     f"{' '.join(s.name for s in missing)}")
         return
     if os.environ.get("LONGFORM_REMOTE", "1") != "0" and os.environ.get("RENDER_LOCAL") != "1":
         return remote_compose(a, sp, root, plan)
@@ -198,27 +199,18 @@ def main():
         zoom = "" if cz["zoom"] <= 1.0 else (
             f"crop=iw/{cz['zoom']}:ih/{cz['zoom']}:'min(max(0,{cz['x']}*iw-iw/{cz['zoom']}/2),iw-iw/{cz['zoom']})'"
             f":'min(max(0,{cz['y']}*ih-ih/{cz['zoom']}/2),ih-ih/{cz['zoom']})',scale={W}:{H}:flags=lanczos,")
-        if p["still"]:
-            # slow push-in from a 4K upscale (no zoompan jitter): 1.00 -> 1.05 over the beat
-            frames = int(need * FPS) + 1
-            vf = (f"[0:v]scale=3840:2160:force_original_aspect_ratio=increase,crop=3840:2160,"
-                  f"zoompan=z='1+0.05*on/{frames}':x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':d=1:s={W}x{H}:fps={FPS},{zoom}"
-                  f"{grade.format(g=1.0)},trim=duration={need:.3f}[v0]")
-            src_in = ["-loop", "1", "-t", f"{need + 0.5:.3f}", "-i", str(p["src"])]
-            f = 1.0
-        else:
-            cd = dur(p["src"])
-            st = min(float(p["cut"]["start"]), max(0.0, cd - need))
-            f = max(1.0, need / (cd - st))
-            if f > max_slow:  # slow motion reads as generated footage: past max_slow the clip's head is used whole
-                st, f = 0.0, need / cd
-            y = luma(p["src"], st)
-            g = min(1.5, math.log(max(y, 20) / 255) / math.log(130 / 255)) if y < 125 else 1.0
-            vf = (f"[0:v]trim=start={st:.3f},setpts=(PTS-STARTPTS)*{f:.4f},fps={FPS},"
-                  f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},{zoom}{grade.format(g=g)},"
-                  f"trim=duration={need:.3f}[v0]")
-            src_in = ["-i", str(p["src"])]
-            p["st"] = st
+        cd = dur(p["src"])
+        st = min(float(p["cut"]["start"]), max(0.0, cd - need))
+        f = max(1.0, need / (cd - st))
+        if f > max_slow:  # slow motion reads as generated footage: past max_slow the clip's head is used whole
+            st, f = 0.0, need / cd
+        y = luma(p["src"], st)
+        g = min(1.5, math.log(max(y, 20) / 255) / math.log(130 / 255)) if y < 125 else 1.0
+        vf = (f"[0:v]trim=start={st:.3f},setpts=(PTS-STARTPTS)*{f:.4f},fps={FPS},"
+              f"scale={W}:{H}:force_original_aspect_ratio=increase,crop={W}:{H},{zoom}{grade.format(g=g)},"
+              f"trim=duration={need:.3f}[v0]")
+        src_in = ["-i", str(p["src"])]
+        p["st"] = st
         last = "v0"
         for k, (_, a0, a1, fd) in enumerate(overlays):
             vf += (f";[{k + 1}:v]format=rgba,fade=in:st={a0:.2f}:d={fd}:alpha=1,"
@@ -231,7 +223,7 @@ def main():
         p["seg"], p["fol"] = seg, fol
         foley_src(p, plan, need, fol)
         key.write_text(stamp)
-        print(f"seg {i} ok ({'still' if p['still'] else f'clip x{1 / f:.2f}'})", flush=True)
+        print(f"seg {i} ok (clip x{1 / f:.2f})", flush=True)
 
     # 2. video with dissolves; a long fade to black at the end
     ins, fc, last, off = [], "", "0:v", 0.0
@@ -318,7 +310,7 @@ def main():
 
 def remote_compose(a, sp, root, plan):
     """Compose on the Colab render queue (muse-video/scripts/remote.py): never on this Mac (minutes of every core,
-    the machine lags). The story folder's clips, stills and voice go up; only the film comes back. Offline or a
+    the machine lags). The story folder's clips and voice go up; only the film comes back. Offline or a
     failed job stops here (LONGFORM_REMOTE=0 composes in place: the runtime itself sets it)."""
     sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "muse-video" / "scripts"))
     import remote
@@ -344,12 +336,12 @@ def remote_compose(a, sp, root, plan):
 
 
 def foley_src(p, plan, need, out):
-    """The beat's own clip sound; a still borrows the sound of the nearest clip of the same place and hour
-    (a still has none, and a hole in the bed is heard at once)."""
-    src, st, f = (p["src"], p.get("st", 0.0), p.get("f", 1.0)) if not p["still"] else (None, 0.0, 1.0)
-    if src is None or not has_audio(src):
-        same = [q for q in plan if not q["still"] and q["src"].exists() and q["b"]["where"] == p["b"]["where"]
-                and q["b"]["time"] == p["b"]["time"]] or [q for q in plan if not q["still"] and q["src"].exists()]
+    """The beat's own clip sound; a silent clip borrows the sound of the nearest clip of the same place and hour
+    (a hole in the bed is heard at once)."""
+    src, st, f = p["src"], p.get("st", 0.0), p.get("f", 1.0)
+    if not has_audio(src):
+        same = [q for q in plan if q is not p and has_audio(q["src"]) and q["b"]["where"] == p["b"]["where"]
+                and q["b"]["time"] == p["b"]["time"]] or [q for q in plan if q is not p and has_audio(q["src"])]
         same.sort(key=lambda q: abs(q["i"] - p["i"]))
         src = same[0]["src"] if same else None
         st, f = 0.0, max(1.0, need / dur(src)) if src else 1.0
