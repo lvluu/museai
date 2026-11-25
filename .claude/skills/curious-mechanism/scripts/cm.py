@@ -46,6 +46,9 @@ FORMATS = {
     "long": {"size": (1920, 1080), "words": (1150, 1750), "secs": (480, 720), "aspect": "16:9"},
     "short": {"size": (1080, 1920), "words": (75, 130), "secs": (20, 60), "aspect": "9:16"},
 }
+# muse returns at most 10 s of video per clip (measured 2026-11-23); a scene must fit one clip
+MUSE_MAX_CLIP = 10
+MAX_SCENE = 9.0  # narration estimate; the breath gap and 0.5 s lead-in fill the rest
 WPS = 145 / 60
 EN_WPS = WPS
 # Episode "lang" (default en): narrator voice, speaking rate (words, or syllables for vi, per second),
@@ -248,16 +251,19 @@ def cmd_check(eid: str, draft: bool) -> int:
                 "WARN" if draft else "FAIL", f"claim {cid} not verified: '{c.get('text', '')[:60]}'"
             )
     used = set()
+    tlp = work(eid) / "timeline.json"
+    spoken = {t["id"]: t["speech"] for t in json.loads(tlp.read_text())} if tlp.exists() else {}
     for s in scenes:
         sid = s.get("id", "?")
         say = s.get("say", "")
         if not say.strip():
             add("FAIL", f"{sid}: no narration")
-        est = words(say) / WPS
-        if est > 12:
+        est = spoken.get(sid) or words(say) / WPS  # the real voice once `voice` ran, else ~145 wpm
+        if est > MAX_SCENE:
+            # user rule 2026-11-24: muse returns at most 10 s of video, a longer scene freezes or crawls
             add(
-                "WARN",
-                f"{sid}: ~{est:.0f} s on one picture; split it or reuse the image with a new move (4-8 s)",
+                "FAIL",
+                f"{sid}: ~{est:.1f} s of narration; a scene is at most {MAX_SCENE} s (muse clips end at 10 s), split it",
             )
         low = say.lower()
         for b in BANNED:
@@ -271,8 +277,8 @@ def cmd_check(eid: str, draft: bool) -> int:
                 add("FAIL", f"{sid}: claim '{c}' not in claims")
         img = s.get("image")
         if isinstance(img, str):
-            if img not in ids or ids.index(img) >= ids.index(sid):
-                add("FAIL", f"{sid}: reuses image of '{img}', which is not an earlier scene")
+            # user rule 2026-11-23: a clip seen twice in one video is unacceptable
+            add("FAIL", f"{sid}: reuses the picture of '{img}'; every scene needs its own image and clip")
         elif isinstance(img, dict):
             if not img.get("subject") or not img.get("show"):
                 add("FAIL", f"{sid}: image needs subject and show")
@@ -424,7 +430,7 @@ def cmd_anim(eid: str, only: str | None) -> None:
             f"MOTION: {s['motion']}.\n"
             f"CAMERA: {MOVE_WORDS[s.get('move', 'push_in')]}.\n"
         )
-        secs = max(5, math.ceil(tl[s["id"]]["dur"] + 0.5))
+        secs = min(MUSE_MAX_CLIP, max(5, math.ceil(tl[s["id"]]["dur"] + 0.5)))
         env = (
             f"MUSE_SKILL_DEV=1 STYLE=animation SIZE={fmt(ep)['aspect']} DURATION={secs} "
             f"IMAGE={shlex.quote(str(img))} OUT_NAME={s['id']}.mp4 NO_OPEN=1 "
@@ -629,7 +635,8 @@ def cmd_build(eid: str, tl: list[dict] | None = None, out: Path | None = None) -
         if not img.exists():
             sys.exit(f"{s['id']}: missing {img}; run cm.py images {eid}")
         t = tl[s["id"]]
-        n = max(1, round(t["dur"] * FPS))
+        # frames from absolute boundaries, so per-scene rounding never drifts the cuts off the voice
+        n = max(1, round((t["start"] + t["dur"]) * FPS) - round(t["start"] * FPS))
         clip = clips / f"{s['id']}.mp4"
         anim = anim_of(ep, s, w)
         if s is not CTA and anim.exists():
@@ -1083,9 +1090,9 @@ def cmd_qa(eid: str) -> int:
     tl_path = w / "timeline.json"
     if tl_path.exists():
         for t in json.loads(tl_path.read_text()):
-            if t["dur"] > 10:
+            if t["dur"] > MUSE_MAX_CLIP:
                 say(
-                    "WARN",
+                    "FAIL",
                     f"{t['id']}: {t['dur']:.1f} s on one picture (playbook: new composition every 4-8 s)",
                 )
     for s in ep["scenes"]:
@@ -1095,8 +1102,8 @@ def cmd_qa(eid: str) -> int:
                 from PIL import Image
 
                 with Image.open(p) as im:
-                    # the mock driver returns 64 px squares; real muse stills are ~500x885
-                    if min(im.size) < 400:
+                    # the mock driver returns 64 px squares; real muse stills are ~500 px on the long side
+                    if max(im.size) < 400:
                         say(
                             "FAIL",
                             f"{p.name} is {im.size[0]}x{im.size[1]}: too small (mock driver?)",
