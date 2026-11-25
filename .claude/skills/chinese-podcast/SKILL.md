@@ -57,6 +57,12 @@ Work folder `~/dev/museai-work/chinese-podcast/<epNNN-slug>/`. Python deps:
    `RENDER_LOCAL=1` only when asked). The runtime clones museai main: podcast.py changes must be merged first.
 7. QA: `python3 ../muse-video/scripts/qa.py DIR/<slug>.mp4 --travel` + watch the first 20 s and one caption with
    a word card. Then `python3 scripts/podcast.py record DIR --video DIR/<slug>.mp4`.
+8. Deliver at once (the user, 2026-11-25): thumbnails `thumb.py podcast DIR/thumbs DIR/stills/s*.png --name <slug> --wide
+   --title "<VI>" --zh <hanzi> --badge "TRUYỆN TIẾNG TRUNG"` (bright, sharp, centred text; `--at sNN.png` picks the frame,
+   `--place top` when the text hides a face), `captions.json` (social-captions skill), then
+   `FINAL=1 CAPTIONS_FILE=DIR/captions.json THUMB_DIR=DIR/thumbs ../muse-video/scripts/deliver.sh DIR/<slug>.mp4 DIR <slug>`:
+   mp4 + both thumbnails + captions on the Desktop, queue entry, work folder and old `data/media` clips to the Trash.
+   Leave nothing in `~/dev/museai-work` for a finished episode.
 
 ## Film grammar (encoded in `compose`)
 16:9 1920x1080 30 fps. Date card alone for 3.2 s, then one muse video clip per line,

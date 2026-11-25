@@ -75,6 +75,7 @@ sheet, 2 MB JPEG writer) is `scripts/core.py`.
 | Style | For | Look |
 |---|---|---|
 | `chinese` | EVERYDAY CHINESE, teaching-video, product-ad, any video with people talking | best face frame, yellow hanzi hook, title white on a red box, sub line, episode badge |
+| `podcast` | chinese-podcast episodes (no faces to camera); pass the episode `stills/s*.png` | brightest, most colourful sharp still (lifted if dark), huge centred yellow hanzi, title wrapped on a red box (never shrinks), `--at` forces a frame, `--place top` moves text under the badge |
 | `travel` | scenic-drop-reel, muse-video travel mode; `--split` for zoominview | stakes/scale frame full bleed, bright natural grade (dark frames lifted), optional zoom and red ring + arrow on the subject, huge yellow hook on a black plate (labels refused), Futura place name, text kept off people, sub with flag |
 
 ## Rules every style keeps
