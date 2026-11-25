@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """The ~15 s vertical hook (1080x1920) cut from the long film's own clips: no new renders, same quota.
-A beat whose clip is not rendered yet (muse video quota) falls back to its still with a slow push-in.
+Every shot is a moving clip: a beat whose clip is not rendered yet stops it (never a still image).
 
   python3 short.py story.json --music music.m4a --out healing-<slug>-short.mp4
 
@@ -73,7 +73,7 @@ def main():
     tmp.mkdir(exist_ok=True)
     segs = []
     for k, (beat, st, secs, x) in enumerate(sh["shots"]):
-        src, still = root / f"s{beat}.mp4", root / "stills" / f"s{beat}.png"
+        src = root / f"s{beat}.mp4"
         need = secs + (XF if k < len(sh["shots"]) - 1 else 0)
         seg = tmp / f"v{k}.mp4"
         crop = f"crop=608:1080:'min(max(0,{x}*1920-304),1312)':0,scale={W}:{H}:flags=lanczos"
@@ -86,16 +86,8 @@ def main():
             run(["ffmpeg", "-y", "-hide_banner", "-ss", f"{st}", "-i", str(src), "-vf", vf, "-af",
                  f"atrim=duration={need:.3f},asetpts=PTS-STARTPTS,{afade}", "-c:v", "libx264", "-crf", "17",
                  "-pix_fmt", "yuv420p", str(seg)])
-        elif still.exists():
-            # clip not rendered yet (muse video quota): the still with a slow push-in, room tone under it
-            n = int(need * FPS) + 1
-            vf = (f"scale=3840:2160,zoompan=z='1+0.04*on/{n}':x='iw/2-iw/zoom/2':y='ih/2-ih/zoom/2':d={n}:"
-                  f"s=1920x1080:fps={FPS},{crop},eq=saturation=0.96,noise=alls=3:allf=t")
-            run(["ffmpeg", "-y", "-hide_banner", "-loop", "1", "-i", str(still), "-f", "lavfi", "-i",
-                 "anoisesrc=color=brown:amplitude=0.002", "-vf", vf, "-af", afade, "-t", f"{need:.3f}",
-                 "-c:v", "libx264", "-crf", "17", "-pix_fmt", "yuv420p", str(seg)])
         else:
-            sys.exit(f"short: no clip or still for beat {beat}")
+            sys.exit(f"short: no clip for beat {beat} (the short never shows a still image)")
         segs.append((seg, secs))
     total = sum(s for _, s in segs)
     ins, fc, last, alast, off = [], "", "0:v", "0:a", 0.0
@@ -132,17 +124,17 @@ def main():
 
 
 def remote_short(a, sp, root, sh):
-    """Render on the Colab render queue (muse-video/scripts/remote.py), never on this Mac. The shots' clips or
-    stills go up; only the short comes back. SHORT_REMOTE=0 renders in place (the runtime itself sets it)."""
+    """Render on the Colab render queue (muse-video/scripts/remote.py), never on this Mac. The shots' clips
+    go up; only the short comes back. SHORT_REMOTE=0 renders in place (the runtime itself sets it)."""
     sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "muse-video" / "scripts"))
     import remote
 
     files = [sp]
     for beat, *_ in sh["shots"]:
-        src, still = root / f"s{beat}.mp4", root / "stills" / f"s{beat}.png"
-        if not (src.exists() or still.exists()):
-            sys.exit(f"short: no clip or still for beat {beat}")
-        files.append(src if src.exists() else still)
+        src = root / f"s{beat}.mp4"
+        if not src.exists():
+            sys.exit(f"short: no clip for beat {beat} (the short never shows a still image)")
+        files.append(src)
     music = "music" + Path(a.music).suffix
     assets = {"Georgia Italic.ttf": os.path.join(_FONTS, "Georgia Italic.ttf"), music: a.music}
     cmd = ('HV_ASSETS="$PWD/w/_assets" SHORT_REMOTE=0 python3 '

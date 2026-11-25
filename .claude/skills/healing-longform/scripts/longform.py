@@ -4,7 +4,8 @@ the clips' own sound as a continuous bed, a real rain bed under rainy beats, sof
   python3 longform.py story.json --music music.m4a --out healing-<slug>.mp4 [--dry]
 
 Per beat: sN.mp4 when it exists, else stills/sN.png as a slow push-in (so a cut can be watched while
-clips are still missing). A beat lasts LEAD + voice + GAP (a beat with no voice: HOLD s: the breathing
+clips are still missing). Story `"no_stills": true` (field-to-table) never shows a still: a beat with no clip is
+left out and its chapter card moves to the next clip of that chapter. A beat lasts LEAD + voice + GAP (a beat with no voice: HOLD s: the breathing
 shots). Chapter beats (`"chapter": true`) carry the chapter card; the first one also the film's title.
 Subtitles, grade and the stem levels come from ../healing-video/scripts/story169.py.
 
@@ -117,6 +118,14 @@ def main():
         cuts = b.get("cuts") or [[b.get("start", 0.4), b.get("hold", HOLD)]]
         shots += [(bn, dict(start=c[0], hold=c[1], zoom=(c[2:] or [1.0])[0], x=(c[3:] or [0.5])[0],
                             y=(c[4:] or [0.5])[0], first=k == 0), False) for k, c in enumerate(cuts)]
+    if story.get("no_stills"):  # field-to-table: moving footage only, a beat with no clip is left out (no still)
+        has_clip = lambda bn: (root / beats[bn - 1].get("clip", f"s{bn}.mp4")).exists()  # noqa: E731
+        print(f"no_stills: left out beats {sorted({bn for bn, _, _ in shots if not has_clip(bn)}) or '-'}")
+        shots = [s for s in shots if has_clip(s[0])]
+    # a chapter card sits on its chapter beat, or on the first kept beat of that chapter after it
+    kept = [bn for bn, cut, tease in shots if not tease and cut.get("first")]
+    card_beats = {next((k for k in kept if k >= bn and beats[k - 1]["ch"] == b["ch"]), None)
+                  for bn, b in enumerate(beats, 1) if b.get("chapter")}
     plan, t, first_card = [], 0.0, True
     for i, (bn, cut, tease) in enumerate(shots, 1):
         b = beats[bn - 1]
@@ -129,7 +138,7 @@ def main():
         clip = root / b.get("clip", f"s{bn}.mp4")
         src = clip if clip.exists() else root / "stills" / f"s{bn}.png"
         card = None
-        if b.get("chapter") and not tease and cut.get("first"):
+        if bn in card_beats and not tease and cut.get("first"):
             c = chapters[b["ch"]]
             card = ([story["title"]] if first_card else []) + [c["title"], c["sub"]]
             first_card = False

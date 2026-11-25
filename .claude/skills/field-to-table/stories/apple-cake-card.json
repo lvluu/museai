@@ -1,1737 +1,1738 @@
 {
-  "story_id": "fc-0002",
-  "slug": "apple-cake-card",
-  "title": "grandmother's card",
-  "eyebrow": "apple cake · kitchen garden",
-  "season": "late autumn",
-  "xf": 0.4,
-  "light": {
-    "morning": "Morning in late October, soft cool overcast daylight, a little mist low over the grass.",
-    "late morning": "Late morning in late October, bright soft overcast daylight.",
-    "afternoon": "Afternoon in late October, soft low sun through the window, clear and bright, not golden.",
-    "late afternoon": "Late afternoon in late October, low soft sun slanting through the window onto the table, clear and bright, everything clearly visible."
+ "story_id": "fc-0002",
+ "slug": "apple-cake-card",
+ "title": "grandmother's card",
+ "eyebrow": "apple cake · kitchen garden",
+ "season": "late autumn",
+ "xf": 0.4,
+ "light": {
+  "morning": "Morning in late October, soft cool overcast daylight, a little mist low over the grass.",
+  "late morning": "Late morning in late October, bright soft overcast daylight.",
+  "afternoon": "Afternoon in late October, soft low sun through the window, clear and bright, not golden.",
+  "late afternoon": "Late afternoon in late October, low soft sun slanting through the window onto the table, clear and bright, everything clearly visible."
+ },
+ "outfits": {
+  "walk": "a long oatmeal wool coat over a cream chunky-knit cardigan, a rust knitted scarf, dark-green rubber boots",
+  "kitchen": "a cream chunky-knit cardigan with the sleeves pushed to the forearm over a white linen blouse, a faded olive linen apron",
+  "table": "a cream chunky-knit cardigan over a white linen blouse"
+ },
+ "places": {
+  "garden": "a thatched cottage with a big walled kitchen garden in late October: old red-brick walls, raised wooden beds, bean wigwams of dry brown vines, a small glass greenhouse, two old apple trees with windfall apples lying in the long grass beneath, a gravel path, the thatched cottage with a sage-green back door",
+  "kitchen": "a small plain cottage kitchen: a white butler sink under a small-paned window onto the garden, a pale oak worktop, a sage-green range cooker, cream wall tiles, one wooden shelf with a few plain glass jars and an old green tin",
+  "table": "a small round pale-oak table by the kitchen window, two plain wooden chairs, the walled garden outside the small-paned window, a plain lamp with a linen shade on the sill"
+ },
+ "refs": {
+  "garden": {
+   "kind": "place",
+   "brief": "The walled kitchen garden empty, nobody in it, seen from the back door: old red-brick wall, raised beds, bean wigwams of dry brown vines, the small greenhouse, an old apple tree with windfall apples in the long grass, the gravel path. Soft overcast daylight."
   },
-  "outfits": {
-    "walk": "a long oatmeal wool coat over a cream chunky-knit cardigan, a rust knitted scarf, dark-green rubber boots",
-    "kitchen": "a cream chunky-knit cardigan with the sleeves pushed to the forearm over a white linen blouse, a faded olive linen apron",
-    "table": "a cream chunky-knit cardigan over a white linen blouse"
+  "kitchen": {
+   "kind": "place",
+   "brief": "The kitchen empty, nobody in it, seen from the doorway: the butler sink under the small-paned window, the oak worktop, the sage-green range cooker, a wooden shelf with glass jars and an old green tin. Bright soft daylight."
   },
-  "places": {
-    "garden": "a thatched cottage with a big walled kitchen garden in late October: old red-brick walls, raised wooden beds, bean wigwams of dry brown vines, a small glass greenhouse, two old apple trees with windfall apples lying in the long grass beneath, a gravel path, the thatched cottage with a sage-green back door",
-    "kitchen": "a small plain cottage kitchen: a white butler sink under a small-paned window onto the garden, a pale oak worktop, a sage-green range cooker, cream wall tiles, one wooden shelf with a few plain glass jars and an old green tin",
-    "table": "a small round pale-oak table by the kitchen window, two plain wooden chairs, the walled garden outside the small-paned window, a plain lamp with a linen shade on the sill"
+  "table": {
+   "kind": "place",
+   "brief": "The small round oak table by the kitchen window, empty, two chairs, the walled garden outside the window, a plain lamp with a linen shade on the sill. Soft daylight."
   },
-  "refs": {
-    "garden": {
-      "kind": "place",
-      "brief": "The walled kitchen garden empty, nobody in it, seen from the back door: old red-brick wall, raised beds, bean wigwams of dry brown vines, the small greenhouse, an old apple tree with windfall apples in the long grass, the gravel path. Soft overcast daylight."
-    },
-    "kitchen": {
-      "kind": "place",
-      "brief": "The kitchen empty, nobody in it, seen from the doorway: the butler sink under the small-paned window, the oak worktop, the sage-green range cooker, a wooden shelf with glass jars and an old green tin. Bright soft daylight."
-    },
-    "table": {
-      "kind": "place",
-      "brief": "The small round oak table by the kitchen window, empty, two chairs, the walled garden outside the window, a plain lamp with a linen shade on the sill. Soft daylight."
-    },
-    "the basket": {
-      "kind": "prop",
-      "brief": "A round willow basket with a handle, lined with a faded blue-and-white checked cloth, empty, standing on a pale oak worktop. Soft daylight."
-    },
-    "the tin": {
-      "kind": "prop",
-      "brief": "An old round recipe tin, faded dark green with worn paint at the edges and a lid, standing on a pale oak worktop, closed. Soft daylight."
-    },
-    "Pip": {
-      "kind": "prop",
-      "brief": "Pip the cat sitting upright on a pale oak kitchen floor, looking slightly to the side, full body in view, soft daylight."
-    }
+  "the basket": {
+   "kind": "prop",
+   "brief": "A round willow basket with a handle, lined with a faded blue-and-white checked cloth, empty, standing on a pale oak worktop. Soft daylight."
   },
-  "chapters": [
-    {
-      "n": 1,
-      "title": "i.  windfalls",
-      "sub": "apples from the long grass"
-    },
-    {
-      "n": 2,
-      "title": "ii.  the card",
-      "sub": "from the old green tin"
-    },
-    {
-      "n": 3,
-      "title": "iii.  the batter",
-      "sub": "butter, sugar, eggs"
-    },
-    {
-      "n": 4,
-      "title": "iv.  the tin",
-      "sub": "layer by layer"
-    },
-    {
-      "n": 5,
-      "title": "v.  by the window",
-      "sub": "warm apple cake"
-    }
-  ],
-  "beats": [
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "kind": "still",
-      "shot": "Wide empty view of the walled kitchen garden in the morning mist, no woman and no person anywhere: the old brick wall, bean wigwams, the greenhouse, two apple trees with red and yellow windfall apples scattered in the long grass.",
-      "hold": 5.0,
-      "chapter": true
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "outfit": "walk",
-      "kind": "clip",
-      "cast": [
-        "ELLIE"
-      ],
-      "shot": "Ellie seen from behind at the sage-green back door of the thatched cottage, the empty willow basket on her arm, pulling the door closed.",
-      "move": "She pulls the door closed with a soft click of the latch and turns toward the garden; the camera stays locked off.",
-      "props": [
-        "the basket"
-      ],
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "outfit": "walk",
-      "kind": "clip",
-      "cast": [
-        "ELLIE"
-      ],
-      "shot": "Ellie seen from behind, small in the frame, walking slowly along the gravel path of the walled garden past the bean wigwams, the basket on her arm.",
-      "move": "She walks slowly away along the path with soft crunching steps; the plants and the camera stay perfectly still.",
-      "props": [
-        "the basket"
-      ],
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.55
-        ]
-      ]
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "outfit": "walk",
-      "kind": "clip",
-      "shot": "Close-up of the gravel path edge: her dark-green rubber boots stepping slowly through wet long grass scattered with fallen apples.",
-      "move": "Her boots take two slow steps through the grass with a soft swish; the apples stay where they lie.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "kind": "still",
-      "shot": "Close-up of red-and-yellow windfall apples lying in the long wet grass under an old apple tree, a few brown leaves among them.",
-      "hold": 3.5
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "outfit": "walk",
-      "kind": "clip",
-      "shot": "Close-up of the long grass under the apple tree: her hand in an oatmeal wool coat sleeve picks up one red-and-yellow windfall apple.",
-      "move": "Her hand slowly lifts the apple out of the grass; drops of dew fall from it.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.6
-        ]
-      ]
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "outfit": "walk",
-      "kind": "clip",
-      "shot": "Close-up of her hands in oatmeal wool coat sleeves turning a windfall apple over to look at its bruised side, then rubbing it on the coat.",
-      "move": "She turns the apple slowly and rubs its skin with her thumb.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "outfit": "walk",
-      "kind": "clip",
-      "shot": "Top-down close-up of the willow basket lined with blue-and-white checked cloth standing in the long grass outdoors, three windfall apples in it; her hand lays one more apple in.",
-      "move": "Her hand lays the apple in the basket and draws back out of frame; the others stay where they are.",
-      "props": [],
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "outfit": "walk",
-      "kind": "clip",
-      "cast": [
-        "ELLIE"
-      ],
-      "shot": "Ellie seen from the side, crouching in the grass under an old apple tree, her head bowed, the basket beside her, gathering apples from the grass.",
-      "move": "She slowly reaches for another apple and lifts it, head bowed; the camera stays still.",
-      "props": [
-        "the basket"
-      ],
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.45,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "outfit": "walk",
-      "kind": "clip",
-      "shot": "Close-up of a blackbird hopping in the long grass beside a fallen apple with a hole pecked in it.",
-      "move": "The blackbird pecks the apple once and lifts its head; the grass and the apple stay still.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.55
-        ]
-      ]
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "outfit": "walk",
-      "kind": "clip",
-      "shot": "Close-up of her hands in oatmeal wool sleeves holding two apples together and tapping them gently against each other to hear if they are sound.",
-      "move": "She taps the apples together twice with a soft knock and sets one in the basket.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "kind": "still",
-      "shot": "Close-up of an old brick wall of the garden in soft light, a late red apple still hanging on a bare espaliered branch against the bricks.",
-      "hold": 3.5
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "outfit": "walk",
-      "kind": "clip",
-      "cast": [
-        "ELLIE"
-      ],
-      "shot": "Ellie seen from behind under the old apple tree, reaching up to one of the last red apples on a branch.",
-      "move": "She reaches up slowly and twists the apple off the branch; the branch springs back a little; the camera stays locked off.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.4
-        ]
-      ]
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "outfit": "walk",
-      "kind": "clip",
-      "shot": "Close-up of a small glass greenhouse door standing open, tomato plants gone brown inside, a wooden crate of apples on its floor.",
-      "move": "Only a thin drift of mist moves past the door; nothing else moves and no one walks in.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "outfit": "walk",
-      "kind": "clip",
-      "shot": "Close-up of her hands in oatmeal wool sleeves brushing a few wet leaves off a windfall apple over the basket.",
-      "move": "She brushes the apple slowly with her fingers and drops it into the basket with a soft thud.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "outfit": "walk",
-      "kind": "clip",
-      "cast": [
-        "ELLIE"
-      ],
-      "shot": "Ellie seen from behind, walking back along the gravel path toward the cottage's back door, the full basket on her arm.",
-      "move": "She walks slowly away along the path; the mist and the plants stay still and the camera does not follow.",
-      "props": [
-        "the basket"
-      ],
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.55
-        ]
-      ]
-    },
-    {
-      "ch": 1,
-      "where": "garden",
-      "time": "morning",
-      "kind": "still",
-      "shot": "Close-up of the willow basket lined with blue-and-white checked cloth standing on the stone step of the sage-green back door, full of red-and-yellow windfall apples.",
-      "hold": 4.0,
-      "props": [
-        "the basket"
-      ]
-    },
-    {
-      "ch": 2,
-      "where": "kitchen",
-      "time": "late morning",
-      "kind": "still",
-      "shot": "Wide view of the bright kitchen with nobody in it: the full willow basket on the oak worktop by the butler sink, a wooden shelf with glass jars and an old green tin, the garden through the small-paned window.",
-      "hold": 5.0,
-      "chapter": true,
-      "props": [
-        "the basket"
-      ]
-    },
-    {
-      "ch": 2,
-      "where": "kitchen",
-      "time": "late morning",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Top-down close-up of the oak worktop: her hands in cream knit sleeves empty the basket, setting windfall apples one by one on the checked cloth.",
-      "move": "Her hands set the last few apples down slowly; each apple stays where she puts it.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 2,
-      "where": "kitchen",
-      "time": "late morning",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "cast": [
-        "ELLIE"
-      ],
-      "shot": "Ellie seen from behind at the wooden shelf of the kitchen, reaching up for the old green tin.",
-      "move": "She lifts the old tin down from the shelf with both hands; the camera stays locked off.",
-      "props": [
-        "the tin"
-      ],
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.4
-        ]
-      ]
-    },
-    {
-      "ch": 2,
-      "where": "kitchen",
-      "time": "late morning",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of the old faded-green tin on the oak worktop: her hands in cream knit sleeves lift off its lid.",
-      "move": "The lid lifts off slowly with a small metallic scrape; the tin stays on the worktop.",
-      "props": [
-        "the tin"
-      ],
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 2,
-      "where": "kitchen",
-      "time": "late morning",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up inside the open old green tin: a stack of yellowed handwritten recipe cards, soft with age; her fingers walk through the cards.",
-      "move": "Her fingertips tick slowly through the edges of the cards and stop at one.",
-      "props": [
-        "the tin"
-      ],
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.55
-        ]
-      ]
-    },
-    {
-      "ch": 2,
-      "where": "kitchen",
-      "time": "late morning",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Top-down close-up of one yellowed handwritten recipe card titled 'Apple Cake' in faded blue-ink handwriting, a short list of lines under it and a small brown stain in the corner, lying on the oak worktop; her fingertip rests beside it.",
-      "move": "Her fingertip slowly slides along under the lines of handwriting; the card stays still.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 2,
-      "where": "kitchen",
-      "time": "late morning",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of her hand in a cream knit sleeve propping the recipe card upright against a glass jar on the worktop.",
-      "move": "She leans the card against the jar and straightens it with one finger; the card stays still.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 2,
-      "where": "kitchen",
-      "time": "late morning",
-      "kind": "still",
-      "shot": "Close-up of the recipe card propped against a glass jar on the oak worktop, faded blue handwriting, a brown stain, soft window light, the apples blurred behind.",
-      "hold": 4.0
-    },
-    {
-      "ch": 2,
-      "where": "kitchen",
-      "time": "late morning",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of the butler sink under the window: her hands in cream knit sleeves rinse a windfall apple under a thin stream of cold tap water.",
-      "move": "Water runs over the apple and a little earth washes away slowly into the sink.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 2,
-      "where": "kitchen",
-      "time": "late morning",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Top-down close-up of a wooden board with apples that are already peeled and cored and cut into pale thick slices, heaped in a white bowl; her hand pushes a few slices in.",
-      "move": "Her hand slowly sweeps the pale slices together into the bowl.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 2,
-      "where": "kitchen",
-      "time": "late morning",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of a long curl of red apple peel already lying in a coil on the oak worktop, beside a small white bowl of pale apple slices.",
-      "move": "A thin wisp of steam from the kettle drifts across the back of the frame; nothing else moves.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 2,
-      "where": "kitchen",
-      "time": "late morning",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of her hands in cream knit sleeves sprinkling cinnamon from a small tin over the white bowl of pale apple slices.",
-      "move": "Brown cinnamon falls slowly onto the slices in a soft cloud.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 2,
-      "where": "kitchen",
-      "time": "late morning",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of her fingers turning the apple slices in the white bowl with a wooden spoon so the cinnamon coats them, a squeeze of lemon on top.",
-      "move": "The spoon turns the slices slowly; they stay pale with brown specks of cinnamon.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 2,
-      "where": "kitchen",
-      "time": "late morning",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of Pip the cat sitting on the kitchen floor by the range cooker, watching up toward the worktop.",
-      "move": "Pip blinks slowly and his tail tip curls once; the kitchen stays still.",
-      "props": [
-        "Pip"
-      ],
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.45
-        ]
-      ]
-    },
-    {
-      "ch": 2,
-      "where": "kitchen",
-      "time": "late morning",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "cast": [
-        "ELLIE"
-      ],
-      "shot": "Ellie seen from the side at the window worktop, head bowed, reading the recipe card propped against the jar, one hand resting on the worktop.",
-      "move": "She reads for a moment and slowly nods once; the camera stays still.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.45,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 3,
-      "where": "kitchen",
-      "time": "afternoon",
-      "kind": "still",
-      "shot": "Close-up of the oak worktop in soft afternoon light, laid out ready: a white mixing bowl, a bag of flour, a bowl of pale sugar, a block of butter on a saucer, three brown eggs.",
-      "hold": 5.0,
-      "chapter": true
-    },
-    {
-      "ch": 3,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Top-down close-up of a white mixing bowl: her hand in a cream knit sleeve drops a block of soft pale butter into it.",
-      "move": "The butter lands in the bowl with a soft thud and her hand draws back.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 3,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Tight close-up of the white mixing bowl on the oak worktop: her one hand in a cream chunky-knit cardigan sleeve pushed up to the forearm pours pale sugar from a small bowl onto the soft butter. Only that hand and forearm are in the frame.",
-      "move": "The sugar pours slowly in a thin stream onto the butter.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 3,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of her hand in a cream knit sleeve beating butter and sugar together with a wooden spoon in the white bowl, the mixture pale and creamy.",
-      "move": "The wooden spoon beats slowly round the bowl with a soft squelch; the mixture stays pale.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.55
-        ]
-      ]
-    },
-    {
-      "ch": 3,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of her hand cracking a brown egg on the rim of the white bowl of creamy pale butter and sugar.",
-      "move": "The egg cracks and the yolk drops slowly into the bowl.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          2.8,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 3,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of the white bowl: a hand whisks the egg into the creamy pale mixture with a metal balloon whisk.",
-      "move": "The whisk circles the bowl and the mixture turns smooth and pale yellow with a soft rhythmic sound.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.55
-        ]
-      ]
-    },
-    {
-      "ch": 3,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "cast": [
-        "ELLIE"
-      ],
-      "shot": "Ellie seen from behind at the oak worktop, head bowed over the white bowl, whisking steadily with her right arm.",
-      "move": "Her arm whisks slowly round the bowl, her shoulders moving a little; the camera stays locked off.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 3,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of a sieve held over the white bowl: her hand taps the sieve and white flour falls through it.",
-      "move": "Flour drifts slowly down through the sieve into the batter in a soft cloud.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 3,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of a white mixing bowl: her hand folds the flour into the pale yellow batter with a large metal spoon.",
-      "move": "The spoon folds the batter slowly over itself until the flour disappears.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.55
-        ]
-      ]
-    },
-    {
-      "ch": 3,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Tight close-up of the white mixing bowl on the oak worktop: her one hand in a cream chunky-knit cardigan sleeve pushed up to the forearm pours a splash of milk from a little cream jug into the thick pale batter. Only that hand and forearm are in the frame.",
-      "move": "The milk pours slowly and the batter loosens.",
-      "cuts": [
-        [
-          0.3,
-          3.0
-        ],
-        [
-          3.4,
-          2.8,
-          1.32,
-          0.5,
-          0.6
-        ]
-      ]
-    },
-    {
-      "ch": 3,
-      "where": "kitchen",
-      "time": "afternoon",
-      "kind": "still",
-      "shot": "Close-up of the white mixing bowl of smooth thick pale-yellow cake batter on the oak worktop, a wooden spoon resting in it, soft afternoon window light.",
-      "hold": 4.0
-    },
-    {
-      "ch": 3,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of her finger scooping a little thick batter from the white bowl on the wooden spoon.",
-      "move": "Thick batter slides slowly off the lifted spoon back into the bowl in a ribbon.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 3,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of a small bowl of dark-brown sugar with a spoonful lifted out and scattered over a plate.",
-      "move": "The sugar falls slowly in a loose brown sprinkle.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 3,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of her hands in cream knit sleeves folding the pale cinnamon apple slices from the small white bowl into the batter.",
-      "move": "She folds the apple slices through the batter slowly with the spoon.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.55
-        ]
-      ]
-    },
-    {
-      "ch": 3,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of the recipe card propped against the glass jar, faded handwriting, her fingertip tapping one line.",
-      "move": "Her fingertip taps the line once and lifts away; the card stays still.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 4,
-      "where": "kitchen",
-      "time": "afternoon",
-      "kind": "still",
-      "shot": "Close-up of the oak worktop in soft afternoon light: a round cake tin lined with baking paper, a small saucer of butter and a wooden spoon, the bowl of batter behind.",
-      "hold": 5.0,
-      "chapter": true
-    },
-    {
-      "ch": 4,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of a round cake tin on the worktop: her fingers rub a little soft butter round the inside with a small piece of paper.",
-      "move": "Her fingers rub the butter round slowly; the tin stays still.",
-      "cuts": [
-        [
-          0.3,
-          3.2
-        ],
-        [
-          3.6,
-          2.8,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 4,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of the round cake tin: her hand spoons thick pale batter into it and spreads it into a first layer.",
-      "move": "The batter spreads slowly into a smooth layer under the back of the spoon.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.55
-        ]
-      ]
-    },
-    {
-      "ch": 4,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Top-down close-up of the round tin with a first layer of batter: her fingers lay pale cinnamon apple slices over it in a neat circle.",
-      "move": "Her fingers lay slice after slice in a slow circle; each slice stays where it lies.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 4,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Top-down close-up of the round tin: a second layer of thick batter is spooned over the apple slices.",
-      "move": "The batter drops slowly in spoonfuls and her spoon spreads it level.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 4,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Top-down close-up of the round tin: a final layer of overlapping apple slices fanned in a ring on top of the batter.",
-      "move": "Her fingers set the last slices into the ring slowly.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 4,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Top-down close-up of the round cake tin filled with batter and fanned pale apple slices, on the oak worktop: her fingers, in a cream chunky-knit cardigan sleeve pushed up to the forearm, scatter brown sugar and a few small cubes of butter over the apple slices. A round tin, not a tray.",
-      "move": "Brown sugar falls slowly onto the apples; the tin stays still.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 4,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of the open oven door of the sage-green range: her hands in a faded quilted oven glove slide the filled cake tin onto the rack.",
-      "move": "She slides the tin in slowly and draws her hands back; the oven door stays open.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 4,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of the sage-green range with the oven door now closed: a kitchen timer on the worktop beside it, her finger turns its dial.",
-      "move": "Her finger turns the dial slowly and the timer starts to tick.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 4,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "cast": [
-        "ELLIE"
-      ],
-      "shot": "Ellie seen from the side at the window, head bowed, wiping her hands slowly on her olive linen apron while the range hums behind her.",
-      "move": "She wipes her hands slowly and looks out at the garden; the camera stays still.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.45,
-          0.45
-        ]
-      ]
-    },
-    {
-      "ch": 4,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of the small-paned kitchen window: late-afternoon sun on the glass jars on the sill, the walled garden beyond, a few red apples still in the tree.",
-      "move": "A little steam on the window pane slowly fades; nothing else moves and no one walks in.",
-      "cuts": [
-        [
-          0.3,
-          3.2
-        ],
-        [
-          3.6,
-          2.8,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 4,
-      "where": "kitchen",
-      "time": "afternoon",
-      "kind": "still",
-      "shot": "Close-up of the old green tin with its lid back on and the recipe card leaning on it, a pale flour handprint on the oak worktop beside it, soft light.",
-      "hold": 4.0
-    },
-    {
-      "ch": 4,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "cast": [
-        "ELLIE"
-      ],
-      "shot": "Ellie seen from behind sitting on a wooden chair by the range with Pip the cat on her lap, her head bowed, waiting.",
-      "move": "She strokes Pip slowly with one hand; Pip's ear twitches once; the camera stays locked off.",
-      "props": [
-        "Pip"
-      ],
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 4,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of the closed oven door of the sage-green range with a small round glass window: warm orange light inside, nothing else visible.",
-      "move": "Only a thin wisp of steam curls up past the oven door; nothing else moves.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 4,
-      "where": "kitchen",
-      "time": "afternoon",
-      "outfit": "kitchen",
-      "kind": "clip",
-      "shot": "Close-up of the open oven of the sage-green range: the apple cake in its round tin, risen and golden-brown with browned apple slices on top, a skewer in her hand being slid into the centre.",
-      "move": "She pulls the skewer out slowly and it comes out clean; a little steam drifts out of the oven.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.55
-        ]
-      ]
-    },
-    {
-      "ch": 5,
-      "where": "table",
-      "time": "late afternoon",
-      "kind": "still",
-      "shot": "Wide view of the round oak table by the kitchen window in low late-afternoon sun, the walled garden outside, a wire cooling rack with a whole golden-brown apple cake on it, nobody in the frame.",
-      "hold": 5.0,
-      "chapter": true
-    },
-    {
-      "ch": 5,
-      "where": "kitchen",
-      "time": "late afternoon",
-      "outfit": "table",
-      "kind": "clip",
-      "shot": "Close-up of her hands in cream knit sleeves, in a quilted oven glove, lifting the golden-brown apple cake out of its tin onto a wire rack on the worktop.",
-      "move": "She lifts the cake slowly onto the rack and a thin wisp of steam rises from it.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 5,
-      "where": "kitchen",
-      "time": "late afternoon",
-      "outfit": "table",
-      "kind": "clip",
-      "shot": "Top-down close-up of the apple cake on the wire rack: golden-brown top with fanned browned apple slices and dark sugar crust; her hand dusts icing sugar over it through a small sieve.",
-      "move": "Icing sugar falls slowly in a fine white cloud and settles on the cake.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 5,
-      "where": "table",
-      "time": "late afternoon",
-      "outfit": "table",
-      "kind": "clip",
-      "shot": "Close-up of the round oak table by the window: her hands in cream knit sleeves set down a white plate and a small fork on a linen napkin.",
-      "move": "She sets the plate down slowly and straightens the fork; the light stays steady.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 5,
-      "where": "table",
-      "time": "late afternoon",
-      "outfit": "table",
-      "kind": "clip",
-      "shot": "Close-up of a slice of apple cake being lifted with a cake slice from the cake on the table: a golden crumb with pale apple layers, steam rising.",
-      "move": "The slice lifts slowly away and a little steam rises from the cut cake.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.55
-        ]
-      ]
-    },
-    {
-      "ch": 5,
-      "where": "table",
-      "time": "late afternoon",
-      "kind": "still",
-      "shot": "Top-down view of the round oak table by the window in low sun: a wedge of warm apple cake on a white plate showing its apple layers, the rest of the cake on the cooling rack, a cup of tea, the old green tin with the recipe card leaning on it.",
-      "hold": 5.0
-    },
-    {
-      "ch": 5,
-      "where": "table",
-      "time": "late afternoon",
-      "outfit": "table",
-      "kind": "clip",
-      "cast": [
-        "ELLIE"
-      ],
-      "shot": "Ellie seen from behind and a little to the side, sitting down at the round oak table by the window, the autumn garden outside.",
-      "move": "She sits down slowly and pulls her chair in; the window light stays still; the camera stays locked off.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 5,
-      "where": "table",
-      "time": "late afternoon",
-      "outfit": "table",
-      "kind": "clip",
-      "shot": "Close-up of the plate of apple cake: a fork presses down and breaks off a corner of the warm cake.",
-      "move": "The fork lifts slowly out of the cake with a soft crumbly sound; steam rises.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 5,
-      "where": "table",
-      "time": "late afternoon",
-      "outfit": "table",
-      "kind": "clip",
-      "shot": "Close-up of the old recipe card leaning against the green tin on the table, sun across it; her fingertip touches the corner stain.",
-      "move": "Her fingertip rests on the stain, then draws slowly away; the card stays still.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 5,
-      "where": "table",
-      "time": "late afternoon",
-      "outfit": "table",
-      "kind": "clip",
-      "shot": "Close-up of Pip the cat curled on the second wooden chair at the table, the low sun on his fur.",
-      "move": "Pip breathes slowly and his ear twitches once; nothing else moves.",
-      "props": [
-        "Pip"
-      ],
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.5
-        ]
-      ]
-    },
-    {
-      "ch": 5,
-      "where": "table",
-      "time": "late afternoon",
-      "outfit": "table",
-      "kind": "clip",
-      "cast": [
-        "ELLIE"
-      ],
-      "shot": "Ellie seen from behind at the table by the window, holding a warm cup of tea in both hands, the red apples in the tree outside.",
-      "move": "She lifts the cup slowly and a thin wisp of steam rises; the window stays still; the camera stays locked off.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.5,
-          0.45
-        ]
-      ]
-    },
-    {
-      "ch": 5,
-      "where": "table",
-      "time": "late afternoon",
-      "kind": "still",
-      "shot": "Close-up of the table after: an empty white plate with a few crumbs and a fork, the cup of tea, the recipe card on the green tin, low sun.",
-      "hold": 4.0
-    },
-    {
-      "ch": 5,
-      "where": "garden",
-      "time": "late afternoon",
-      "outfit": "table",
-      "kind": "clip",
-      "shot": "Wide view of the thatched cottage window from the walled garden in low sun, the red apples in the bare apple tree in the foreground, nobody outside.",
-      "move": "Only the branches sway a little in the breeze; nobody walks in; the camera stays still.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.4,
-          1.32,
-          0.55,
-          0.45
-        ]
-      ]
-    },
-    {
-      "ch": 5,
-      "where": "table",
-      "time": "late afternoon",
-      "outfit": "table",
-      "kind": "clip",
-      "cast": [
-        "ELLIE"
-      ],
-      "shot": "Ellie seen from behind standing at the kitchen window, the recipe card in one hand held against the glass light, the garden outside.",
-      "move": "She lowers the card slowly to her chest; the window stays still; the camera stays locked off.",
-      "cuts": [
-        [
-          0.3,
-          4.6
-        ],
-        [
-          5.0,
-          4.8,
-          1.25,
-          0.5,
-          0.45
-        ]
-      ]
-    }
-  ],
-  "teaser": {
-    "text": "I picked up the windfalls this morning. By tea time they were grandmother's apple cake.",
-    "text_secs": 5.5,
-    "shots": [
-      [
-        64,
-        1.0,
-        3.0
-      ],
-      [
-        21,
-        0.8,
-        2.6
-      ],
-      [
-        38,
-        1.0,
-        2.6
-      ],
-      [
-        53,
-        1.0,
-        2.6
-      ],
-      [
-        6,
-        1.0,
-        2.8
-      ],
-      [
-        65,
-        1.0,
-        2.6
-      ],
-      [
-        70,
-        1.0,
-        2.4
-      ],
-      [
-        69,
-        2.0,
-        3.6
-      ]
-    ]
+  "the tin": {
+   "kind": "prop",
+   "brief": "An old round recipe tin, faded dark green with worn paint at the edges and a lid, standing on a pale oak worktop, closed. Soft daylight."
   },
-  "short": {
-    "text": "apple cake, from the long grass to the table",
-    "shots": [
-      [
-        6,
-        0.5,
-        2.8,
-        0.5
-      ],
-      [
-        21,
-        1.0,
-        2.4,
-        0.5
-      ],
-      [
-        38,
-        0.8,
-        2.4,
-        0.5
-      ],
-      [
-        53,
-        1.5,
-        2.6,
-        0.5
-      ],
-      [
-        65,
-        1.0,
-        2.4,
-        0.5
-      ],
-      [
-        70,
-        1.0,
-        3.0,
-        0.5
-      ]
-    ]
+  "Pip": {
+   "kind": "prop",
+   "brief": "Pip the cat sitting upright on a pale oak kitchen floor, looking slightly to the side, full body in view, soft daylight."
   }
+ },
+ "chapters": [
+  {
+   "n": 1,
+   "title": "i.  windfalls",
+   "sub": "apples from the long grass"
+  },
+  {
+   "n": 2,
+   "title": "ii.  the card",
+   "sub": "from the old green tin"
+  },
+  {
+   "n": 3,
+   "title": "iii.  the batter",
+   "sub": "butter, sugar, eggs"
+  },
+  {
+   "n": 4,
+   "title": "iv.  the tin",
+   "sub": "layer by layer"
+  },
+  {
+   "n": 5,
+   "title": "v.  by the window",
+   "sub": "warm apple cake"
+  }
+ ],
+ "beats": [
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "kind": "still",
+   "shot": "Wide empty view of the walled kitchen garden in the morning mist, no woman and no person anywhere: the old brick wall, bean wigwams, the greenhouse, two apple trees with red and yellow windfall apples scattered in the long grass.",
+   "hold": 5.0,
+   "chapter": true
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from behind at the sage-green back door of the thatched cottage, the empty willow basket on her arm, pulling the door closed.",
+   "move": "She pulls the door closed with a soft click of the latch and turns toward the garden; the camera stays locked off.",
+   "props": [
+    "the basket"
+   ],
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from behind, small in the frame, walking slowly along the gravel path of the walled garden past the bean wigwams, the basket on her arm.",
+   "move": "She walks slowly away along the path with soft crunching steps; the plants and the camera stay perfectly still.",
+   "props": [
+    "the basket"
+   ],
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of the gravel path edge: her dark-green rubber boots stepping slowly through wet long grass scattered with fallen apples.",
+   "move": "Her boots take two slow steps through the grass with a soft swish; the apples stay where they lie.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "kind": "still",
+   "shot": "Close-up of red-and-yellow windfall apples lying in the long wet grass under an old apple tree, a few brown leaves among them.",
+   "hold": 3.5
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of the long grass under the apple tree: her hand in an oatmeal wool coat sleeve picks up one red-and-yellow windfall apple.",
+   "move": "Her hand slowly lifts the apple out of the grass; drops of dew fall from it.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.6
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of her hands in oatmeal wool coat sleeves turning a windfall apple over to look at its bruised side, then rubbing it on the coat.",
+   "move": "She turns the apple slowly and rubs its skin with her thumb.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Top-down close-up of the willow basket lined with blue-and-white checked cloth standing in the long grass outdoors, three windfall apples in it; her hand lays one more apple in.",
+   "move": "Her hand lays the apple in the basket and draws back out of frame; the others stay where they are.",
+   "props": [],
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from the side, crouching in the grass under an old apple tree, her head bowed, the basket beside her, gathering apples from the grass.",
+   "move": "She slowly reaches for another apple and lifts it, head bowed; the camera stays still.",
+   "props": [
+    "the basket"
+   ],
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.45,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of a blackbird hopping in the long grass beside a fallen apple with a hole pecked in it.",
+   "move": "The blackbird pecks the apple once and lifts its head; the grass and the apple stay still.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of her hands in oatmeal wool sleeves holding two apples together and tapping them gently against each other to hear if they are sound.",
+   "move": "She taps the apples together twice with a soft knock and sets one in the basket.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "kind": "still",
+   "shot": "Close-up of an old brick wall of the garden in soft light, a late red apple still hanging on a bare espaliered branch against the bricks.",
+   "hold": 3.5
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from behind under the old apple tree, reaching up to one of the last red apples on a branch.",
+   "move": "She reaches up slowly and twists the apple off the branch; the branch springs back a little; the camera stays locked off.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.4
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of a small glass greenhouse door standing open, tomato plants gone brown inside, a wooden crate of apples on its floor.",
+   "move": "Only a thin drift of mist moves past the door; nothing else moves and no one walks in.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "shot": "Close-up of her hands in oatmeal wool sleeves brushing a few wet leaves off a windfall apple over the basket.",
+   "move": "She brushes the apple slowly with her fingers and drops it into the basket with a soft thud.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "walk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from behind, walking back along the gravel path toward the cottage's back door, the full basket on her arm.",
+   "move": "She walks slowly away along the path; the mist and the plants stay still and the camera does not follow.",
+   "props": [
+    "the basket"
+   ],
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 1,
+   "where": "garden",
+   "time": "morning",
+   "kind": "still",
+   "shot": "Close-up of the willow basket lined with blue-and-white checked cloth standing on the stone step of the sage-green back door, full of red-and-yellow windfall apples.",
+   "hold": 4.0,
+   "props": [
+    "the basket"
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "kitchen",
+   "time": "late morning",
+   "kind": "still",
+   "shot": "Wide view of the bright kitchen with nobody in it: the full willow basket on the oak worktop by the butler sink, a wooden shelf with glass jars and an old green tin, the garden through the small-paned window.",
+   "hold": 5.0,
+   "chapter": true,
+   "props": [
+    "the basket"
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "kitchen",
+   "time": "late morning",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Top-down close-up of the oak worktop: her hands in cream knit sleeves empty the basket, setting windfall apples one by one on the checked cloth.",
+   "move": "Her hands set the last few apples down slowly; each apple stays where she puts it.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "kitchen",
+   "time": "late morning",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from behind at the wooden shelf of the kitchen, reaching up for the old green tin.",
+   "move": "She lifts the old tin down from the shelf with both hands; the camera stays locked off.",
+   "props": [
+    "the tin"
+   ],
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.4
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "kitchen",
+   "time": "late morning",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the old faded-green tin on the oak worktop: her hands in cream knit sleeves lift off its lid.",
+   "move": "The lid lifts off slowly with a small metallic scrape; the tin stays on the worktop.",
+   "props": [
+    "the tin"
+   ],
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "kitchen",
+   "time": "late morning",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up inside the open old green tin: a stack of yellowed handwritten recipe cards, soft with age; her fingers walk through the cards.",
+   "move": "Her fingertips tick slowly through the edges of the cards and stop at one.",
+   "props": [
+    "the tin"
+   ],
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "kitchen",
+   "time": "late morning",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Top-down close-up of one yellowed handwritten recipe card titled 'Apple Cake' in faded blue-ink handwriting, a short list of lines under it and a small brown stain in the corner, lying on the oak worktop; her fingertip rests beside it.",
+   "move": "Her fingertip slowly slides along under the lines of handwriting; the card stays still.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "kitchen",
+   "time": "late morning",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of her hand in a cream knit sleeve propping the recipe card upright against a glass jar on the worktop.",
+   "move": "She leans the card against the jar and straightens it with one finger; the card stays still.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "kitchen",
+   "time": "late morning",
+   "kind": "still",
+   "shot": "Close-up of the recipe card propped against a glass jar on the oak worktop, faded blue handwriting, a brown stain, soft window light, the apples blurred behind.",
+   "hold": 4.0
+  },
+  {
+   "ch": 2,
+   "where": "kitchen",
+   "time": "late morning",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the butler sink under the window: her hands in cream knit sleeves rinse a windfall apple under a thin stream of cold tap water.",
+   "move": "Water runs over the apple and a little earth washes away slowly into the sink.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "kitchen",
+   "time": "late morning",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Top-down close-up of a wooden board with apples that are already peeled and cored and cut into pale thick slices, heaped in a white bowl; her hand pushes a few slices in.",
+   "move": "Her hand slowly sweeps the pale slices together into the bowl.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "kitchen",
+   "time": "late morning",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of a long curl of red apple peel already lying in a coil on the oak worktop, beside a small white bowl of pale apple slices.",
+   "move": "A thin wisp of steam from the kettle drifts across the back of the frame; nothing else moves.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "kitchen",
+   "time": "late morning",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of her hands in cream knit sleeves sprinkling cinnamon from a small tin over the white bowl of pale apple slices.",
+   "move": "Brown cinnamon falls slowly onto the slices in a soft cloud.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "kitchen",
+   "time": "late morning",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of her fingers turning the apple slices in the white bowl with a wooden spoon so the cinnamon coats them, a squeeze of lemon on top.",
+   "move": "The spoon turns the slices slowly; they stay pale with brown specks of cinnamon.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "kitchen",
+   "time": "late morning",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of Pip the cat sitting on the kitchen floor by the range cooker, watching up toward the worktop.",
+   "move": "Pip blinks slowly and his tail tip curls once; the kitchen stays still.",
+   "props": [
+    "Pip"
+   ],
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.45
+    ]
+   ]
+  },
+  {
+   "ch": 2,
+   "where": "kitchen",
+   "time": "late morning",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from the side at the window worktop, head bowed, reading the recipe card propped against the jar, one hand resting on the worktop.",
+   "move": "She reads for a moment and slowly nods once; the camera stays still.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.45,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "kind": "still",
+   "shot": "Close-up of the oak worktop in soft afternoon light, laid out ready: a white mixing bowl, a bag of flour, a bowl of pale sugar, a block of butter on a saucer, three brown eggs.",
+   "hold": 5.0,
+   "chapter": true
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Top-down close-up of a white mixing bowl: her hand in a cream knit sleeve drops a block of soft pale butter into it.",
+   "move": "The butter lands in the bowl with a soft thud and her hand draws back.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Tight close-up of the white mixing bowl on the oak worktop: her one hand in a cream chunky-knit cardigan sleeve pushed up to the forearm pours pale sugar from a small bowl onto the soft butter. Only that hand and forearm are in the frame.",
+   "move": "The sugar pours slowly in a thin stream onto the butter.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of her hand in a cream knit sleeve beating butter and sugar together with a wooden spoon in the white bowl, the mixture pale and creamy.",
+   "move": "The wooden spoon beats slowly round the bowl with a soft squelch; the mixture stays pale.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of her hand cracking a brown egg on the rim of the white bowl of creamy pale butter and sugar.",
+   "move": "The egg cracks and the yolk drops slowly into the bowl.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     2.8,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the white bowl: a hand whisks the egg into the creamy pale mixture with a metal balloon whisk.",
+   "move": "The whisk circles the bowl and the mixture turns smooth and pale yellow with a soft rhythmic sound.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from behind at the oak worktop, head bowed over the white bowl, whisking steadily with her right arm.",
+   "move": "Her arm whisks slowly round the bowl, her shoulders moving a little; the camera stays locked off.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of a sieve held over the white bowl: her hand taps the sieve and white flour falls through it.",
+   "move": "Flour drifts slowly down through the sieve into the batter in a soft cloud.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of a white mixing bowl: her hand folds the flour into the pale yellow batter with a large metal spoon.",
+   "move": "The spoon folds the batter slowly over itself until the flour disappears.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Tight close-up of the white mixing bowl on the oak worktop: her one hand in a cream chunky-knit cardigan sleeve pushed up to the forearm pours a splash of milk from a little cream jug into the thick pale batter. Only that hand and forearm are in the frame.",
+   "move": "The milk pours slowly and the batter loosens.",
+   "cuts": [
+    [
+     0.3,
+     3.0
+    ],
+    [
+     3.4,
+     2.8,
+     1.32,
+     0.5,
+     0.6
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "kind": "still",
+   "shot": "Close-up of the white mixing bowl of smooth thick pale-yellow cake batter on the oak worktop, a wooden spoon resting in it, soft afternoon window light.",
+   "hold": 4.0
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of her finger scooping a little thick batter from the white bowl on the wooden spoon.",
+   "move": "Thick batter slides slowly off the lifted spoon back into the bowl in a ribbon.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of a small bowl of dark-brown sugar with a spoonful lifted out and scattered over a plate.",
+   "move": "The sugar falls slowly in a loose brown sprinkle.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of her hands in cream knit sleeves folding the pale cinnamon apple slices from the small white bowl into the batter.",
+   "move": "She folds the apple slices through the batter slowly with the spoon.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 3,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the recipe card propped against the glass jar, faded handwriting, her fingertip tapping one line.",
+   "move": "Her fingertip taps the line once and lifts away; the card stays still.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "kind": "still",
+   "shot": "Close-up of the oak worktop in soft afternoon light: a round cake tin lined with baking paper, a small saucer of butter and a wooden spoon, the bowl of batter behind.",
+   "hold": 5.0,
+   "chapter": true
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of a round cake tin on the worktop: her fingers rub a little soft butter round the inside with a small piece of paper.",
+   "move": "Her fingers rub the butter round slowly; the tin stays still.",
+   "cuts": [
+    [
+     0.3,
+     3.2
+    ],
+    [
+     3.6,
+     2.8,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the round cake tin: her hand spoons thick pale batter into it and spreads it into a first layer.",
+   "move": "The batter spreads slowly into a smooth layer under the back of the spoon.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Top-down close-up of the round tin with a first layer of batter: her fingers lay pale cinnamon apple slices over it in a neat circle.",
+   "move": "Her fingers lay slice after slice in a slow circle; each slice stays where it lies.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Top-down close-up of the round tin: a second layer of thick batter is spooned over the apple slices.",
+   "move": "The batter drops slowly in spoonfuls and her spoon spreads it level.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Top-down close-up of the round tin: a final layer of overlapping apple slices fanned in a ring on top of the batter.",
+   "move": "Her fingers set the last slices into the ring slowly.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Top-down close-up of the round cake tin filled with batter and fanned pale apple slices, on the oak worktop: her fingers, in a cream chunky-knit cardigan sleeve pushed up to the forearm, scatter brown sugar and a few small cubes of butter over the apple slices. A round tin, not a tray.",
+   "move": "Brown sugar falls slowly onto the apples; the tin stays still.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the open oven door of the sage-green range: her hands in a faded quilted oven glove slide the filled cake tin onto the rack.",
+   "move": "She slides the tin in slowly and draws her hands back; the oven door stays open.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the sage-green range with the oven door now closed: a kitchen timer on the worktop beside it, her finger turns its dial.",
+   "move": "Her finger turns the dial slowly and the timer starts to tick.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from the side at the window, head bowed, wiping her hands slowly on her olive linen apron while the range hums behind her.",
+   "move": "She wipes her hands slowly and looks out at the garden; the camera stays still.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.45,
+     0.45
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the small-paned kitchen window: late-afternoon sun on the glass jars on the sill, the walled garden beyond, a few red apples still in the tree.",
+   "move": "A little steam on the window pane slowly fades; nothing else moves and no one walks in.",
+   "cuts": [
+    [
+     0.3,
+     3.2
+    ],
+    [
+     3.6,
+     2.8,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "kind": "still",
+   "shot": "Close-up of the old green tin with its lid back on and the recipe card leaning on it, a pale flour handprint on the oak worktop beside it, soft light.",
+   "hold": 4.0
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from behind sitting on a wooden chair by the range with Pip the cat on her lap, her head bowed, waiting.",
+   "move": "She strokes Pip slowly with one hand; Pip's ear twitches once; the camera stays locked off.",
+   "props": [
+    "Pip"
+   ],
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the closed oven door of the sage-green range with a small round glass window: warm orange light inside, nothing else visible.",
+   "move": "Only a thin wisp of steam curls up past the oven door; nothing else moves.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 4,
+   "where": "kitchen",
+   "time": "afternoon",
+   "outfit": "kitchen",
+   "kind": "clip",
+   "shot": "Close-up of the open oven of the sage-green range: the apple cake in its round tin, risen and golden-brown with browned apple slices on top, a skewer in her hand being slid into the centre.",
+   "move": "She pulls the skewer out slowly and it comes out clean; a little steam drifts out of the oven.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "table",
+   "time": "late afternoon",
+   "kind": "still",
+   "shot": "Wide view of the round oak table by the kitchen window in low late-afternoon sun, the walled garden outside, a wire cooling rack with a whole golden-brown apple cake on it, nobody in the frame.",
+   "hold": 5.0,
+   "chapter": true
+  },
+  {
+   "ch": 5,
+   "where": "kitchen",
+   "time": "late afternoon",
+   "outfit": "table",
+   "kind": "clip",
+   "shot": "Close-up of her hands in cream knit sleeves, in a quilted oven glove, lifting the golden-brown apple cake out of its tin onto a wire rack on the worktop.",
+   "move": "She lifts the cake slowly onto the rack and a thin wisp of steam rises from it.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "kitchen",
+   "time": "late afternoon",
+   "outfit": "table",
+   "kind": "clip",
+   "shot": "Top-down close-up of the apple cake on the wire rack: golden-brown top with fanned browned apple slices and dark sugar crust; her hand dusts icing sugar over it through a small sieve.",
+   "move": "Icing sugar falls slowly in a fine white cloud and settles on the cake.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "table",
+   "time": "late afternoon",
+   "outfit": "table",
+   "kind": "clip",
+   "shot": "Close-up of the round oak table by the window: her hands in cream knit sleeves set down a white plate and a small fork on a linen napkin.",
+   "move": "She sets the plate down slowly and straightens the fork; the light stays steady.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "table",
+   "time": "late afternoon",
+   "outfit": "table",
+   "kind": "clip",
+   "shot": "Close-up of a slice of apple cake being lifted with a cake slice from the cake on the table: a golden crumb with pale apple layers, steam rising.",
+   "move": "The slice lifts slowly away and a little steam rises from the cut cake.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.55
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "table",
+   "time": "late afternoon",
+   "kind": "still",
+   "shot": "Top-down view of the round oak table by the window in low sun: a wedge of warm apple cake on a white plate showing its apple layers, the rest of the cake on the cooling rack, a cup of tea, the old green tin with the recipe card leaning on it.",
+   "hold": 5.0
+  },
+  {
+   "ch": 5,
+   "where": "table",
+   "time": "late afternoon",
+   "outfit": "table",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from behind and a little to the side, sitting down at the round oak table by the window, the autumn garden outside.",
+   "move": "She sits down slowly and pulls her chair in; the window light stays still; the camera stays locked off.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "table",
+   "time": "late afternoon",
+   "outfit": "table",
+   "kind": "clip",
+   "shot": "Close-up of the plate of apple cake: a fork presses down and breaks off a corner of the warm cake.",
+   "move": "The fork lifts slowly out of the cake with a soft crumbly sound; steam rises.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "table",
+   "time": "late afternoon",
+   "outfit": "table",
+   "kind": "clip",
+   "shot": "Close-up of the old recipe card leaning against the green tin on the table, sun across it; her fingertip touches the corner stain.",
+   "move": "Her fingertip rests on the stain, then draws slowly away; the card stays still.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "table",
+   "time": "late afternoon",
+   "outfit": "table",
+   "kind": "clip",
+   "shot": "Close-up of Pip the cat curled on the second wooden chair at the table, the low sun on his fur.",
+   "move": "Pip breathes slowly and his ear twitches once; nothing else moves.",
+   "props": [
+    "Pip"
+   ],
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.5
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "table",
+   "time": "late afternoon",
+   "outfit": "table",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from behind at the table by the window, holding a warm cup of tea in both hands, the red apples in the tree outside.",
+   "move": "She lifts the cup slowly and a thin wisp of steam rises; the window stays still; the camera stays locked off.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.5,
+     0.45
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "table",
+   "time": "late afternoon",
+   "kind": "still",
+   "shot": "Close-up of the table after: an empty white plate with a few crumbs and a fork, the cup of tea, the recipe card on the green tin, low sun.",
+   "hold": 4.0
+  },
+  {
+   "ch": 5,
+   "where": "garden",
+   "time": "late afternoon",
+   "outfit": "table",
+   "kind": "clip",
+   "shot": "Wide view of the thatched cottage window from the walled garden in low sun, the red apples in the bare apple tree in the foreground, nobody outside.",
+   "move": "Only the branches sway a little in the breeze; nobody walks in; the camera stays still.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.4,
+     1.32,
+     0.55,
+     0.45
+    ]
+   ]
+  },
+  {
+   "ch": 5,
+   "where": "table",
+   "time": "late afternoon",
+   "outfit": "table",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "Ellie seen from behind standing at the kitchen window, the recipe card in one hand held against the glass light, the garden outside.",
+   "move": "She lowers the card slowly to her chest; the window stays still; the camera stays locked off.",
+   "cuts": [
+    [
+     0.3,
+     4.6
+    ],
+    [
+     5.0,
+     4.8,
+     1.25,
+     0.5,
+     0.45
+    ]
+   ]
+  }
+ ],
+ "teaser": {
+  "text": "I picked up the windfalls this morning. By tea time they were grandmother's apple cake.",
+  "text_secs": 5.5,
+  "shots": [
+   [
+    64,
+    1.0,
+    3.0
+   ],
+   [
+    21,
+    0.8,
+    2.6
+   ],
+   [
+    38,
+    1.0,
+    2.6
+   ],
+   [
+    53,
+    1.0,
+    2.6
+   ],
+   [
+    6,
+    1.0,
+    2.8
+   ],
+   [
+    65,
+    1.0,
+    2.6
+   ],
+   [
+    70,
+    1.0,
+    2.4
+   ],
+   [
+    69,
+    2.0,
+    3.6
+   ]
+  ]
+ },
+ "short": {
+  "text": "apple cake, from the long grass to the table",
+  "shots": [
+   [
+    6,
+    0.5,
+    2.8,
+    0.5
+   ],
+   [
+    21,
+    1.0,
+    2.4,
+    0.5
+   ],
+   [
+    38,
+    0.8,
+    2.4,
+    0.5
+   ],
+   [
+    53,
+    1.5,
+    2.6,
+    0.5
+   ],
+   [
+    65,
+    1.0,
+    2.4,
+    0.5
+   ],
+   [
+    70,
+    1.0,
+    3.0,
+    0.5
+   ]
+  ]
+ },
+ "no_stills": true
 }

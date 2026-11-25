@@ -27,14 +27,16 @@ refs = {
     "Pip": {"kind": "prop", "brief": "Pip the cat sitting upright on a pale oak kitchen floor, looking slightly to the side, full body in view, soft daylight."},
 }
 B = []
+AMBIENT = ("Only the air moves: mist, leaves, grass, steam or water drift and sway softly in the frame; nothing else moves and no one walks in.")
 
 
 def c(ch, w, t, o, cast, shot, move, px=0.5, py=0.5, **kw):
     B.append(dict(ch=ch, where=w, time=t, outfit=o, kind="clip", cast=cast, shot=shot, move=move, _p=(px, py), **kw))
 
 
-def s(ch, w, t, shot, hold=3.5, **kw):
-    B.append(dict(ch=ch, where=w, time=t, kind="still", cast=[], shot=shot, hold=hold, **kw))
+def s(ch, w, t, shot, hold=3.5, move=AMBIENT, **kw):
+    # a breathing shot of the place: a clip too, never a still image (user 2026-11-25: no static images in the film)
+    B.append(dict(ch=ch, where=w, time=t, kind="clip", cast=[], shot=shot, move=move, cuts=[[0.3, hold]], **kw))
 
 
 # i. the wood
@@ -124,7 +126,7 @@ c(5, "table", "dusk", "supper", E, "Ellie seen from behind standing at the dark 
 beats = []
 for b in B:
     px, py = b.pop("_p", (0.5, 0.5))
-    if b["kind"] == "clip":
+    if b["kind"] == "clip" and "cuts" not in b:
         b["cuts"] = [[0.3, 4.6], [5.0, 4.4, 1.32, px, py]]
     if not b["cast"]:
         b.pop("cast")
@@ -138,7 +140,7 @@ def find(word):
 
 story = {
     "story_id": "forest-supper", "slug": "forest-supper", "title": "an empty basket",
-    "eyebrow": "a november day", "season": "late autumn", "xf": 0.4,
+    "eyebrow": "a november day", "season": "late autumn", "xf": 0.4, "no_stills": True,
     "light": light, "outfits": outfits, "places": places, "refs": refs,
     "chapters": [
         {"n": 1, "title": "i.  the wood", "sub": "chanterelles, ceps, hazelnuts"},
