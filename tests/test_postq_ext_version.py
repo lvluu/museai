@@ -58,3 +58,28 @@ def test_claim_refuses_a_stale_extension(monkeypatch, tmp_path):
         assert claim(SHIPPED)[0] == 200
     finally:
         srv.shutdown()
+
+
+def test_poll_tells_a_stale_extension_what_to_load(monkeypatch, tmp_path):
+    import threading
+    import urllib.request
+    from http.server import ThreadingHTTPServer
+
+    monkeypatch.setattr(postq, "ROOT", tmp_path)
+    monkeypatch.setattr(postq, "POLLED", tmp_path / ".polled")
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), postq.Handler)
+    port = srv.server_address[1]
+    monkeypatch.setattr(postq, "PORT", port)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+
+    def poll(ver):
+        req = urllib.request.Request(f"http://127.0.0.1:{port}/api/items", headers={"X-Postq-Poller": ver})
+        with urllib.request.urlopen(req) as r:
+            return r.headers.get("X-Postq-Ext-Stale")
+
+    try:
+        stale = poll("0.36")
+        assert "0.36" in stale and str(postq.EXT_DIR) in stale
+        assert poll(SHIPPED) is None
+    finally:
+        srv.shutdown()
