@@ -86,7 +86,7 @@ def bank():
         seen.add(key)
         seasons = [s for s, bad in SEASON_OK.items() if not bad or not set(scenes) & bad]
         out.append({"id": f"ct-{len(out) + 1:04d}", "title": title, "seasons": seasons,
-                    "scenes": [{"time": t, "scene": s} for t, s in zip(ORDER, scenes, strict=True)]})
+                    "scenes": [{"time": t, "scene": s} for t, s in zip(ORDER, scenes)]})  # noqa: B905 (python3 here is 3.9)
     return out
 
 

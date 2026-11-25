@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Story template and gate for a countryside playlist film. REAL VIDEO ONLY: every beat is a motion clip.
 
-  story.py new ct-0042 --style hydrangea-cottage --slug hydrangea-day [--songs 6] [--per-song 20] > story.json
+  story.py new ct-0042 --style hydrangea-cottage --slug hydrangea-day [--songs 6] [--per-song 21] > story.json
       a story.json skeleton: the idea's six scenes as six songs, `per-song` clip beats each (shot/move = TODO),
       the style's world, camera, grade and music copied in.
   story.py check story.json [--work DIR]
@@ -19,7 +19,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import ideas  # noqa: E402
 
-CUTS = [[0.3, 5.2], [5.6, 4.6, 1.25, 0.5, 0.5]]  # wide part of the take, then a 1.25x punch-in of its end
+# The studied channel cuts every ~3 s (median 3.0 s, STUDY.md): each 10 s clip gives 3 shots, wide then two crops.
+CUTS = [[0.2, 3.4], [3.5, 3.2, 1.3, 0.5, 0.5], [6.6, 3.2, 1.15, 0.5, 0.5]]
 MIN_S, MAX_S = 1000, 1320
 
 
@@ -110,7 +111,7 @@ def main(argv):
     n.add_argument("--style", required=True)
     n.add_argument("--slug", required=True)
     n.add_argument("--songs", type=int, default=6)
-    n.add_argument("--per-song", type=int, default=20)
+    n.add_argument("--per-song", type=int, default=21)
     c = sub.add_parser("check")
     c.add_argument("story")
     c.add_argument("--work")

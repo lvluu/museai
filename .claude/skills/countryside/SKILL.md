@@ -33,7 +33,8 @@ and re-run the same clip queue after the 24-hour reset. Never compose, never fal
 - No narration, no subtitles, no chapter cards (`chapter_cards: false`), no text on screen.
 - Title: our own mood phrase from the idea (lowercase, a place or a feeling) + "| slow countryside days" style
   suffix of our own. Thumbnail: one scenery frame, no person.
-- Shots: ~9 s on screen per clip (wide part of the take, then a 1.25x punch-in), 20 clips per song, ~120 clips.
+- Shots: a ~3 s rhythm (measured median 3.0 s, mean 3.8 s). Each clip is cut into 3 shots of ~3 s (the wide take,
+  a 1.3x crop, a 1.15x crop: `cuts`), ~8.6 s per clip, 21 clips per song, ~126 clips. Never hold one shot long.
   Alternate wide (house, garden, lane) - medium (ELLIE at work from behind or the side) - close (hands, cup,
   flowers, a page). Every third beat has nobody in it (`cast: []`).
 
