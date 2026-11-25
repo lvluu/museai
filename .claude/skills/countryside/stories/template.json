@@ -1,0 +1,3269 @@
+{
+ "story_id": "ct-0001",
+ "slug": "example",
+ "title": "the porch and a long sigh",
+ "eyebrow": "a slow day in the countryside",
+ "format": "countryside-playlist",
+ "xf": 0.4,
+ "style": "hydrangea-cottage",
+ "camera": "Calm handheld-steady footage on a small mirrorless camera with a 35mm lens: natural perspective, soft background, gentle real grain.",
+ "grade": "eq=gamma={g:.3f}:saturation=0.9:contrast=1.0,colorbalance=rs=0.01:bs=-0.01,noise=alls=5:allf=t,vignette=PI/6",
+ "music_lufs": -16,
+ "shake": 2,
+ "max_slow": 1.12,
+ "chapter_cards": false,
+ "places": {
+  "house": "inside a small grey stone cottage with blue and white hydrangea beds, a wooden bench under an apple tree, a lane between hedges, a window seat with lace curtains",
+  "garden": "the garden and grounds of a small grey stone cottage with blue and white hydrangea beds, a wooden bench under an apple tree, a lane between hedges, a window seat with lace curtains"
+ },
+ "light": {
+  "morning": "TODO one sentence of light for this time",
+  "late morning": "TODO one sentence of light for this time",
+  "noon": "TODO one sentence of light for this time",
+  "afternoon": "TODO one sentence of light for this time",
+  "dusk": "TODO one sentence of light for this time",
+  "night": "TODO one sentence of light for this time"
+ },
+ "outfits": {
+  "morning": "a pale blue cotton sundress with a cream cardigan, canvas shoes, her braid over her LEFT shoulder",
+  "late morning": "a pale blue cotton sundress with a cream cardigan, canvas shoes, her braid over her LEFT shoulder",
+  "noon": "a pale blue cotton sundress with a cream cardigan, canvas shoes, her braid over her LEFT shoulder",
+  "afternoon": "a pale blue cotton sundress with a cream cardigan, canvas shoes, her braid over her LEFT shoulder",
+  "dusk": "a pale blue cotton sundress with a cream cardigan, canvas shoes, her braid over her LEFT shoulder",
+  "night": "a pale blue cotton sundress with a cream cardigan, canvas shoes, her braid over her LEFT shoulder"
+ },
+ "refs": [
+  {
+   "id": "house",
+   "kind": "place",
+   "where": "house"
+  },
+  {
+   "id": "garden",
+   "kind": "place",
+   "where": "garden"
+  }
+ ],
+ "chapters": [
+  [
+   1,
+   "opening the curtains to the garden"
+  ],
+  [
+   2,
+   "picking fruit in the orchard"
+  ],
+  [
+   3,
+   "shelling peas on the step"
+  ],
+  [
+   4,
+   "knitting by the window"
+  ],
+  [
+   5,
+   "the walk home across the fields"
+  ],
+  [
+   6,
+   "rain on the glass, a blanket on her knees"
+  ]
+ ],
+ "songs": [
+  {
+   "title": "TODO our own song title",
+   "scene": "opening the curtains to the garden",
+   "tags": "soft acoustic guitar and felt piano ballad, warm female vocal, slow, tender, gentle",
+   "seed": 0
+  },
+  {
+   "title": "TODO our own song title",
+   "scene": "picking fruit in the orchard",
+   "tags": "soft acoustic guitar and felt piano ballad, warm female vocal, slow, tender, gentle",
+   "seed": 0
+  },
+  {
+   "title": "TODO our own song title",
+   "scene": "shelling peas on the step",
+   "tags": "soft acoustic guitar and felt piano ballad, warm female vocal, slow, tender, gentle",
+   "seed": 0
+  },
+  {
+   "title": "TODO our own song title",
+   "scene": "knitting by the window",
+   "tags": "soft acoustic guitar and felt piano ballad, warm female vocal, slow, tender, gentle",
+   "seed": 0
+  },
+  {
+   "title": "TODO our own song title",
+   "scene": "the walk home across the fields",
+   "tags": "soft acoustic guitar and felt piano ballad, warm female vocal, slow, tender, gentle",
+   "seed": 0
+  },
+  {
+   "title": "TODO our own song title",
+   "scene": "rain on the glass, a blanket on her knees",
+   "tags": "soft acoustic guitar and felt piano ballad, warm female vocal, slow, tender, gentle",
+   "seed": 0
+  }
+ ],
+ "beats": [
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": true
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "house",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "house",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "house",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "house",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "house",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "house",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "house",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "house",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "house",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "house",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "house",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "house",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "garden",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 1,
+   "song": 0,
+   "where": "house",
+   "time": "morning",
+   "outfit": "morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "garden",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": true
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "house",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "house",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "garden",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "house",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "house",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "garden",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "house",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "house",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "garden",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "house",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "house",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "garden",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "house",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "house",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "garden",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "house",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "house",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "garden",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 2,
+   "song": 1,
+   "where": "house",
+   "time": "late morning",
+   "outfit": "late morning",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "garden",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": true
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "house",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "house",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "garden",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "house",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "house",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "garden",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "house",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "house",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "garden",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "house",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "house",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "garden",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "house",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "house",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "garden",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "house",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "house",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "garden",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 3,
+   "song": 2,
+   "where": "house",
+   "time": "noon",
+   "outfit": "noon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "garden",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": true
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "house",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "house",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "garden",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "house",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "house",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "garden",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "house",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "house",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "garden",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "house",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "house",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "garden",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "house",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "house",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "garden",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "house",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "house",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "garden",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 4,
+   "song": 3,
+   "where": "house",
+   "time": "afternoon",
+   "outfit": "afternoon",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "garden",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": true
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "house",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "house",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "garden",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "house",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "house",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "garden",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "house",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "house",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "garden",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "house",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "house",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "garden",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "house",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "house",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "garden",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "house",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "house",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "garden",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 5,
+   "song": 4,
+   "where": "house",
+   "time": "dusk",
+   "outfit": "dusk",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "garden",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": true
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "house",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "house",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "garden",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "house",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "house",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "garden",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "house",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "house",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "garden",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "house",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "house",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "garden",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "house",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "house",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "garden",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "house",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "house",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "garden",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  },
+  {
+   "ch": 6,
+   "song": 5,
+   "where": "house",
+   "time": "night",
+   "outfit": "night",
+   "kind": "clip",
+   "cast": [
+    "ELLIE"
+   ],
+   "shot": "TODO",
+   "move": "TODO",
+   "cuts": [
+    [
+     0.3,
+     5.2
+    ],
+    [
+     5.6,
+     4.6,
+     1.25,
+     0.5,
+     0.5
+    ]
+   ],
+   "chapter": false
+  }
+ ]
+}
