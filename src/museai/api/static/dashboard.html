@@ -689,7 +689,7 @@ let posts = { platforms: [], videos: [] }, postsSig = "";
 // Channel tab (Chinese / Travel / Dream / Healing): filters the schedule and the cards; remembered per browser.
 let chan = (() => { try { return localStorage.getItem("postChannel") || "chinese"; } catch { return "chinese"; } })();
 const chanPlats = (v) => { const ch = (posts.channels || []).find((c) => c.id === v.channel);
-  const own = v.platforms || ch?.platforms;  // a 16:9 video: YouTube only
+  const own = v.platforms || ch?.platforms;  // a 16:9 video: YouTube only (Chinese channel: all)
   return posts.platforms.filter((p) => !own || own.includes(p.id)); };
 const chanVideos = () => posts.videos.filter((v) => v.channel === chan);
 const postUrl = (name, rest = "") => `/dashboard/posts/${encodeURIComponent(name)}${rest}`;

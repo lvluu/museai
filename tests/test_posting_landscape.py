@@ -29,6 +29,13 @@ def test_landscape_video_posts_on_youtube_only(tmp_path):
     assert posting._platforms(tall, {}) == list(posting.TIMES["healing"])
 
 
+def test_chinese_landscape_video_posts_on_every_channel_platform(tmp_path):
+    wide = _mp4(tmp_path / "chinese-wide.mp4", 1920, 1080)
+    assert posting._channel(wide.name, {}) == "chinese"
+    assert posting._platforms(wide, {}) == list(posting.TIMES["chinese"])
+    assert posting._platforms(wide, {"channel": "travel"}) == ["youtube"]
+
+
 def test_unreadable_video_keeps_channel_platforms(tmp_path):
     junk = tmp_path / "healing-junk.mp4"
     junk.write_bytes(b"not an mp4")

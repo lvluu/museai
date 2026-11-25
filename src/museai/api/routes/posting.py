@@ -153,8 +153,10 @@ TIMES["dream"] = TIMES["english"] = TIMES["travel"]
 # Healing posts only to YouTube, Facebook and Instagram (user rule 2026-11-16): no X, TikTok or Threads.
 TIMES["healing"] = {p: t for p, t in TIMES["travel"].items() if p in ("youtube", "facebook", "instagram")}
 # A 16:9 (landscape) video goes to YouTube only, as a regular video: Facebook and Instagram Reels take
-# vertical video (user rule 2026-11-24).
+# vertical video (user rule 2026-11-24). The Chinese channel is the exception: its 16:9 videos go to every
+# platform of the channel (user rule 2026-11-25).
 LANDSCAPE_PLATFORMS = ("youtube",)
+LANDSCAPE_ALL_CHANNELS = ("chinese",)
 SLOT_KEY = re.compile(r"^(\d{4}-\d{2}-\d{2})/([1-4])$")
 FOLDER_MARK = ".museai-post"  # marks a folder this module made for one video
 SETTLE = 30  # seconds a video must sit unchanged before it moves (deliver.sh may still be copying it)
@@ -305,10 +307,11 @@ def _video_size_cached(path: str, _mtime: float, size: int) -> tuple[int, int] |
 
 
 def _platforms(path: Path, entry: dict) -> list[str]:
-    """Platforms this video posts on: its channel's, only YouTube for a landscape video."""
-    own = list(TIMES[_channel(path.name, entry)])
+    """Platforms this video posts on: its channel's, only YouTube for a landscape video (Chinese: all)."""
+    channel = _channel(path.name, entry)
+    own = list(TIMES[channel])
     size = _video_size(path)
-    if size and size[0] > size[1]:
+    if size and size[0] > size[1] and channel not in LANDSCAPE_ALL_CHANNELS:
         return [p for p in own if p in LANDSCAPE_PLATFORMS]
     return own
 
