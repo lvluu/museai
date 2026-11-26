@@ -92,3 +92,5 @@ series-guide.md
 
 # vocab-quiz-video episode folders (words, clip prompts, clips)
 /work/
+.claude/skills/stroke-order/scripts/.cache/
+.claude/skills/stroke-order/work/
