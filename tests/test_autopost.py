@@ -19,7 +19,7 @@ from museai.services.publishers.mock import MockCrash, MockPublisher
 from museai.services.publishers.tiktok import TikTokPublisher, chunks
 from museai.services.publishers.youtube import YouTubePublisher
 
-CHINESE = "Tiếng Trung mỗi ngày 44 - Đi chợ.mp4"
+CHINESE = "Tiếng Trung mỗi ngày 44 podcast Đi chợ.mp4"
 RULE = {"id": "chinese", "name": "Chinese lessons", "source": "everyday-chinese",
         "platforms": ["tiktok", "youtube"], "captions": {"tiktok": "{caption} #học_tiếng_trung"}}
 
@@ -159,10 +159,10 @@ def test_failed_post_retries_then_stops(client, admin, settings, svc):
         async def publish(self, job, checkpoint, save):
             raise PublishError("bad file", retry=False)
 
-    drop(settings, "Tiếng Trung mỗi ngày 45 - Hỏi đường.mp4", {"tiktok": "x"})
+    drop(settings, "Tiếng Trung mỗi ngày 45 podcast Hỏi đường.mp4", {"tiktok": "x"})
     svc.publishers["tiktok"] = Rejects("tiktok", settings.data_dir / "m.json")
-    row = plan_of(client, admin, "Tiếng Trung mỗi ngày 45 - Hỏi đường.mp4")
-    assert run(svc, due(row)) == [("Tiếng Trung mỗi ngày 45 - Hỏi đường.mp4", "tiktok", "error")]
+    row = plan_of(client, admin, "Tiếng Trung mỗi ngày 45 podcast Hỏi đường.mp4")
+    assert run(svc, due(row)) == [("Tiếng Trung mỗi ngày 45 podcast Hỏi đường.mp4", "tiktok", "error")]
 
 
 def test_pause_override_and_post_now(client, admin, settings, svc):
@@ -184,9 +184,9 @@ def test_pause_override_and_post_now(client, admin, settings, svc):
     client.post(f"/dashboard/autopost/plan/{CHINESE}", headers=admin, json={"retry": "tiktok"})  # Post now
     assert run(svc, datetime.now(posting.TZ) + timedelta(seconds=5)) == [(CHINESE, "tiktok", "posted")]
 
-    drop(settings, "Tiếng Trung mỗi ngày 46 - Mua vé.mp4", {"tiktok": "x"})
-    client.post("/dashboard/autopost/plan/Tiếng Trung mỗi ngày 46 - Mua vé.mp4", headers=admin, json={"off": True})
-    assert "Tiếng Trung mỗi ngày 46 - Mua vé.mp4" not in [r["name"] for r in client.get(
+    drop(settings, "Tiếng Trung mỗi ngày 46 podcast Mua vé.mp4", {"tiktok": "x"})
+    client.post("/dashboard/autopost/plan/Tiếng Trung mỗi ngày 46 podcast Mua vé.mp4", headers=admin, json={"off": True})
+    assert "Tiếng Trung mỗi ngày 46 podcast Mua vé.mp4" not in [r["name"] for r in client.get(
         "/dashboard/autopost", headers=admin).json()["plan"]]
 
 
@@ -205,9 +205,9 @@ def test_fixed_times_book_the_next_free_one(client, admin, settings):
     client.put("/dashboard/autopost/rules", headers=admin, json={"rules": [
         {**RULE, "schedule": "fixed", "times": ["09:00"]}]})
     drop(settings, CHINESE, {"tiktok": "a"}, age=7200)
-    drop(settings, "Tiếng Trung mỗi ngày 45 - Hỏi đường.mp4", {"tiktok": "b"}, age=3600)
+    drop(settings, "Tiếng Trung mỗi ngày 45 podcast Hỏi đường.mp4", {"tiktok": "b"}, age=3600)
     a = plan_of(client, admin, CHINESE)["jobs"][0]["time"]
-    b = plan_of(client, admin, "Tiếng Trung mỗi ngày 45 - Hỏi đường.mp4")["jobs"][0]["time"]
+    b = plan_of(client, admin, "Tiếng Trung mỗi ngày 45 podcast Hỏi đường.mp4")["jobs"][0]["time"]
     assert a.endswith("T09:00:00+07:00") and b.endswith("T09:00:00+07:00") and a != b
 
 

@@ -74,8 +74,13 @@ TZ = ZoneInfo("Asia/Ho_Chi_Minh")  # GMT+7: the user's clock; calendar days and 
 CHANNELS = {
     # two a day (user rule 2026-11-05): 12:00 and 18:30 GMT+7 on every platform; conversations (Everyday
     # Chinese) and vocabulary quizzes alternate (``_assign_slots`` never puts the same kind in two slots in a row)
-    "chinese": ("Chinese", {1: "12 PM: lunch break, bite-sized lesson",
-                            2: "6:30 PM: after work, before dinner"}),
+    # Daily plan from the Studio analytics (user 2026-11-26): search-led stroke-order Shorts and the daily
+    # podcast; a full lesson (15-30 min, the only thing that adds watch hours) on Tue, Thu, Sat. No "Tập" slot.
+    "chinese": ("Chinese", {1: "12:00 Stroke-order Short (Cách viết từ …): one searched word, hanzi + meaning in "
+                                "the first 2 s, pinned comment links the full lesson",
+                            2: "18:30 Podcast episode (daily 16:9 story)",
+                            3: "20:30 Full lesson, 15-30 min, YouTube (Tue, Thu, Sat): 10-20 words of one theme, "
+                               "chapters, title \"Trọn bộ …\""}),
     # Travel, Dream life and Healing share one plan (user rule 2026-11-05): 07:00 and 19:00 GMT+7 (00 and 12 UTC)
     # on every platform, 12 hours apart, so each slot reaches its own half of the world. Kept for 3-4 weeks,
     # then tuned from each account's own audience data (YouTube's "When your viewers are on YouTube").
@@ -95,7 +100,7 @@ CLOCKS = {"Europe/London": "London", "America/New_York": "New York"}
 # Whose clock each slot's times follow: every channel's times are set in GMT+7. Chinese lessons have
 # Vietnamese captions for Vietnamese learners; Travel, Dream life and Healing post at 07:00 and 19:00 GMT+7
 # (00 and 12 UTC), two windows that cover the world between them (TIMES["travel"]).
-AUDIENCE = {"chinese": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2,
+AUDIENCE = {"chinese": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 3,
             "travel": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2,
             "dream": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2,
             "healing": (ZoneInfo("Asia/Ho_Chi_Minh"),) * 2,
@@ -127,6 +132,10 @@ HEALING_PLAYLISTS = (
     ("Nature Walks & Birdsong 🌿", r"ode|bird|river|forest|meadow|walk|garden|herb|sun"),
 )
 HEALING_HOME = "Slow Living Kitchen & Home 🍞"
+# Chinese file-name prefixes: stroke-<word> (Cách viết từ …), podcast (the chinese-podcast slug), course-<theme> (full lesson).
+STROKE_NAME = re.compile(r"^(stroke|cachviet)[-_ ]", re.IGNORECASE)
+COURSE_NAME = re.compile(r"^(course|trongbo)[-_ ]", re.IGNORECASE)
+PODCAST_NAME = re.compile(r"podcast|radio", re.IGNORECASE)
 TRAVEL_NAME = re.compile(r"^(zoom|reel|scenic|scenery|drop|travel|nostalgia|gown|product)[-_ ]"
                          r"|\b(zoominview|scenic-drop-reel)\b", re.IGNORECASE)
 # Two videos a day per channel (user rule 2026-10-29). Each kind of content is watched at its own
@@ -140,7 +149,7 @@ TRAVEL_NAME = re.compile(r"^(zoom|reel|scenic|scenery|drop|travel|nostalgia|gown
 # with the peak). Chinese posts two a day at its own times, 12:00 and 18:30 GMT+7 on every platform
 # (user rule 2026-11-05); no X or Threads (user rule 2026-11-17).
 TIMES = {
-    "chinese": {p: ["12:00 18:30"] * 7 for p in ("youtube", "tiktok", "facebook", "instagram")},
+    "chinese": {p: ["12:00 18:30 20:30"] * 7 for p in ("youtube", "tiktok", "facebook", "instagram")},
     # GMT+7 (user rule 2026-11-05), one plan for Travel, Dream life and Healing. Slot 1, 07:00 (00 UTC):
     # New York 19 h, Los Angeles 16 h, São Paulo 21 h, Tokyo 09 h, Vietnam 07 h. Slot 2, 19:00 (12 UTC):
     # London 12 h, Berlin 13 h, India 17:30, Vietnam 19 h, Tokyo 21 h. Every platform at the same time.
@@ -157,6 +166,10 @@ TIMES["healing"] = {p: t for p, t in TIMES["travel"].items() if p in ("youtube",
 # platform of the channel (user rule 2026-11-25).
 LANDSCAPE_PLATFORMS = ("youtube",)
 LANDSCAPE_ALL_CHANNELS = ("chinese",)
+# Chinese: each slot takes one kind of video (``_kind``), so the dashboard says what to make each day. A kind
+# without a slot here (the old "Tập" and quiz videos) gets none. The full lesson's slot 3 exists on Tue, Thu, Sat.
+SLOT_KINDS = {"chinese": {1: "stroke", 2: "podcast", 3: "course"}}
+SLOT_DAYS = {("chinese", 3): {1, 3, 5}}  # Monday = 0
 SLOT_KEY = re.compile(r"^(\d{4}-\d{2}-\d{2})/([1-4])$")
 FOLDER_MARK = ".museai-post"  # marks a folder this module made for one video
 SETTLE = 30  # seconds a video must sit unchanged before it moves (deliver.sh may still be copying it)
@@ -253,6 +266,9 @@ def _kind(name: str) -> str:
     """What a video is, from its format prefix (healing, gown, nostalgia, ...): a day mixes kinds. Place
     reels (drone drops, scenery) are one kind, zoom-in views another."""
     low = name.lower()
+    for kind, rule in (("course", COURSE_NAME), ("stroke", STROKE_NAME), ("podcast", PODCAST_NAME)):
+        if rule.search(Path(low).stem):
+            return kind
     if "zoominview" in low:
         return "zoom"
     if "scenic-drop-reel" in low:
@@ -348,6 +364,8 @@ def _slots_from(now: datetime, channel: str):
     first = min(CHANNELS[channel][1])
     while True:
         for n in CHANNELS[channel][1]:
+            if d.weekday() not in SLOT_DAYS.get((channel, n), range(7)):
+                continue
             key = f"{d.isoformat()}/{n}"
             if (channel == "dream" and d == today and n == first) or _slot_times(key, channel)["youtube"] > now:
                 yield key
@@ -395,12 +413,26 @@ def _assign_slots(state: dict, videos: list[Path], now: datetime) -> bool:
         else:
             queue[_channel(n, e)].append((n, e))
     for ch, line in queue.items():
+        if ch in SLOT_KINDS:  # only planned kinds take a slot; the rest wait without one
+            for n, e in [ne for ne in line if _kind(ne[0]) not in SLOT_KINDS[ch].values()]:
+                line.remove((n, e))
+                changed |= e.pop("slot", None) is not None
         line.sort(key=lambda ne: ne[1].get("slot") or "~")  # stable: delivery order breaks ties
         taken = history[ch]
         for slot in (k for k in _slots_from(now, ch) if k not in taken and k > last_post.get(ch, "")):  # gaps between posted slots too
             if not line:
                 break
             day, n = slot.split("/")
+            want = SLOT_KINDS.get(ch, {}).get(int(n))
+            if want:  # this slot takes its own kind, else stays free
+                i = next((i for i, (nm, _) in enumerate(line) if _kind(nm) == want), None)
+                if i is None:
+                    continue
+                name, e = line.pop(i)
+                taken[slot] = want
+                changed |= e.get("slot") != slot
+                e["slot"] = slot
+                continue
             before = f"{day}/{int(n) - 1}" if n != "1" else \
                 f"{date.fromisoformat(day) - timedelta(days=1)}/{max(CHANNELS[ch][1])}"
             same_day = {k for s, k in taken.items() if s.startswith(day)}
@@ -428,7 +460,7 @@ def _episode_order(entries: list[tuple[str, dict]]) -> bool:
     series: dict[tuple[str, str], list[tuple[int, dict]]] = {}
     for n, e in entries:
         auto = e.get("auto") if isinstance(e.get("auto"), dict) else {}
-        if e.get("slot_pinned") or any((e.get("posted") or {}).values()) or (auto and not auto.get("off")):
+        if not e.get("slot") or e.get("slot_pinned") or any((e.get("posted") or {}).values()) or (auto and not auto.get("off")):
             continue
         if m := re.match(r"(.*?\D)(\d+)(?!\d)", Path(n).stem):
             series.setdefault((_channel(n, e), m[1].strip().lower()), []).append((int(m[2]), e))
@@ -514,6 +546,8 @@ def _calendar(state: dict, names: dict[str, str], now: datetime, days: int = 7) 
             d = start + timedelta(days=i)
             slots = []
             for n in focus:
+                if d.weekday() not in SLOT_DAYS.get((ch, n), range(7)):
+                    continue
                 key = f"{d.isoformat()}/{n}"
                 aud = _audience(key, ch)
                 slots.append({"key": key, "n": n, "time": _slot_times(key, ch)["youtube"].isoformat(),

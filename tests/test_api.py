@@ -262,7 +262,20 @@ def test_admin_accounts_crud(client, auth, admin):
     assert client.get("/admin/status", headers=admin).json()["accounts"]["total"] == 0
 
 
-def test_posting_queue(client, admin, settings, monkeypatch):
+@pytest.fixture
+def two_a_day(monkeypatch):
+    """The generic two-slot Chinese layout (kind-mixing queue, episode order): the queue machinery these tests
+    cover. The live Chinese plan books one slot per kind (SLOT_KINDS) and has its own tests."""
+    from museai.api.routes import posting
+
+    name, slots = posting.CHANNELS["chinese"]
+    monkeypatch.setitem(posting.CHANNELS, "chinese", (name, {k: v for k, v in slots.items() if k < 3}))
+    monkeypatch.setattr(posting, "SLOT_KINDS", {})
+    monkeypatch.setattr(posting, "SLOT_DAYS", {})
+    monkeypatch.setitem(posting.TIMES, "chinese", {p: ["12:00 18:30"] * 7 for p in posting.TIMES["chinese"]})
+
+
+def test_posting_queue(two_a_day, client, admin, settings, monkeypatch):
     from museai.api.routes import posting
 
     trashed = []
@@ -407,7 +420,7 @@ def test_posting_folders(client, admin, settings, monkeypatch):
     assert (root / folders()[0] / "reel-Da Nang.mp4").read_bytes() == b"v2"
 
 
-def test_posting_queue_fills_free_slots(tmp_path):
+def test_posting_queue_fills_free_slots(two_a_day, tmp_path):
     import os
     from datetime import datetime
 
@@ -458,7 +471,7 @@ def test_posting_queue_mixes_kinds_per_day(tmp_path):
     assert not posting._assign_slots(state, videos, now)
 
 
-def test_chinese_day_alternates_conversations_and_quizzes(tmp_path):
+def test_chinese_day_alternates_conversations_and_quizzes(two_a_day, tmp_path):
     import os
     from datetime import datetime
 
@@ -481,7 +494,7 @@ def test_chinese_day_alternates_conversations_and_quizzes(tmp_path):
     assert not posting._assign_slots(state, videos, now)
 
 
-def test_posting_slots(tmp_path):
+def test_posting_slots(two_a_day, tmp_path):
     import os
     from datetime import datetime, timezone
 
@@ -551,7 +564,7 @@ def test_posting_slots(tmp_path):
     assert state["(posted chinese 2026-10-30/2)"]["done"]  # kept for the next passes too
 
 
-def test_episodes_post_in_number_order(tmp_path):
+def test_episodes_post_in_number_order(two_a_day, tmp_path):
     import os
     from datetime import datetime
 
@@ -679,7 +692,7 @@ def test_posting_move_slot(client, admin, settings, monkeypatch, clock):
     now = datetime.fromisoformat(f"2026-11-02T{clock}+07:00")
     monkeypatch.setattr(posting, "datetime", type("Clock", (datetime,), {"now": classmethod(lambda cls, tz=None: now)}))
     settings.post_dir.mkdir()
-    for name in ("a.mp4", "b.mp4"):
+    for name in ("stroke-a.mp4", "stroke-b.mp4"):
         (settings.post_dir / name).write_bytes(b"v")
     d = client.get("/dashboard/posts", headers=admin).json()
     slots = {v["name"]: v["slot"] for v in d["videos"]}
@@ -688,28 +701,28 @@ def test_posting_move_slot(client, admin, settings, monkeypatch, clock):
     assert sum(s["video"] is not None for day in d["calendar"]["chinese"] for s in day["slots"]) == 2
     assert {c["id"] for c in d["channels"]} == {"chinese", "travel", "dream", "healing", "english"}
 
-    r = client.post("/dashboard/posts/a.mp4", headers=admin, json={"slot": slots["b.mp4"]}).json()
-    assert r["video"]["slot"] == slots["b.mp4"]
+    r = client.post("/dashboard/posts/stroke-a.mp4", headers=admin, json={"slot": slots["stroke-b.mp4"]}).json()
+    assert r["video"]["slot"] == slots["stroke-b.mp4"]
     moved = {v["name"]: v["slot"] for v in client.get("/dashboard/posts", headers=admin).json()["videos"]}
-    assert moved == {"a.mp4": slots["b.mp4"], "b.mp4": slots["a.mp4"]}  # swapped
-    assert list(moved) == ["b.mp4", "a.mp4"]  # cards in posting order
+    assert moved == {"stroke-a.mp4": slots["stroke-b.mp4"], "stroke-b.mp4": slots["stroke-a.mp4"]}  # swapped
+    assert list(moved) == ["stroke-b.mp4", "stroke-a.mp4"]  # cards in posting order
     for bad in ("2026-10-30/5", "tomorrow", "2026-13-40/1", 5):
-        assert client.post("/dashboard/posts/a.mp4", headers=admin, json={"slot": bad}).status_code == 400
+        assert client.post("/dashboard/posts/stroke-a.mp4", headers=admin, json={"slot": bad}).status_code == 400
 
     # Moving a to Travel frees its Chinese slot and books the first free Travel slot.
-    client.post("/dashboard/posts/a.mp4", headers=admin, json={"channel": "travel"})
+    client.post("/dashboard/posts/stroke-a.mp4", headers=admin, json={"channel": "travel"})
     d = client.get("/dashboard/posts", headers=admin).json()
-    a = next(v for v in d["videos"] if v["name"] == "a.mp4")
+    a = next(v for v in d["videos"] if v["name"] == "stroke-a.mp4")
     assert a["channel"] == "travel"
     assert [s["key"] for day in d["calendar"]["travel"] for s in day["slots"] if s["video"]] == [a["slot"]]
     assert sum(s["video"] is not None for day in d["calendar"]["chinese"] for s in day["slots"]) == 1
     # A slot holding a video of the other channel is not a swap.
-    r = client.post("/dashboard/posts/b.mp4", headers=admin, json={"slot": a["slot"]}).json()
+    r = client.post("/dashboard/posts/stroke-b.mp4", headers=admin, json={"slot": a["slot"]}).json()
     assert r["video"]["slot"] == a["slot"]
     after = {v["name"]: v["slot"] for v in client.get("/dashboard/posts", headers=admin).json()["videos"]}
-    assert after["a.mp4"] == a["slot"]
-    assert after["b.mp4"] == a["slot"]  # the slot the user picked is pinned: it stays
-    assert client.post("/dashboard/posts/a.mp4", headers=admin, json={"channel": "nope"}).status_code == 400
+    assert after["stroke-a.mp4"] == a["slot"]
+    assert after["stroke-b.mp4"] == a["slot"]  # the slot the user picked is pinned: it stays
+    assert client.post("/dashboard/posts/stroke-a.mp4", headers=admin, json={"channel": "nope"}).status_code == 400
 
 
 def test_dashboard_cancel_and_retry(settings, auth, admin):
@@ -861,3 +874,28 @@ def test_long_clip_takes_no_short_slot(tmp_path):
     posting._assign_slots(state, [a, b], now)
     assert state["healing-long.mp4"]["slot"] == "2026-11-11/1"
     assert state["healing-short.mp4"]["slot"] == "2026-11-11/2"  # the long clip did not use a short slot
+
+
+def test_chinese_plan_one_slot_per_kind(tmp_path):
+    import os
+    from datetime import datetime
+
+    from museai.api.routes import posting
+
+    # Thursday 2026-11-26 09:00 GMT+7: stroke-order Short 12:00, podcast 18:30, full lesson 20:30 (Tue/Thu/Sat only).
+    # The old "Tập" series has no slot.
+    now = datetime(2026, 11, 26, 9, 0, tzinfo=posting.TZ)
+    names = ("stroke-xiexie.mp4", "stroke-ta.mp4", "podcast-ep1.mp4", "podcast-ep2.mp4", "course-greetings.mp4", "Tập 5 x.mp4")
+    videos = []
+    for i, name in enumerate(names):
+        (p := tmp_path / name).write_bytes(b"v")
+        os.utime(p, (1000 + i, 1000 + i))
+        videos.append(p)
+    state: dict = {}
+    assert posting._assign_slots(state, videos, now)
+    assert [state[n]["slot"] for n in names[:5]] == [
+        "2026-11-26/1", "2026-11-27/1", "2026-11-26/2", "2026-11-27/2", "2026-11-26/3"]
+    assert "slot" not in state.get("Tập 5 x.mp4", {})
+    cal = {d["date"]: [s["key"][-1] for s in d["slots"]] for d in posting._calendar(state, {n: n for n in names}, now)["chinese"]}
+    assert cal["2026-11-26"] == ["1", "2", "3"] and cal["2026-11-27"] == ["1", "2"] and cal["2026-11-28"] == ["1", "2", "3"]
+    assert not posting._assign_slots(state, videos, now)

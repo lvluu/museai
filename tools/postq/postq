@@ -78,7 +78,7 @@ SERIES = {
                 "playlist": "Hội Thoại Tiếng Trung",
                 # Cẩm Tú Nhân Sinh episodes (named in the folder / video file) go to the film playlist.
                 "playlist_by_name": {"Cẩm Tú Nhân Sinh": "Học tiếng Trung qua phim"},
-                "related": "latest:Tập", "tz": "Asia/Ho_Chi_Minh", "channel": "chinese",
+                "related": "latest:Trọn bộ", "tz": "Asia/Ho_Chi_Minh", "channel": "chinese",
                 # No thumbnail in the folder: muse renders the scene, the thumbnail skill lays out the text.
                 "thumb": {"style": "chinese", "sub": "Nói sao bằng tiếng Trung?", "zh": True, "badge": "TẬP {}",
                           "scene": "Everyday scene for a short Chinese-conversation lesson"}},
@@ -110,7 +110,7 @@ SERIES = {
                                     "watermarks."}},
 }
 # museai dashboard slots (posting.py CHANNELS): "HH:MM" -> n in the "YYYY-MM-DD/n" slot key.
-SLOTS = {"chinese": ["12:00", "18:30"], "travel": ["07:00", "19:00"], "dream": ["07:00", "19:00"],
+SLOTS = {"chinese": ["12:00", "18:30", "20:30"], "travel": ["07:00", "19:00"], "dream": ["07:00", "19:00"],
          "healing": ["07:00", "19:00"]}
 MUSEAI = Path(os.environ.get("MUSEAI_HOME", Path.home() / "Work" / "museai"))
 MUSEAI_BASE = os.environ.get("MUSEAI_BASE", "http://127.0.0.1:18610")
