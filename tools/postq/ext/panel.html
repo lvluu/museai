@@ -79,6 +79,7 @@
     button.danger { border-color: var(--bad); color: var(--bad); flex: none; padding: 8px 14px; }
     .dupall { display: flex; justify-content: flex-end; }
     button.danger.armed { background: var(--bad); color: #fff; }
+  #today { border: 1px solid #1a73e8; border-radius: 8px; padding: 6px 10px; margin: 8px 0; font-size: 13px; }
   </style>
 </head>
 <body>
@@ -93,6 +94,7 @@
       <button id="all" class="primary" title="Enter = approve all">Approve all</button>
     </div>
   </header>
+  <div id="today" hidden></div>
   <section id="dupbox" hidden>
     <div id="dupch" class="chips"></div>
     <div class="status" id="dupst"></div>

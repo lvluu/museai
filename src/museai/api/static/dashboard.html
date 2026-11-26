@@ -166,6 +166,12 @@
   /* posting schedule: two slots a day (Chinese four), GMT+7 */
   .chan-tabs { width: fit-content; margin-bottom: 8px; }
   .sched { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 14px; }
+  .today-plan { border: 1px solid var(--accent); border-radius: 8px; padding: 8px 12px; margin: 8px 0; font-size: 13px; }
+  .today-plan h3 { margin: 0 0 4px; font-size: 13px; color: var(--accent); }
+  .today-plan div { display: flex; gap: 8px; padding: 2px 0; }
+  .today-plan b { font-variant-numeric: tabular-nums; min-width: 64px; }
+  .today-plan .st { min-width: 74px; font-weight: 600; }
+  .today-plan .st.ready { color: var(--accent); } .today-plan .st.todo { color: var(--bad); }
   .sday { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
   .sday h3 { margin: 0; font-size: 12px; font-weight: 600; color: var(--muted); }
   .sday.today h3 { color: var(--accent); }
@@ -290,6 +296,7 @@
       audience abroad its own clock is shown beside (“NY Mon 9:00 PM”). Chinese: two a day at 12:00 PM and 6:30 PM on every platform, conversations and
       vocabulary quizzes in turn. Travel, Dream life, Healing and English drama: two a day at 7:00 AM (Americas afternoon / evening, East Asia morning) and 7:00 PM (Europe lunch / afternoon, South and East Asia evening), the same time on every platform; a test plan for 3-4 weeks, then tune from each account's own audience report. Each channel's queue fills its free slots back to back; use each platform's scheduler 1-2 days ahead; pick another slot on a card to change the order.</p>
     <div class="tabs chan-tabs" id="chanTabs"></div>
+    <div class="today-plan" id="todayPlan" hidden></div>
     <div class="sched" id="sched"></div>
     <p class="hint">Each platform has its own caption, written to its length, hook and hashtag rules (tabs above
       the text; • = written for it; “Shared” is the fallback for a platform without one): pick the tab, “Copy” (YouTube: “Copy title” and “Copy description”), and “Show file”
@@ -773,7 +780,21 @@ const ABBR = { "New York": "NY", London: "London" };
 const audLabel = (clock, iso) => iso ? `${ABBR[clock] || clock} ${dayName(iso.slice(0, 10))} ${clock12(iso)}` : "";
 const slotLabel = (key) => { const [d, n] = key.split("/"); return `${dayLabel(d)} · slot ${n}`; };
 const firstLine = (v, p) => (captionFor(v, p) || "").split("\n")[0].trim();
+// What to do today (Chinese channel: a daily plan by kind): per slot, make it / ready to post / posted.
+function renderToday() {
+  const el = $("todayPlan"), today = todayGmt7();
+  const day = chan === "chinese" && ((posts.calendar || {})[chan] || []).find((d) => d.date === today);
+  el.hidden = !day;
+  if (!day) return;
+  el.innerHTML = `<h3>Today · ${esc(dayLabel(today))}</h3>` + day.slots.map((s) => {
+    const v = s.video && posts.videos.find((x) => x.name === s.video);
+    const [st, cls, what] = v ? (Object.keys(v.posted).length ? ["posted ✓", "", v.name] : ["ready", "ready", v.name])
+      : s.gone ? ["posted ✓", "", s.gone.title || s.gone.name] : ["to make", "todo", s.focus];
+    return `<div><b>${esc(clock12(s.time))}</b><span class="st ${cls}">${esc(st)}</span><span>${esc(what)}</span></div>`;
+  }).join("");
+}
 function renderSchedule() {
+  renderToday();
   const today = todayGmt7();
   // Slots already posted or deleted, and free slots whose time has passed, are done with: not shown.
   const open = (s) => s.video || (!s.gone && !late(s.time));

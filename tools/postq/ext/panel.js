@@ -257,6 +257,26 @@ hideDone.onchange = () => { saveFilter(); renderFilter(); };
 // Dashboard unreachable: the last list it gave, or the whole queue before the first answer.
 const DASH = 'http://127.0.0.1:18610/dashboard/posts';
 let lastVideos = null;
+// Today's plan of the Chinese channel (the dashboard's slot calendar): what to make and post, per slot.
+function renderToday(feed) {
+  const el = document.getElementById('today');
+  const now = new Date(Date.now() + 7 * 3600e3).toISOString().slice(0, 10);  // GMT+7 date
+  const day = ((feed.calendar || {}).chinese || []).find((d) => d.date === now);
+  el.hidden = !day;
+  if (!day) return;
+  const byName = new Map((feed.videos || []).map((v) => [v.name, v]));
+  el.textContent = '';
+  const h = document.createElement('b');
+  h.textContent = `Today (${now}) · Chinese`;
+  el.append(h);
+  for (const s of day.slots) {
+    const v = s.video && byName.get(s.video);
+    const state = v ? (Object.keys(v.posted || {}).length ? 'posted ✓' : 'ready') : s.gone ? 'posted ✓' : 'to make';
+    const row = document.createElement('div');
+    row.textContent = `${s.time} ${state} · ${v ? v.name : s.gone ? (s.gone.title || s.gone.name) : s.focus}`;
+    el.append(row);
+  }
+}
 let missing = [];
 let hidden = '';
 async function fromDashboard(items) {
@@ -264,6 +284,7 @@ async function fromDashboard(items) {
     const res = await fetch(DASH, { signal: AbortSignal.timeout(4000) });
     const feed = await res.json();
     if (Array.isArray(feed.videos)) lastVideos = dashboardVideos(feed);
+    renderToday(feed);
     for (const ch of feed.channels || []) {
       if (Array.isArray(ch.platforms)) chanPlats[ch.id] = [...new Set(ch.platforms.map((b) => BOX_PLATFORM[b]).filter(Boolean))];
     }
