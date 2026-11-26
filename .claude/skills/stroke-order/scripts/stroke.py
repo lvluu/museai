@@ -12,6 +12,7 @@ Safe zones: nothing above y 200, below y 1480, right of x 960 between y 900-1480
 import asyncio
 import hashlib
 import json
+import os
 import re
 import subprocess
 import sys
@@ -215,21 +216,67 @@ def pinyin_row(d, syl, tones, y, size):
 def hook_frame(w, flash=0.0):
     img = Image.new("RGB", (W, H), BG)
     d = ImageDraw.Draw(img)
-    centered(d, "Cách viết từ", 250, font("demi", 56), (200, 200, 210))
+    centered(d, "Cách viết từ", 310, font("demi", 56), (200, 200, 210))
     word = w["word"]
     size = 360 if len(word) <= 2 else 260
-    centered(d, word, 440, font("zh", size), WHITE)
-    pinyin_row(d, w["pinyin"], w["tones"], 440 + size + 60, 96)
-    centered(d, w["vi"], 440 + size + 200, font("bold", 84), ACCENT)
+    centered(d, word, 480, font("zh", size), WHITE)
+    pinyin_row(d, w["pinyin"], w["tones"], 480 + size + 60, 96)
+    centered(d, w["vi"], 480 + size + 200, font("bold", 84), ACCENT)
     if flash:
         img = Image.blend(img, Image.new("RGB", (W, H), WHITE), flash)
     return img
 
 
+def deliver(spec, video, slug, date=None):
+    """Episode folder on the Desktop (DEST to change): "Chinese NN · Thu 26-11 12h00 · stroke-<slug>/" with the
+    video, "<name> - thumbnail 9x16.jpg" and captions.txt, the layout the dashboard and postq read."""
+    import datetime as dt
+    import shutil
+
+    day = dt.date.fromisoformat(date) if date else dt.date.today()
+    dest = Path(os.environ.get("DEST", Path.home() / "Desktop"))
+    nums = [
+        int(m.group(1))
+        for p in dest.glob("Chinese [0-9]* · *")
+        if (m := re.match(r"Chinese (\d+) ·", p.name))
+    ]
+    name = f"stroke-{slug}"
+    folder = dest / f"Chinese {max(nums, default=0) + 1:02d} · {day:%a %d-%m} 12h00 · {name}"
+    folder.mkdir(parents=True)
+    shutil.copy(video, folder / f"{name}.mp4")
+    hook_frame(spec).convert("RGB").save(folder / f"{name} - thumbnail 9x16.jpg", quality=92)
+    heads = {
+        "youtube": "YouTube Shorts",
+        "tiktok": "TikTok",
+        "facebook": "Facebook Reels",
+        "instagram": "Instagram Reels",
+        "x": "X",
+        "threads": "Threads",
+    }
+    when = f"{day:%a %d-%m} 12:00"
+    text = "\n\n".join(
+        f"=== {heads[k]}{'  ' + when if k not in ('x', 'threads') else ''} ===\n{spec['captions'][k]}"
+        for k in heads
+        if k in spec["captions"]
+    )
+    (folder / "captions.txt").write_text(text + "\n")
+    checker = HERE.parent.parent / "social-captions" / "scripts" / "captions.py"
+    res = subprocess.run(
+        [sys.executable, str(checker), "check", "/dev/stdin"],
+        input=json.dumps(spec["captions"]),
+        text=True,
+    )
+    print(f"delivered: {folder} (captions check exit {res.returncode})")
+
+
 def main():
-    spec, out = json.loads(Path(sys.argv[1]).read_text()), Path(sys.argv[2])
-    work = Path(sys.argv[3]) if len(sys.argv) > 3 else HERE.parent / "work" / out.stem
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    opts = dict(a[2:].split("=", 1) for a in sys.argv[1:] if a.startswith("--") and "=" in a)
+    src = Path(args[0])
+    spec = json.loads(src.read_text())
+    work = HERE.parent / "work" / f"stroke-{src.stem}"
     work.mkdir(parents=True, exist_ok=True)
+    out = work / f"stroke-{src.stem}.mp4"
     word, n = spec["word"], len(spec["word"])
     S = min(480, (W - 120 - 40 * (n - 1)) // n)
     glyphs = [Glyph(c, S) for c in word]
@@ -392,6 +439,8 @@ def main():
     if ff.wait():
         sys.exit("ffmpeg failed")
     print(f"{out} {total:.1f}s {len(sched)} strokes")
+    if spec.get("captions"):
+        deliver(spec, out, src.stem, opts.get("date"))
 
 
 if __name__ == "__main__":
