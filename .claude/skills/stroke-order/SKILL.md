@@ -12,13 +12,18 @@ books it in the Chinese 12:00 slot by that prefix).
 1. Pick a searched word (HSK1-3, 1-3 characters; the channel's stroke Shorts get their views from search).
 2. Copy `words/xiexie.json` to `words/<slug>.json`: `word`, `pinyin` (tone-marked syllables), `tones` (1-4, 0 neutral),
    `vi` (meaning), `example` {zh, py, vi}, optional `cta`.
-3. Render (downloads each character's stroke data once, from cdn.jsdelivr.net, into `scripts/.cache/hanzi/`):
+3. Fill `captions` in the json (youtube, tiktok, facebook, instagram, x, threads; hook = the hanzi + what it means;
+   YouTube description ends with `#Shorts`; `social-captions` rules, checked by its captions.py).
+4. Render + deliver in one command (downloads each character's stroke data once, from cdn.jsdelivr.net, into
+   `scripts/.cache/hanzi/`; `--date=YYYY-MM-DD` = the post day, default today; `DEST=` to change the Desktop):
 ```bash
 uv run --no-project --python 3.12 --with pillow --with numpy --with soundfile --with edge-tts \
-  python scripts/stroke.py words/<slug>.json ~/Desktop/stroke-<slug>.mp4
+  python scripts/stroke.py words/<slug>.json --date=2026-11-27
 ```
-4. Captions: `social-captions` skill. Hook = the hanzi + what it means; pinned comment on YouTube links the
-   "Trọn bộ" lesson of the same theme.
+   It makes the episode folder `~/Desktop/Chinese NN · Thu 26-11 12h00 · stroke-<slug>/` (NN = next number) holding
+   `stroke-<slug>.mp4`, `stroke-<slug> - thumbnail 9x16.jpg` (frame 0 as the cover) and `captions.txt`, then checks
+   the captions. Never ask the user about the folder, cover or captions: it is always done.
+5. Pinned comment on YouTube: link the "Trọn bộ" lesson of the same theme.
 
 ## Format
 - 0-2.2 s: "Cách viết từ", the hanzi huge, tone-coloured pinyin, Vietnamese meaning (visible on frame 0), Mandarin read.
