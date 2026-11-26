@@ -1,6 +1,6 @@
 ---
 name: curious-mechanism
-description: Make a video for The Curious Mechanism (@curiousmechai) - a faceless, AI-illustrated educational channel that explains the hidden engineering, design decisions and strange history of everyday things, in a clean 2D cartoon look (bold outlines, flat colours, cel shading, expressive characters, teal / amber / cream with red for danger). Every story opens on what went wrong (an accident, a failure, a near miss) and then explains why. Long-form 8-12 min 16:9 mini-documentaries (one a week) and 30-55 s 9:16 Shorts (complete mini-stories), built from one episode.json - verified claims with 2 sources each, a script for the ear, illustrations through museai animated scene by scene with muse video, one fixed narrator voice, editorial labels drawn in the edit, a 1280x720 thumbnail drawn by muse and a QA gate. Use for "Curious Mechanism", "curiousmechai", "why are airplane windows round", "how X actually works", "hidden engineering of X", "everyday engineering video", "explainer like the airplane window one", or the next episode or Short of this channel.
+description: Make a video for The Curious Mechanism (@curiousmechai) - a faceless, AI-illustrated educational channel that explains the hidden engineering, design decisions and strange history of everyday things, in a clean 2D cartoon look (bold outlines, flat colours, cel shading, expressive characters, teal / amber / cream with red for danger). Every story opens on what went wrong (an accident, a failure, a near miss) and then explains why. Long-form 8-12 min 16:9 mini-documentaries (one a week), 30-55 s 9:16 Shorts (complete mini-stories) and 60-150 s looping "ladder" Shorts (build one system part by part: problem, fix, "That's the ..."), built from one episode.json - verified claims with 2 sources each, a script for the ear, illustrations through museai animated scene by scene with muse video, one fixed narrator voice, editorial labels drawn in the edit, a 1280x720 thumbnail drawn by muse and a QA gate. Use for "Curious Mechanism", "curiousmechai", "why are airplane windows round", "how X actually works", "hidden engineering of X", "everyday engineering video", "explainer like the airplane window one", "build it up part by part like the red lights / security camera Short", or the next episode or Short of this channel.
 ---
 
 # curious-mechanism
@@ -74,6 +74,23 @@ Order matters: research, then script, then pictures. Never generate images befor
      internet."), the problem shown (1-2 scenes), the question "so how do engineers deal with it?" (1), the
      solution step by step (3-4), the twist (1), the payoff on today's object. A complete mini-story, never a
      trailer for the long video.
+   - Ladder Short (`new <id> "<Title>" --ladder`, format `ladder`): 140-360 words, 60-150 s, 9:16, same 2D look.
+     Model: the bru3D Short "Those red lights are NOT just for decoration" (2026-11-26), which builds a home
+     security system part by part. The viewer builds one system in the second person ("Put a camera by your
+     door..."), and each rung solves the last rung's problem:
+     1. The problem, starting with "But..." ("But the burglar doesn't open anything. He breaks a window.").
+     2. The fix, shown as one new part appearing in the picture.
+     3. The name, said as a reveal ("That's the motion sensor.").
+     Each scene has a `rung` (1, 2, ...); `check` wants 4-7 rungs in order, warns about a rung with no name
+     beat, and fails when the last line ends a sentence. Plan the rungs as one line each before writing scenes:
+     problem, fix, name. Simple and everyday first, then deeper. The title's mystery ("the red lights") is
+     answered late, around 75 %. The last rung is a twist the viewer can check at home (why the camera clicks
+     to black and white at dusk), then one practical tip.
+     The Short loops: the last line runs straight into the first ("...a surveillance system for your" +
+     "house. If you put a camera..."), and the last picture shows the same view as S01, so the replay feels
+     like one continuous film. A ladder has no subscribe outro and no end hold, because both would break the
+     loop. The `rung` checks do not cover the loop picture: look at the join yourself.
+     The same research rule applies: every rung's fact is a verified claim with 2 sources.
    - Every scene has its own illustration and its own muse clip: never reuse a picture (`"image": "S03"`)
      (user rule 2026-11-23: the same clip seen twice in one video is unacceptable; `check` fails on it).
      A crash is drawn as what it is (the airliner clearly snapping apart, smoke trails, falling pieces),
@@ -92,7 +109,8 @@ Order matters: research, then script, then pictures. Never generate images befor
    image at 100 %: reject photoreal frames, garbled letters, wrong mechanics (check against a real
    reference photo). AI illustrations are not automatically accurate technical diagrams.
 6. **Voice.** `cm.py voice <id>` -> one wav per scene + `timeline.json` (0.3 s breath inside a section,
-   0.7 s between sections, 1.2 s hold at the end; every episode ends with the `CTA` subscribe outro from cm.py). Listen to it before building; fix a word by rewriting the
+   0.7 s between sections, 1.2 s hold at the end; every episode ends with the `CTA` subscribe outro from cm.py,
+   except a ladder, which loops instead). Listen to it before building; fix a word by rewriting the
    line (spell a name the way it sounds), then re-run (unchanged lines are cached).
 7. **Animate.** Every scene is a muse video clip, not a still (user rule 2026-11-13: "I want animation").
    Each scene needs `motion`: what moves and how, in concrete terms (the crack grows in short jumps, the

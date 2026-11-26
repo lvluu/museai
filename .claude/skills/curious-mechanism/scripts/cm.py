@@ -1,7 +1,7 @@
 """The Curious Mechanism: one episode.json -> illustrations, narration, Ken Burns edit, thumbnail, QA.
 
 Usage (run from anywhere):
-  cm.py new <id> "<Title>" [--short]   episodes/<id>/episode.json from the template
+  cm.py new <id> "<Title>" [--short|--ladder]  episodes/<id>/episode.json from the template
   cm.py check <id> [--draft]           content gate: length, hook, claims + sources, prompts, title, thumbnail
   cm.py images <id> [--only S03]       illustrations through museai /v1/images/generations (skips existing)
   cm.py voice <id>                     one narrator voice per scene (edge-tts) -> timeline.json
@@ -45,7 +45,10 @@ FORMATS = {
     # size, words min/max (playbook: ~145 wpm), duration min/max seconds
     "long": {"size": (1920, 1080), "words": (1150, 1750), "secs": (480, 720), "aspect": "16:9"},
     "short": {"size": (1080, 1920), "words": (75, 130), "secs": (20, 60), "aspect": "9:16"},
+    # build-up ladder Short: 4-7 rungs of problem -> fix -> name, the last line runs into the first (loop)
+    "ladder": {"size": (1080, 1920), "words": (140, 360), "secs": (55, 155), "aspect": "9:16"},
 }
+LADDER_RUNGS = (4, 7)
 # muse returns at most 10 s of video per clip (measured 2026-11-23); a scene must fit one clip
 MUSE_MAX_CLIP = 10
 MAX_SCENE = 9.0  # narration estimate; the breath gap and 0.5 s lead-in fill the rest
@@ -60,6 +63,7 @@ LANGS = {
         "wps": 145 / 60,
         "cta": ("If you want to see more stories like this, subscribe.", "Subscribe for more"),
         "title": r"^(why|how|the hidden|what)\b",
+        "name": r"\b(that's|that is|those are|this is) (the|why|how)\b",
     },
     "vi": {
         "voice": "vi-VN-NamMinhNeural",
@@ -67,6 +71,7 @@ LANGS = {
         "wps": 3.1,  # measured on s004-vi: NamMinh ~2.7 syllables/s at +0% with the pauses at commas, x1.15
         "cta": ("Đăng ký để xem thêm những chuyện như thế này.", "Đăng ký để xem thêm"),
         "title": r"^(vì sao|tại sao|làm sao|làm thế nào|bí mật|cái gì)",
+        "name": r"\b(đó là|đó chính là|vì vậy|thế nên)\b",
     },
 }
 # Channel outro after the last scene of every episode: spoken line + on-screen label over the last frame.
@@ -150,6 +155,11 @@ def fmt(ep: dict) -> dict:
     return FORMATS[ep.get("format", "long")]
 
 
+def story(ep: dict) -> list[dict]:
+    """Scenes as voiced and built: a ladder loops back to its first line, so it has no subscribe outro."""
+    return ep["scenes"] if ep.get("format") == "ladder" else ep["scenes"] + [CTA]
+
+
 def words(s: str) -> int:
     return len(re.findall(r"[\w'’-]+", s))
 
@@ -193,12 +203,15 @@ def image_of(ep: dict, scene: dict, w: Path) -> Path:
 
 
 # ---------- new ----------
-def cmd_new(eid: str, title: str, short: bool) -> None:
+def cmd_new(eid: str, title: str, form: str) -> None:
     p = ep_path(eid)
     if p.exists():
         sys.exit(f"{p} exists")
     tpl = json.loads((SKILL / "episode.template.json").read_text())
-    tpl.update(id=eid, title=title, format="short" if short else "long")
+    tpl.update(id=eid, title=title, format=form)
+    if form == "ladder":
+        for sc in tpl["scenes"]:
+            sc["rung"] = 1
     p.parent.mkdir(parents=True)
     p.write_text(json.dumps(tpl, indent=1, ensure_ascii=False) + "\n")
     print(p)
@@ -301,10 +314,12 @@ def cmd_check(eid: str, draft: bool) -> int:
             add("WARN", f"claim {cid} is not used by any scene")
     if scenes:
         hook = words(scenes[0].get("say", "")) / WPS
-        limit = 3 if ep.get("format") == "short" else 20
+        limit = 20 if ep.get("format") == "long" else 3
         add(
             "ok" if hook <= limit else "FAIL", f"hook {hook:.1f} s (<= {limit} s, no channel intro)"
         )
+    if ep.get("format") == "ladder" and scenes:
+        check_ladder(ep, scenes, add)
     unique = sum(isinstance(s.get("image"), dict) for s in scenes)
     add("ok", f"{len(scenes)} scenes, {unique} illustrations")
 
@@ -317,6 +332,31 @@ def cmd_check(eid: str, draft: bool) -> int:
         + (" (draft: unverified claims allowed)" if draft else "")
     )
     return 1 if fails else 0
+
+
+def check_ladder(ep: dict, scenes: list[dict], add) -> None:
+    """Rungs in order, each one ends on a name ("That's the door sensor."), the last line runs into the first."""
+    rungs = [s.get("rung") for s in scenes]
+    if not all(isinstance(r, int) and r >= 1 for r in rungs):
+        add("FAIL", "ladder: every scene needs 'rung' (1, 2, ...)")
+        return
+    if rungs != sorted(rungs) or sorted(set(rungs)) != list(range(1, rungs[-1] + 1)):
+        add("FAIL", f"ladder: rungs must run 1, 2, 3 ... in scene order (got {rungs})")
+    lo, hi = LADDER_RUNGS
+    n = len(set(rungs))
+    add("ok" if lo <= n <= hi else "FAIL", f"ladder: {n} rungs ({lo}-{hi})")
+    name = re.compile(LANGS[ep.get("lang", "en")]["name"], re.I)
+    for r in sorted(set(rungs)):
+        said = " ".join(s.get("say", "") for s in scenes if s.get("rung") == r)
+        if not name.search(said):
+            add("WARN", f'ladder rung {r}: no name beat ("That\'s the ..." / "That\'s why ...")')
+    last = scenes[-1].get("say", "").rstrip()
+    if last.endswith((".", "!", "?", "…")):
+        add(
+            "FAIL",
+            f"ladder: last line ends a sentence; it must run straight into the first line "
+            f"('...{last[-30:]}' + '{scenes[0].get('say', '')[:30]}...')",
+        )
 
 
 # ---------- images ----------
@@ -469,8 +509,9 @@ def cmd_voice(eid: str) -> None:
     vdir = work(eid) / "voice"
     vdir.mkdir(exist_ok=True)
     timeline, t = [], 0.0
-    scenes = ep["scenes"] + [CTA]
+    scenes = story(ep)
     sections = [s.get("section", "") for s in scenes]
+    loop = ep.get("format") == "ladder"
     for i, s in enumerate(scenes):
         mp3, wav = vdir / f"{s['id']}.mp3", vdir / f"{s['id']}.wav"
         stamp = vdir / f"{s['id']}.txt"
@@ -494,9 +535,10 @@ def cmd_voice(eid: str) -> None:
             )
             stamp.write_text(said)
         d = duration(wav)
-        # Longer pause where the story moves to a new section, a breath inside one; a hold on the last image.
+        # Longer pause where the story moves to a new section, a breath inside one; a hold on the last image,
+        # except a ladder, whose last line runs into the first when the Short replays.
         nxt = sections[i + 1] if i + 1 < len(sections) else None
-        gap = 1.2 if nxt is None else (0.7 if nxt != sections[i] else 0.3)
+        gap = (0.3 if loop else 1.2) if nxt is None else (0.7 if nxt != sections[i] else 0.3)
         timeline.append(
             {"id": s["id"], "start": round(t, 3), "speech": round(d, 3), "dur": round(d + gap, 3)}
         )
@@ -609,7 +651,7 @@ def cmd_build(eid: str, tl: list[dict] | None = None, out: Path | None = None) -
     clips = w / "clips"
     clips.mkdir(exist_ok=True)
     parts, audio = [], []
-    for s in ep["scenes"] + [CTA]:
+    for s in story(ep):
         if s is CTA:
             # The outro holds the last frame of the story, so the picture does not jump.
             img = clips / "CTA.png"
@@ -852,7 +894,7 @@ def write_srt(ep: dict, tl: dict, path: Path) -> None:
         return f"{ms // 3600000:02}:{ms // 60000 % 60:02}:{ms // 1000 % 60:02},{ms % 1000:03}"
 
     rows = []
-    for i, s in enumerate(ep["scenes"] + [CTA], 1):
+    for i, s in enumerate(story(ep), 1):
         t = tl[s["id"]]
         rows.append(f"{i}\n{ts(t['start'])} --> {ts(t['start'] + t['speech'])}\n{s['say']}\n")
     path.write_text("\n".join(rows))
@@ -952,6 +994,7 @@ MANUAL = [
     "Every important claim has 2 reliable sources (listed in the description)",
     "Uncertain claims are said as uncertain; no invented quotes or scenes",
     "First 20 s (Shorts: 2 s) create curiosity; one central question, answered at the end",
+    "Ladder: the replay loops cleanly (last picture returns to the first view, last line runs into the first)",
     "Illustrations match the channel look (prompt/look.txt); no photoreal frame, no garbled AI text",
     "Mechanical parts are drawn correctly (checked against a real reference photo)",
     "Narration is natural; technical terms and names are pronounced right",
@@ -1029,7 +1072,7 @@ def muse_qa(ep: dict, w: Path, out: Path, say) -> None:
 
     import difflib
 
-    script = norm(" ".join(s.get("say", "") for s in ep["scenes"] + [CTA]))
+    script = norm(" ".join(s.get("say", "") for s in story(ep)))
     heard = norm(" ".join(x["w"] for x in json.loads(words_path.read_text())))
     ratio = difflib.SequenceMatcher(None, script, heard, autojunk=False).ratio()
     say(
@@ -1135,8 +1178,9 @@ def main(argv: list[str]) -> int:
 
     if cmd == "new":
         if not rest:
-            sys.exit('cm.py new <id> "Title" [--short]')
-        cmd_new(eid, rest[0], "--short" in rest)
+            sys.exit('cm.py new <id> "Title" [--short|--ladder]')
+        form = "ladder" if "--ladder" in rest else "short" if "--short" in rest else "long"
+        cmd_new(eid, rest[0], form)
     elif cmd == "check":
         return cmd_check(eid, "--draft" in rest)
     elif cmd == "images":
