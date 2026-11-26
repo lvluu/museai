@@ -1,0 +1,438 @@
+{
+ "id": "s006-elevator-ladder",
+ "title": "Why don't elevators fall?",
+ "format": "ladder",
+ "question": "An elevator is a heavy box hanging on ropes over a long drop. Why does it almost never fall?",
+ "answer": "Layer after layer of safety: Otis's safety brake, the overspeed governor, the counterweight, door interlocks and pit buffers; and the door-close button is held back by US disability rules for the first seconds.",
+ "pillar": "Everyday Engineering",
+ "thumbnail": {
+  "text": "It cannot fall",
+  "scene": "S06",
+  "focus": 0.5
+ },
+ "music": {
+  "file": "",
+  "licence": ""
+ },
+ "claims": {
+  "c1": {
+   "text": "In 1854 at the New York Crystal Palace, Elisha Otis rode a raised platform and had its rope cut; it fell only a few inches before his safety device stopped it.",
+   "sources": [
+    "ASME, 'Elisha Graves Otis', https://www.asme.org/topics-resources/content/elisha-graves-otis",
+    "Wikipedia, 'Elisha Otis' (1854 New York Crystal Palace demonstration), https://en.wikipedia.org/wiki/Elisha_Otis",
+    "Scientific American, 'Hold the Elevator: How Otis's Early Systems Worked', https://www.scientificamerican.com/blog/anecdotes-from-the-archive/hold-the-elevator-how-otis-s-early-systems-worked/"
+   ],
+   "verified": true
+  },
+  "c2": {
+   "text": "Otis's device: a spring on top of the platform, held by the pull of the rope; when the rope goes slack, its ends engage saw-toothed ratchet bars along the guide rails.",
+   "sources": [
+    "ASME, 'Elisha Graves Otis', https://www.asme.org/topics-resources/content/elisha-graves-otis",
+    "Scientific American, 'Hold the Elevator' (pawls catch into racks on the rails), https://www.scientificamerican.com/blog/anecdotes-from-the-archive/hold-the-elevator-how-otis-s-early-systems-worked/"
+   ],
+   "verified": true
+  },
+  "c3": {
+   "text": "Overspeed governor: a governor rope tied to the car turns a sheave; when a speed-sensing device trips, the governor grips the rope, which pulls the car's safety jaws onto the guide rails.",
+   "sources": [
+    "TK Elevator Classroom On Demand, 'Governor module', https://www.tkelevator.com/us-en/tools/classroom-on-demand/governor-module.html",
+    "Wikipedia, 'Elevator' (governor clamps the car to the rails; page read in part), https://en.wikipedia.org/wiki/Elevator"
+   ],
+   "verified": true
+  },
+  "c4": {
+   "text": "The counterweight weighs about the car plus 40-50 % of its rated load, reducing the effort of the lifting machine.",
+   "sources": [
+    "TK Elevator Classroom On Demand, 'Counterweights', https://tkelevator.com/us-en/tools/classroom-on-demand/counterweights.html",
+    "Wikipedia, 'Elevator' (cab plus 40-50 % of capacity), https://en.wikipedia.org/wiki/Elevator"
+   ],
+   "verified": true
+  },
+  "c5": {
+   "text": "Hoistway door interlocks: a floor door cannot open until the car is at that landing, and the car cannot move while any hoistway door is open or unlocked.",
+   "sources": [
+    "N.Y. Comp. Codes R. & Regs. tit. 12 § 8-1.49 'Hoistway', https://www.law.cornell.edu/regulations/new-york/12-NYCRR-8-1.49",
+    "US patent US3912049A 'Interlock for center opening doors', https://patents.google.com/patent/US3912049A"
+   ],
+   "verified": true
+  },
+  "c6": {
+   "text": "Spring or oil buffers sit in the pit at the bottom of the shaft to cushion a car that runs past the bottom.",
+   "sources": [
+    "California Code of Regulations Title 8 § 3031 'Car and Counterweight Buffers and Bumpers', https://www.dir.ca.gov/Title8/3031.html",
+    "Wikipedia, 'Elevator' (buffer at the bottom of the shaft cushions the impact; page read in part), https://en.wikipedia.org/wiki/Elevator"
+   ],
+   "verified": true
+  },
+  "c7": {
+   "text": "Since the 1990 Americans with Disabilities Act, US elevator doors must stay open a minimum time that the door-close button cannot shorten; after that wait the button works.",
+   "sources": [
+    "ABC7 San Francisco, 'Does the elevator close door button really work?', 2018, https://abc7news.com/elevator-buttons-does-the-close-door-button-work/3187917/",
+    "Wikipedia, 'Elevator' (US minimum door timeout; page read in part), https://en.wikipedia.org/wiki/Elevator"
+   ],
+   "verified": true
+  }
+ },
+ "scenes": [
+  {
+   "id": "S01",
+   "rung": 1,
+   "section": "hook",
+   "say": "Hang a box on a rope.",
+   "image": {
+    "subject": "a tall narrow brick elevator shaft seen as a side cutaway, cream walls, deep teal shadows, two steel guide rails running up the shaft, a plain wooden box hanging from one rope that runs up over a big iron wheel at the top",
+    "show": "the box hangs halfway up the shaft above a long drop, the rope taut, warm amber light from above, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "motion": "the box sways gently on the rope, dust drifts in the light; the camera holds steady",
+   "move": "push_in",
+   "labels": [],
+   "claims": []
+  },
+  {
+   "id": "S02",
+   "rung": 1,
+   "section": "background",
+   "say": "Run the rope over a wheel at the top, let a motor turn it, and the box rides up and down.",
+   "image": {
+    "subject": "the top of the elevator shaft: a big iron wheel turned by a simple electric motor, the rope running over it down to the box",
+    "show": "the wheel turning, the rope moving, the box far below, gears and belt clearly drawn, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "cutaway"
+   },
+   "motion": "the wheel turns steadily, the rope slides over it, the box below rises slowly",
+   "move": "pan_down",
+   "labels": [],
+   "claims": []
+  },
+  {
+   "id": "S03",
+   "rung": 1,
+   "section": "mystery",
+   "say": "But ropes wear out. If this one snaps, the box falls all the way down.",
+   "image": {
+    "subject": "close view of the rope above the box, its fibres frayed and splitting",
+    "show": "a red highlight on the frayed strands, the dark empty shaft below the box, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "closeup"
+   },
+   "motion": "strands of the rope snap one by one and curl away; the box drops a little and shudders",
+   "move": "push_in",
+   "labels": [],
+   "claims": []
+  },
+  {
+   "id": "S04",
+   "rung": 1,
+   "section": "mechanism",
+   "say": "In 1854, Elisha Otis rode a platform high above a New York crowd and had the rope cut.",
+   "image": {
+    "subject": "a grand 1850s iron-and-glass exhibition hall, a crowd in period clothes looking up at an open wooden hoist platform raised high between two tall toothed rails",
+    "show": "a small man in a dark frock coat seen from behind standing on the platform, a worker below raising an axe toward the rope, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "motion": "the crowd looks up and points, the worker swings the axe and the rope parts; the platform jolts",
+   "move": "pan_up",
+   "labels": [],
+   "claims": [
+    "c1"
+   ]
+  },
+  {
+   "id": "S05",
+   "rung": 1,
+   "section": "mechanism",
+   "say": "It dropped only a few inches. A spring on top, bent by the rope's pull, snapped open.",
+   "image": {
+    "subject": "the top of the hoist platform: a long curved wagon spring held bent by the rope tied to its middle",
+    "show": "the cut rope going slack, the spring straightening out with motion lines, its two ends swinging toward the toothed rails on each side, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "cutaway"
+   },
+   "motion": "the slack rope falls away and the spring straightens in one quick snap, its ends swinging outward",
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c1",
+    "c2"
+   ]
+  },
+  {
+   "id": "S06",
+   "rung": 1,
+   "section": "discovery",
+   "say": "Its ends jammed into teeth along the rails. That's the safety brake.",
+   "image": {
+    "subject": "close view of the spring end locked into the saw-toothed iron rail",
+    "show": "the platform stopped firmly, the spring end caught in a tooth highlighted red, small dust puff, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "closeup"
+   },
+   "motion": "the spring end slides down one tooth and catches with a jolt; dust puffs out, everything holds still",
+   "move": "still",
+   "labels": [
+    "SAFETY BRAKE"
+   ],
+   "claims": [
+    "c2"
+   ]
+  },
+  {
+   "id": "S07",
+   "rung": 2,
+   "section": "mystery",
+   "say": "But a rope doesn't have to snap. If the motor slips, the car just runs away, faster and faster.",
+   "image": {
+    "subject": "a tall narrow brick elevator shaft seen as a side cutaway, cream walls, deep teal shadows, two steel guide rails running up the shaft, a modern enclosed elevator car racing downward",
+    "show": "speed lines behind the car, the floors blurring past, the motor at the top spinning wildly, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "motion": "the car speeds downward, the floors blur past faster and faster",
+   "move": "pan_down",
+   "labels": [],
+   "claims": []
+  },
+  {
+   "id": "S08",
+   "rung": 2,
+   "section": "mechanism",
+   "say": "So a second rope runs from the car to a small wheel at the top.",
+   "image": {
+    "subject": "a thin second steel rope running from the side of the elevator car up to a small wheel in its own housing at the top of the shaft",
+    "show": "the thin rope and small wheel highlighted in amber, the main ropes in grey behind them, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "diagram"
+   },
+   "motion": "the thin rope moves with the car and the small wheel spins along with it",
+   "move": "pan_up",
+   "labels": [],
+   "claims": [
+    "c3"
+   ]
+  },
+  {
+   "id": "S09",
+   "rung": 2,
+   "section": "mechanism",
+   "say": "If the car goes too fast, the wheel grabs that rope, and it yanks jaws that clamp the rails.",
+   "image": {
+    "subject": "cutaway of the elevator car's underside: steel jaws beside the guide rails, linked to the thin rope",
+    "show": "the jaws squeezing onto the rails with sparks, the thin rope held tight above, a red highlight on the jaws, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "cutaway"
+   },
+   "motion": "the thin rope jerks tight, the steel jaws slam onto the rails and slide with sparks, then the car stops",
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c3"
+   ]
+  },
+  {
+   "id": "S10",
+   "rung": 2,
+   "section": "discovery",
+   "say": "That's the governor, always watching the speed.",
+   "image": {
+    "subject": "the small governor wheel in its housing at the top of the shaft, sturdy and calm",
+    "show": "the wheel turning slowly again, the car resting safely far below, warm light, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "closeup"
+   },
+   "motion": "the governor wheel turns slowly and evenly; light glints on it",
+   "move": "pull_out",
+   "labels": [
+    "GOVERNOR"
+   ],
+   "claims": [
+    "c3"
+   ]
+  },
+  {
+   "id": "S11",
+   "rung": 3,
+   "section": "mystery",
+   "say": "But a car full of people is heavy. Lifting it straight up takes a huge motor.",
+   "image": {
+    "subject": "an elevator car packed with anonymous ordinary passengers, seen through a cutaway wall",
+    "show": "the motor at the top straining, glowing red with effort, the rope stretched taut, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "cutaway"
+   },
+   "motion": "the passengers shift, the motor strains and shakes, the car creeps up slowly",
+   "move": "pan_up",
+   "labels": [],
+   "claims": []
+  },
+  {
+   "id": "S12",
+   "rung": 3,
+   "section": "mechanism",
+   "say": "So the ropes' other end holds steel weights: the empty car plus 40 to 50 percent of a full load.",
+   "image": {
+    "subject": "a tall narrow brick elevator shaft seen as a side cutaway, cream walls, deep teal shadows, two steel guide rails running up the shaft, the ropes running over the top wheel and down the other side to a tall stack of steel weight blocks in a frame",
+    "show": "the elevator car on one side and the stack of steel blocks on the other, balanced like a seesaw, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "diagram"
+   },
+   "motion": "the car rises as the steel stack sinks on the other side, both moving smoothly together",
+   "move": "pan_down",
+   "labels": [],
+   "claims": [
+    "c4"
+   ]
+  },
+  {
+   "id": "S13",
+   "rung": 3,
+   "section": "discovery",
+   "say": "Now the motor lifts far less. That's the counterweight.",
+   "image": {
+    "subject": "the stack of steel counterweight blocks gliding down its own rails",
+    "show": "the blocks highlighted amber, the motor at the top running calmly, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "closeup"
+   },
+   "motion": "the counterweight glides down smoothly past the camera",
+   "move": "pan_down",
+   "labels": [
+    "COUNTERWEIGHT"
+   ],
+   "claims": [
+    "c4"
+   ]
+  },
+  {
+   "id": "S14",
+   "rung": 4,
+   "section": "mystery",
+   "say": "But what if a floor door opens and the car isn't there? One step, and you're in an empty shaft.",
+   "image": {
+    "subject": "an elevator landing in an apartment hallway, the sliding floor door open onto the dark empty shaft",
+    "show": "a person's foot about to step forward, a red highlight on the dark gap, cables hanging in the void, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "motion": "the floor door slides open onto darkness, a foot lifts toward it and stops",
+   "move": "push_in",
+   "labels": [],
+   "claims": []
+  },
+  {
+   "id": "S15",
+   "rung": 4,
+   "section": "mechanism",
+   "say": "So every floor door has a lock that only opens when the car stands right behind it.",
+   "image": {
+    "subject": "cutaway of the top of a floor door: a steel hook lock and a roller on the arriving elevator car that pushes it open",
+    "show": "the car arriving level with the floor, its roller lifting the hook, the lock highlighted amber, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "cutaway"
+   },
+   "motion": "the car slides into place, its roller lifts the steel hook and the door unlocks",
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c5"
+   ]
+  },
+  {
+   "id": "S16",
+   "rung": 4,
+   "section": "discovery",
+   "say": "And while any door is open, the car can't move. That's the door interlock.",
+   "image": {
+    "subject": "elevator doors standing open at a landing, the car waiting level with the floor",
+    "show": "a glowing amber circuit line running from the door lock up to the motor, the motor stopped, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "diagram"
+   },
+   "motion": "the doors stay open, the amber line pulses from the lock to the motor and the motor stays still",
+   "move": "pull_out",
+   "labels": [
+    "DOOR INTERLOCK"
+   ],
+   "claims": [
+    "c5"
+   ]
+  },
+  {
+   "id": "S17",
+   "rung": 5,
+   "section": "mystery",
+   "say": "But if everything else fails and the car still slides past the bottom floor?",
+   "image": {
+    "subject": "a tall narrow brick elevator shaft seen as a side cutaway, cream walls, deep teal shadows, two steel guide rails running up the shaft, the elevator car sliding down past the lowest floor into the pit",
+    "show": "the pit floor below with two sturdy cylinders standing ready, the car above them, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "motion": "the car slides slowly down past the last floor toward the pit",
+   "move": "pan_down",
+   "labels": [],
+   "claims": [
+    "c6"
+   ]
+  },
+  {
+   "id": "S18",
+   "rung": 5,
+   "section": "discovery",
+   "say": "Big springs or oil pistons wait in the pit to cushion the stop. Those are the buffers.",
+   "image": {
+    "subject": "close view of the elevator pit: a big coil spring and an oil-filled piston under the car",
+    "show": "the car settling onto them, the spring compressing, a red highlight on the buffers, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "closeup"
+   },
+   "motion": "the car settles onto the buffers, the spring squeezes and the piston sinks slowly, then everything rests",
+   "move": "still",
+   "labels": [
+    "BUFFERS"
+   ],
+   "claims": [
+    "c6"
+   ]
+  },
+  {
+   "id": "S19",
+   "rung": 6,
+   "section": "mystery",
+   "say": "And the button that closes the doors? Press it right away, and in many US elevators, nothing happens.",
+   "image": {
+    "subject": "inside a modern elevator car, a hand pressing a round button on the button panel",
+    "show": "the doors still wide open, the finger pressing again, the panel drawn as plain shapes with no symbols, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "closeup"
+   },
+   "motion": "the finger presses the button twice, the doors stay open",
+   "move": "push_in",
+   "labels": [],
+   "claims": [
+    "c7"
+   ]
+  },
+  {
+   "id": "S20",
+   "rung": 6,
+   "section": "discovery",
+   "say": "Since 1990, a disability law makes the doors wait a few seconds for anyone slower. After that, it works.",
+   "image": {
+    "subject": "an elevator landing, a person in a wheelchair rolling calmly into the open elevator car",
+    "show": "the doors waiting open, a soft amber glow around the doorway, then the doors beginning to close behind them, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "motion": "the wheelchair rolls in calmly, the doors wait, then slide closed",
+   "move": "pan_right",
+   "labels": [
+    "DOOR CLOSE"
+   ],
+   "claims": [
+    "c7"
+   ]
+  },
+  {
+   "id": "S21",
+   "rung": 6,
+   "section": "payoff",
+   "say": "That's why it feels fake. Brakes, governors, weights, locks and springs, and every elevator still starts the same way",
+   "image": {
+    "subject": "a tall narrow brick elevator shaft seen as a side cutaway, cream walls, deep teal shadows, two steel guide rails running up the shaft, a plain wooden box hanging from one rope that runs up over a big iron wheel at the top",
+    "show": "the same view as the opening: the box hangs halfway up the shaft above a long drop, the rope taut, warm amber light from above, the illustration fills the whole frame from top edge to bottom edge, no empty border",
+    "variant": "main"
+   },
+   "motion": "the camera settles on the hanging box, which sways gently on the rope",
+   "move": "pull_out",
+   "labels": [],
+   "claims": []
+  }
+ ],
+ "problem": "A box on a rope over a long drop: ropes wear, motors slip, doors open onto empty shafts.",
+ "solution": "Build it rung by rung: safety brake, governor, counterweight, door interlock, buffers.",
+ "surprise": "The door-close button does nothing for the first seconds, by law since 1990.",
+ "people_rule": "People are anonymous riders, workers and a crowd. Elisha Otis is named but shown only small and from behind. Never invented dialogue."
+}
