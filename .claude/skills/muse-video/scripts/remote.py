@@ -136,7 +136,21 @@ def speakers(argv):
         return int((tmp / "rc.txt").read_text().strip() or 1)
 
 
-def compose(root, files, assets, cmd, out, minutes=240):
+def sweep(tag):
+    """Delete the finished job folders of one video (<time>-<tag>-*, 'name' of compose) from the drive's
+    done/ and failed/: a failed job stays there to look at, and once the video is delivered nothing of it stays."""
+    n, root = 0, drive()
+    if not root:
+        return n
+    for state in ("done", "failed"):
+        for j in (Path(root) / state).glob(f"*-{tag}-*"):
+            if j.is_dir():
+                shutil.rmtree(j, ignore_errors=True)
+                n += 1
+    return n
+
+
+def compose(root, files, assets, cmd, out, minutes=240, name="compose"):
     """A longform compose on the Colab runtime: FILES (paths under ROOT) and ASSETS (name -> local path) go up
     as one tar (w/ and w/_assets there), CMD runs in the job folder and writes out.mp4, which lands at OUT.
     The segment cache (build/) is not sent: the runtime rebuilds every segment. 0 = OUT written."""
@@ -147,7 +161,7 @@ def compose(root, files, assets, cmd, out, minutes=240):
                 tf.add(f, arcname=str(Path(f).relative_to(root)))
             for name, src in assets.items():
                 tf.add(src, arcname=f"_assets/{name}")
-        with job("compose", [tar], f"mkdir w && tar xf in.tar -C w && {cmd}", minutes) as (tmp, rc):
+        with job(name, [tar], f"mkdir w && tar xf in.tar -C w && {cmd}", minutes) as (tmp, rc):
             log = tmp / "log.txt"
             if log.is_file():
                 sys.stdout.write(log.read_text()[-3000:])
@@ -158,7 +172,7 @@ def compose(root, files, assets, cmd, out, minutes=240):
     return 0
 
 
-def compose_here_or_exit(what, root, files, assets, cmd, out, minutes=240, tries=3):
+def compose_here_or_exit(what, root, files, assets, cmd, out, minutes=240, tries=3, name="compose"):
     """Compose on the Colab runtime or stop: ffmpeg renders never run on this Mac (2026-11-23: a failed upload
     fell back to a local 4K compose, load 85 on 15 cores). Offline or TRIES failed jobs -> exit 1."""
     host, why = online()
@@ -167,7 +181,7 @@ def compose_here_or_exit(what, root, files, assets, cmd, out, minutes=240, tries
                  "(muse-renderer install-service) and run it again.")
     print(f"{what}: remote (muse-renderer on {host})", flush=True)
     for k in range(1, tries + 1):
-        if compose(root, files, assets, cmd, out, minutes) == 0:
+        if compose(root, files, assets, cmd, out, minutes, name) == 0:
             return
         print(f"{what}: remote job failed (try {k}/{tries})", file=sys.stderr, flush=True)
     sys.exit(f"{what}: remote render failed {tries} times; not rendering on this machine.")

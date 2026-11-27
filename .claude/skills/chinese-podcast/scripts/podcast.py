@@ -12,6 +12,10 @@
   podcast.py clips DIR [-j 3]           one muse video clip per line -> DIR/stills/sNN.mp4 (wins over the png)
   podcast.py music DIR                  ACE music bed from the episode's music id -> DIR/music.m4a (Colab)
   podcast.py compose DIR [--out F]      film -> DIR/<slug>.mp4 on the Colab render queue (PODCAST_REMOTE=0 here)
+  podcast.py deliver DIR [--time 18h30] thumbnails + Desktop folder "Chinese NN · Day DD-MM HHhMM · slug" of the
+                                        posting day (mp4, thumbnails, captions.txt, .museai-post), work folder to
+                                        the Trash, this episode's render-queue folders deleted: run it at once
+                                        after QA, never wait to be asked
   podcast.py record DIR --video F       append to ~/.config/museai/chinese-podcast-history.json
 
 voice / captions need: uv run --no-project --python 3.12 --with edge-tts --with pypinyin --with pillow
@@ -22,7 +26,9 @@ import argparse
 import json
 import os
 import random
+import re
 import shlex
+import shutil
 import subprocess
 import sys
 import time
@@ -611,7 +617,7 @@ def cmd_compose(a):
         assets = {"music" + music.suffix: str(music)} if music.exists() else {}
         cmd = ("PODCAST_REMOTE=0 HV_NVENC=1 python3 \"$MUSEAI/.claude/skills/chinese-podcast/scripts/podcast.py\" "
                "compose w --out out.mp4" + (f" --music w/_assets/music{music.suffix}" if assets else ""))
-        remote.compose_here_or_exit("compose", d, files, assets, cmd, str(out))
+        remote.compose_here_or_exit("compose", d, files, assets, cmd, str(out), name=f"{ep['slug']}-compose")
         print(f"wrote {out} ({dur(out):.1f} s)")
         return
     build = d / "build"
@@ -671,6 +677,82 @@ def cmd_record(a):
     print(f"recorded {ep['seed']} ({len(h)} in {HIST})")
 
 
+# ---------------------------------------------------------------- deliver
+
+HEADS = {"youtube": "YouTube", "tiktok": "TikTok", "facebook": "Facebook", "instagram": "Instagram",
+         "x": "X", "threads": "Threads"}
+
+
+def desktop_slot(dest, slug, day, hhmm):
+    """Desktop folder of this episode: "Chinese NN · Fri 27-11 18h30 · <slug>". The posting day is episode.json's
+    date; the folder of the same slug is reused, a different episode on that day is an error (one post a day),
+    else NN = the next free number."""
+    rows = []
+    for p in dest.glob("Chinese [0-9]* · *"):
+        m = re.match(r"Chinese (\d+) · (\w+ \d\d-\d\d) (\d\dh\d\d) · (.+)$", p.name)
+        if m:
+            rows.append((int(m.group(1)), m.group(2), p, m.group(4)))
+    stamp = f"{day:%a %d-%m}"
+    for _n, _st, p, sl in rows:
+        if sl == slug:
+            return p
+    for _n, st, p, _sl in rows:
+        if st == stamp:
+            sys.exit(f"deliver: {stamp} is taken by {p.name}: change this episode's date in episode.json "
+                     "(one post a day) and compose again")
+    return dest / f"Chinese {max([n for n, *_ in rows], default=0) + 1:02d} · {stamp} {hhmm} · {slug}"
+
+
+def cmd_deliver(a):
+    """The finished episode, with no ask: thumbnails, then the Desktop folder of its posting day (mp4, both
+    thumbnails, captions.txt, .museai-post), work folder to the Trash, the render queue's folders of this episode
+    deleted, history recorded."""
+    d = Path(a.dir).resolve()
+    ep = ep_load(d)
+    slug = ep["slug"]
+    video = d / f"{slug}.mp4"
+    if not video.is_file() or dur(video) < 30:
+        sys.exit(f"deliver: {video} missing or unreadable: compose it first")
+    cj = d / "captions.json"
+    if not cj.is_file():
+        sys.exit(f"deliver: write {cj} first (social-captions skill: one caption per platform)")
+    caps = json.loads(cj.read_text())
+    day = date.fromisoformat(ep["date"])
+    hhmm = a.time.replace(":", "h")
+    folder = desktop_slot(Path(os.environ.get("DEST", Path.home() / "Desktop")), slug, day, hhmm)
+    thumbs = d / "thumbs"
+    if not (list(thumbs.glob("*_9x16.jpg")) and list(thumbs.glob("*_16x9.jpg"))):
+        stills = sorted((d / "stills").glob("s*.png"))
+        tool = SKILL.parent / "thumbnail" / "scripts" / "thumb.py"
+        run(["uv", "run", "--no-project", "--python", "3.12", "--with", "mediapipe==0.10.14", "--with",
+             "opencv-python-headless==4.10.0.84", "--with", "pillow==11.0.0", "--with", "fonttools", "python",
+             str(tool), "podcast", str(thumbs), *map(str, stills), "--name", slug, "--wide",
+             "--title", ep["title_vi"], "--zh", ep["title"], "--badge", "TRUYỆN TIẾNG TRUNG"])
+    folder.mkdir(parents=True, exist_ok=True)
+    when = f"{day:%a %d-%m} {a.time.replace('h', ':')}"
+    (folder / "captions.txt").write_text("\n\n".join(
+        f"=== {HEADS[k]}{'  ' + when if k not in ('x', 'threads') else ''} ===\n{caps[k]}"
+        for k in HEADS if k in caps) + "\n")
+    cmd_record(argparse.Namespace(dir=str(d), video=str(video)))
+    env = {**os.environ, "FINAL": "1", "CAPTIONS_FILE": str(cj), "THUMB_DIR": str(thumbs), "DEST": str(folder)}
+    run(["bash", str(SKILL.parent / "muse-video/scripts/deliver.sh"), str(video), str(d), slug], env=env)
+    # nothing of a finished episode stays in museai-work: the work folder (deliver.sh trashes it) and any
+    # sibling named after the slug (a stray <slug>.mp4, <slug>-x.log) go to the Trash here if still there
+    trash = Path.home() / ".Trash"
+    for p in [d, *d.parent.glob(f"{slug}*")]:
+        if p.exists():
+            shutil.move(str(p), str(trash / f"{p.name}-{int(time.time())}"))
+            print(f"trashed leftover {p}")
+    sys.path.insert(0, str(SKILL.parent / "muse-video" / "scripts"))
+    import remote
+
+    try:
+        print(f"render queue: {remote.sweep(f'{slug}-compose')} folder(s) of {slug} deleted")
+    except SystemExit as e:
+        print(f"render queue not swept: {e}")
+    print(f"DELIVERED {folder}")
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sp = ap.add_subparsers(dest="cmd", required=True)
@@ -705,6 +787,9 @@ def main():
     p = sp.add_parser("record")
     p.add_argument("dir")
     p.add_argument("--video", required=True)
+    p = sp.add_parser("deliver")
+    p.add_argument("dir")
+    p.add_argument("--time", default="18h30", help="posting time in the folder name (default 18h30)")
     a = ap.parse_args()
     globals()[f"cmd_{a.cmd}"](a)
 
