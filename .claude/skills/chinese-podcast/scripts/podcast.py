@@ -28,6 +28,7 @@ import os
 import random
 import re
 import shlex
+import shutil
 import subprocess
 import sys
 import time
@@ -735,6 +736,13 @@ def cmd_deliver(a):
     cmd_record(argparse.Namespace(dir=str(d), video=str(video)))
     env = {**os.environ, "FINAL": "1", "CAPTIONS_FILE": str(cj), "THUMB_DIR": str(thumbs), "DEST": str(folder)}
     run(["bash", str(SKILL.parent / "muse-video/scripts/deliver.sh"), str(video), str(d), slug], env=env)
+    # nothing of a finished episode stays in museai-work: the work folder (deliver.sh trashes it) and any
+    # sibling named after the slug (a stray <slug>.mp4, <slug>-x.log) go to the Trash here if still there
+    trash = Path.home() / ".Trash"
+    for p in [d, *d.parent.glob(f"{slug}*")]:
+        if p.exists():
+            shutil.move(str(p), str(trash / f"{p.name}-{int(time.time())}"))
+            print(f"trashed leftover {p}")
     sys.path.insert(0, str(SKILL.parent / "muse-video" / "scripts"))
     import remote
 

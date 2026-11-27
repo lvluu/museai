@@ -62,7 +62,7 @@ Work folder `~/dev/museai-work/chinese-podcast/<epNNN-slug>/`. Python deps:
    the thumbnails (`thumb.py podcast ... --wide --badge "TRUYỆN TIẾNG TRUNG"`), the Desktop folder of the posting day
    `Chinese NN · Fri 27-11 18h30 · <slug>/` (day = `episode.json` date, NN = next free number, a day already taken
    by another episode stops it) holding the mp4, both thumbnails, `captions.txt` and `.museai-post`, sends the work
-   folder to the Trash, deletes this episode's `<time>-<slug>-compose` folders from the render queue's done/ and
+   folder (and anything named after the slug beside it in `~/dev/museai-work/chinese-podcast`) to the Trash, deletes this episode's `<time>-<slug>-compose` folders from the render queue's done/ and
    failed/ on the drive, and records the history. Look at both thumbnails afterwards. Leave nothing in
    `~/dev/museai-work` or `muse-renderer` for a finished episode.
 
