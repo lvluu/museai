@@ -36,6 +36,7 @@ import subprocess
 import threading
 import time
 import unicodedata
+import uuid
 from datetime import date, datetime, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -171,6 +172,7 @@ LANDSCAPE_ALL_CHANNELS = ("chinese",)
 SLOT_KINDS = {"chinese": {1: "stroke", 2: "podcast", 3: "course"}}
 SLOT_DAYS = {("chinese", 3): {1, 3, 5}}  # Monday = 0
 SLOT_KEY = re.compile(r"^(\d{4}-\d{2}-\d{2})/([1-4])$")
+PARK_PREFIX = ".museai-renaming-"  # a folder waiting for its new name while the others are renumbered
 FOLDER_MARK = ".museai-post"  # marks a folder this module made for one video
 SETTLE = 30  # seconds a video must sit unchanged before it moves (deliver.sh may still be copying it)
 # Requests (in threads) and the caption writer all read-modify-write posts.json.
@@ -641,21 +643,34 @@ def _organize(root: Path, videos: list[Path], state: dict, now: datetime) -> lis
         entry = state.get(_key(p.name), {})
         n = count[_channel(p.name, entry)] = count.get(_channel(p.name, entry), 0) + 1
         want[p] = root / _folder_name(n, p.name, entry)
-    # Renumbering can swap two names: park the folders that move under hidden names first.
+    # A folder holding several videos stays as it is: renaming it once per video broke the pass for good.
+    shared = {d for d in {p.parent for p in ready if p.parent != root} if sum(q.parent == d for q in ready) > 1}
+    for p in ready:
+        if p.parent in shared:
+            want[p] = p.parent
+    # Renumbering can swap two names: park the folders that move under hidden names first. Names are
+    # unique (a leftover from an earlier pass must never be a target) and a folder already parked by a
+    # failed pass is renamed straight to its name below.
     parked = {}
     for p in ready:
-        if p.parent != root and p.parent != want[p]:
-            tmp = root / f".museai-renaming-{len(parked)}-{int(time.time())}"
+        if p.parent != root and p.parent != want[p] and not p.parent.name.startswith(PARK_PREFIX):
+            tmp = root / f"{PARK_PREFIX}{uuid.uuid4().hex[:12]}"
             p.parent.rename(tmp)
             parked[p] = tmp / p.name
     for p in ready:
         folder = want[p]
-        if p in parked:
-            parked[p].parent.rename(folder)
-        elif p.parent == root:
-            folder.mkdir(exist_ok=True)
-            (folder / FOLDER_MARK).touch()
-            shutil.move(str(p), folder / p.name)
+        try:
+            if p in parked:
+                parked[p].parent.rename(folder)
+            elif p.parent.name.startswith(PARK_PREFIX):
+                p.parent.rename(folder)
+            elif p.parent == root:
+                folder.mkdir(exist_ok=True)
+                (folder / FOLDER_MARK).touch()
+                shutil.move(str(p), folder / p.name)
+        except OSError as exc:  # this folder stays hidden; the next pass renames it, the others go on
+            log.warning("posting folders: %s -> %s: %s", p.parent, folder, exc)
+            continue
         new = out[p] = folder / p.name
         for kind in THUMBS:  # thumbnails delivered next to the video, also after it moved
             thumb = root / f"{new.stem} - thumbnail {kind}.jpg"
