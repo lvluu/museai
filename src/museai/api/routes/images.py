@@ -37,7 +37,8 @@ async def generate_images(body: ImageGenerationRequest, request: Request,
     results = await svc.gateway.generate_image(req)
     base = public_base(request)
     return {"created": int(time.time()),
-            "data": [_image_item(r, body.response_format, svc, base) for r in results]}
+            "data": [_image_item(r, body.response_format or svc.settings.image_response_format, svc, base)
+                     for r in results]}
 
 
 @router.post("/v1/images/edits")
@@ -54,6 +55,6 @@ async def edit_images(request: Request, svc: Services = Depends(get_services)) -
                        n=int(form.get("n") or 1), reference_images=refs,
                        timeout=svc.settings.image_timeout)
     results = await svc.gateway.generate_image(req)
-    fmt = str(form.get("response_format") or "url")
+    fmt = str(form.get("response_format") or svc.settings.image_response_format)
     base = public_base(request)
     return {"created": int(time.time()), "data": [_image_item(r, fmt, svc, base) for r in results]}

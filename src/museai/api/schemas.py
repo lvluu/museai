@@ -37,7 +37,7 @@ class ImageGenerationRequest(_Lenient):
     model: str | None = None
     n: int = Field(default=1, ge=1, le=4)
     size: str | None = None
-    response_format: Literal["url", "b64_json"] = "url"
+    response_format: Literal["url", "b64_json"] | None = None
     user: str | None = None
     image: str | list[str] | None = Field(
         default=None,
