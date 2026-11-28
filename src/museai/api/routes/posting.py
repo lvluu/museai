@@ -597,8 +597,23 @@ def queued(svc: Services) -> list[Path]:
     root = svc.settings.post_dir
     if not root.is_dir():
         return []
-    found = [p for p in root.iterdir() if _is_video(p)] + [p for d in _folders(root) for p in d.iterdir() if _is_video(p)]
-    return sorted(found, key=lambda p: p.stat().st_mtime, reverse=True)
+    found: list[tuple[float, Path]] = []
+    try:
+        entries = [root, *_folders(root)]
+    except OSError:
+        return []
+    for d in entries:
+        try:
+            children = list(d.iterdir())
+        except OSError:  # a folder renamed (renumbered) while listing: the next pass sees it
+            continue
+        for p in children:
+            try:
+                if _is_video(p):
+                    found.append((p.stat().st_mtime, p))
+            except OSError:  # a file moved while listing
+                continue
+    return [p for _, p in sorted(found, key=lambda t: t[0], reverse=True)]
 
 
 def _folder_name(n: int, name: str, entry: dict) -> str:
