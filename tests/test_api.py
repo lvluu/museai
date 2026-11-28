@@ -74,6 +74,23 @@ def test_image_b64(client, auth):
     assert r.json()["data"][0]["b64_json"]
 
 
+def test_image_default_format_follows_the_setting(settings):
+    from fastapi.testclient import TestClient
+
+    from museai.app import create_app
+    from museai.drivers.mock import MockDriver
+
+    settings.image_response_format = "b64_json"
+    with TestClient(create_app(settings, MockDriver(delay=0))) as c:
+        r = c.post("/v1/images/generations", headers={"Authorization": f"Bearer {settings.api_key}"},
+                   json={"prompt": "a dog"})
+        item = r.json()["data"][0]
+        assert item["b64_json"] and "url" not in item
+        r = c.post("/v1/images/generations", headers={"Authorization": f"Bearer {settings.api_key}"},
+                   json={"prompt": "a dog", "response_format": "url"})
+        assert r.json()["data"][0]["url"]
+
+
 def test_image_with_reference_images(client, auth):
     png = "data:image/png;base64," + base64.b64encode(b"\x89PNG\r\n\x1a\n").decode()
     r = client.post("/v1/images/generations", headers=auth,

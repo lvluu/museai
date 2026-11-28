@@ -106,6 +106,12 @@ class Settings(BaseSettings):
     browser_profile_dir: Path | None = None
     page_ready_timeout: float = 45.0
 
+    image_response_format: Literal["url", "b64_json"] = Field(
+        default="url",
+        description="What /v1/images/* answers when the request names no response_format. b64_json suits a "
+        "gateway that callers cannot reach for /v1/media links (one in front of a firewalled museai).",
+    )
+
     # --- timeouts (seconds) ---
     chat_timeout: float = 300.0
     first_token_timeout: float = 45.0
